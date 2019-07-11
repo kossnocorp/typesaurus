@@ -1,0 +1,25 @@
+{
+  "name": "storetype",
+  "version": "0.1.0",
+  "description": "Firestore ORM, definitely typed",
+  "main": "index.js",
+  "repository": "https://github.com/kossnocorp/storetype",
+  "author": "Sasha Koss <koss@nocorp.me>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/jest": "^24.0.13",
+    "@types/node": "^12.0.4",
+    "jest": "^24.8.0",
+    "nanoid": "^2.0.3",
+    "prettier": "^1.17.1",
+    "typescript": "^3.6.0-dev.20190709"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^2.2.3",
+    "firebase": "^6.2.4",
+    "firebase-admin": "^8.2.0"
+  }
+}
