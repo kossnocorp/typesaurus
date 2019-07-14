@@ -16,26 +16,11 @@ describe('query', () => {
   })
 
   it('queries documents', async () => {
-    const docs = await query(contacts, [
-      store.where('ownerId', '==', ownerId),
-      store.order('year', 'asc')
-    ])
-    assert.deepEqual(docs.map(({ data: { name } }) => name), [
-      'Sasha',
-      'Tati',
-      'Lesha'
-    ])
-  })
-
-  it('allows to order by desc', async () => {
-    const docs = await query(contacts, [
-      store.where('ownerId', '==', ownerId),
-      store.order('year', 'desc')
-    ])
-    assert.deepEqual(docs.map(({ data: { name } }) => name), [
+    const docs = await query(contacts, [store.where('ownerId', '==', ownerId)])
+    assert.deepEqual(docs.map(({ data: { name } }) => name).sort(), [
       'Lesha',
-      'Tati',
-      'Sasha'
+      'Sasha',
+      'Tati'
     ])
   })
 
@@ -68,8 +53,34 @@ describe('query', () => {
     ])
   })
 
-  describe('.limit', () => {
-    it('limits documents', async () => {
+  describe('ordering', () => {
+    it('allows to order', async () => {
+      const docs = await query(contacts, [
+        store.where('ownerId', '==', ownerId),
+        store.order('year', 'asc')
+      ])
+      assert.deepEqual(docs.map(({ data: { name } }) => name), [
+        'Sasha',
+        'Tati',
+        'Lesha'
+      ])
+    })
+
+    it('allows to order by desc', async () => {
+      const docs = await query(contacts, [
+        store.where('ownerId', '==', ownerId),
+        store.order('year', 'desc')
+      ])
+      assert.deepEqual(docs.map(({ data: { name } }) => name), [
+        'Lesha',
+        'Tati',
+        'Sasha'
+      ])
+    })
+  })
+
+  describe('limiting', () => {
+    it('allows to limit response length', async () => {
       const docs = await query(contacts, [
         store.where('ownerId', '==', ownerId),
         store.order('year', 'asc'),
