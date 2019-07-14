@@ -1,4 +1,4 @@
-import store, {
+import firestore, {
   FirestoreDocumentReference,
   FirestoreFieldValue
 } from '../adaptor/node'
@@ -80,5 +80,5 @@ export function isArray(object: any) {
 }
 
 export function refToDoc<Model>(ref: Ref<Model>) {
-  return store.doc(ref.path)
+  return firestore.doc(ref.path)
 }

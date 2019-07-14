@@ -15,20 +15,53 @@ import store from 'storetype'
 
 type User = { name: string }
 const users = collection<User>('users')
+
+// Add a document to a collection with auto-generated id
 store.add(users, { name: 'Sasha' })
-// await addDoc(users, { name: 'Sasha' })
+//=> Promise<Doc<User>>
+
+// Set or overwrite a document with given id
+store.set(users, '42', { name: 'Sasha' })
+//=> Promise<Doc<User>>
+
+// Update a document with given id
+store.update(users, '42', { name: 'Sasha' })
+//=> Promise<void>
 ```
 
 ### Read data
 
 ```ts
-import { collection, getDoc } from 'storetype'
+import store from 'storetype'
 type User = { name: string }
 const users = collection<User>('users')
-await addDoc(users, { name: 'Sasha' })
+
+// Get a document with given id
+store.get(users, '42')
+//=> Promise<Doc<User> | undefined>
+
+// Get all documents in a collection
+store.all(users)
+//=> Promise<Doc<User>[]>
+
+// Query collection
+store.query(users, [store.where('name', '===', 'Sasha')])
+//=> Promise<Doc<User>[]>
 ```
 
-### API
+### Remove data
+
+```ts
+import store from 'storetype'
+type User = { name: string }
+const users = collection<User>('users')
+
+// Remove a document with given id
+store.clear(users, '42')
+//=> Promise<void>
+```
+
+## API
 
 ## Usage
 

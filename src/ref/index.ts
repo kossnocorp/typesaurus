@@ -1,4 +1,4 @@
-import store from '../adaptor'
+import firestore from '../adaptor'
 import { Collection } from '../collection/index'
 import { doc, Doc } from '../doc'
 
@@ -20,7 +20,7 @@ export function getRefPath(ref: Ref<any>) {
 }
 
 export function refToFirebaseDocument<Model>(ref: Ref<Model>) {
-  return store.doc(getRefPath(ref))
+  return firestore.doc(getRefPath(ref))
 }
 
 export function pathToRef<Model>(path: string): Ref<Model> {
