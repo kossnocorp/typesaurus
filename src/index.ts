@@ -1,29 +1,15 @@
-import firestore, {
-  FirestoreWhereFilterOp,
-  FirestoreOrderByDirection
-} from './adaptor'
+import firestore from './adaptor'
 import { Collection } from './collection'
 import { doc, Doc } from './doc'
-import { ref, Ref } from './ref'
-import { Value } from './data'
-import where, { WhereQuery } from './where/index'
-import update from './update/index'
+import { ref } from './ref'
+import where from './where'
+import order from './order'
+import update from './update'
+import limit from './limit'
+import query from './query'
 
 const store = { get, set, add, update, clear, query, where, order, limit }
 export default store
-
-export interface OrderQuery<Model> {
-  type: 'order'
-  field: keyof Model
-  method: FirestoreOrderByDirection
-}
-
-export interface LimitQuery {
-  type: 'limit'
-  number: number
-}
-
-export type Query<Model> = OrderQuery<Model> | WhereQuery<Model> | LimitQuery
 
 async function get<Model>(
   collection: Collection<Model>,
@@ -53,58 +39,4 @@ async function add<Model>(collection: Collection<Model>, data: Model) {
 async function clear(collection: Collection<any>, id: string) {
   const firebaseDoc = firestore.collection(collection.path).doc(id)
   await firebaseDoc.delete()
-}
-
-type FirebaseQuery =
-  | FirebaseFirestore.CollectionReference
-  | FirebaseFirestore.Query
-
-async function query<Model>(
-  collection: Collection<Model>,
-  queries: Query<Model>[]
-): Promise<Doc<Model>[]> {
-  const firebaseQuery = queries.reduce(
-    (acc, q) => {
-      switch (q.type) {
-        case 'order': {
-          const { field, method } = q
-          return acc.orderBy(field.toString(), method)
-        }
-
-        case 'where': {
-          const { field, filter, value } = q
-          const fieldName = Array.isArray(field) ? field.join('.') : field
-          return acc.where(fieldName, filter, value)
-        }
-
-        case 'limit': {
-          const { number } = q
-          return acc.limit(number)
-        }
-      }
-    },
-    firestore.collection(collection.path) as FirebaseQuery
-  )
-  const firebaseSnap = await firebaseQuery.get()
-  return firebaseSnap.docs.map(d =>
-    doc(ref(collection, d.id), d.data() as Model)
-  )
-}
-
-function order<Model>(
-  field: keyof Model,
-  method: FirestoreOrderByDirection
-): OrderQuery<Model> {
-  return {
-    type: 'order',
-    field,
-    method
-  }
-}
-
-function limit(number: number): LimitQuery {
-  return {
-    type: 'limit',
-    number
-  }
 }
