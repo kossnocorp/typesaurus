@@ -7,13 +7,10 @@ import { doc, Doc } from './doc'
 import { ref, Ref } from './ref'
 import { Value } from './data'
 import where, { WhereQuery } from './store/where'
+import update from './store/update'
 
 const store = { get, set, add, update, clear, query, where, order, limit }
 export default store
-
-export type ModelUpdate<Model> = {
-  [Key in keyof Model]?: Model[Key] | Value<Model[Key]>
-}
 
 export interface OrderQuery<Model> {
   type: 'order'
@@ -51,15 +48,6 @@ async function set<Model>(
 async function add<Model>(collection: Collection<Model>, data: Model) {
   const firebaseDoc = await firestore.collection(collection.path).add(data)
   return doc<Model>(ref(collection, firebaseDoc.id), data)
-}
-
-async function update<Model>(
-  collection: Collection<Model>,
-  id: string,
-  data: ModelUpdate<Model>
-) {
-  const firebaseDoc = firestore.collection(collection.path).doc(id)
-  await firebaseDoc.update(data)
 }
 
 async function clear(collection: Collection<any>, id: string) {
