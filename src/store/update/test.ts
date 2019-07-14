@@ -1,6 +1,7 @@
 import assert from 'assert'
 import store from '../..'
 import { collection } from '../../collection'
+import field from '../../field'
 import update from '.'
 
 describe('update', () => {
@@ -28,8 +29,8 @@ describe('update', () => {
     })
     const { id } = user.ref
     await update(users, id, [
-      ['name', 'Sasha Koss'],
-      [['address', 'city'], 'Dimitrovgrad']
+      field('name', 'Sasha Koss'),
+      field(['address', 'city'], 'Dimitrovgrad')
     ])
     const userFromDB = await store.get(users, id)
     assert.deepEqual(userFromDB.data, {
