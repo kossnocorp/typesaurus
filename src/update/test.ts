@@ -1,7 +1,7 @@
 import assert from 'assert'
-import store from '../..'
-import { collection } from '../../collection'
-import field from '../../field'
+import store from '..'
+import { collection } from '../collection'
+import field from '../field'
 import update from '.'
 
 describe('update', () => {

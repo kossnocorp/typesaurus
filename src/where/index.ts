@@ -1,4 +1,4 @@
-import { FirestoreWhereFilterOp } from '../../adaptor'
+import { FirestoreWhereFilterOp } from '../adaptor'
 
 export interface WhereQuery<_Model> {
   type: 'where'

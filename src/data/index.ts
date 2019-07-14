@@ -1,7 +1,7 @@
 import firestore, {
   FirestoreDocumentReference,
   FirestoreFieldValue
-} from '../adaptor/node'
+} from '../adaptor'
 import { Ref, pathToRef } from '../ref'
 
 export type ValueIncrement = {

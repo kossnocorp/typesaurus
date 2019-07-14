@@ -1,7 +1,7 @@
-import firestore from '../../adaptor'
-import { Collection } from '../../collection'
-import { Value } from '../../data'
-import { Field } from '../../field'
+import firestore from '../adaptor'
+import { Collection } from '../collection'
+import { Value } from '../data'
+import { Field } from '../field'
 
 export type ModelUpdate<Model> = {
   [Key in keyof Model]?: Model[Key] | Value<Model[Key]>

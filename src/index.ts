@@ -6,8 +6,8 @@ import { Collection } from './collection'
 import { doc, Doc } from './doc'
 import { ref, Ref } from './ref'
 import { Value } from './data'
-import where, { WhereQuery } from './store/where'
-import update from './store/update'
+import where, { WhereQuery } from './where/index'
+import update from './update/index'
 
 const store = { get, set, add, update, clear, query, where, order, limit }
 export default store
