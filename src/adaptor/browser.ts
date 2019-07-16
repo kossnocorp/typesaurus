@@ -11,6 +11,7 @@ export default store
 export type FirestoreQuery = firebase.firestore.Query
 export type FirestoreDocumentReference = firebase.firestore.DocumentReference
 export const FirestoreDocumentReference = firebase.firestore.DocumentReference
+export type FirestoreDocumentData = firebase.firestore.DocumentData
 export type FirestoreCollectionReference = firebase.firestore.CollectionReference
 export type FirestoreOrderByDirection = firebase.firestore.OrderByDirection
 export type FirestoreWhereFilterOp = firebase.firestore.WhereFilterOp

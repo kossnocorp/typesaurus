@@ -11,6 +11,7 @@ export default store
 export type FirestoreQuery = admin.firestore.Query
 export type FirestoreDocumentReference = admin.firestore.DocumentReference
 export const FirestoreDocumentReference = admin.firestore.DocumentReference
+export type FirestoreDocumentData = admin.firestore.DocumentData
 export const FirestoreFieldValue = admin.firestore.FieldValue
 export type FirebaseWriteBatch = admin.firestore.WriteBatch
 export type FirestoreCollectionReference = admin.firestore.CollectionReference
