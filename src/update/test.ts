@@ -1,21 +1,28 @@
 import assert from 'assert'
-import store from '..'
+import nanoid from 'nanoid'
+import update from '.'
+import add from '../add'
 import { collection } from '../collection'
 import field from '../field'
-import update from '.'
+import get from '../get'
+import { Ref } from '../ref'
+import set from '../set'
 
 describe('update', () => {
   type User = { name: string; address: { city: string } }
+  type Post = { author: Ref<User>; text: string }
+
   const users = collection<User>('users')
+  const posts = collection<Post>('post')
 
   it('updates document', async () => {
-    const user = await store.add(users, {
+    const user = await add(users, {
       name: 'Sasha',
       address: { city: 'Omsk' }
     })
     const { id } = user.ref
     await update(users, id, { name: 'Sasha Koss' })
-    const userFromDB = await store.get(users, id)
+    const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha Koss',
       address: { city: 'Omsk' }
@@ -23,7 +30,7 @@ describe('update', () => {
   })
 
   it('allows update nested maps', async () => {
-    const user = await store.add(users, {
+    const user = await add(users, {
       name: 'Sasha',
       address: { city: 'Omsk' }
     })
@@ -32,10 +39,32 @@ describe('update', () => {
       field('name', 'Sasha Koss'),
       field(['address', 'city'], 'Dimitrovgrad')
     ])
-    const userFromDB = await store.get(users, id)
+    const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha Koss',
       address: { city: 'Dimitrovgrad' }
     })
+  })
+
+  it('supports references', async () => {
+    const userId1 = nanoid()
+    const userId2 = nanoid()
+    const user1 = await set(users, userId1, {
+      name: 'Sasha',
+      address: { city: 'Omsk' }
+    })
+    const user2 = await set(users, userId2, {
+      name: 'Tati',
+      address: { city: 'Dimitrovgrad' }
+    })
+    const postId = nanoid()
+    const post = await set(posts, postId, {
+      author: user1.ref,
+      text: 'Hello!'
+    })
+    await update(posts, post.ref.id, { author: user2.ref })
+    const postFromDB = await get(posts, postId)
+    const userFromDB = await get(users, postFromDB.data.author.id)
+    assert(userFromDB.data.name === 'Tati')
   })
 })

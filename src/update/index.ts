@@ -2,6 +2,7 @@ import firestore from '../adaptor'
 import { Collection } from '../collection'
 import { Value } from '../value'
 import { Field } from '../field'
+import { unwrapData } from '../data'
 
 export type ModelUpdate<Model> = {
   [Key in keyof Model]?: Model[Key] | Value<Model[Key]>
@@ -34,7 +35,7 @@ async function update<Model>(
         {} as { [key: string]: any }
       )
     : data
-  await firebaseDoc.update(updateData)
+  await firebaseDoc.update(unwrapData(updateData))
 }
 
 export default update

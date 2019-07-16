@@ -6,6 +6,7 @@ import { WhereQuery } from '../where'
 import { OrderQuery } from '../order'
 import { LimitQuery } from '../limit'
 import { Cursor, CursorMethod } from '../cursor'
+import { wrapData, unwrapData } from '../data'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -39,7 +40,7 @@ export default async function query<Model>(
           acc.firestoreQuery = acc.firestoreQuery.where(
             fieldName,
             filter,
-            value
+            unwrapData(value)
           )
           break
         }
@@ -66,7 +67,7 @@ export default async function query<Model>(
         methodValues = [cursor.method, []]
         acc.push(methodValues)
       }
-      methodValues[1].push(cursor.value)
+      methodValues[1].push(unwrapData(cursor.value))
       return acc
     },
     [] as [CursorMethod, any[]][]
@@ -81,6 +82,6 @@ export default async function query<Model>(
 
   const firebaseSnap = await paginatedFirestoreQuery.get()
   return firebaseSnap.docs.map(d =>
-    doc(ref(collection, d.id), d.data() as Model)
+    doc(ref(collection, d.id), wrapData(d.data()) as Model)
   )
 }

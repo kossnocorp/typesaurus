@@ -2,10 +2,15 @@ import all from '.'
 import assert from 'assert'
 import set from '../set'
 import { collection } from '../collection'
+import { Ref, ref } from '../ref'
+import get from '../get'
 
 describe('all', () => {
   type Book = { title: string }
+  type Order = { book: Ref<Book>; quantity: number }
+
   const books = collection<Book>('books')
+  const orders = collection<Order>('orders')
 
   beforeAll(async () => {
     await Promise.all([
@@ -21,6 +26,22 @@ describe('all', () => {
       'Sapiens',
       'The 22 Immutable Laws of Marketing',
       'The Mom Test'
+    ])
+  })
+
+  it('expands references', async () => {
+    await Promise.all([
+      set(orders, 'order1', { book: ref(books, 'sapiens'), quantity: 1 }),
+      set(orders, 'order2', { book: ref(books, '22laws'), quantity: 1 })
+    ])
+    const docs = await all(orders)
+    assert(docs[0].data.book.__type__ === 'ref')
+    const orderedBooks = await Promise.all(
+      docs.map(doc => get(books, doc.data.book.id))
+    )
+    assert.deepEqual(orderedBooks.map(({ data: { title } }) => title).sort(), [
+      'Sapiens',
+      'The 22 Immutable Laws of Marketing'
     ])
   })
 })

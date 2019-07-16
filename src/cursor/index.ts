@@ -1,12 +1,14 @@
+// import { Ref } from '../ref'
+
 export type CursorMethod = 'startAfter' | 'startAt' | 'endBefore' | 'endAt'
 
 export interface Cursor<Model, Key extends keyof Model> {
   method: CursorMethod
-  value: Model[Key] | undefined
+  value: Model[Key] | /*Ref<Model> |*/ undefined
 }
 
 export function startAfter<Model, Key extends keyof Model>(
-  value: undefined | Model[Key]
+  value: Model[Key] | /*Ref<Model> |*/ undefined
 ): Cursor<Model, Key> {
   return {
     method: 'startAfter',
@@ -15,7 +17,7 @@ export function startAfter<Model, Key extends keyof Model>(
 }
 
 export function startAt<Model, Key extends keyof Model>(
-  value: undefined | Model[Key]
+  value: Model[Key] | /*Ref<Model> |*/ undefined
 ): Cursor<Model, Key> {
   return {
     method: 'startAt',
@@ -24,7 +26,7 @@ export function startAt<Model, Key extends keyof Model>(
 }
 
 export function endBefore<Model, Key extends keyof Model>(
-  value: undefined | Model[Key]
+  value: Model[Key] | /*Ref<Model> |*/ undefined
 ): Cursor<Model, Key> {
   return {
     method: 'endBefore',
@@ -33,7 +35,7 @@ export function endBefore<Model, Key extends keyof Model>(
 }
 
 export function endAt<Model, Key extends keyof Model>(
-  value: undefined | Model[Key]
+  value: Model[Key] | /*Ref<Model> |*/ undefined
 ): Cursor<Model, Key> {
   return {
     method: 'endAt',
