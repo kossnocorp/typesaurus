@@ -1,6 +1,6 @@
 import firestore from '../adaptor'
 import { Collection } from '../collection'
-import { Value } from '../data'
+import { Value } from '../value'
 import { Field } from '../field'
 
 export type ModelUpdate<Model> = {
