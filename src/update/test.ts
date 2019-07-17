@@ -7,9 +7,15 @@ import field from '../field'
 import get from '../get'
 import { Ref } from '../ref'
 import set from '../set'
+import value from '../value'
 
 describe('update', () => {
-  type User = { name: string; address: { city: string } }
+  type User = {
+    name: string
+    address: { city: string }
+    guest?: boolean
+    visits?: number
+  }
   type Post = { author: Ref<User>; text: string }
 
   const users = collection<User>('users')
@@ -66,5 +72,35 @@ describe('update', () => {
     const postFromDB = await get(posts, postId)
     const userFromDB = await get(users, postFromDB.data.author.id)
     assert(userFromDB.data.name === 'Tati')
+  })
+
+  it('allows clearing values', async () => {
+    const user = await add(users, {
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      guest: true
+    })
+    const { id } = user.ref
+    await update(users, id, { guest: value('clear') })
+    const userFromDB = await get(users, id)
+    assert.deepEqual(userFromDB.data, {
+      name: 'Sasha',
+      address: { city: 'Omsk' }
+    })
+  })
+
+  it('allows incrementing values', async () => {
+    const user = await add(users, {
+      name: 'Sasha',
+      address: { city: 'Omsk' }
+    })
+    const { id } = user.ref
+    await update(users, id, { visits: value('increment', 2) })
+    const userFromDB = await get(users, id)
+    assert.deepEqual(userFromDB.data, {
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      visits: 2
+    })
   })
 })

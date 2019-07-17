@@ -1,28 +1,19 @@
-import firestore, {
-  FirestoreDocumentReference,
-  FirestoreFieldValue
-} from '../adaptor'
-import { Ref, pathToRef, refToFirebaseDocument } from '../ref'
+import { FirestoreDocumentReference, FirestoreFieldValue } from '../adaptor'
+import { pathToRef, Ref, refToFirebaseDocument } from '../ref'
 import { Value } from '../value'
-import { doc } from '../doc'
 
 export function unwrapData(value: any) {
-  // if (value instanceof Document) {
-  //   return refToDoc(value.ref)
-  // } else
-
   if (value && typeof value === 'object') {
     if (value.__type__ === 'ref') {
       return refToFirebaseDocument(value as Ref<any>)
-      // } else if (value.__type__ === 'value') {
-      //   const fieldValue = value as Value<any>
-      //   switch (fieldValue.operation) {
-      //     case 'clear':
-      //       return FirestoreFieldValue.delete()
-
-      //     case 'increment':
-      //       return FirestoreFieldValue.increment(fieldValue.number)
-      //   }
+    } else if (value.__type__ === 'value') {
+      const fieldValue = value as Value<any>
+      switch (fieldValue.operation) {
+        case 'clear':
+          return FirestoreFieldValue.delete()
+        case 'increment':
+          return FirestoreFieldValue.increment(fieldValue.number)
+      }
     }
 
     const unwrappedObject: { [key: string]: any } = Object.assign(
@@ -56,11 +47,3 @@ export function wrapData(data: unknown) {
     return data
   }
 }
-
-// export function isArray(object: any) {
-//   return Object.prototype.toString.call(object) === '[object Array]'
-// }
-
-// export function refToDoc<Model>(ref: Ref<Model>) {
-//   return firestore.doc(ref.path)
-// }
