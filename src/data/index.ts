@@ -13,6 +13,10 @@ export function unwrapData(value: any) {
           return FirestoreFieldValue.delete()
         case 'increment':
           return FirestoreFieldValue.increment(fieldValue.number)
+        case 'arrayUnion':
+          return FirestoreFieldValue.arrayUnion(...fieldValue.values)
+        case 'arrayRemove':
+          return FirestoreFieldValue.arrayRemove(...fieldValue.values)
       }
     }
 

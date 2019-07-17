@@ -103,4 +103,63 @@ describe('update', () => {
       visits: 2
     })
   })
+
+  describe('updating arrays', () => {
+    type Favorite = { userId: string; favorites: string[] }
+    const favorites = collection<Favorite>('favorites')
+
+    it('union update', async () => {
+      const userId = nanoid()
+      const fav = await add(favorites, {
+        userId,
+        favorites: [
+          'Sapiens',
+          'The 22 Immutable Laws of Marketing',
+          'The Mom Test'
+        ]
+      })
+      const { id } = fav.ref
+      await update(favorites, id, {
+        favorites: value('arrayUnion', [
+          "Harry Potter and the Sorcerer's Stone",
+          'Harry Potter and the Chamber of Secrets'
+        ])
+      })
+      const favFromDB = await get(favorites, id)
+      assert.deepEqual(favFromDB.data, {
+        userId,
+        favorites: [
+          'Sapiens',
+          'The 22 Immutable Laws of Marketing',
+          'The Mom Test',
+          "Harry Potter and the Sorcerer's Stone",
+          'Harry Potter and the Chamber of Secrets'
+        ]
+      })
+    })
+
+    it('remove update', async () => {
+      const userId = nanoid()
+      const fav = await add(favorites, {
+        userId,
+        favorites: [
+          'Sapiens',
+          'The 22 Immutable Laws of Marketing',
+          'The Mom Test'
+        ]
+      })
+      const { id } = fav.ref
+      await update(favorites, id, {
+        favorites: value('arrayRemove', [
+          'The 22 Immutable Laws of Marketing',
+          'Sapiens'
+        ])
+      })
+      const favFromDB = await get(favorites, id)
+      assert.deepEqual(favFromDB.data, {
+        userId,
+        favorites: ['The Mom Test']
+      })
+    })
+  })
 })
