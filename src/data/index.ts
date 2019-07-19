@@ -23,6 +23,8 @@ export function unwrapData(value: any) {
           return FirestoreFieldValue.arrayUnion(...fieldValue.values)
         case 'arrayRemove':
           return FirestoreFieldValue.arrayRemove(...fieldValue.values)
+        case 'serverDate':
+          return FirestoreFieldValue.serverTimestamp()
       }
     }
 

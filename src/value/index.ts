@@ -1,4 +1,9 @@
-export type ValueKind = 'clear' | 'increment' | 'arrayUnion' | 'arrayRemove'
+export type ValueKind =
+  | 'clear'
+  | 'increment'
+  | 'arrayUnion'
+  | 'arrayRemove'
+  | 'serverDate'
 
 export type ValueClear = {
   __type__: 'value'
@@ -23,12 +28,19 @@ export type ValueArrayRemove = {
   values: any[]
 }
 
+export interface ValueServerDate extends Date {
+  __type__: 'value'
+  kind: 'serverDate'
+}
+
 export type AnyUpdateValue = ValueClear
 
 export type UpdateValue<T> = T extends number
   ? AnyUpdateValue | ValueIncrement
   : T extends Array<any>
   ? AnyUpdateValue | ValueArrayUnion | ValueArrayRemove
+  : T extends Date
+  ? ValueServerDate | AnyUpdateValue
   : AnyUpdateValue
 
 function value(kind: 'clear'): ValueClear
@@ -48,10 +60,17 @@ function value<T extends Array<any>>(
   payload: any[]
 ): ValueArrayRemove
 
+function value<T extends Date>(kind: 'serverDate'): ValueServerDate
+
 function value(
   kind: ValueKind,
   payload?: any
-): ValueClear | ValueIncrement | ValueArrayUnion | ValueArrayRemove {
+):
+  | ValueClear
+  | ValueIncrement
+  | ValueArrayUnion
+  | ValueArrayRemove
+  | ValueServerDate {
   switch (kind) {
     case 'clear':
       return { __type__: 'value', kind: 'clear' }
@@ -64,6 +83,11 @@ function value(
 
     case 'arrayRemove':
       return { __type__: 'value', kind: 'arrayRemove', values: payload }
+
+    case 'serverDate':
+      const date = new Date()
+      Object.assign(date, { __type__: 'value', kind: 'serverDate' })
+      return date as ValueServerDate
   }
 }
 

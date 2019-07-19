@@ -1,8 +1,8 @@
 import firestore from '../adaptor'
 import { Collection } from '../collection'
+import { unwrapData } from '../data'
 import { doc } from '../doc'
 import { ref } from '../ref'
-import { unwrapData } from '../data'
 
 export default async function add<Model>(
   collection: Collection<Model>,

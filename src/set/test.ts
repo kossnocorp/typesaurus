@@ -4,6 +4,7 @@ import get from '../get'
 import set from '.'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
+import value from '../value'
 
 describe('set', () => {
   type User = { name: string }
@@ -62,5 +63,23 @@ describe('set', () => {
     })
     const postFromDB = await get(posts, post.ref.id)
     assert(postFromDB.data.date.getTime() === date.getTime())
+  })
+
+  it('supports server dates', async () => {
+    const userRef = ref(users, '42')
+    const postId = nanoid()
+    const post = await set(posts, postId, {
+      author: userRef,
+      text: 'Hello!',
+      date: value('serverDate')
+    })
+    const now = Date.now()
+    const returnedDate = post.data.date
+    assert(returnedDate instanceof Date)
+    assert(returnedDate.getTime() < now && returnedDate.getTime() > now - 10000)
+    const postFromDB = await get(posts, post.ref.id)
+    const dateFromDB = postFromDB.data.date
+    assert(dateFromDB instanceof Date)
+    assert(dateFromDB.getTime() < now && dateFromDB.getTime() > now - 10000)
   })
 })

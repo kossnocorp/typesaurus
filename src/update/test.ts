@@ -75,22 +75,6 @@ describe('update', () => {
     assert(userFromDB.data.name === 'Tati')
   })
 
-  it('supports dates', async () => {
-    const user = await add(users, {
-      name: 'Sasha',
-      address: { city: 'Omsk' },
-      birthday: new Date(1987, 2, 11)
-    })
-    const { id } = user.ref
-    await update(users, id, { birthday: new Date(1987, 1, 11) })
-    const userFromDB = await get(users, id)
-    assert.deepEqual(userFromDB.data, {
-      name: 'Sasha',
-      address: { city: 'Omsk' },
-      birthday: new Date(1987, 1, 11)
-    })
-  })
-
   it('allows clearing values', async () => {
     const user = await add(users, {
       name: 'Sasha',
@@ -119,6 +103,37 @@ describe('update', () => {
       address: { city: 'Omsk' },
       visits: 2
     })
+  })
+
+  it('supports dates', async () => {
+    const user = await add(users, {
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      birthday: new Date(1987, 2, 11)
+    })
+    const { id } = user.ref
+    await update(users, id, { birthday: new Date(1987, 1, 11) })
+    const userFromDB = await get(users, id)
+    assert.deepEqual(userFromDB.data, {
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      birthday: new Date(1987, 1, 11)
+    })
+  })
+
+  it('supports server dates', async () => {
+    const user = await add(users, {
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      birthday: new Date(1987, 2, 11)
+    })
+    const { id } = user.ref
+    await update(users, id, { birthday: value('serverDate') })
+    const userFromDB = await get(users, id)
+    const dateFromDB = userFromDB.data.birthday
+    const now = Date.now()
+    assert(dateFromDB instanceof Date)
+    assert(dateFromDB.getTime() < now && dateFromDB.getTime() > now - 10000)
   })
 
   describe('updating arrays', () => {
