@@ -1,12 +1,12 @@
 import assert from 'assert'
 import get from '.'
 import { collection } from '../collection'
-import { Ref } from '../ref'
+import { Ref, ref } from '../ref'
 import add from '../add'
 
 describe('get', () => {
   type User = { name: string }
-  type Post = { author: Ref<User>; text: string }
+  type Post = { author: Ref<User>; text: string; date?: Date }
 
   const users = collection<User>('users')
   const posts = collection<Post>('post')
@@ -26,5 +26,17 @@ describe('get', () => {
     assert(postFromDB.data.author.__type__ === 'ref')
     const userFromDB = await get(users, postFromDB.data.author.id)
     assert.deepEqual(userFromDB.data, { name: 'Sasha' })
+  })
+
+  it('expands dates', async () => {
+    const date = new Date()
+    const userRef = ref(users, '42')
+    const post = await add(posts, {
+      author: userRef,
+      text: 'Hello!',
+      date
+    })
+    const postFromDB = await get(posts, post.ref.id)
+    assert(postFromDB.data.date.getTime() === date.getTime())
   })
 })

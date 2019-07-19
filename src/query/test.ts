@@ -13,7 +13,7 @@ import get from '../get'
 import set from '../set'
 
 describe('query', () => {
-  type Contact = { ownerId: string; name: string; year: number }
+  type Contact = { ownerId: string; name: string; year: number; birthday: Date }
   type Message = { ownerId: string; author: Ref<Contact>; text: string }
 
   const contacts = collection<Contact>('contacts')
@@ -29,17 +29,20 @@ describe('query', () => {
     lesha = await set(contacts, `lesha-${ownerId}`, {
       ownerId,
       name: 'Lesha',
-      year: 1995
+      year: 1995,
+      birthday: new Date(1995, 6, 2)
     })
     sasha = await set(contacts, `sasha-${ownerId}`, {
       ownerId,
       name: 'Sasha',
-      year: 1987
+      year: 1987,
+      birthday: new Date(1987, 1, 11)
     })
     tati = await set(contacts, `tati-${ownerId}`, {
       ownerId,
       name: 'Tati',
-      year: 1989
+      year: 1989,
+      birthday: new Date(1989, 6, 10)
     })
 
     await Promise.all([
@@ -111,8 +114,17 @@ describe('query', () => {
     assert.deepEqual(docs.map(doc => doc.data.text).sort(), ['+1', 'lul'])
   })
 
+  it('allows to query by date', async () => {
+    const docs = await query(contacts, [
+      where('ownerId', '==', ownerId),
+      where('birthday', '==', new Date(1987, 1, 11))
+    ])
+    assert(docs.length === 1)
+    assert(docs[0].data.name === 'Sasha')
+  })
+
   describe('ordering', () => {
-    it('allows to order', async () => {
+    it('allows ordering', async () => {
       const docs = await query(contacts, [
         where('ownerId', '==', ownerId),
         order('year', 'asc')
@@ -124,7 +136,7 @@ describe('query', () => {
       ])
     })
 
-    it('allows to order by desc', async () => {
+    it('allows ordering by desc', async () => {
       const docs = await query(contacts, [
         where('ownerId', '==', ownerId),
         order('year', 'desc')
@@ -136,7 +148,7 @@ describe('query', () => {
       ])
     })
 
-    it('allows to order by references', async () => {
+    it('allows ordering by references', async () => {
       const docs = await query(messages, [
         where('ownerId', '==', ownerId),
         order('author', 'desc'),
@@ -154,6 +166,18 @@ describe('query', () => {
         'Sasha: +1',
         'Sasha: lul',
         'Lesha: +1'
+      ])
+    })
+
+    it('allows ordering by date', async () => {
+      const docs = await query(contacts, [
+        where('ownerId', '==', ownerId),
+        order('birthday', 'asc')
+      ])
+      assert.deepEqual(docs.map(({ data: { name } }) => name), [
+        'Sasha',
+        'Tati',
+        'Lesha'
       ])
     })
   })
@@ -298,5 +322,17 @@ describe('query', () => {
     //     'Lesha'
     //   ])
     // })
+
+    it('allows using dates as cursors', async () => {
+      const docs = await query(contacts, [
+        where('ownerId', '==', ownerId),
+        order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
+        limit(2)
+      ])
+      assert.deepEqual(docs.map(({ data: { name } }) => name), [
+        'Tati',
+        'Lesha'
+      ])
+    })
   })
 })

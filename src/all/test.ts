@@ -7,7 +7,7 @@ import get from '../get'
 
 describe('all', () => {
   type Book = { title: string }
-  type Order = { book: Ref<Book>; quantity: number }
+  type Order = { book: Ref<Book>; quantity: number; date?: Date }
 
   const books = collection<Book>('books')
   const orders = collection<Order>('orders')
@@ -43,5 +43,16 @@ describe('all', () => {
       'Sapiens',
       'The 22 Immutable Laws of Marketing'
     ])
+  })
+
+  it('expands dates', async () => {
+    const date = new Date()
+    await Promise.all([
+      set(orders, 'order1', { book: ref(books, 'sapiens'), quantity: 1, date }),
+      set(orders, 'order2', { book: ref(books, '22laws'), quantity: 1, date })
+    ])
+    const docs = await all(orders)
+    assert(docs[0].data.date.getTime() === date.getTime())
+    assert(docs[1].data.date.getTime() === date.getTime())
   })
 })

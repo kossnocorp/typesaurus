@@ -1,11 +1,11 @@
 import firestore from '../adaptor'
 import { Collection } from '../collection'
-import { Value } from '../value'
+import { UpdateValue } from '../value'
 import { Field } from '../field'
 import { unwrapData } from '../data'
 
 export type ModelUpdate<Model> = {
-  [Key in keyof Model]?: Model[Key] | Value<Model[Key]>
+  [Key in keyof Model]?: Model[Key] | UpdateValue<Model[Key]>
 }
 
 async function update<Model>(

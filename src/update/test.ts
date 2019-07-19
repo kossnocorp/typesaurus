@@ -15,6 +15,7 @@ describe('update', () => {
     address: { city: string }
     guest?: boolean
     visits?: number
+    birthday?: Date
   }
   type Post = { author: Ref<User>; text: string }
 
@@ -72,6 +73,22 @@ describe('update', () => {
     const postFromDB = await get(posts, postId)
     const userFromDB = await get(users, postFromDB.data.author.id)
     assert(userFromDB.data.name === 'Tati')
+  })
+
+  it('supports dates', async () => {
+    const user = await add(users, {
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      birthday: new Date(1987, 2, 11)
+    })
+    const { id } = user.ref
+    await update(users, id, { birthday: new Date(1987, 1, 11) })
+    const userFromDB = await get(users, id)
+    assert.deepEqual(userFromDB.data, {
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      birthday: new Date(1987, 1, 11)
+    })
   })
 
   it('allows clearing values', async () => {
