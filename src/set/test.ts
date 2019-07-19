@@ -39,6 +39,14 @@ describe('set', () => {
     assert.deepEqual(user.data, { name: 'Sasha Koss' })
   })
 
+  it('allows setting to refs', async () => {
+    const id = nanoid()
+    const userRef = ref(users, id)
+    await set(userRef, { name: 'Sasha' })
+    const user = await get(users, id)
+    assert.deepEqual(user.data, { name: 'Sasha' })
+  })
+
   it('supports references', async () => {
     const userId = nanoid()
     const postId = nanoid()

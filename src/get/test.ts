@@ -18,6 +18,12 @@ describe('get', () => {
 
   it('expands references', async () => {
     const user = await add(users, { name: 'Sasha' })
+    const userFromDB = await get(user.ref)
+    assert.deepEqual(userFromDB.data, { name: 'Sasha' })
+  })
+
+  it('expands references', async () => {
+    const user = await add(users, { name: 'Sasha' })
     const post = await add(posts, {
       author: user.ref,
       text: 'Hello!'

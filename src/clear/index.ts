@@ -1,7 +1,32 @@
 import firestore from '../adaptor'
 import { Collection } from '../collection'
+import { Ref } from '../ref'
 
-export default async function clear(collection: Collection<any>, id: string) {
+async function clear<Model>(
+  collection: Collection<Model>,
+  id: string
+): Promise<void>
+
+async function clear<Model>(ref: Ref<Model>): Promise<void>
+
+async function clear<Model>(
+  collectionOrRef: Collection<Model> | Ref<Model>,
+  maybeId?: string
+): Promise<void> {
+  let collection: Collection<Model>
+  let id: string
+
+  if (collectionOrRef.__type__ === 'collection') {
+    collection = collectionOrRef as Collection<Model>
+    id = maybeId as string
+  } else {
+    const ref = collectionOrRef as Ref<Model>
+    collection = ref.collection
+    id = ref.id
+  }
+
   const firebaseDoc = firestore.collection(collection.path).doc(id)
   await firebaseDoc.delete()
 }
+
+export default clear

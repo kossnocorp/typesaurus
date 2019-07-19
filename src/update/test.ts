@@ -36,6 +36,19 @@ describe('update', () => {
     })
   })
 
+  it('allows updating refs', async () => {
+    const user = await add(users, {
+      name: 'Sasha',
+      address: { city: 'Omsk' }
+    })
+    await update(user.ref, { name: 'Sasha Koss' })
+    const userFromDB = await get(users, user.ref.id)
+    assert.deepEqual(userFromDB.data, {
+      name: 'Sasha Koss',
+      address: { city: 'Omsk' }
+    })
+  })
+
   it('allows update nested maps', async () => {
     const user = await add(users, {
       name: 'Sasha',
