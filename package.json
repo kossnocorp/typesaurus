@@ -12,9 +12,11 @@
     "@babel/preset-typescript": "^7.3.3",
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.4",
+    "@types/sinon": "^7.0.13",
     "jest": "^24.8.0",
     "nanoid": "^2.0.3",
     "prettier": "^1.17.1",
+    "sinon": "^7.3.2",
     "typescript": "^3.6.0-dev.20190713"
   },
   "dependencies": {
