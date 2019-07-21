@@ -24,7 +24,7 @@ describe('onAll', () => {
     ])
   })
 
-  it('triggers callback with all documents in a collection', done => {
+  it('returns all documents in a collection', done => {
     const off = onAll(books, docs => {
       assert.deepEqual(docs.map(({ data: { title } }) => title).sort(), [
         'Sapiens',
@@ -72,10 +72,15 @@ describe('onAll', () => {
   describe('real-time', () => {
     it('subscribes to updates', async done => {
       const spy = sinon.spy()
-      const off = onAll(books, docs => {
+      const off = onAll(books, async docs => {
         const titles = docs.map(({ data: { title } }) => title).sort()
         spy(titles)
-        if (titles.length === 4) {
+
+        if (titles.length === 3) {
+          await set(books, 'hp1', {
+            title: "Harry Potter and the Sorcerer's Stone"
+          })
+        } else if (titles.length === 4) {
           off()
           assert(
             spy.calledWithMatch([
@@ -94,9 +99,6 @@ describe('onAll', () => {
           )
           done()
         }
-      })
-      await set(books, 'hp1', {
-        title: "Harry Potter and the Sorcerer's Stone"
       })
     })
 

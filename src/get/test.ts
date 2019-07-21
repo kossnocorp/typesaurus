@@ -16,7 +16,7 @@ describe('get', () => {
     assert(nothing === undefined)
   })
 
-  it('expands references', async () => {
+  it('allows to get by ref', async () => {
     const user = await add(users, { name: 'Sasha' })
     const userFromDB = await get(user.ref)
     assert.deepEqual(userFromDB.data, { name: 'Sasha' })
