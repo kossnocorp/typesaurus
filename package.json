@@ -1,9 +1,9 @@
 {
-  "name": "storetype",
-  "version": "0.1.0",
+  "name": "typesaurus",
+  "version": "0.0.0",
   "description": "Firestore ORM, definitely typed",
   "main": "index.js",
-  "repository": "https://github.com/kossnocorp/storetype",
+  "repository": "https://github.com/kossnocorp/typesaurus",
   "author": "Sasha Koss <koss@nocorp.me>",
   "license": "MIT",
   "devDependencies": {

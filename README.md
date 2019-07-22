@@ -1,4 +1,4 @@
-# Storytype
+# Typesaurus
 
 TypeScript-first ORM for Firestore.
 
@@ -11,7 +11,7 @@ TODO
 ### Add data
 
 ```ts
-import store from 'storetype'
+import store from 'typesaurus'
 
 type User = { name: string }
 const users = collection<User>('users')
@@ -32,7 +32,7 @@ store.update(users, '42', { name: 'Sasha' })
 ### Read data
 
 ```ts
-import store from 'storetype'
+import store from 'typesaurus'
 type User = { name: string }
 const users = collection<User>('users')
 
@@ -52,7 +52,7 @@ store.query(users, [store.where('name', '===', 'Sasha')])
 ### Remove data
 
 ```ts
-import store from 'storetype'
+import store from 'typesaurus'
 type User = { name: string }
 const users = collection<User>('users')
 
@@ -68,7 +68,7 @@ store.clear(users, '42')
 ### Query data from collections
 
 ```ts
-import { collection, ref, getRef } from 'storetype'
+import { collection, ref, getRef } from 'typesaurus'
 
 // 1. Define your models using interfaces and types
 
