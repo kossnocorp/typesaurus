@@ -20,7 +20,8 @@ export type Query<Model, Key extends keyof Model> =
 export default function onQuery<Model>(
   collection: Collection<Model>,
   queries: Query<Model, keyof Model>[],
-  onResult: (docs: Doc<Model>[]) => any
+  onResult: (docs: Doc<Model>[]) => any,
+  onError?: (err: Error) => any
 ): () => void {
   const { firestoreQuery, cursors } = queries.reduce(
     (acc, q) => {
@@ -87,5 +88,5 @@ export default function onQuery<Model>(
         doc(ref(collection, d.id), wrapData(d.data()) as Model)
       )
     )
-  })
+  }, onError)
 }

@@ -474,7 +474,7 @@ describe('onQuery', () => {
       await clear(contacts, theoId)
     })
 
-    it('subscribes to updates', async done => {
+    it('subscribes to updates', done => {
       const spy = sinon.spy()
       const off = onQuery(
         contacts,
@@ -530,5 +530,28 @@ describe('onQuery', () => {
       await clear(lesha.ref)
       on()
     }, 10000)
+
+    it('calls onError when query is invalid', done => {
+      const onResult = sinon.spy()
+      const off = onQuery(
+        contacts,
+        [
+          where('ownerId', '==', ownerId),
+          where('year', '>', 1989),
+          where('birthday', '>', new Date(1989, 6, 10))
+        ],
+        onResult,
+        err => {
+          assert(!onResult.called)
+          assert(
+            err.message.match(
+              /Cannot have inequality filters on multiple properties: birthday/
+            )
+          )
+          off()
+          done()
+        }
+      )
+    })
   })
 })
