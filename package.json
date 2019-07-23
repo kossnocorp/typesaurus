@@ -17,7 +17,7 @@
     "nanoid": "^2.0.3",
     "prettier": "^1.17.1",
     "sinon": "^7.3.2",
-    "typescript": "^3.6.0-dev.20190713"
+    "typescript": "^3.6.0-beta"
   },
   "dependencies": {
     "@google-cloud/firestore": "^2.2.3",
