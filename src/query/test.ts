@@ -7,10 +7,12 @@ import query from '.'
 import { collection } from '../collection'
 import order from '../order'
 import { startAfter, startAt, endBefore, endAt } from '../cursor'
-import { Ref } from '../ref'
+import { Ref, ref } from '../ref'
 import { Doc } from '../doc'
 import get from '../get'
 import set from '../set'
+import { subcollection } from '../subcollection'
+import { group } from '../group'
 
 describe('query', () => {
   type Contact = { ownerId: string; name: string; year: number; birthday: Date }
@@ -121,6 +123,44 @@ describe('query', () => {
     ])
     assert(docs.length === 1)
     assert(docs[0].data.name === 'Sasha')
+  })
+
+  it('allows querying collection groups', async () => {
+    const ownerId = nanoid()
+    const contactMessages = subcollection<Message, Contact>(
+      'contactMessages',
+      contacts
+    )
+    const sashaRef = ref(contacts, `${ownerId}-sasha`)
+    const sashasContactMessages = contactMessages(sashaRef)
+    add(sashasContactMessages, {
+      ownerId,
+      author: sashaRef,
+      text: 'Hello from Sasha!'
+    })
+    const tatiRef = ref(contacts, `${ownerId}-tati`)
+    const tatisContactMessages = contactMessages(tatiRef)
+    await Promise.all([
+      add(tatisContactMessages, {
+        ownerId,
+        author: tatiRef,
+        text: 'Hello from Tati!'
+      }),
+      add(tatisContactMessages, {
+        ownerId,
+        author: tatiRef,
+        text: 'Hello, again!'
+      })
+    ])
+    const allContactMessages = group('contactMessages', [contactMessages])
+    const messages = await query(allContactMessages, [
+      where('ownerId', '==', ownerId)
+    ])
+    assert.deepEqual(messages.map(m => m.data.text).sort(), [
+      'Hello from Sasha!',
+      'Hello from Tati!',
+      'Hello, again!'
+    ])
   })
 
   describe('ordering', () => {

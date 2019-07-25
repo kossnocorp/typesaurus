@@ -1,12 +1,13 @@
 import firestore from '../adaptor'
 import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
-import { ref } from '../ref'
+import { ref, pathToRef } from '../ref'
 import { WhereQuery } from '../where'
 import { OrderQuery } from '../order'
 import { LimitQuery } from '../limit'
 import { Cursor, CursorMethod } from '../cursor'
 import { wrapData, unwrapData } from '../data'
+import { CollectionGroup } from '../group/index'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -18,7 +19,7 @@ export type Query<Model, Key extends keyof Model> =
   | LimitQuery
 
 export default async function query<Model>(
-  collection: Collection<Model>,
+  collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[]
 ): Promise<Doc<Model>[]> {
   const { firestoreQuery, cursors } = queries.reduce(
@@ -54,7 +55,13 @@ export default async function query<Model>(
 
       return acc
     },
-    { firestoreQuery: firestore.collection(collection.path), cursors: [] } as {
+    {
+      firestoreQuery:
+        collection.__type__ === 'collectionGroup'
+          ? firestore.collectionGroup(collection.path)
+          : firestore.collection(collection.path),
+      cursors: []
+    } as {
       firestoreQuery: FirebaseQuery
       cursors: Cursor<Model, keyof Model>[]
     }
@@ -81,7 +88,13 @@ export default async function query<Model>(
       : firestoreQuery
 
   const firebaseSnap = await paginatedFirestoreQuery.get()
+
   return firebaseSnap.docs.map(d =>
-    doc(ref(collection, d.id), wrapData(d.data()) as Model)
+    doc(
+      collection.__type__ === 'collectionGroup'
+        ? pathToRef(d.ref.path)
+        : ref(collection, d.id),
+      wrapData(d.data()) as Model
+    )
   )
 }
