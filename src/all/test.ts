@@ -4,6 +4,7 @@ import set from '../set'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
 import get from '../get'
+import clear from '../clear'
 
 describe('all', () => {
   type Book = { title: string }
@@ -16,7 +17,9 @@ describe('all', () => {
     await Promise.all([
       set(books, 'sapiens', { title: 'Sapiens' }),
       set(books, '22laws', { title: 'The 22 Immutable Laws of Marketing' }),
-      set(books, 'momtest', { title: 'The Mom Test' })
+      set(books, 'momtest', { title: 'The Mom Test' }),
+      clear(books, 'hp1'),
+      clear(books, 'hp2')
     ])
   })
 
