@@ -4,6 +4,9 @@ import { getRefPath, ref, pathToRef } from '.'
 import { collection } from '../collection'
 
 describe('Ref', () => {
+  interface User {
+    name: string
+  }
   const users = collection<User>('users')
 
   describe('ref', () => {
@@ -28,54 +31,13 @@ describe('Ref', () => {
     })
   })
 
-  describe('getRefPath', () => {
+  describe('pathToRef', () => {
     it('returns full document path', () => {
-      assert(pathToRef('users/42'), {
+      assert.deepEqual(pathToRef('users/42'), {
         __type__: 'ref',
         id: '42',
         collection: users
       })
     })
   })
-
-  // describe('setRef/getRef', () => {
-  //   it('sets value to an item in collection with the given value', async () => {
-  //     const id = nanoid()
-  //     const userRef = ref(users, id)
-  //     const userData = { name: 'Sasha' }
-  //     await setRef(userRef, userData)
-  //     const userFromDB = await getRef(userRef)
-  //     assert.deepEqual(userFromDB.data, userData)
-  //   })
-
-  //   it('returns doc', async () => {
-  //     const id = nanoid()
-  //     const userRef = ref(users, id)
-  //     const userData = { name: 'Sasha' }
-  //     const userDoc = await setRef(userRef, userData)
-
-  //     assert.deepEqual(userDoc, {
-  //       __type__: 'doc',
-  //       ref: userRef,
-  //       data: userData
-  //     })
-  //   })
-  // })
-
-  // describe('deleteRef', () => {
-  //   it('deletes existing document', async () => {
-  //     const id = nanoid()
-  //     const userRef = ref(users, id)
-  //     const userData = { name: 'Sasha' }
-  //     await setRef(userRef, userData)
-  //     await deleteRef(userRef)
-
-  //     const userItem = await getRef(userRef)
-  //     assert(userItem === null)
-  //   })
-  // })
 })
-
-interface User {
-  name: string
-}
