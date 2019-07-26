@@ -1,10 +1,27 @@
-# Typesaurus
+# 🦕 Typesaurus
 
 TypeScript-first ORM for Firestore.
 
+**Why?**
+
+- Designed with TypeScript's type inference in mind
+- Universal code (browser & Node.js)
+- Functional API
+- Maximum type-safety
+- Autocomplete
+- Good bye any!
+- Good bye exceptions!
+
 ## Installation
 
-TODO
+The library is available as an [npm package](https://www.npmjs.com/package/typesaurus).
+To install the package run:
+
+```sh
+npm install typesaurus --save
+# or with yarn
+yarn add typesaurus
+```
 
 ## Get started
 
@@ -33,6 +50,7 @@ store.update(users, '42', { name: 'Sasha' })
 
 ```ts
 import store from 'typesaurus'
+
 type User = { name: string }
 const users = collection<User>('users')
 
@@ -59,50 +77,6 @@ const users = collection<User>('users')
 // Remove a document with given id
 store.clear(users, '42')
 //=> Promise<void>
-```
-
-## API
-
-## Usage
-
-### Query data from collections
-
-```ts
-import { collection, ref, getRef } from 'typesaurus'
-
-// 1. Define your models using interfaces and types
-
-interface User {
-  name: string
-}
-
-interface Order {
-  username: string
-  order: string
-  time: number
-}
-
-// 2. Define collections
-
-const schema = {
-  users: collection<User>('users'),
-  orders: collection<Order>('orders')
-}
-
-// 3. Add data
-
-getRef(ref(schema.users, 'kossnocorp'))
-
-const newUsername = 'newuser1234'
-
-setRef(ref(schema.users, newUsername), { name: 'New User 1234' })
-
-pushItem(schema.orders, { name: 'Sasha' })
-
-queryItems(schema.orders, ({ where, order }) => [
-  where('username', 'newuser1234'),
-  order('time', 'desc')
-])
 ```
 
 ## License
