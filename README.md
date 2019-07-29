@@ -9,8 +9,8 @@ TypeScript-first ORM for Firestore.
 - Functional API
 - Maximum type-safety
 - Autocomplete
-- Good bye any!
-- Good bye exceptions!
+- Say good bye to `any`!
+- Say good bye to exceptions!
 
 ## Installation
 
@@ -28,54 +28,55 @@ yarn add typesaurus
 ### Add data
 
 ```ts
-import store from 'typesaurus'
+import { collection, add, set, update } from 'typesaurus'
 
 type User = { name: string }
 const users = collection<User>('users')
 
 // Add a document to a collection with auto-generated id
-store.add(users, { name: 'Sasha' })
+add(users, { name: 'Sasha' })
 //=> Promise<Doc<User>>
 
 // Set or overwrite a document with given id
-store.set(users, '42', { name: 'Sasha' })
+set(users, '42', { name: 'Sasha' })
 //=> Promise<Doc<User>>
 
 // Update a document with given id
-store.update(users, '42', { name: 'Sasha' })
+update(users, '42', { name: 'Sasha' })
 //=> Promise<void>
 ```
 
 ### Read data
 
 ```ts
-import store from 'typesaurus'
+import { collection, get, all, query, where } from 'typesaurus'
 
 type User = { name: string }
 const users = collection<User>('users')
 
 // Get a document with given id
-store.get(users, '42')
+get(users, '42')
 //=> Promise<Doc<User> | undefined>
 
 // Get all documents in a collection
-store.all(users)
+all(users)
 //=> Promise<Doc<User>[]>
 
 // Query collection
-store.query(users, [store.where('name', '===', 'Sasha')])
+query(users, [where('name', '===', 'Sasha')])
 //=> Promise<Doc<User>[]>
 ```
 
 ### Remove data
 
 ```ts
-import store from 'typesaurus'
+import { collection, clear } from 'typesaurus'
+
 type User = { name: string }
 const users = collection<User>('users')
 
 // Remove a document with given id
-store.clear(users, '42')
+clear(users, '42')
 //=> Promise<void>
 ```
 
