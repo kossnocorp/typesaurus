@@ -12,9 +12,9 @@ import { Doc } from '../doc'
 import get from '../get'
 import set from '../set'
 import sinon from 'sinon'
-import clear from '../clear'
 import { subcollection } from '../subcollection'
 import { group } from '../group'
+import clear from '../clear'
 
 describe('onQuery', () => {
   type Contact = { ownerId: string; name: string; year: number; birthday: Date }
@@ -23,19 +23,25 @@ describe('onQuery', () => {
   const contacts = collection<Contact>('contacts')
   const messages = collection<Message>('messages')
 
-  const ownerId = nanoid()
+  let off: () => void | undefined
 
   let lesha: Doc<Contact>
   let sasha: Doc<Contact>
   let tati: Doc<Contact>
+  let ownerId: string
 
-  beforeAll(async () => {
-    lesha = await set(contacts, `lesha-${ownerId}`, {
+  function setLesha() {
+    return set(contacts, `lesha-${ownerId}`, {
       ownerId,
       name: 'Lesha',
       year: 1995,
       birthday: new Date(1995, 6, 2)
     })
+  }
+
+  beforeEach(async () => {
+    ownerId = nanoid()
+    lesha = await setLesha()
     sasha = await set(contacts, `sasha-${ownerId}`, {
       ownerId,
       name: 'Sasha',
@@ -48,28 +54,23 @@ describe('onQuery', () => {
       year: 1989,
       birthday: new Date(1989, 6, 10)
     })
+  })
 
-    await Promise.all([
-      add(messages, { ownerId, author: sasha.ref, text: '+1' }),
-      add(messages, { ownerId, author: lesha.ref, text: '+1' }),
-      add(messages, { ownerId, author: tati.ref, text: 'wut' }),
-      add(messages, { ownerId, author: sasha.ref, text: 'lul' })
-    ])
+  afterEach(() => {
+    off && off()
+    off = undefined
   })
 
   it('queries documents', done => {
-    const off = onQuery(contacts, [where('ownerId', '==', ownerId)], docs => {
-      assert.deepEqual(docs.map(({ data: { name } }) => name).sort(), [
-        'Lesha',
-        'Sasha',
-        'Tati'
-      ])
-      off()
-      done()
+    const spy = sinon.spy()
+    off = onQuery(contacts, [where('ownerId', '==', ownerId)], docs => {
+      spy(docs.map(({ data: { name } }) => name).sort())
+      if (spy.calledWithMatch(['Lesha', 'Sasha', 'Tati'])) done()
     })
   })
 
-  it('allows to query by value in maps', async done => {
+  it('allows to query by value in maps', async () => {
+    const spy = sinon.spy()
     type Location = { mapId: string; name: string; address: { city: string } }
     const locations = collection<Location>('locations')
     const mapId = nanoid()
@@ -90,214 +91,219 @@ describe('onQuery', () => {
         address: { city: 'Houston' }
       })
     ])
-    const off = onQuery(
-      locations,
-      [
-        where('mapId', '==', mapId),
-        where(['address', 'city'], '==', 'New York')
-      ],
-      docs => {
-        assert.deepEqual(docs.map(({ data: { name } }) => name).sort(), [
-          'Bagels Tower',
-          'Pizza City'
-        ])
-        off()
-        done()
-      }
-    )
+    return new Promise(resolve => {
+      off = onQuery(
+        locations,
+        [
+          where('mapId', '==', mapId),
+          where(['address', 'city'], '==', 'New York')
+        ],
+        docs => {
+          spy(docs.map(({ data: { name } }) => name).sort())
+          if (spy.calledWithMatch(['Bagels Tower', 'Pizza City'])) resolve()
+        }
+      )
+    })
   })
 
-  it('expands references', done => {
-    const off = onQuery(
-      messages,
-      [where('ownerId', '==', ownerId), where('text', '==', '+1')],
-      async docs => {
-        assert(docs[0].data.author.__type__ === 'ref')
-        const authors = await Promise.all(
-          docs.map(doc => get(contacts, doc.data.author.id))
+  describe('with messages', () => {
+    beforeEach(async () => {
+      await Promise.all([
+        add(messages, { ownerId, author: sasha.ref, text: '+1' }),
+        add(messages, { ownerId, author: lesha.ref, text: '+1' }),
+        add(messages, { ownerId, author: tati.ref, text: 'wut' }),
+        add(messages, { ownerId, author: sasha.ref, text: 'lul' })
+      ])
+    })
+
+    it('expands references', done => {
+      const spy = sinon.spy()
+      off = onQuery(
+        messages,
+        [where('ownerId', '==', ownerId), where('text', '==', '+1')],
+        async docs => {
+          const authors = await Promise.all(
+            docs.map(doc => get(contacts, doc.data.author.id))
+          )
+          spy(authors.map(({ data: { name } }) => name).sort())
+          if (spy.calledWithMatch(['Lesha', 'Sasha'])) done()
+        }
+      )
+    })
+
+    it('allows to query by reference', done => {
+      const spy = sinon.spy()
+      off = onQuery(
+        messages,
+        [where('ownerId', '==', ownerId), where('author', '==', sasha.ref)],
+        docs => {
+          spy(docs.map(doc => doc.data.text).sort())
+          if (spy.calledWithMatch(['+1', 'lul'])) done()
+        }
+      )
+    })
+
+    it('allows querying collection groups', async () => {
+      const ownerId = nanoid()
+      const contactMessages = subcollection<Message, Contact>(
+        'contactMessages',
+        contacts
+      )
+      const sashaRef = ref(contacts, `${ownerId}-sasha`)
+      const sashasContactMessages = contactMessages(sashaRef)
+      add(sashasContactMessages, {
+        ownerId,
+        author: sashaRef,
+        text: 'Hello from Sasha!'
+      })
+      const tatiRef = ref(contacts, `${ownerId}-tati`)
+      const tatisContactMessages = contactMessages(tatiRef)
+      await Promise.all([
+        add(tatisContactMessages, {
+          ownerId,
+          author: tatiRef,
+          text: 'Hello from Tati!'
+        }),
+        add(tatisContactMessages, {
+          ownerId,
+          author: tatiRef,
+          text: 'Hello, again!'
+        })
+      ])
+      const allContactMessages = group('contactMessages', [contactMessages])
+      const spy = sinon.spy()
+      return new Promise(resolve => {
+        off = onQuery(
+          allContactMessages,
+          [where('ownerId', '==', ownerId)],
+          async messages => {
+            spy(messages.map(m => m.data.text).sort())
+            if (messages.length === 3) {
+              await Promise.all([
+                add(sashasContactMessages, {
+                  ownerId,
+                  author: sashaRef,
+                  text: '1'
+                }),
+                add(tatisContactMessages, {
+                  ownerId,
+                  author: tatiRef,
+                  text: '2'
+                })
+              ])
+            } else if (messages.length === 5) {
+              assert(
+                spy.calledWithMatch([
+                  'Hello from Sasha!',
+                  'Hello from Tati!',
+                  'Hello, again!'
+                ])
+              )
+              assert(
+                spy.calledWithMatch([
+                  '1',
+                  '2',
+                  'Hello from Sasha!',
+                  'Hello from Tati!',
+                  'Hello, again!'
+                ])
+              )
+              resolve()
+            }
+          }
         )
-        assert.deepEqual(authors.map(({ data: { name } }) => name).sort(), [
-          'Lesha',
-          'Sasha'
-        ])
-        off()
-        done()
-      }
-    )
-  })
-
-  it('allows to query by reference', done => {
-    const off = onQuery(
-      messages,
-      [where('ownerId', '==', ownerId), where('author', '==', sasha.ref)],
-      docs => {
-        assert.deepEqual(docs.map(doc => doc.data.text).sort(), ['+1', 'lul'])
-        off()
-        done()
-      }
-    )
+      })
+    })
   })
 
   it('allows to query by date', done => {
-    const off = onQuery(
+    off = onQuery(
       contacts,
       [
         where('ownerId', '==', ownerId),
         where('birthday', '==', new Date(1987, 1, 11))
       ],
       docs => {
-        assert(docs.length === 1)
-        assert(docs[0].data.name === 'Sasha')
-        off()
-        done()
-      }
-    )
-  })
-
-  it('allows querying collection groups', async done => {
-    const ownerId = nanoid()
-    const contactMessages = subcollection<Message, Contact>(
-      'contactMessages',
-      contacts
-    )
-    const sashaRef = ref(contacts, `${ownerId}-sasha`)
-    const sashasContactMessages = contactMessages(sashaRef)
-    add(sashasContactMessages, {
-      ownerId,
-      author: sashaRef,
-      text: 'Hello from Sasha!'
-    })
-    const tatiRef = ref(contacts, `${ownerId}-tati`)
-    const tatisContactMessages = contactMessages(tatiRef)
-    await Promise.all([
-      add(tatisContactMessages, {
-        ownerId,
-        author: tatiRef,
-        text: 'Hello from Tati!'
-      }),
-      add(tatisContactMessages, {
-        ownerId,
-        author: tatiRef,
-        text: 'Hello, again!'
-      })
-    ])
-    const allContactMessages = group('contactMessages', [contactMessages])
-    const spy = sinon.spy()
-    const off = onQuery(
-      allContactMessages,
-      [where('ownerId', '==', ownerId)],
-      async messages => {
-        spy(messages.map(m => m.data.text).sort())
-        if (messages.length === 3) {
-          await Promise.all([
-            add(sashasContactMessages, {
-              ownerId,
-              author: sashaRef,
-              text: '1'
-            }),
-            add(tatisContactMessages, {
-              ownerId,
-              author: tatiRef,
-              text: '2'
-            })
-          ])
-        } else if (messages.length === 5) {
-          assert(
-            spy.calledWithMatch([
-              'Hello from Sasha!',
-              'Hello from Tati!',
-              'Hello, again!'
-            ])
-          )
-          assert(
-            spy.calledWithMatch([
-              '1',
-              '2',
-              'Hello from Sasha!',
-              'Hello from Tati!',
-              'Hello, again!'
-            ])
-          )
-          off()
-          done()
-        }
+        if (docs.length === 1 && docs[0].data.name === 'Sasha') done()
       }
     )
   })
 
   describe('ordering', () => {
     it('allows ordering', done => {
-      const off = onQuery(
+      const spy = sinon.spy()
+      off = onQuery(
         contacts,
         [where('ownerId', '==', ownerId), order('year', 'asc')],
         docs => {
-          assert.deepEqual(docs.map(({ data: { name } }) => name), [
-            'Sasha',
-            'Tati',
-            'Lesha'
-          ])
-          off()
-          done()
+          spy(docs.map(({ data: { name } }) => name))
+          if (spy.calledWithMatch(['Sasha', 'Tati', 'Lesha'])) done()
         }
       )
     })
 
     it('allows ordering by desc', done => {
-      const off = onQuery(
+      const spy = sinon.spy()
+      off = onQuery(
         contacts,
         [where('ownerId', '==', ownerId), order('year', 'desc')],
         docs => {
-          assert.deepEqual(docs.map(({ data: { name } }) => name), [
-            'Lesha',
-            'Tati',
-            'Sasha'
-          ])
-          off()
-          done()
+          spy(docs.map(({ data: { name } }) => name))
+          if (spy.calledWithMatch(['Lesha', 'Tati', 'Sasha'])) done()
         }
       )
     })
 
-    it('allows ordering by references', done => {
-      const off = onQuery(
-        messages,
-        [
-          where('ownerId', '==', ownerId),
-          order('author', 'desc'),
-          order('text')
-        ],
-        async docs => {
-          const messagesLog = await Promise.all(
-            docs.map(doc =>
-              get(contacts, doc.data.author.id).then(
-                contact => `${contact.data.name}: ${doc.data.text}`
+    describe('with messages', () => {
+      beforeEach(async () => {
+        await Promise.all([
+          add(messages, { ownerId, author: sasha.ref, text: '+1' }),
+          add(messages, { ownerId, author: lesha.ref, text: '+1' }),
+          add(messages, { ownerId, author: tati.ref, text: 'wut' }),
+          add(messages, { ownerId, author: sasha.ref, text: 'lul' })
+        ])
+      })
+
+      it('allows ordering by references', done => {
+        const spy = sinon.spy()
+        off = onQuery(
+          messages,
+          [
+            where('ownerId', '==', ownerId),
+            order('author', 'desc'),
+            order('text')
+          ],
+          async docs => {
+            const messagesLog = await Promise.all(
+              docs.map(doc =>
+                get(contacts, doc.data.author.id).then(
+                  contact => `${contact.data.name}: ${doc.data.text}`
+                )
               )
             )
-          )
-          assert.deepEqual(messagesLog, [
-            'Tati: wut',
-            'Sasha: +1',
-            'Sasha: lul',
-            'Lesha: +1'
-          ])
-          off()
-          done()
-        }
-      )
+            spy(messagesLog)
+            if (
+              spy.calledWithMatch([
+                'Tati: wut',
+                'Sasha: +1',
+                'Sasha: lul',
+                'Lesha: +1'
+              ])
+            )
+              done()
+          }
+        )
+      })
     })
 
     it('allows ordering by date', done => {
-      const off = onQuery(
+      const spy = sinon.spy()
+      off = onQuery(
         contacts,
         [where('ownerId', '==', ownerId), order('birthday', 'asc')],
         docs => {
-          assert.deepEqual(docs.map(({ data: { name } }) => name), [
-            'Sasha',
-            'Tati',
-            'Lesha'
-          ])
-          off()
-          done()
+          spy(docs.map(({ data: { name } }) => name))
+          if (spy.calledWithMatch(['Sasha', 'Tati', 'Lesha'])) done()
         }
       )
     })
@@ -305,16 +311,13 @@ describe('onQuery', () => {
 
   describe('limiting', () => {
     it('allows to limit response length', done => {
-      const off = onQuery(
+      const spy = sinon.spy()
+      off = onQuery(
         contacts,
         [where('ownerId', '==', ownerId), order('year', 'asc'), limit(2)],
         docs => {
-          assert.deepEqual(docs.map(({ data: { name } }) => name), [
-            'Sasha',
-            'Tati'
-          ])
-          off()
-          done()
+          spy(docs.map(({ data: { name } }) => name))
+          if (spy.calledWithMatch(['Sasha', 'Tati'])) done()
         }
       )
     })
@@ -322,8 +325,18 @@ describe('onQuery', () => {
 
   describe('paginating', () => {
     describe('startAfter', () => {
+      let page1Off: () => void
+      let page2Off: () => void
+
+      afterEach(() => {
+        page1Off && page1Off()
+        page2Off && page2Off()
+      })
+
       it('allows to paginate', done => {
-        const page1Off = onQuery(
+        const spyPage1 = sinon.spy()
+        const spyPage2 = sinon.spy()
+        page1Off = onQuery(
           contacts,
           [
             where('ownerId', '==', ownerId),
@@ -331,27 +344,23 @@ describe('onQuery', () => {
             limit(2)
           ],
           page1Docs => {
-            assert.deepEqual(page1Docs.map(({ data: { name } }) => name), [
-              'Sasha',
-              'Tati'
-            ])
-            page1Off()
+            spyPage1(page1Docs.map(({ data: { name } }) => name))
+            if (spyPage1.calledWithMatch(['Sasha', 'Tati'])) {
+              page1Off()
 
-            const page2Off = onQuery(
-              contacts,
-              [
-                where('ownerId', '==', ownerId),
-                order('year', 'asc', [startAfter(page1Docs[1].data.year)]),
-                limit(2)
-              ],
-              page2Docs => {
-                assert.deepEqual(page2Docs.map(({ data: { name } }) => name), [
-                  'Lesha'
-                ])
-                page2Off()
-                done()
-              }
-            )
+              page2Off = onQuery(
+                contacts,
+                [
+                  where('ownerId', '==', ownerId),
+                  order('year', 'asc', [startAfter(page1Docs[1].data.year)]),
+                  limit(2)
+                ],
+                page2Docs => {
+                  spyPage2(page2Docs.map(({ data: { name } }) => name))
+                  if (spyPage2.calledWithMatch(['Lesha'])) done()
+                }
+              )
+            }
           }
         )
       })
@@ -359,7 +368,8 @@ describe('onQuery', () => {
 
     describe('startAt', () => {
       it('allows to paginate', done => {
-        const off = onQuery(
+        const spy = sinon.spy()
+        off = onQuery(
           contacts,
           [
             where('ownerId', '==', ownerId),
@@ -367,12 +377,8 @@ describe('onQuery', () => {
             limit(2)
           ],
           docs => {
-            assert.deepEqual(docs.map(({ data: { name } }) => name), [
-              'Tati',
-              'Lesha'
-            ])
-            off()
-            done()
+            spy(docs.map(({ data: { name } }) => name))
+            if (spy.calledWithMatch(['Tati', 'Lesha'])) done()
           }
         )
       })
@@ -380,7 +386,8 @@ describe('onQuery', () => {
 
     describe('endBefore', () => {
       it('allows to paginate', done => {
-        const off = onQuery(
+        const spy = sinon.spy()
+        off = onQuery(
           contacts,
           [
             where('ownerId', '==', ownerId),
@@ -388,9 +395,8 @@ describe('onQuery', () => {
             limit(2)
           ],
           docs => {
-            assert.deepEqual(docs.map(({ data: { name } }) => name), ['Sasha'])
-            off()
-            done()
+            spy(docs.map(({ data: { name } }) => name))
+            if (spy.calledWithMatch(['Sasha'])) done()
           }
         )
       })
@@ -398,7 +404,8 @@ describe('onQuery', () => {
 
     describe('endAt', () => {
       it('allows to paginate', done => {
-        const off = onQuery(
+        const spy = sinon.spy()
+        off = onQuery(
           contacts,
           [
             where('ownerId', '==', ownerId),
@@ -406,19 +413,16 @@ describe('onQuery', () => {
             limit(2)
           ],
           docs => {
-            assert.deepEqual(docs.map(({ data: { name } }) => name), [
-              'Sasha',
-              'Tati'
-            ])
-            off()
-            done()
+            spy(docs.map(({ data: { name } }) => name))
+            if (spy.calledWithMatch(['Sasha', 'Tati'])) done()
           }
         )
       })
     })
 
     it('uses asc ordering method by default', done => {
-      const off = onQuery(
+      const spy = sinon.spy()
+      off = onQuery(
         contacts,
         [
           where('ownerId', '==', ownerId),
@@ -426,17 +430,14 @@ describe('onQuery', () => {
           limit(2)
         ],
         docs => {
-          assert.deepEqual(docs.map(({ data: { name } }) => name), [
-            'Tati',
-            'Lesha'
-          ])
-          off()
-          done()
+          spy(docs.map(({ data: { name } }) => name))
+          if (spy.calledWithMatch(['Tati', 'Lesha'])) done()
         }
       )
     })
 
-    it('allows specify multiple cursor conditions', async done => {
+    it('allows specify multiple cursor conditions', async () => {
+      const spy = sinon.spy()
       type City = { mapId: string; name: string; state: string }
       const cities = collection<City>('cities')
       const mapId = nanoid()
@@ -457,27 +458,32 @@ describe('onQuery', () => {
           state: 'Wisconsin'
         })
       ])
-      const off = await onQuery(
-        cities,
-        [
-          where('mapId', '==', mapId),
-          order('name', 'asc', [startAt('Springfield')]),
-          order('state', 'asc', [startAt('Missouri')]),
-          limit(2)
-        ],
-        docs => {
-          assert.deepEqual(
-            docs.map(({ data: { name, state } }) => `${name}, ${state}`),
-            ['Springfield, Missouri', 'Springfield, Wisconsin']
-          )
-          off()
-          done()
-        }
-      )
+      return new Promise(async resolve => {
+        off = await onQuery(
+          cities,
+          [
+            where('mapId', '==', mapId),
+            order('name', 'asc', [startAt('Springfield')]),
+            order('state', 'asc', [startAt('Missouri')]),
+            limit(2)
+          ],
+          docs => {
+            spy(docs.map(({ data: { name, state } }) => `${name}, ${state}`))
+            if (
+              spy.calledWithMatch([
+                'Springfield, Missouri',
+                'Springfield, Wisconsin'
+              ])
+            )
+              resolve()
+          }
+        )
+      })
     }, 10000)
 
     it('allows to combine cursors', done => {
-      const off = onQuery(
+      const spy = sinon.spy()
+      off = onQuery(
         contacts,
         [
           where('ownerId', '==', ownerId),
@@ -485,16 +491,15 @@ describe('onQuery', () => {
           limit(2)
         ],
         docs => {
-          assert.deepEqual(docs.map(({ data: { name } }) => name), ['Tati'])
-          off()
-          done()
+          spy(docs.map(({ data: { name } }) => name))
+          if (spy.calledWithMatch(['Tati'])) done()
         }
       )
     })
 
     // TODO: Figure out how to use references as cursors
     // it.skip('allows to pass refs as cursors', done => {
-    //   const off = onQuery(
+    //   off = onQuery(
     //     contacts,
     //     [
     //       where('ownerId', '==', ownerId),
@@ -502,18 +507,19 @@ describe('onQuery', () => {
     //       limit(2)
     //     ],
     //     docs => {
+    //       off()
     //       assert.deepEqual(docs.map(({ data: { name } }) => name), [
     //         'Tati',
     //         'Lesha'
     //       ])
-    //       off()
     //       done()
     //     }
     //   )
     // })
 
     it('allows using dates as cursors', done => {
-      const off = onQuery(
+      const spy = sinon.spy()
+      off = onQuery(
         contacts,
         [
           where('ownerId', '==', ownerId),
@@ -521,12 +527,8 @@ describe('onQuery', () => {
           limit(2)
         ],
         docs => {
-          assert.deepEqual(docs.map(({ data: { name } }) => name), [
-            'Tati',
-            'Lesha'
-          ])
-          off()
-          done()
+          spy(docs.map(({ data: { name } }) => name))
+          if (spy.calledWithMatch(['Tati', 'Lesha'])) done()
         }
       )
     })
@@ -534,6 +536,7 @@ describe('onQuery', () => {
 
   describe('real-time', () => {
     const theoId = `theo-${ownerId}`
+
     beforeEach(async () => {
       await set(contacts, theoId, {
         ownerId,
@@ -549,7 +552,7 @@ describe('onQuery', () => {
 
     it('subscribes to updates', done => {
       const spy = sinon.spy()
-      const off = onQuery(
+      off = onQuery(
         contacts,
         [
           where('ownerId', '==', ownerId),
@@ -561,52 +564,56 @@ describe('onQuery', () => {
         async docs => {
           const names = docs.map(({ data: { name } }) => name)
           spy(names)
-          if (names.length === 3) {
+
+          if (spy.calledWithMatch(['Tati', 'Lesha', 'Theodor'])) {
             await clear(lesha.ref)
-          } else if (names.length === 2) {
-            assert(spy.calledWithMatch(['Tati', 'Lesha', 'Theodor']))
-            assert(spy.calledWithMatch(['Tati', 'Theodor']))
-            off()
+          }
+
+          if (spy.calledWithMatch(['Tati', 'Theodor'])) {
             done()
           }
         }
       )
     })
 
-    it('returns function that unsubscribes from the updates', async done => {
-      let off: () => void
-      const spy = sinon.spy()
-      const on = () => {
-        off = onQuery(
-          contacts,
-          [
-            where('ownerId', '==', ownerId),
-            // TODO: Figure out why when a timestamp is used, the order is incorrect
-            // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-            order('year', 'asc', [startAt(1989)]),
-            limit(3)
-          ],
-          async docs => {
-            const names = docs.map(({ data: { name } }) => name)
-            spy(names)
-            if (names.length === 2) {
-              assert(spy.neverCalledWithMatch(['Tati', 'Lesha', 'Theodor']))
-              assert(spy.calledWithMatch(['Tati', 'Theodor']))
-              off()
-              done()
-            }
+    // TODO: WTF browser Firebase returns elements gradually unlike Node.js version.
+    if (typeof window === 'undefined') {
+      it('returns function that unsubscribes from the updates', () => {
+        return new Promise(async resolve => {
+          const spy = sinon.spy()
+          const on = () => {
+            off = onQuery(
+              contacts,
+              [
+                where('ownerId', '==', ownerId),
+                // TODO: Figure out why when a timestamp is used, the order is incorrect
+                // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
+                order('year', 'asc', [startAt(1989)]),
+                limit(3)
+              ],
+              async docs => {
+                const names = docs.map(({ data: { name } }) => name)
+                spy(names)
+
+                if (
+                  spy.calledWithMatch(['Tati', 'Theodor']) &&
+                  spy.neverCalledWithMatch(['Tati', 'Lesha', 'Theodor'])
+                )
+                  resolve()
+              }
+            )
           }
-        )
-      }
-      on()
-      off()
-      await clear(lesha.ref)
-      on()
-    }, 10000)
+          on()
+          off()
+          await clear(lesha.ref)
+          on()
+        })
+      })
+    }
 
     it('calls onError when query is invalid', done => {
       const onResult = sinon.spy()
-      const off = onQuery(
+      off = onQuery(
         contacts,
         [
           where('ownerId', '==', ownerId),
@@ -617,11 +624,13 @@ describe('onQuery', () => {
         err => {
           assert(!onResult.called)
           assert(
+            // Node.js:
             err.message.match(
               /Cannot have inequality filters on multiple properties: birthday/
-            )
+            ) ||
+              // Browser:
+              err.message.match(/Invalid query/)
           )
-          off()
           done()
         }
       )

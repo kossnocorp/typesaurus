@@ -7,7 +7,7 @@ import { OrderQuery } from '../order'
 import { LimitQuery } from '../limit'
 import { Cursor, CursorMethod } from '../cursor'
 import { wrapData, unwrapData } from '../data'
-import { CollectionGroup } from '../group/index'
+import { CollectionGroup } from '../group'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -24,81 +24,89 @@ export default function onQuery<Model>(
   onResult: (docs: Doc<Model>[]) => any,
   onError?: (err: Error) => any
 ): () => void {
-  const { firestoreQuery, cursors } = queries.reduce(
-    (acc, q) => {
-      switch (q.type) {
-        case 'order': {
-          const { field, method, cursors } = q
-          acc.firestoreQuery = acc.firestoreQuery.orderBy(
-            field.toString(),
-            method
-          )
-          if (cursors) acc.cursors = acc.cursors.concat(cursors)
-          break
+  try {
+    const { firestoreQuery, cursors } = queries.reduce(
+      (acc, q) => {
+        switch (q.type) {
+          case 'order': {
+            const { field, method, cursors } = q
+            acc.firestoreQuery = acc.firestoreQuery.orderBy(
+              field.toString(),
+              method
+            )
+            if (cursors) acc.cursors = acc.cursors.concat(cursors)
+            break
+          }
+
+          case 'where': {
+            const { field, filter, value } = q
+            const fieldName = Array.isArray(field) ? field.join('.') : field
+            acc.firestoreQuery = acc.firestoreQuery.where(
+              fieldName,
+              filter,
+              unwrapData(value)
+            )
+            break
+          }
+
+          case 'limit': {
+            const { number } = q
+            acc.firestoreQuery = acc.firestoreQuery.limit(number)
+            break
+          }
         }
 
-        case 'where': {
-          const { field, filter, value } = q
-          const fieldName = Array.isArray(field) ? field.join('.') : field
-          acc.firestoreQuery = acc.firestoreQuery.where(
-            fieldName,
-            filter,
-            unwrapData(value)
-          )
-          break
-        }
-
-        case 'limit': {
-          const { number } = q
-          acc.firestoreQuery = acc.firestoreQuery.limit(number)
-          break
-        }
-      }
-
-      return acc
-    },
-    {
-      firestoreQuery:
-        collection.__type__ === 'collectionGroup'
-          ? firestore.collectionGroup(collection.path)
-          : firestore.collection(collection.path),
-      cursors: []
-    } as {
-      firestoreQuery: FirebaseQuery
-      cursors: Cursor<Model, keyof Model>[]
-    }
-  )
-
-  const groupedCursors = cursors.reduce(
-    (acc, cursor) => {
-      let methodValues = acc.find(([method]) => method === cursor.method)
-      if (!methodValues) {
-        methodValues = [cursor.method, []]
-        acc.push(methodValues)
-      }
-      methodValues[1].push(unwrapData(cursor.value))
-      return acc
-    },
-    [] as [CursorMethod, any[]][]
-  )
-
-  const paginatedFirestoreQuery =
-    cursors.length && cursors.every(cursor => cursor.value !== undefined)
-      ? groupedCursors.reduce((acc, [method, values]) => {
-          return acc[method](...values)
-        }, firestoreQuery)
-      : firestoreQuery
-
-  return paginatedFirestoreQuery.onSnapshot(firestoreSnap => {
-    onResult(
-      firestoreSnap.docs.map(d =>
-        doc(
+        return acc
+      },
+      {
+        firestoreQuery:
           collection.__type__ === 'collectionGroup'
-            ? pathToRef(d.ref.path)
-            : ref(collection, d.id),
-          wrapData(d.data()) as Model
-        )
-      )
+            ? firestore.collectionGroup(collection.path)
+            : firestore.collection(collection.path),
+        cursors: []
+      } as {
+        firestoreQuery: FirebaseQuery
+        cursors: Cursor<Model, keyof Model>[]
+      }
     )
-  }, onError)
+
+    const groupedCursors = cursors.reduce(
+      (acc, cursor) => {
+        let methodValues = acc.find(([method]) => method === cursor.method)
+        if (!methodValues) {
+          methodValues = [cursor.method, []]
+          acc.push(methodValues)
+        }
+        methodValues[1].push(unwrapData(cursor.value))
+        return acc
+      },
+      [] as [CursorMethod, any[]][]
+    )
+
+    const paginatedFirestoreQuery =
+      cursors.length && cursors.every(cursor => cursor.value !== undefined)
+        ? groupedCursors.reduce((acc, [method, values]) => {
+            return acc[method](...values)
+          }, firestoreQuery)
+        : firestoreQuery
+
+    return paginatedFirestoreQuery.onSnapshot(
+      (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
+        onResult(
+          firestoreSnap.docs.map(d =>
+            doc(
+              collection.__type__ === 'collectionGroup'
+                ? pathToRef(d.ref.path)
+                : ref(collection, d.id),
+              wrapData(d.data()) as Model
+            )
+          )
+        )
+      },
+      onError
+    )
+  } catch (err) {
+    setTimeout(() => onError && onError(err))
+    return () => {}
+  }
 }
