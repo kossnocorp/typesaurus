@@ -91,4 +91,4 @@ function value(
   }
 }
 
-export default value
+export { value }

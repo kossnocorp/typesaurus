@@ -4,7 +4,7 @@ import get from '../get'
 import set from '.'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
-import value from '../value'
+import { value } from '../value'
 
 describe('set', () => {
   type User = { name: string }

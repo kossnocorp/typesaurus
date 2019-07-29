@@ -15,7 +15,7 @@ export type BatchAPI = {
   commit: () => Promise<void>
 }
 
-export default function batch() {
+export function batch() {
   const b = firestore.batch()
 
   // set

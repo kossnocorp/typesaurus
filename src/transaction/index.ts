@@ -18,9 +18,7 @@ export type TransactionAPI = {
 
 export type TransactionFunction = (api: TransactionAPI) => any
 
-export default function transaction(
-  transactionFn: TransactionFunction
-): Promise<any> {
+export function transaction(transactionFn: TransactionFunction): Promise<any> {
   return firestore.runTransaction(t => {
     // get
 

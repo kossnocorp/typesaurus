@@ -48,4 +48,4 @@ function order<Model, Key extends keyof Model>(
   }
 }
 
-export default order
+export { order }

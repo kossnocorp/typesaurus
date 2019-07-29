@@ -148,4 +148,4 @@ function where<Model>(
   }
 }
 
-export default where
+export { where }

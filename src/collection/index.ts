@@ -3,8 +3,6 @@ export interface Collection<_Model> {
   path: string
 }
 
-function collection<Model>(path: string): Collection<Model> {
+export function collection<Model>(path: string): Collection<Model> {
   return { __type__: 'collection', path }
 }
-
-export { collection }

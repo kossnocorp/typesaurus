@@ -7,7 +7,7 @@ import field from '../field'
 import get from '../get'
 import { Ref } from '../ref'
 import set from '../set'
-import value from '../value'
+import { value } from '../value'
 
 describe('update', () => {
   type User = {

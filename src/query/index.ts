@@ -18,7 +18,7 @@ export type Query<Model, Key extends keyof Model> =
   | WhereQuery<Model>
   | LimitQuery
 
-export default async function query<Model>(
+export async function query<Model>(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[]
 ): Promise<Doc<Model>[]> {

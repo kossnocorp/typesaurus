@@ -3,7 +3,7 @@ import add from '.'
 import { collection } from '../collection'
 import get from '../get'
 import { Ref, ref } from '../ref'
-import value from '../value'
+import { value } from '../value'
 
 describe('add', () => {
   type User = { name: string }

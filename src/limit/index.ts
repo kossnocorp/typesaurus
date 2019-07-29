@@ -3,7 +3,7 @@ export interface LimitQuery {
   number: number
 }
 
-export default function limit(number: number): LimitQuery {
+export function limit(number: number): LimitQuery {
   return {
     type: 'limit',
     number

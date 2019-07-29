@@ -1,5 +1,5 @@
 import assert from 'assert'
-import batch from '.'
+import { batch } from '.'
 import { collection } from '../collection'
 import { ref } from '../ref'
 import nanoid from 'nanoid'

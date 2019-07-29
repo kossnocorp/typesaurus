@@ -1,5 +1,5 @@
 import assert from 'assert'
-import transaction from '.'
+import { transaction } from '.'
 import { collection } from '../collection'
 import nanoid from 'nanoid'
 import set from '../set'
