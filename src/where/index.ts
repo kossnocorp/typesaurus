@@ -149,3 +149,15 @@ function where<Model>(
 }
 
 export { where }
+
+export function untypedWhereArrayContains<Model>(
+  field: string | string[],
+  value: any
+): WhereQuery<Model> {
+  return {
+    type: 'where',
+    field,
+    filter: 'array-contains',
+    value
+  }
+}
