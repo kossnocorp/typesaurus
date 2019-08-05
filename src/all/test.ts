@@ -13,7 +13,7 @@ describe('all', () => {
   const books = collection<Book>('books')
   const orders = collection<Order>('orders')
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await Promise.all([
       set(books, 'sapiens', { title: 'Sapiens' }),
       set(books, '22laws', { title: 'The 22 Immutable Laws of Marketing' }),
