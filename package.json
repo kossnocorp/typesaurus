@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Firestore ORM, definitely typed",
   "main": "index.js",
   "repository": "https://github.com/kossnocorp/typesaurus",
