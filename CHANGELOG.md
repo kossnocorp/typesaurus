@@ -7,6 +7,10 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 0.3.0 - 2019-09-05
+
+- Call Firestore adaptor lazily so that configuration call could be delayed.
+
 ## 0.2.1 - 2019-09-05
 
 - Fix adaptor's package.json to make it work when installed from npm.
