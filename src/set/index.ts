@@ -32,7 +32,9 @@ async function set<Model>(
     data = idOrData as Model
   }
 
-  const firestoreDoc = firestore.collection(collection.path).doc(id)
+  const firestoreDoc = firestore()
+    .collection(collection.path)
+    .doc(id)
   await firestoreDoc.set(unwrapData(data))
   return doc(ref(collection, id), data)
 }

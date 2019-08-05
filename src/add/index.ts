@@ -8,7 +8,7 @@ export default async function add<Model>(
   collection: Collection<Model>,
   data: Model
 ) {
-  const firebaseDoc = await firestore
+  const firebaseDoc = await firestore()
     .collection(collection.path)
     .add(unwrapData(data))
   return doc<Model>(ref(collection, firebaseDoc.id), data)

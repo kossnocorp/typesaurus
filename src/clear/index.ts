@@ -25,7 +25,9 @@ async function clear<Model>(
     id = ref.id
   }
 
-  const firebaseDoc = firestore.collection(collection.path).doc(id)
+  const firebaseDoc = firestore()
+    .collection(collection.path)
+    .doc(id)
   await firebaseDoc.delete()
 }
 

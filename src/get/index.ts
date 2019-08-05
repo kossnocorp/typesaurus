@@ -27,7 +27,9 @@ async function get<Model>(
     id = ref.id
   }
 
-  const firestoreDoc = firestore.collection(collection.path).doc(id)
+  const firestoreDoc = firestore()
+    .collection(collection.path)
+    .doc(id)
   const firestoreSnap = await firestoreDoc.get()
   const firestoreData = firestoreSnap.data()
   const data = firestoreData && (wrapData(firestoreData) as Model)

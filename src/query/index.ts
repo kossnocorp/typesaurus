@@ -58,8 +58,8 @@ export async function query<Model>(
     {
       firestoreQuery:
         collection.__type__ === 'collectionGroup'
-          ? firestore.collectionGroup(collection.path)
-          : firestore.collection(collection.path),
+          ? firestore().collectionGroup(collection.path)
+          : firestore().collection(collection.path),
       cursors: []
     } as {
       firestoreQuery: FirebaseQuery

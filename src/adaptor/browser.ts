@@ -5,8 +5,9 @@
 import firebase from 'firebase/app'
 import 'firebase/firestore'
 
-const store = firebase.firestore()
-export default store
+export default function store() {
+  return firebase.firestore()
+}
 
 export type FirestoreQuery = firebase.firestore.Query
 export type FirestoreDocumentReference = firebase.firestore.DocumentReference

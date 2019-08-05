@@ -51,7 +51,9 @@ async function update<Model>(
     data = idOrData as Model
   }
 
-  const firebaseDoc = firestore.collection(collection.path).doc(id)
+  const firebaseDoc = firestore()
+    .collection(collection.path)
+    .doc(id)
   const updateData = Array.isArray(data)
     ? data.reduce(
         (acc, { key, value }) => {

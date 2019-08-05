@@ -20,7 +20,7 @@ export function getRefPath(ref: Ref<any>) {
 }
 
 export function refToFirebaseDocument<Model>(ref: Ref<Model>) {
-  return firestore.doc(getRefPath(ref))
+  return firestore().doc(getRefPath(ref))
 }
 
 export function pathToRef<Model>(path: string): Ref<Model> {

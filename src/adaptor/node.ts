@@ -5,8 +5,9 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 
-const store = admin.firestore()
-export default store
+export default function store() {
+  return admin.firestore()
+}
 
 export type FirestoreQuery = admin.firestore.Query
 export type FirestoreDocumentReference = admin.firestore.DocumentReference

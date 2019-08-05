@@ -45,7 +45,9 @@ function onGet<Model>(
     onError = onResultOrOnError as OnError | undefined
   }
 
-  const firestoreDoc = firestore.collection(collection.path).doc(id)
+  const firestoreDoc = firestore()
+    .collection(collection.path)
+    .doc(id)
   return firestoreDoc.onSnapshot(firestoreSnap => {
     const firestoreData = firestoreSnap.data()
     const data = firestoreData && (wrapData(firestoreData) as Model)

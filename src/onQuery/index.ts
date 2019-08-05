@@ -61,8 +61,8 @@ export default function onQuery<Model>(
       {
         firestoreQuery:
           collection.__type__ === 'collectionGroup'
-            ? firestore.collectionGroup(collection.path)
-            : firestore.collection(collection.path),
+            ? firestore().collectionGroup(collection.path)
+            : firestore().collection(collection.path),
         cursors: []
       } as {
         firestoreQuery: FirebaseQuery

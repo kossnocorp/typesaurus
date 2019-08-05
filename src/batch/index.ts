@@ -16,7 +16,7 @@ export type BatchAPI = {
 }
 
 export function batch() {
-  const b = firestore.batch()
+  const b = firestore().batch()
 
   // set
 
@@ -48,7 +48,9 @@ export function batch() {
       data = idOrData as Model
     }
 
-    const firestoreDoc = firestore.collection(collection.path).doc(id)
+    const firestoreDoc = firestore()
+      .collection(collection.path)
+      .doc(id)
     // ^ above
     // TODO: Refactor code above and below because is all the same as in the regular set function
     b.set(firestoreDoc, unwrapData(data))
@@ -94,7 +96,9 @@ export function batch() {
       data = idOrData as Model
     }
 
-    const firebaseDoc = firestore.collection(collection.path).doc(id)
+    const firebaseDoc = firestore()
+      .collection(collection.path)
+      .doc(id)
     const updateData = Array.isArray(data)
       ? data.reduce(
           (acc, { key, value }) => {
@@ -131,7 +135,9 @@ export function batch() {
       id = ref.id
     }
 
-    const firebaseDoc = firestore.collection(collection.path).doc(id)
+    const firebaseDoc = firestore()
+      .collection(collection.path)
+      .doc(id)
     // ^ above
     // TODO: Refactor code above because is all the same as in the regular update function
     b.delete(firebaseDoc)

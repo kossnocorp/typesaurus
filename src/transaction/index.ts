@@ -19,7 +19,7 @@ export type TransactionAPI = {
 export type TransactionFunction = (api: TransactionAPI) => any
 
 export function transaction(transactionFn: TransactionFunction): Promise<any> {
-  return firestore.runTransaction(t => {
+  return firestore().runTransaction(t => {
     // get
 
     async function get<Model>(
@@ -38,7 +38,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
         id = ref.id
       }
 
-      const firestoreDoc = firestore.collection(collection.path).doc(id)
+      const firestoreDoc = firestore()
+        .collection(collection.path)
+        .doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular get function
       const firestoreSnap = await t.get(firestoreDoc)
@@ -70,7 +72,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
         data = idOrData as Model
       }
 
-      const firestoreDoc = firestore.collection(collection.path).doc(id)
+      const firestoreDoc = firestore()
+        .collection(collection.path)
+        .doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
       await t.set(firestoreDoc, unwrapData(data))
@@ -100,7 +104,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
         data = idOrData as Model
       }
 
-      const firebaseDoc = firestore.collection(collection.path).doc(id)
+      const firebaseDoc = firestore()
+        .collection(collection.path)
+        .doc(id)
       const updateData = Array.isArray(data)
         ? data.reduce(
             (acc, { key, value }) => {
@@ -133,7 +139,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
         id = ref.id
       }
 
-      const firebaseDoc = firestore.collection(collection.path).doc(id)
+      const firebaseDoc = firestore()
+        .collection(collection.path)
+        .doc(id)
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
       await t.delete(firebaseDoc)
