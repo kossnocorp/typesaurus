@@ -375,4 +375,22 @@ describe('query', () => {
       ])
     })
   })
+
+  describe('array-contains', () => {
+    type Tag = 'building' | 'enhancement' | 'alchemy'
+    type Block = { type: string; tags: Tag[] }
+    const blocks = collection<Block>('blocks')
+
+    it('should show type error because type is a string', async () => {
+      await query(blocks, [where('type', 'array-contains', 'alchemy')])
+    })
+
+    it('should show error because value is number but tags contains strings', async () => {
+      await query(blocks, [where('tags', 'array-contains', 420)])
+    })
+
+    it('should not because tags is an array and the value is correct', async () => {
+      await query(blocks, [where('tags', 'array-contains', 'alchemy')])
+    })
+  })
 })
