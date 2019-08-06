@@ -3,31 +3,65 @@ import { Collection } from '../collection'
 import { Ref, ref } from '../ref'
 import { Doc, doc } from '../doc'
 import { unwrapData } from '../data'
-import set from '../set'
-import update, { ModelUpdate } from '../update'
+import { ModelUpdate } from '../update'
 import { Field } from '../field'
-import clear from '../clear'
 
-export type BatchAPI = {
-  set: typeof set
-  update: typeof update
-  clear: typeof clear
-  commit: () => Promise<void>
-}
-
+/**
+ * @returns batch API (set, update, clear, commit)
+ *
+ * @example
+ * import { batch, collection } from 'typesaurus'
+ *
+ * type Counter = { count: number }
+ * const counters = collection<Counter>('counters')
+ *
+ * const { set, update, clear, commit } = batch()
+ *
+ * for (let count = 0; count < 500; count++) {
+ *   set(counters, count.toString(), { count })
+ * }
+ *
+ * commit().then(() => console.log('Done!'))
+ */
 export function batch() {
-  const b = firestore().batch()
+  const firestoreBatch = firestore().batch()
 
-  // set
-
+  /**
+   * @param ref - the reference to the document to set
+   * @param data - the document data
+   */
   function set<Model>(ref: Ref<Model>, data: Model): Doc<Model>
 
+  /**
+   * @param collection - the collection to set document in
+   * @param id - the id of the document to set
+   * @param data - the document data
+   */
   function set<Model>(
     collection: Collection<Model>,
     id: string,
     data: Model
   ): Doc<Model>
 
+  /**
+   * Sets a document to the given data.
+   *
+   * @returns the document
+   *
+   * @example
+   * import { batch, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * const { set, commit } = batch()
+   *
+   * for (let count = 0; count < 500; count++) {
+   *   set(counters, count.toString(), { count })
+   * }
+   *
+   * commit()
+   */
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
     idOrData: string | Model,
@@ -53,29 +87,67 @@ export function batch() {
       .doc(id)
     // ^ above
     // TODO: Refactor code above and below because is all the same as in the regular set function
-    b.set(firestoreDoc, unwrapData(data))
+    firestoreBatch.set(firestoreDoc, unwrapData(data))
     // v below
     return doc(ref(collection, id), data)
   }
 
-  // update
-
+  /**
+   * @param collection - the collection to update document in
+   * @param id - the id of the document to update
+   * @param data - the document data to update
+   */
   function update<Model>(
     collection: Collection<Model>,
     id: string,
     data: Field<Model>[]
   ): void
 
+  /**
+   * @param ref - the reference to the document to set
+   * @param data - the document data to update
+   */
   function update<Model>(ref: Ref<Model>, data: Field<Model>[]): void
 
+  /**
+   * @param collection - the collection to update document in
+   * @param id - the id of the document to update
+   * @param data - the document data to update
+   */
   function update<Model>(
     collection: Collection<Model>,
     id: string,
     data: ModelUpdate<Model>
   ): void
 
+  /**
+   * @param ref - the reference to the document to set
+   * @param data - the document data to update
+   */
   function update<Model>(ref: Ref<Model>, data: ModelUpdate<Model>): void
 
+  /**
+   * @returns void
+   *
+   * @example
+   * import { batch, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number, meta: { updatedAt: number } }
+   * const counters = collection<Counter>('counters')
+   *
+   * const { update, commit } = batch()
+   *
+   * for (let count = 0; count < 500; count++) {
+   *   update(counters, count.toString(), { count: count + 1 })
+   *   // or using key paths:
+   *   update(counters, count.toString(), [
+   *     ['count', count + 1],
+   *     [['meta', 'updatedAt'], Date.now()]
+   *   ])
+   * }
+   *
+   * commit()
+   */
   function update<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
     idOrData: string | Field<Model>[] | ModelUpdate<Model>,
@@ -110,15 +182,37 @@ export function batch() {
       : data
     // ^ above
     // TODO: Refactor code above because is all the same as in the regular update function
-    b.update(firebaseDoc, unwrapData(updateData))
+    firestoreBatch.update(firebaseDoc, unwrapData(updateData))
   }
 
-  // clear
-
+  /**
+   * @param collection - the collection to remove document in
+   * @param id - the id of the documented to remove
+   */
   function clear<Model>(collection: Collection<Model>, id: string): void
 
+  /**
+   * @param ref - the reference to the document to remove
+   */
   function clear<Model>(ref: Ref<Model>): void
 
+  /**
+   * Removes a document.
+   *
+   * @example
+   * import { batch, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * const { clear, commit } = batch()
+   *
+   * for (let count = 0; count < 500; count++) {
+   *   clear(counters, count.toString())
+   * }
+   *
+   * commit()
+   */
   function clear<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
     maybeId?: string
@@ -140,11 +234,16 @@ export function batch() {
       .doc(id)
     // ^ above
     // TODO: Refactor code above because is all the same as in the regular update function
-    b.delete(firebaseDoc)
+    firestoreBatch.delete(firebaseDoc)
   }
 
+  /**
+   * Starts the execution of the operations in the batch.
+   *
+   * @returns a promise that resolves when the operations are finished
+   */
   async function commit() {
-    await b.commit()
+    await firestoreBatch.commit()
   }
 
   return {

@@ -6,6 +6,10 @@ import {
 import { pathToRef, Ref, refToFirebaseDocument } from '../ref'
 import { UpdateValue } from '../value'
 
+/**
+ *
+ * @param value - the value to convert
+ */
 export function unwrapData(value: any) {
   if (value instanceof Date) {
     return FirestoreTimestamp.fromDate(value)
