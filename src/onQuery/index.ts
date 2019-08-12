@@ -26,14 +26,7 @@ export type Query<Model, Key extends keyof Model> =
 /**
  * Subscribes to a collection query built using query objects ({@link order | order}, {@link where | where}, {@link limit | limit}).
  *
- * @param collection - The collection or collection group to query
- * @param queries - The query objects
- * @param onResult - The function which is called with the query result when
- * the initial fetch is resolved or the query result updates.
- * @param onError - The function is called with error when request fails.
- * @returns Function that unsubscribes the listener from the updates
- *
- * @example
+ * ```ts
  * import { query, limit, order, startAfter, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -50,6 +43,14 @@ export type Query<Model, Key extends keyof Model> =
  *   console.log(bornAfter2000[0].data)
  *   //=> { name: 'Sasha' }
  * })
+ * ```
+ *
+ * @param collection - The collection or collection group to query
+ * @param queries - The query objects
+ * @param onResult - The function which is called with the query result when
+ * the initial fetch is resolved or the query result updates.
+ * @param onError - The function is called with error when request fails.
+ * @returns Function that unsubscribes the listener from the updates
  */
 export default function onQuery<Model>(
   collection: Collection<Model> | CollectionGroup<Model>,

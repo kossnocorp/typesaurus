@@ -23,9 +23,7 @@ async function set<Model>(
 /**
  * Sets a document to the given data.
  *
- * @returns a promise to the document
- *
- * @example
+ * ```ts
  * import { set, collection } from 'typesaurus'
  *
  * type User = { name: string }
@@ -35,6 +33,9 @@ async function set<Model>(
  *   console.log(sasha.data)
  *   //=> { name: 'Sasha Koss' }
  * })
+ * ```
+ *
+ * @returns A promise to the document
  */
 async function set<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,

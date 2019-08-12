@@ -28,7 +28,6 @@ function order<Model, Key extends keyof Model>(
 ): OrderQuery<Model, Key>
 
 /**
- *
  * @param field Apply the order to the field
  * @param method Used ordering method ('desc' or 'asc')
  * @param cursors - Cursors that define pagination rules ({@link startAfter}, {@link startAt}, {@link endBefore} and {@link endAt})
@@ -43,9 +42,7 @@ function order<Model, Key extends keyof Model>(
  * Creates order query object with given field, ordering method
  * and pagination cursors.
  *
- * @returns The order query object
- *
- * @example
+ * ```ts
  * import { order, query, limit, startAfter, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -64,6 +61,9 @@ function order<Model, Key extends keyof Model>(
  *   console.log(bornAfter2000)
  *   //=> 420
  * })
+ * ```
+ *
+ * @returns The order query object
  */
 function order<Model, Key extends keyof Model>(
   field: Key,

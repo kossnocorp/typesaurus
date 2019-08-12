@@ -13,11 +13,7 @@ export interface Ref<Model> {
 /**
  * Creates reference object to a document in given collection with given id.
  *
- * @param collection - The collection to create refernce in
- * @param id - The document id
- * @returns The reference object
- *
- * @example
+ * ```ts
  * import { ref, query, collection, where, Ref } from 'typesaurus'
  *
  * type User = { name: string }
@@ -30,6 +26,11 @@ export interface Ref<Model> {
  *     console.log(userOrders.length)
  *     //=> 42
  *   })
+ * ```
+ *
+ * @param collection - The collection to create refernce in
+ * @param id - The document id
+ * @returns The reference object
  */
 export function ref<Model>(
   collection: Collection<Model>,

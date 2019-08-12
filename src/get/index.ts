@@ -10,7 +10,6 @@ import { wrapData } from '../data'
 async function get<Model>(ref: Ref<Model>): Promise<Doc<Model> | undefined>
 
 /**
- *
  * @param collection - The collection to get document from
  * @param id - The document id
  */
@@ -22,9 +21,7 @@ async function get<Model>(
 /**
  * Retrieves a document from a collection.
  *
- * @returns Promise to the document or undefined if not found
- *
- * @example
+ * ```ts
  * import { get, collection } from 'typesaurus'
  *
  * type User = { name: string }
@@ -34,7 +31,11 @@ async function get<Model>(
  *   console.log(user)
  *   //=> { __type__: 'doc', data: { name: 'Sasha' }, ... }
  * })
- * // Or using ref get(currentUser.ref)
+ * // Or using ref:
+ * get(currentUser.ref)
+ * ```
+ *
+ * @returns Promise to the document or undefined if not found
  */
 async function get<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,

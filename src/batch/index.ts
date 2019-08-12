@@ -7,11 +7,11 @@ import { ModelUpdate } from '../update'
 import { Field } from '../field'
 
 /**
- * Creates batch.
+ * Creates batch API ({@link set}, {@link update}, {@link clear}) but unlike
+ * regular functions do not return promise and perform operations only
+ * when `commit` function is called.
  *
- * @returns Batch API (set, update, clear, commit)
- *
- * @example
+ * ```ts
  * import { batch, collection } from 'typesaurus'
  *
  * type Counter = { count: number }
@@ -20,10 +20,15 @@ import { Field } from '../field'
  * const { set, update, clear, commit } = batch()
  *
  * for (let count = 0; count < 500; count++) {
+ *   // Each batch can be up to 500 set, update and clear operations
  *   set(counters, count.toString(), { count })
  * }
  *
+ * // Set 500 documents
  * commit().then(() => console.log('Done!'))
+ * ```
+ *
+ * @returns Batch API (set, update, clear, commit)
  */
 export function batch() {
   const firestoreBatch = firestore().batch()
@@ -48,9 +53,7 @@ export function batch() {
   /**
    * Sets a document to the given data.
    *
-   * @returns The document
-   *
-   * @example
+   * ```ts
    * import { batch, collection } from 'typesaurus'
    *
    * type Counter = { count: number }
@@ -63,6 +66,9 @@ export function batch() {
    * }
    *
    * commit()
+   * ```
+   *
+   * @returns The document
    */
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
@@ -129,9 +135,9 @@ export function batch() {
   function update<Model>(ref: Ref<Model>, data: ModelUpdate<Model>): void
 
   /**
-   * @returns void
+   * Updates a document.
    *
-   * @example
+   * ```ts
    * import { batch, collection } from 'typesaurus'
    *
    * type Counter = { count: number, meta: { updatedAt: number } }
@@ -149,6 +155,9 @@ export function batch() {
    * }
    *
    * commit()
+   * ```
+   *
+   * @returns void
    */
   function update<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
@@ -201,7 +210,7 @@ export function batch() {
   /**
    * Removes a document.
    *
-   * @example
+   * ```ts
    * import { batch, collection } from 'typesaurus'
    *
    * type Counter = { count: number }
@@ -214,6 +223,9 @@ export function batch() {
    * }
    *
    * commit()
+   * ```
+   *
+   * @returns A promise that resolves when the operation is complete
    */
   function clear<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,

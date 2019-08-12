@@ -12,11 +12,7 @@ export interface Doc<Model> {
 /**
  * Creates a document object.
  *
- * @param ref - The document reference
- * @param data - The model data
- * @returns The document object
- *
- * @example
+ * ```ts
  * import { doc, ref, collection } from 'typesaurus'
  *
  * type User = { name: string }
@@ -32,6 +28,11 @@ export interface Doc<Model> {
  * //=>     id: '00sHm46UWKObv2W7XK9e'
  * //=>   }
  * //=> }
+ * ```
+ *
+ * @param ref - The document reference
+ * @param data - The model data
+ * @returns The document object
  */
 export function doc<Model>(ref: Ref<Model>, data: Model): Doc<Model> {
   return { __type__: 'doc', ref, data }

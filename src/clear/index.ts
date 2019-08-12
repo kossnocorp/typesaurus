@@ -19,13 +19,16 @@ async function clear<Model>(ref: Ref<Model>): Promise<void>
 /**
  * Removes a document.
  *
- * @example
+ * ```ts
  * import { clear } from 'typesaurus'
  *
  * type User = { name: string }
  * const users = collection<User>('users')
  *
  * clear(users, '00sHm46UWKObv2W7XK9e').then(() => console.log('Done!'))
+ * ```
+ *
+ * @returns A promise that resolves when the operation is complete
  */
 async function clear<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,

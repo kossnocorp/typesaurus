@@ -29,10 +29,7 @@ function group<A, B, C>(
 /**
  * Creates a collection group object.
  *
- * @param name - The collection group name.
- * @param collections - The collections to create group from.
- *
- * @example
+ * ```ts
  * import { group, subcollection, collection, ref } from 'typesaurus'
  *
  * type User = { name: string }
@@ -49,6 +46,10 @@ function group<A, B, C>(
  *
  * query(allPosts, [where(author, '==', ref(users, '00sHm46UWKObv2W7XK9e'))])
  * //=> Promise<Post[]>
+ * ```
+ *
+ * @param name - The collection group name.
+ * @param collections - The collections to create group from.
  */
 function group(
   name: string,

@@ -7,10 +7,7 @@ import { wrapData } from '../data'
 /**
  * Returns all documents in a collection.
  *
- * @param collection - The collection to get all documents from
- * @returns A promise to all documents
- *
- * @example
+ * ```ts
  * import { all, collection } from 'typesaurus'
  *
  * type User = { name: string }
@@ -24,6 +21,10 @@ import { wrapData } from '../data'
  *   console.log(allUsers[0].data)
  *   //=> { name: 'Sasha' }
  * })
+ * ```
+ *
+ * @param collection - The collection to get all documents from
+ * @returns A promise to all documents
  */
 export default async function all<Model>(
   collection: Collection<Model>

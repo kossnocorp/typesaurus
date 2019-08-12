@@ -124,11 +124,7 @@ function field<
 /**
  * Creates a field object.
  *
- * @param key - The field key or key path
- * @param value - The value
- * @returns The field object
- *
- * @example
+ * ```ts
  * import { field, update, collection } from 'typesaurus'
  *
  * type User = { name: string }
@@ -138,6 +134,11 @@ function field<
  *   field(['address', 'city'], 'Dimitrovgrad')
  * ])
  * //=> Promise<void>
+ * ```
+ *
+ * @param key - The field key or key path
+ * @param value - The value
+ * @returns The field object
  */
 function field<Model>(key: string | string[], value: any): Field<Model> {
   return { key, value }

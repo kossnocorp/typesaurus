@@ -37,6 +37,20 @@ function onGet<Model>(
 /**
  * Subscribes to the diven document.
  *
+ * ```ts
+ * import { onGet, collection } from 'typesaurus'
+ *
+ * type User = { name: string }
+ * const users = collection<User>('users')
+ *
+ * onGet(users, '00sHm46UWKObv2W7XK9e', sasha => {
+ *   console.log(sasha.ref.id)
+ *   //=> '00sHm46UWKObv2W7XK9e'
+ *   console.log(sasha.data)
+ *   //=> { name: 'Sasha' }
+ * })
+ * ```
+ *
  * @returns Function that unsubscribes the listener from the updates
  */
 function onGet<Model>(

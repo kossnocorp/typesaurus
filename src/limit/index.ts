@@ -9,10 +9,7 @@ export interface LimitQuery {
 /**
  * Creates a limit query object. It's used to paginate queries.
  *
- * @param number - The limit value
- * @returns The limit object
- *
- * @example
+ * ```ts
  * import { limit, query, order, startAfter, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -22,6 +19,10 @@ export interface LimitQuery {
  *   order('year', 'asc', [startAfter(2000)]),
  *   limit(2)
  * ])
+ * ```
+ *
+ * @param number - The limit value
+ * @returns The limit object
  */
 export function limit(number: number): LimitQuery {
   return {

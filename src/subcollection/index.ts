@@ -12,11 +12,7 @@ export type Subcollection<RefModel, CollectionModel> = (
  * Creates a subcollection function which accepts parent document reference
  * and returns the subcollection trasnformed into a collection object.
  *
- * @param name - The subcollection name
- * @param parentCollection - The parent collection
- * @returns Function which accepts parent document
- *
- * @example
+ * ```ts
  * import { subcollection, collection, ref, add } from 'typesaurus'
  *
  * type User = { name: string }
@@ -30,6 +26,11 @@ export type Subcollection<RefModel, CollectionModel> = (
  * userOrders(ref(users, '00sHm46UWKObv2W7XK9e')))
  *
  * add(sashasOrders, { item: 'Snowboard boots' })
+ * ```
+ *
+ * @param name - The subcollection name
+ * @param parentCollection - The parent collection
+ * @returns Function which accepts parent document
  */
 function subcollection<CollectionModel, RefModel>(
   name: string,

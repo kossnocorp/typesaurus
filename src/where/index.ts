@@ -138,12 +138,7 @@ function where<
 /**
  * Creates where query.
  *
- * @param field - The field or key path to query
- * @param filter - The filter operation ('<', '<=', '==', '>=' or '>')
- * @param value - The value to pass to the operation
- * @returns The where query object
- *
- * @example
+ * ```ts
  * import { where, ref, query, collection, Ref } from 'typesaurus'
  *
  * type User = { name: string }
@@ -158,6 +153,12 @@ function where<
  *   })
  * // Or using key paths:
  * query(orders, [where(['address', 'city'], '==', 'Moscow'])
+ * ```
+ *
+ * @param field - The field or key path to query
+ * @param filter - The filter operation ('<', '<=', '==', '>=' or '>')
+ * @param value - The value to pass to the operation
+ * @returns The where query object
  */
 function where<Model>(
   field: string | string[],
@@ -177,11 +178,7 @@ export { where }
 /**
  * Creates where query with array-contains filter operation.
  *
- * @param field - The field or key path to query
- * @param value - The value to pass to the operation
- * @returns The where query object
- *
- * @example
+ * ```ts
  * import { untypedWhereArrayContains, query, collection } from 'typesaurus'
  *
  * type User = {
@@ -196,6 +193,11 @@ export { where }
  *     console.log(snowboarders.length)
  *     //=> 42
  *   })
+ * ```
+ *
+ * @param field - The field or key path to query
+ * @param value - The value to pass to the operation
+ * @returns The where query object
  */
 export function untypedWhereArrayContains<Model>(
   field: string | string[],

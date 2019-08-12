@@ -14,10 +14,7 @@ export interface Cursor<Model, Key extends keyof Model> {
 /**
  * Start the query results after the given value.
  *
- * @param value - The value to end the query results after
- * @returns The cursor object
- *
- * @example
+ * ```ts
  * import { startAfter, order, query, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -28,6 +25,10 @@ export interface Cursor<Model, Key extends keyof Model> {
  *     console.log(youngerThan2K.length)
  *     //=> 420
  *   })
+ * ```
+ *
+ * @param value - The value to end the query results after
+ * @returns The cursor object
  */
 export function startAfter<Model, Key extends keyof Model>(
   value: Model[Key] | /*Ref<Model> |*/ undefined
@@ -41,10 +42,7 @@ export function startAfter<Model, Key extends keyof Model>(
 /**
  * Start the query results on the given value.
  *
- * @param value - The value to start the query results at
- * @returns The cursor object
- *
- * @example
+ * ```ts
  * import { startAt, order, query, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -55,6 +53,10 @@ export function startAfter<Model, Key extends keyof Model>(
  *     console.log(youngerThan2K.length)
  *     //=> 420
  *   })
+ * ```
+ *
+ * @param value - The value to start the query results at
+ * @returns The cursor object
  */
 export function startAt<Model, Key extends keyof Model>(
   value: Model[Key] | /*Ref<Model> |*/ undefined
@@ -68,10 +70,7 @@ export function startAt<Model, Key extends keyof Model>(
 /**
  * Ends the query results before the given value.
  *
- * @param value - The value to end the query results before
- * @returns The cursor object
- *
- * @example
+ * ```ts
  * import { endBefore, order, query, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -82,6 +81,10 @@ export function startAt<Model, Key extends keyof Model>(
  *     console.log(olderThan2K.length)
  *     //=> 420
  *   })
+ * ```
+ *
+ * @param value - The value to end the query results before
+ * @returns The cursor object
  */
 export function endBefore<Model, Key extends keyof Model>(
   value: Model[Key] | /*Ref<Model> |*/ undefined
@@ -95,10 +98,7 @@ export function endBefore<Model, Key extends keyof Model>(
 /**
  * Ends the query results on the given value.
  *
- * @param value - The value to end the query results at
- * @returns The cursor object
- *
- * @example
+ * ```ts
  * import { endAt, order, query, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -109,6 +109,10 @@ export function endBefore<Model, Key extends keyof Model>(
  *     console.log(olderThan2K.length)
  *     //=> 420
  *   })
+ * ```
+ *
+ * @param value - The value to end the query results at
+ * @returns The cursor object
  */
 export function endAt<Model, Key extends keyof Model>(
   value: Model[Key] | /*Ref<Model> |*/ undefined

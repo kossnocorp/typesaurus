@@ -89,10 +89,7 @@ function value<T extends Date>(kind: 'serverDate'): ValueServerDate
 /**
  * Creates a value object.
  *
- * @param kind - The value kind ('clear', 'increment', 'arrayUnion', 'arrayRemove' or 'serverDate')
- * @param payload - The payload if required by the kind
- *
- * @example
+ * ```ts
  * import { value, set, update, collection } from 'typesaurus'
  *
  * type User = {
@@ -129,6 +126,10 @@ function value<T extends Date>(kind: 'serverDate'): ValueServerDate
  *     interests: value('arrayUnion', ['skateboarding', 'minecraft'])
  *   })
  * })()
+ * ```
+ *
+ * @param kind - The value kind ('clear', 'increment', 'arrayUnion', 'arrayRemove' or 'serverDate')
+ * @param payload - The payload if required by the kind
  */
 function value(
   kind: ValueKind,

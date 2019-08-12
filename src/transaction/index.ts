@@ -27,10 +27,7 @@ export type TransactionFunction = (api: TransactionAPI) => any
 /**
  * Performs transaction.
  *
- * @param transactionFn - The transaction body function that accepts transaction API
- * @returns Promise that is resolved when transaction is closed
- *
- * @example
+ * ```ts
  * import { transaction, collection } from 'typesaurus'
  *
  * type Counter = { count: number }
@@ -40,15 +37,17 @@ export type TransactionFunction = (api: TransactionAPI) => any
  *   const { data: { count } } = await get('420')
  *   await set(counter, { count: count + 1 })
  * })
+ * ```
+ *
+ * @param transactionFn - The transaction body function that accepts transaction API
+ * @returns Promise that is resolved when transaction is closed
  */
 export function transaction(transactionFn: TransactionFunction): Promise<any> {
   return firestore().runTransaction(t => {
     /**
      * Retrieves a document from a collection.
      *
-     * @returns Promise to the document or undefined if not found
-     *
-     * @example
+     * ```ts
      * import { transaction, collection } from 'typesaurus'
      *
      * type Counter = { count: number }
@@ -59,6 +58,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      *   //=> { __type__: 'doc', data: { count: 42 }, ... }
      *   await set(counter.ref, { count: counter.data.count + 1 })
      * })
+     * ```
+     *
+     * @returns Promise to the document or undefined if not found
      */
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
@@ -91,9 +93,7 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
     /**
      * Sets a document to the given data.
      *
-     * @returns A promise to the document
-     *
-     * @example
+     * ```ts
      * import { transaction, collection } from 'typesaurus'
      *
      * type Counter = { count: number }
@@ -104,6 +104,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      *   await set(counter.ref, { count: counter.data.count + 1 })
      *   //=> { __type__: 'doc', data: { count: 43 }, ... }
      * })
+     * ```
+     *
+     * @returns A promise to the document
      */
     async function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
@@ -138,9 +141,7 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
     /**
      * Updates a document.
      *
-     * @returns A promise that resolves when operation is finished
-     *
-     * @example
+     * ```ts
      * import { transaction, collection } from 'typesaurus'
      *
      * type Counter = { count: number }
@@ -156,6 +157,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      *     [['address', 'city'], 'Moscow']
      *   ])
      * })
+     * ```
+     *
+     * @returns A promise that resolves when operation is finished
      */
     async function update<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
@@ -197,7 +201,7 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
     /**
      * Removes a document.
      *
-     * @example
+     * ```ts
      * import { transaction, collection } from 'typesaurus'
      *
      * type Counter = { count: number }
@@ -213,6 +217,9 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      *     [['address', 'city'], 'Moscow']
      *   ])
      * })
+     * ```
+     *
+     * @returns Promise that resolves when the operation is complete.
      */
     async function clear<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,

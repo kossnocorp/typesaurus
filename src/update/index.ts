@@ -56,9 +56,7 @@ async function update<Model>(
 /**
  * Updates a document.
  *
- * @returns A promise that resolves when the operation is finished
- *
- * @example
+ * ```ts
  * import { update, collection } from 'typesaurus'
  *
  * type User = {
@@ -78,6 +76,9 @@ async function update<Model>(
  *   ['name', 'Sasha Koss'],
  *   [['address', 'city'], 'Moscow']
  * ])
+ * ```
+ *
+ * @returns A promise that resolves when the operation is finished
  */
 async function update<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,

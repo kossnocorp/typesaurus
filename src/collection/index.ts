@@ -9,10 +9,7 @@ export interface Collection<_Model> {
 /**
  * Creates a collection object.
  *
- * @param path - The collection path
- * @returns The collection object
- *
- * @example
+ * ```ts
  * import { add, collection } from 'typesaurus'
  *
  * type User = { name: string }
@@ -20,6 +17,10 @@ export interface Collection<_Model> {
  * //=> { __type__: 'collection', path: 'users' }
  *
  * add(users, { name: 'Sasha' })
+ * ```
+ *
+ * @param path - The collection path
+ * @returns The collection object
  */
 export function collection<Model>(path: string): Collection<Model> {
   return { __type__: 'collection', path }

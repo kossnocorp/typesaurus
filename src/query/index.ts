@@ -26,11 +26,7 @@ export type Query<Model, Key extends keyof Model> =
 /**
  * Queries passed collection using query objects ({@link order}, {@link where}, {@link limit}).
  *
- * @param collection - The collection or collection group to query
- * @param queries - The query objects
- * @returns The promise to the query results
- *
- * @example
+ * ```ts
  * import { query, limit, order, startAfter, collection } from 'typesaurus'
  *
  * type Contact = { name: string; year: number }
@@ -47,6 +43,11 @@ export type Query<Model, Key extends keyof Model> =
  *   console.log(bornAfter2000[0].data)
  *   //=> { name: 'Sasha' }
  * })
+ * ```
+ *
+ * @param collection - The collection or collection group to query
+ * @param queries - The query objects
+ * @returns The promise to the query results
  */
 export async function query<Model>(
   collection: Collection<Model> | CollectionGroup<Model>,
