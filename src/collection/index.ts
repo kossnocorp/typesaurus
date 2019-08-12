@@ -1,20 +1,23 @@
+/**
+ * The collection type. It contains the path in Firestore.
+ */
 export interface Collection<_Model> {
   __type__: 'collection'
   path: string
 }
 
 /**
- * Creates collection object.
+ * Creates a collection object.
  *
- * @param path - the collection path
- * @returns collection object
+ * @param path - The collection path
+ * @returns The collection object
  *
  * @example
  * import { add, collection } from 'typesaurus'
  *
  * type User = { name: string }
  * const users = collection<User>('users')
- * // { __type__: 'collection', path: 'users' }
+ * //=> { __type__: 'collection', path: 'users' }
  *
  * add(users, { name: 'Sasha' })
  */

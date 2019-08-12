@@ -9,6 +9,9 @@ import update, { ModelUpdate } from '../update'
 import { Field } from '../field'
 import clear from '../clear'
 
+/**
+ * The Transaction API type.
+ */
 export type TransactionAPI = {
   get: typeof get
   set: typeof set
@@ -16,12 +19,47 @@ export type TransactionAPI = {
   clear: typeof clear
 }
 
+/**
+ * The transaction body function type.
+ */
 export type TransactionFunction = (api: TransactionAPI) => any
 
+/**
+ * Performs transaction.
+ *
+ * @param transactionFn - The transaction body function that accepts transaction API
+ * @returns Promise that is resolved when transaction is closed
+ *
+ * @example
+ * import { transaction, collection } from 'typesaurus'
+ *
+ * type Counter = { count: number }
+ * const counters = collection<Counter>('counters')
+ *
+ * transaction(async ({ get, set, update, clear }) => {
+ *   const { data: { count } } = await get('420')
+ *   await set(counter, { count: count + 1 })
+ * })
+ */
 export function transaction(transactionFn: TransactionFunction): Promise<any> {
   return firestore().runTransaction(t => {
-    // get
-
+    /**
+     * Retrieves a document from a collection.
+     *
+     * @returns Promise to the document or undefined if not found
+     *
+     * @example
+     * import { transaction, collection } from 'typesaurus'
+     *
+     * type Counter = { count: number }
+     * const counters = collection<Counter>('counters')
+     *
+     * transaction(async ({ get, set }) => {
+     *   const counter = await get('420')
+     *   //=> { __type__: 'doc', data: { count: 42 }, ... }
+     *   await set(counter.ref, { count: counter.data.count + 1 })
+     * })
+     */
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
@@ -50,8 +88,23 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       return data ? doc(ref(collection, id), data) : undefined
     }
 
-    // set
-
+    /**
+     * Sets a document to the given data.
+     *
+     * @returns A promise to the document
+     *
+     * @example
+     * import { transaction, collection } from 'typesaurus'
+     *
+     * type Counter = { count: number }
+     * const counters = collection<Counter>('counters')
+     *
+     * transaction(async ({ get, set }) => {
+     *   const counter = await get('420')
+     *   await set(counter.ref, { count: counter.data.count + 1 })
+     *   //=> { __type__: 'doc', data: { count: 43 }, ... }
+     * })
+     */
     async function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | Model,
@@ -82,8 +135,28 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       return doc(ref(collection, id), data)
     }
 
-    // update
-
+    /**
+     * Updates a document.
+     *
+     * @returns A promise that resolves when operation is finished
+     *
+     * @example
+     * import { transaction, collection } from 'typesaurus'
+     *
+     * type Counter = { count: number }
+     * const counters = collection<Counter>('counters')
+     *
+     * transaction(async ({ get, set }) => {
+     *   const counter = await get('420')
+     *   await update(counter.ref, { count: counter.data.count + 1 })
+     *   //=> { __type__: 'doc', data: { count: 43 }, ... }
+     *   // Or using key paths:
+     *   await update(users, '00sHm46UWKObv2W7XK9e', [
+     *     ['name', 'Sasha Koss'],
+     *     [['address', 'city'], 'Moscow']
+     *   ])
+     * })
+     */
     async function update<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | Field<Model>[] | ModelUpdate<Model>,
@@ -121,8 +194,26 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       await t.update(firebaseDoc, unwrapData(updateData))
     }
 
-    // clear
-
+    /**
+     * Removes a document.
+     *
+     * @example
+     * import { transaction, collection } from 'typesaurus'
+     *
+     * type Counter = { count: number }
+     * const counters = collection<Counter>('counters')
+     *
+     * transaction(async ({ get, set }) => {
+     *   const counter = await get('420')
+     *   await update(counter.ref, { count: counter.data.count + 1 })
+     *   //=> { __type__: 'doc', data: { count: 43 }, ... }
+     *   // Or using key paths:
+     *   await update(users, '00sHm46UWKObv2W7XK9e', [
+     *     ['name', 'Sasha Koss'],
+     *     [['address', 'city'], 'Moscow']
+     *   ])
+     * })
+     */
     async function clear<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string

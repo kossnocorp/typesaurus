@@ -7,8 +7,8 @@ import { wrapData } from '../data'
 /**
  * Returns all documents in a collection.
  *
- * @param collection  - the collection to get all documents from
- * @returns a promise to all documents
+ * @param collection - The collection to get all documents from
+ * @returns A promise to all documents
  *
  * @example
  * import { all, collection } from 'typesaurus'

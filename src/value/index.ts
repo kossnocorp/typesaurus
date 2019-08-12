@@ -1,3 +1,6 @@
+/**
+ * Available value kinds.
+ */
 export type ValueKind =
   | 'clear'
   | 'increment'
@@ -5,36 +8,57 @@ export type ValueKind =
   | 'arrayRemove'
   | 'serverDate'
 
+/**
+ * The clear value type.
+ */
 export type ValueClear = {
   __type__: 'value'
   kind: 'clear'
 }
 
+/**
+ * The increment value type. It holds the increment value.
+ */
 export type ValueIncrement = {
   __type__: 'value'
   kind: 'increment'
   number: number
 }
 
+/**
+ * The array union value type. It holds the payload to union.
+ */
 export type ValueArrayUnion = {
   __type__: 'value'
   kind: 'arrayUnion'
   values: any[]
 }
 
+/**
+ * The array remove value type. It holds the data to remove from the target array.
+ */
 export type ValueArrayRemove = {
   __type__: 'value'
   kind: 'arrayRemove'
   values: any[]
 }
 
+/**
+ * The server date value type.
+ */
 export interface ValueServerDate extends Date {
   __type__: 'value'
   kind: 'serverDate'
 }
 
+/**
+ * The value types that have no type constraints.
+ */
 export type AnyUpdateValue = ValueClear
 
+/**
+ * The value types to use for update operation.
+ */
 export type UpdateValue<T> = T extends number
   ? AnyUpdateValue | ValueIncrement
   : T extends Array<any>
@@ -62,6 +86,50 @@ function value<T extends Array<any>>(
 
 function value<T extends Date>(kind: 'serverDate'): ValueServerDate
 
+/**
+ * Creates a value object.
+ *
+ * @param kind - The value kind ('clear', 'increment', 'arrayUnion', 'arrayRemove' or 'serverDate')
+ * @param payload - The payload if required by the kind
+ *
+ * @example
+ * import { value, set, update, collection } from 'typesaurus'
+ *
+ * type User = {
+ *   name: string,
+ *   friends: number
+ *   interests: string[]
+ *   registrationDate: Date
+ *   note?: string
+ * }
+ *
+ * const users = collection<User>('users')
+ *
+ * (async () => {
+ *   await set(users, '00sHm46UWKObv2W7XK9e', {
+ *     name: 'Sasha',
+ *     friends: 123,
+ *     interests: ['snowboarding', 'surfboarding', 'running'],
+ *     // Set server date value to the field
+ *     registrationDate: value('serverDate')
+ *   })
+ *
+ *   await update(users, '00sHm46UWKObv2W7XK9e', {
+ *     // Add 2 to the value
+ *     friends: value('increment', 2),
+ *     // Remove 'running' from the interests
+ *     interests: value('arrayRemove', ['running']),
+ *     note: 'Demo'
+ *   })
+ *
+ *   await update(users, '00sHm46UWKObv2W7XK9e', {
+ *     // Remove the field
+ *     note: value('clear')
+ *     // Add values to the interests
+ *     interests: value('arrayUnion', ['skateboarding', 'minecraft'])
+ *   })
+ * })()
+ */
 function value(
   kind: ValueKind,
   payload?: any

@@ -1,13 +1,36 @@
 import firestore from '../adaptor'
-import { Collection } from '../collection/index'
-import { doc, Doc } from '../doc'
+import { Collection } from '../collection'
 
+/**
+ * The document reference type.
+ */
 export interface Ref<Model> {
   __type__: 'ref'
   collection: Collection<Model>
   id: string
 }
 
+/**
+ * Creates reference object to a document in given collection with given id.
+ *
+ * @param collection - The collection to create refernce in
+ * @param id - The document id
+ * @returns The reference object
+ *
+ * @example
+ * import { ref, query, collection, where, Ref } from 'typesaurus'
+ *
+ * type User = { name: string }
+ * type Order = { user: Ref<User>, item: string }
+ * const users = collection<User>('users')
+ * const orders = collection<User>('orders')
+ *
+ * query(orders, [where('user', '==', ref(users, '00sHm46UWKObv2W7XK9e')])
+ *   .then(userOrders => {
+ *     console.log(userOrders.length)
+ *     //=> 42
+ *   })
+ */
 export function ref<Model>(
   collection: Collection<Model>,
   id: string
@@ -15,14 +38,32 @@ export function ref<Model>(
   return { __type__: 'ref', collection, id }
 }
 
+/**
+ * Generates Firestore path from a reference.
+ *
+ * @param ref - The reference to a document
+ * @returns Firestore path
+ */
 export function getRefPath(ref: Ref<any>) {
   return [ref.collection.path].concat(ref.id).join('/')
 }
 
-export function refToFirebaseDocument<Model>(ref: Ref<Model>) {
+/**
+ * Creates Firestore document from a reference.
+ *
+ * @param ref - The reference to create Firestore document from
+ * @returns Firestore document
+ */
+export function refToFirestoreDocument<Model>(ref: Ref<Model>) {
   return firestore().doc(getRefPath(ref))
 }
 
+/**
+ * Creates a reference from a Firestore path.
+ *
+ * @param path - The Firestore path
+ * @returns Reference to a document
+ */
 export function pathToRef<Model>(path: string): Ref<Model> {
   const captures = path.match(/^(.+)\/(.+)$/)
   if (!captures) throw new Error(`Can't parse path ${path}`)
@@ -33,33 +74,3 @@ export function pathToRef<Model>(path: string): Ref<Model> {
     id
   }
 }
-
-// export async function setRef<Model>(
-//   ref: Ref<Model>,
-//   data: Model
-// ): Promise<Doc<Model>> {
-//   const firebaseDocument = refToFirebaseDocument(ref)
-//   // return doc.set(unwrapValue(data)).then(() => new Document<Model>(ref, data))
-//   return firebaseDocument.set(data).then(() => doc<Model>(ref, data))
-// }
-
-// export async function getRef<Model>(
-//   ref: Ref<Model>
-// ): Promise<Doc<Model> | null> {
-//   const doc = refToFirebaseDocument(ref)
-//   const snap = await doc.get()
-//   const data = snap.data() as Model
-//   return createItemOrNull<Model>(ref, data)
-// }
-
-// export async function deleteRef<Model>(ref: Ref<Model>): Promise<void> {
-//   const doc = refToFirebaseDocument(ref)
-//   return doc.delete().then(() => {})
-// }
-
-// export function createItemOrNull<Model>(
-//   ref: Ref<Model>,
-//   data: Model
-// ): Doc<Model> | null {
-//   return data ? doc<Model>(ref, data) : null
-// }

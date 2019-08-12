@@ -4,13 +4,38 @@ import { doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
 import { wrapData } from '../data'
 
+/**
+ * @param ref - The reference to the document
+ */
 async function get<Model>(ref: Ref<Model>): Promise<Doc<Model> | undefined>
 
+/**
+ *
+ * @param collection - The collection to get document from
+ * @param id - The document id
+ */
 async function get<Model>(
   collection: Collection<Model>,
   id: string
 ): Promise<Doc<Model> | undefined>
 
+/**
+ * Retrieves a document from a collection.
+ *
+ * @returns Promise to the document or undefined if not found
+ *
+ * @example
+ * import { get, collection } from 'typesaurus'
+ *
+ * type User = { name: string }
+ * const users = collection<User>('users')
+ *
+ * get(users, '00sHm46UWKObv2W7XK9e').then(user => {
+ *   console.log(user)
+ *   //=> { __type__: 'doc', data: { name: 'Sasha' }, ... }
+ * })
+ * // Or using ref get(currentUser.ref)
+ */
 async function get<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   maybeId?: string

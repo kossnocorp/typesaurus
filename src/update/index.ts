@@ -54,7 +54,9 @@ async function update<Model>(
 ): Promise<void>
 
 /**
- * @returns a promise that resolves when operation is finished
+ * Updates a document.
+ *
+ * @returns A promise that resolves when the operation is finished
  *
  * @example
  * import { update, collection } from 'typesaurus'

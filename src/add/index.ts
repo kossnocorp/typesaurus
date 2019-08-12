@@ -7,9 +7,9 @@ import { ref } from '../ref'
 /**
  * Adds a new document with a random id to a collection.
  *
- * @param collection - the collection to add to
- * @param data - the data to add to
- * @returns a promise to the document
+ * @param collection - The collection to add to
+ * @param data - The data to add to
+ * @returns A promise to the document
  *
  * @example
  * import { add, collection } from 'typesaurus'

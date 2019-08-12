@@ -17,5 +17,13 @@ describe('Subcollection', () => {
         path: 'users/42/posts'
       })
     })
+
+    it('allows to pass parent document id', () => {
+      const userPosts = subcollection<Post, User>('posts', users)
+      assert.deepEqual(userPosts('42'), {
+        __type__: 'collection',
+        path: 'users/42/posts'
+      })
+    })
   })
 })

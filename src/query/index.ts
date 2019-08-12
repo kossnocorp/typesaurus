@@ -7,17 +7,47 @@ import { OrderQuery } from '../order'
 import { LimitQuery } from '../limit'
 import { Cursor, CursorMethod } from '../cursor'
 import { wrapData, unwrapData } from '../data'
-import { CollectionGroup } from '../group/index'
+import { CollectionGroup } from '../group'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
   | FirebaseFirestore.Query
 
+// TODO: Refactor with onQuery
+
+/**
+ * The query type.
+ */
 export type Query<Model, Key extends keyof Model> =
   | OrderQuery<Model, Key>
   | WhereQuery<Model>
   | LimitQuery
 
+/**
+ * Queries passed collection using query objects ({@link order}, {@link where}, {@link limit}).
+ *
+ * @param collection - The collection or collection group to query
+ * @param queries - The query objects
+ * @returns The promise to the query results
+ *
+ * @example
+ * import { query, limit, order, startAfter, collection } from 'typesaurus'
+ *
+ * type Contact = { name: string; year: number }
+ * const contacts = collection<Contact>('contacts')
+ *
+ * query(contacts, [
+ *   order('year', 'asc', [startAfter(2000)]),
+ *   limit(2)
+ * ]).then(bornAfter2000 => {
+ *   console.log(bornAfter2000)
+ *   //=> 420
+ *   console.log(bornAfter2000[0].ref.id)
+ *   //=> '00sHm46UWKObv2W7XK9e'
+ *   console.log(bornAfter2000[0].data)
+ *   //=> { name: 'Sasha' }
+ * })
+ */
 export async function query<Model>(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[]

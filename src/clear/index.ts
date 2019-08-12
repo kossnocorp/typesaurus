@@ -3,8 +3,8 @@ import { Collection } from '../collection'
 import { Ref } from '../ref'
 
 /**
- * @param collection - the collection to remove document in
- * @param id - the id of the documented to remove
+ * @param collection - The collection to remove document in
+ * @param id - The id of the documented to remove
  */
 async function clear<Model>(
   collection: Collection<Model>,
@@ -12,7 +12,7 @@ async function clear<Model>(
 ): Promise<void>
 
 /**
- * @param ref - the reference to the document to remove
+ * @param ref - The reference to the document to remove
  */
 async function clear<Model>(ref: Ref<Model>): Promise<void>
 

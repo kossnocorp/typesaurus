@@ -1,3 +1,6 @@
+/**
+ * The field type. It contains path to the property and property value.
+ */
 export interface Field<_Model> {
   key: string | string[]
   value: any
@@ -118,6 +121,24 @@ function field<
   value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10]
 ): Field<Model>
 
+/**
+ * Creates a field object.
+ *
+ * @param key - The field key or key path
+ * @param value - The value
+ * @returns The field object
+ *
+ * @example
+ * import { field, update, collection } from 'typesaurus'
+ *
+ * type User = { name: string }
+ * const users = collection<User>('users')
+ * update(users, '00sHm46UWKObv2W7XK9e', [
+ *   field('name', 'Sasha Koss'),
+ *   field(['address', 'city'], 'Dimitrovgrad')
+ * ])
+ * //=> Promise<void>
+ */
 function field<Model>(key: string | string[], value: any): Field<Model> {
   return { key, value }
 }

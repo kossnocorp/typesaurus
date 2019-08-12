@@ -135,6 +135,30 @@ function where<
   value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10]
 ): WhereQuery<Model>
 
+/**
+ * Creates where query.
+ *
+ * @param field - The field or key path to query
+ * @param filter - The filter operation ('<', '<=', '==', '>=' or '>')
+ * @param value - The value to pass to the operation
+ * @returns The where query object
+ *
+ * @example
+ * import { where, ref, query, collection, Ref } from 'typesaurus'
+ *
+ * type User = { name: string }
+ * type Order = { user: Ref<User>, item: string }
+ * const users = collection<User>('users')
+ * const orders = collection<User>('orders')
+ *
+ * query(orders, [where('user', '==', ref(users, '00sHm46UWKObv2W7XK9e')])
+ *   .then(userOrders => {
+ *     console.log(userOrders.length)
+ *     //=> 42
+ *   })
+ * // Or using key paths:
+ * query(orders, [where(['address', 'city'], '==', 'Moscow'])
+ */
 function where<Model>(
   field: string | string[],
   filter: FirestoreWhereFilterOp,
@@ -150,6 +174,29 @@ function where<Model>(
 
 export { where }
 
+/**
+ * Creates where query with array-contains filter operation.
+ *
+ * @param field - The field or key path to query
+ * @param value - The value to pass to the operation
+ * @returns The where query object
+ *
+ * @example
+ * import { untypedWhereArrayContains, query, collection } from 'typesaurus'
+ *
+ * type User = {
+ *   name: string,
+ *   interests: string[]
+ * }
+ *
+ * const users = collection<User>('users')
+ *
+ * query(users, [untypedWhereArrayContains('interests', 'snowboarding'])
+ *   .then(snowborders => {
+ *     console.log(snowboarders.length)
+ *     //=> 42
+ *   })
+ */
 export function untypedWhereArrayContains<Model>(
   field: string | string[],
   value: any

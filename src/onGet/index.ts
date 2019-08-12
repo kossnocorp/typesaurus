@@ -8,12 +8,25 @@ type OnResult<Model> = (doc: Doc<Model> | undefined) => any
 
 type OnError = (error: Error) => any
 
+/**
+ * @param ref - The reference to the document
+ * @param onResult - The function which is called with the document when
+ * the initial fetch is resolved or the document updates.
+ * @param onError - The function is called with error when request fails.
+ */
 function onGet<Model>(
   ref: Ref<Model>,
   onResult: OnResult<Model>,
   onError?: OnError
 ): () => void
 
+/**
+ * @param collection - The document collection
+ * @param id - The document id
+ * @param onResult - The function which is called with the document when
+ * the initial fetch is resolved or the document updates.
+ * @param onError - The function is called with error when request fails.
+ */
 function onGet<Model>(
   collection: Collection<Model>,
   id: string,
@@ -21,6 +34,11 @@ function onGet<Model>(
   onError?: OnError
 ): () => void
 
+/**
+ * Subscribes to the diven document.
+ *
+ * @returns Function that unsubscribes the listener from the updates
+ */
 function onGet<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   idOrOnResult: string | OnResult<Model>,

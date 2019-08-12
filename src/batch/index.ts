@@ -7,7 +7,9 @@ import { ModelUpdate } from '../update'
 import { Field } from '../field'
 
 /**
- * @returns batch API (set, update, clear, commit)
+ * Creates batch.
+ *
+ * @returns Batch API (set, update, clear, commit)
  *
  * @example
  * import { batch, collection } from 'typesaurus'
@@ -27,15 +29,15 @@ export function batch() {
   const firestoreBatch = firestore().batch()
 
   /**
-   * @param ref - the reference to the document to set
-   * @param data - the document data
+   * @param ref - The reference to the document to set
+   * @param data - The document data
    */
   function set<Model>(ref: Ref<Model>, data: Model): Doc<Model>
 
   /**
-   * @param collection - the collection to set document in
-   * @param id - the id of the document to set
-   * @param data - the document data
+   * @param collection - The collection to set document in
+   * @param id - The id of the document to set
+   * @param data - The document data
    */
   function set<Model>(
     collection: Collection<Model>,
@@ -46,7 +48,7 @@ export function batch() {
   /**
    * Sets a document to the given data.
    *
-   * @returns the document
+   * @returns The document
    *
    * @example
    * import { batch, collection } from 'typesaurus'
@@ -93,9 +95,9 @@ export function batch() {
   }
 
   /**
-   * @param collection - the collection to update document in
-   * @param id - the id of the document to update
-   * @param data - the document data to update
+   * @param collection - The collection to update document in
+   * @param id - The id of the document to update
+   * @param data - The document data to update
    */
   function update<Model>(
     collection: Collection<Model>,
@@ -104,15 +106,15 @@ export function batch() {
   ): void
 
   /**
-   * @param ref - the reference to the document to set
-   * @param data - the document data to update
+   * @param ref - The reference to the document to set
+   * @param data - The document data to update
    */
   function update<Model>(ref: Ref<Model>, data: Field<Model>[]): void
 
   /**
-   * @param collection - the collection to update document in
-   * @param id - the id of the document to update
-   * @param data - the document data to update
+   * @param collection - The collection to update document in
+   * @param id - The id of the document to update
+   * @param data - The document data to update
    */
   function update<Model>(
     collection: Collection<Model>,
@@ -121,8 +123,8 @@ export function batch() {
   ): void
 
   /**
-   * @param ref - the reference to the document to set
-   * @param data - the document data to update
+   * @param ref - The reference to the document to set
+   * @param data - The document data to update
    */
   function update<Model>(ref: Ref<Model>, data: ModelUpdate<Model>): void
 
@@ -186,13 +188,13 @@ export function batch() {
   }
 
   /**
-   * @param collection - the collection to remove document in
-   * @param id - the id of the documented to remove
+   * @param collection - The collection to remove document in
+   * @param id - The id of the documented to remove
    */
   function clear<Model>(collection: Collection<Model>, id: string): void
 
   /**
-   * @param ref - the reference to the document to remove
+   * @param ref - The reference to the document to remove
    */
   function clear<Model>(ref: Ref<Model>): void
 
@@ -240,7 +242,7 @@ export function batch() {
   /**
    * Starts the execution of the operations in the batch.
    *
-   * @returns a promise that resolves when the operations are finished
+   * @returns A promise that resolves when the operations are finished
    */
   async function commit() {
     await firestoreBatch.commit()

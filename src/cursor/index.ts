@@ -14,7 +14,8 @@ export interface Cursor<Model, Key extends keyof Model> {
 /**
  * Start the query results after the given value.
  *
- * @param value - the value to end the query results after
+ * @param value - The value to end the query results after
+ * @returns The cursor object
  *
  * @example
  * import { startAfter, order, query, collection } from 'typesaurus'
@@ -40,7 +41,8 @@ export function startAfter<Model, Key extends keyof Model>(
 /**
  * Start the query results on the given value.
  *
- * @param value - the value to start the query results at
+ * @param value - The value to start the query results at
+ * @returns The cursor object
  *
  * @example
  * import { startAt, order, query, collection } from 'typesaurus'
@@ -66,7 +68,8 @@ export function startAt<Model, Key extends keyof Model>(
 /**
  * Ends the query results before the given value.
  *
- * @param value - the value to end the query results before
+ * @param value - The value to end the query results before
+ * @returns The cursor object
  *
  * @example
  * import { endBefore, order, query, collection } from 'typesaurus'
@@ -92,7 +95,8 @@ export function endBefore<Model, Key extends keyof Model>(
 /**
  * Ends the query results on the given value.
  *
- * @param value - the value to end the query results at
+ * @param value - The value to end the query results at
+ * @returns The cursor object
  *
  * @example
  * import { endAt, order, query, collection } from 'typesaurus'
