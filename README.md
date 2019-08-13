@@ -82,36 +82,42 @@ clear(users, '42')
 
 ## API Reference
 
-### Operations
+### Query data
 
-- [`add`](https://typesaurus.com/modules/_add_index_.html#add) - Adds a new document with a random id to a collection.
 - [`all`](https://typesaurus.com/modules/_all_index_.html#all) - Returns all documents in a collection.
-- [`clear`](https://typesaurus.com/modules/_clear_index_.html) - Removes a document.
 - [`get`](https://typesaurus.com/modules/_get_index_.html#get) - Retrieves a document from a collection.
-- [`set`](https://typesaurus.com/modules/_set_index_.html#set) - Sets a document to the given data.
 - [`query`](https://typesaurus.com/modules/_query_index_.html#query-1) - Queries passed collection using query objects ([`order`](https://typesaurus.com/modules/_order_index_.html#order), [`where`](https://typesaurus.com/modules/_where_index_.html#where), [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit)).
-- [`update`](https://typesaurus.com/modules/_update_index_.html#update) - Updates a document.
 
-Operation helpers:
+Query helpers:
 
 - [`order`](https://typesaurus.com/modules/_order_index_.html#order) - Creates order query object with given field, ordering method and pagination cursors.
 - [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit) - Creates a limit query object. It's used to paginate queries.
 - [`where`](https://typesaurus.com/modules/_where_index_.html) - Creates where query with array-contains filter operation.
 - [`untypedWhereArrayContains`](https://typesaurus.com/modules/_where_index_.html#untypedwherearraycontains) - Creates where query with array-contains filter operation.
-- [`field`](https://typesaurus.com/modules/_field_index_.html#field-1) - Creates a field object.
 
-### Real-time
-
-- [`onAll`](https://typesaurus.com/modules/_onall_index_.html#onall) - Subscribes to all documents in a collection.
-- [`onGet`](https://typesaurus.com/modules/_onget_index_.html#onget) - Subscribes to the diven document.
-- [`onQuery`](https://typesaurus.com/modules/_onquery_index_.html#onquery) - Subscribes to a collection query built using query objects ([`order`](https://typesaurus.com/modules/_order_index_.html#order), [`where`](https://typesaurus.com/modules/_where_index_.html#where), [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit)).
-
-### Pagination
+Pagination helpers:
 
 - [`endAt`](https://typesaurus.com/modules/_cursor_index_.html#endat) - Ends the query results on the given value.
 - [`endBefore`](https://typesaurus.com/modules/_cursor_index_.html#endbefore) - Ends the query results before the given value.
 - [`startAfter`](https://typesaurus.com/modules/_cursor_index_.html#startafter) - Start the query results after the given value.
 - [`startAt`](https://typesaurus.com/modules/_cursor_index_.html#startat) - Start the query results on the given value.
+
+Real-time:
+
+- [`onAll`](https://typesaurus.com/modules/_onall_index_.html#onall) - Subscribes to all documents in a collection.
+- [`onGet`](https://typesaurus.com/modules/_onget_index_.html#onget) - Subscribes to the diven document.
+- [`onQuery`](https://typesaurus.com/modules/_onquery_index_.html#onquery) - Subscribes to a collection query built using query objects ([`order`](https://typesaurus.com/modules/_order_index_.html#order), [`where`](https://typesaurus.com/modules/_where_index_.html#where), [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit)).
+
+### Operations
+
+- [`add`](https://typesaurus.com/modules/_add_index_.html#add) - Adds a new document with a random id to a collection.
+- [`clear`](https://typesaurus.com/modules/_clear_index_.html) - Removes a document.
+- [`set`](https://typesaurus.com/modules/_set_index_.html#set) - Sets a document to the given data.
+- [`update`](https://typesaurus.com/modules/_update_index_.html#update) - Updates a document.
+
+Operation helpers:
+
+- [`field`](https://typesaurus.com/modules/_field_index_.html#field-1) - Creates a field object. It's used to update nested maps.
 
 ### Constructors
 

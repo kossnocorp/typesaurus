@@ -122,7 +122,7 @@ function field<
 ): Field<Model>
 
 /**
- * Creates a field object.
+ * Creates a field object. It's used to update nested maps.
  *
  * ```ts
  * import { field, update, collection } from 'typesaurus'
