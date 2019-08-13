@@ -111,9 +111,9 @@ Real-time:
 ### Operations
 
 - [`add`](https://typesaurus.com/modules/_add_index_.html#add) - Adds a new document with a random id to a collection.
-- [`clear`](https://typesaurus.com/modules/_clear_index_.html) - Removes a document.
 - [`set`](https://typesaurus.com/modules/_set_index_.html#set) - Sets a document to the given data.
 - [`update`](https://typesaurus.com/modules/_update_index_.html#update) - Updates a document.
+- [`clear`](https://typesaurus.com/modules/_clear_index_.html) - Removes a document.
 
 Operation helpers:
 
@@ -131,8 +131,6 @@ Operation helpers:
 
 - [`batch`](https://typesaurus.com/modules/_batch_index_.html#batch) - Inits batched writes.
 - [`transaction`](https://typesaurus.com/modules/_transaction_index_.html#transaction) - Performs transaction.
-
-### Real-time
 
 ## License
 
