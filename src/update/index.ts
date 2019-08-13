@@ -57,7 +57,7 @@ async function update<Model>(
  * Updates a document.
  *
  * ```ts
- * import { update, collection } from 'typesaurus'
+ * import { update, field, collection } from 'typesaurus'
  *
  * type User = {
  *   name: string,
@@ -73,8 +73,8 @@ async function update<Model>(
  *   .then(() => console.log('Done!'))
  * // or using key paths:
  * update(users, '00sHm46UWKObv2W7XK9e', [
- *   ['name', 'Sasha Koss'],
- *   [['address', 'city'], 'Moscow']
+ *   field('name', 'Sasha Koss'),
+ *   field(['address', 'city'], 'Moscow')
  * ])
  * ```
  *

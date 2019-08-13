@@ -142,7 +142,7 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      * Updates a document.
      *
      * ```ts
-     * import { transaction, collection } from 'typesaurus'
+     * import { transaction, field, collection } from 'typesaurus'
      *
      * type Counter = { count: number }
      * const counters = collection<Counter>('counters')
@@ -151,10 +151,10 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      *   const counter = await get('420')
      *   await update(counter.ref, { count: counter.data.count + 1 })
      *   //=> { __type__: 'doc', data: { count: 43 }, ... }
-     *   // Or using key paths:
+     *   // Or using field paths:
      *   await update(users, '00sHm46UWKObv2W7XK9e', [
-     *     ['name', 'Sasha Koss'],
-     *     [['address', 'city'], 'Moscow']
+     *     field('name', 'Sasha Koss'),
+     *     field(['address', 'city'], 'Moscow')
      *   ])
      * })
      * ```
@@ -202,20 +202,14 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      * Removes a document.
      *
      * ```ts
-     * import { transaction, collection } from 'typesaurus'
+     * import { transaction, field, collection } from 'typesaurus'
      *
      * type Counter = { count: number }
      * const counters = collection<Counter>('counters')
      *
-     * transaction(async ({ get, set }) => {
+     * transaction(async ({ get, clear }) => {
      *   const counter = await get('420')
-     *   await update(counter.ref, { count: counter.data.count + 1 })
-     *   //=> { __type__: 'doc', data: { count: 43 }, ... }
-     *   // Or using key paths:
-     *   await update(users, '00sHm46UWKObv2W7XK9e', [
-     *     ['name', 'Sasha Koss'],
-     *     [['address', 'city'], 'Moscow']
-     *   ])
+     *   if (counter === 420) await clear(counter.ref)
      * })
      * ```
      *

@@ -129,6 +129,7 @@ function field<
  *
  * type User = { name: string }
  * const users = collection<User>('users')
+ *
  * update(users, '00sHm46UWKObv2W7XK9e', [
  *   field('name', 'Sasha Koss'),
  *   field(['address', 'city'], 'Dimitrovgrad')

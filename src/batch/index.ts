@@ -138,7 +138,7 @@ export function batch() {
    * Updates a document.
    *
    * ```ts
-   * import { batch, collection } from 'typesaurus'
+   * import { batch, field, collection } from 'typesaurus'
    *
    * type Counter = { count: number, meta: { updatedAt: number } }
    * const counters = collection<Counter>('counters')
@@ -147,10 +147,10 @@ export function batch() {
    *
    * for (let count = 0; count < 500; count++) {
    *   update(counters, count.toString(), { count: count + 1 })
-   *   // or using key paths:
+   *   // or using field paths:
    *   update(counters, count.toString(), [
-   *     ['count', count + 1],
-   *     [['meta', 'updatedAt'], Date.now()]
+   *     field('count', count + 1),
+   *     field(['meta', 'updatedAt'], Date.now())
    *   ])
    * }
    *
