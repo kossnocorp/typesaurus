@@ -92,7 +92,7 @@ Query helpers:
 
 - [`order`](https://typesaurus.com/modules/_order_index_.html#order) - Creates order query object with given field, ordering method and pagination cursors.
 - [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit) - Creates a limit query object. It's used to paginate queries.
-- [`where`](https://typesaurus.com/modules/_where_index_.html) - Creates where query with array-contains filter operation.
+- [`where`](https://typesaurus.com/modules/_where_index_.html#where) - Creates where query with array-contains filter operation.
 - [`untypedWhereArrayContains`](https://typesaurus.com/modules/_where_index_.html#untypedwherearraycontains) - Creates where query with array-contains filter operation.
 
 Pagination helpers:
@@ -113,7 +113,7 @@ Real-time:
 - [`add`](https://typesaurus.com/modules/_add_index_.html#add) - Adds a new document with a random id to a collection.
 - [`set`](https://typesaurus.com/modules/_set_index_.html#set) - Sets a document to the given data.
 - [`update`](https://typesaurus.com/modules/_update_index_.html#update) - Updates a document.
-- [`clear`](https://typesaurus.com/modules/_clear_index_.html) - Removes a document.
+- [`clear`](https://typesaurus.com/modules/_clear_index_.html#clear) - Removes a document.
 
 Operation helpers:
 
@@ -121,7 +121,7 @@ Operation helpers:
 
 ### Constructors
 
-- [`collection`](https://typesaurus.com/modules/_collection_index_.html) - Creates a collection object.
+- [`collection`](https://typesaurus.com/modules/_collection_index_.html#collection-1) - Creates a collection object.
 - [`subcollection`](https://typesaurus.com/modules/_subcollection_index_.html#subcollection-1) - Creates a subcollection function which accepts parent document reference and returns the subcollection trasnformed into a collection object.
 - [`group`](https://typesaurus.com/modules/_group_index_.html#group) - Creates a collection group object.
 - [`doc`](https://typesaurus.com/modules/_doc_index_.html#doc-1) - Creates a document object.
@@ -131,6 +131,10 @@ Operation helpers:
 
 - [`batch`](https://typesaurus.com/modules/_batch_index_.html#batch) - Inits batched writes.
 - [`transaction`](https://typesaurus.com/modules/_transaction_index_.html#transaction) - Performs transaction.
+
+## Changelog
+
+See [the changelog](./CHANGELOG.md).
 
 ## License
 
