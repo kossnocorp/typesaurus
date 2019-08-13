@@ -9,8 +9,8 @@ TypeScript-first ORM for Firestore.
 - Functional API
 - Maximum type-safety
 - Autocomplete
-- Say good bye to `any`!
-- Say good bye to exceptions!
+- Say goodbye to `any`!
+- Say goodbye to exceptions!
 
 ## Installation
 
