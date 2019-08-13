@@ -7,6 +7,6 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
-## Unreleased
+## 1.0.0 - 2019-08-13
 
-First public version
+First public release.

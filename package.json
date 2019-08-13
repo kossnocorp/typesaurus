@@ -1,7 +1,12 @@
 {
   "name": "typesaurus",
-  "version": "0.3.2",
-  "description": "Firestore ORM, definitely typed",
+  "version": "1.0.0",
+  "description": "Type-safe ORM for Firestore",
+  "keywords": [
+    "Firebase",
+    "Firestore",
+    "TypeScript"
+  ],
   "main": "index.js",
   "repository": "https://github.com/kossnocorp/typesaurus",
   "author": "Sasha Koss <koss@nocorp.me>",
