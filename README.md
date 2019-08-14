@@ -122,7 +122,7 @@ Operation helpers:
 ### Constructors
 
 - [`collection`](https://typesaurus.com/modules/_collection_index_.html#collection-1) - Creates a collection object.
-- [`subcollection`](https://typesaurus.com/modules/_subcollection_index_.html#subcollection-1) - Creates a subcollection function which accepts parent document reference and returns the subcollection trasnformed into a collection object.
+- [`subcollection`](https://typesaurus.com/modules/_subcollection_index_.html#subcollection-1) - Creates a subcollection function which accepts parent document reference and returns the subcollection transformed into a collection object.
 - [`group`](https://typesaurus.com/modules/_group_index_.html#group) - Creates a collection group object.
 - [`doc`](https://typesaurus.com/modules/_doc_index_.html#doc-1) - Creates a document object.
 - [`ref`](https://typesaurus.com/modules/_ref_index_.html#ref-1) - Creates reference object to a document in given collection with given id.
