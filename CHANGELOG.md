@@ -7,11 +7,15 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
-## 1.0.1 - 2019-08-15
+## 1.1.0 - 2019-08-15
 
 ### Fixed
 
 - Export `field` from the package root
+
+### Added
+
+- Added support for `value` (i.e. `value('increment', 1)`) in the field paths
 
 ## 1.0.0 - 2019-08-13
 

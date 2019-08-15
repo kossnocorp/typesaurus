@@ -13,8 +13,8 @@ describe('update', () => {
   type User = {
     name: string
     address: { city: string }
+    visits: number
     guest?: boolean
-    visits?: number
     birthday?: Date
   }
   type Post = { author: Ref<User>; text: string }
@@ -25,7 +25,8 @@ describe('update', () => {
   it('updates document', async () => {
     const user = await add(users, {
       name: 'Sasha',
-      address: { city: 'Omsk' }
+      address: { city: 'Omsk' },
+      visits: 0
     })
     const { id } = user.ref
     await update(users, id, { name: 'Sasha Koss' })
@@ -39,30 +40,38 @@ describe('update', () => {
   it('allows updating refs', async () => {
     const user = await add(users, {
       name: 'Sasha',
-      address: { city: 'Omsk' }
+      address: { city: 'Omsk' },
+      visits: 0
     })
     await update(user.ref, { name: 'Sasha Koss' })
+    await update(user.ref, [
+      field('name', 'Sasha Koss'),
+      field(['address', 'city'], 'Moscow')
+    ])
     const userFromDB = await get(users, user.ref.id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha Koss',
-      address: { city: 'Omsk' }
+      address: { city: 'Moscow' }
     })
   })
 
   it('allows update nested maps', async () => {
     const user = await add(users, {
       name: 'Sasha',
-      address: { city: 'Omsk' }
+      address: { city: 'Omsk' },
+      visits: 0
     })
     const { id } = user.ref
     await update(users, id, [
       field('name', 'Sasha Koss'),
-      field(['address', 'city'], 'Dimitrovgrad')
+      field(['address', 'city'], 'Dimitrovgrad'),
+      field('visits', value('increment', 1))
     ])
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha Koss',
-      address: { city: 'Dimitrovgrad' }
+      address: { city: 'Dimitrovgrad' },
+      visits: 1
     })
   })
 
@@ -71,11 +80,13 @@ describe('update', () => {
     const userId2 = nanoid()
     const user1 = await set(users, userId1, {
       name: 'Sasha',
-      address: { city: 'Omsk' }
+      address: { city: 'Omsk' },
+      visits: 0
     })
     const user2 = await set(users, userId2, {
       name: 'Tati',
-      address: { city: 'Dimitrovgrad' }
+      address: { city: 'Dimitrovgrad' },
+      visits: 0
     })
     const postId = nanoid()
     const post = await set(posts, postId, {
@@ -92,6 +103,7 @@ describe('update', () => {
     const user = await add(users, {
       name: 'Sasha',
       address: { city: 'Omsk' },
+      visits: 0,
       guest: true
     })
     const { id } = user.ref
@@ -106,7 +118,8 @@ describe('update', () => {
   it('allows incrementing values', async () => {
     const user = await add(users, {
       name: 'Sasha',
-      address: { city: 'Omsk' }
+      address: { city: 'Omsk' },
+      visits: 0
     })
     const { id } = user.ref
     await update(users, id, { visits: value('increment', 2) })
@@ -122,7 +135,8 @@ describe('update', () => {
     const user = await add(users, {
       name: 'Sasha',
       address: { city: 'Omsk' },
-      birthday: new Date(1987, 2, 11)
+      birthday: new Date(1987, 2, 11),
+      visits: 0
     })
     const { id } = user.ref
     await update(users, id, { birthday: new Date(1987, 1, 11) })
@@ -138,7 +152,8 @@ describe('update', () => {
     const user = await add(users, {
       name: 'Sasha',
       address: { city: 'Omsk' },
-      birthday: new Date(1987, 2, 11)
+      birthday: new Date(1987, 2, 11),
+      visits: 0
     })
     const { id } = user.ref
     await update(users, id, { birthday: value('serverDate') })
