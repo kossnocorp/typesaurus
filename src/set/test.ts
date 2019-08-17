@@ -39,6 +39,25 @@ describe('set', () => {
     assert.deepEqual(user.data, { name: 'Sasha Koss' })
   })
 
+  it('allows to merge', async () => {
+    const id = nanoid()
+    const date = new Date()
+    const author = await set(users, `user-${id}`, { name: 'Sasha' })
+    const postId = `post-${id}`
+    const postPayload = {
+      author: author.ref,
+      text: 'Hello!'
+    }
+    await set(posts, postId, Object.assign({ date }, postPayload))
+    await set(posts, postId, postPayload, { merge: true })
+    const postFromDB = await get(posts, postId)
+    assert.deepEqual(postFromDB.data, {
+      date,
+      author: author.ref,
+      text: 'Hello!'
+    })
+  })
+
   it('allows setting to refs', async () => {
     const id = nanoid()
     const userRef = ref(users, id)

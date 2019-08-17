@@ -15,7 +15,16 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ### Added
 
-- Added support for `value` (i.e. `value('increment', 1)`) in the field paths
+- Added support for `value` (i.e. `value('increment', 1)`) in the field paths.
+
+- Add support for merge set that use the current document values as defaults:
+
+  ```ts
+  await set(user.ref, { name: 'Sasha', date: new Date(1987, 1, 11) })
+  await set(user.ref, { name: 'Sasha' }, { merge: true })
+  await get(user.ref)
+  //=> { data: { name: 'Sasha', date: new Date(1987, 1, 11) }, ... }
+  ```
 
 ## 1.0.0 - 2019-08-13
 
