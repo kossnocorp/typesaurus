@@ -7,11 +7,11 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
-## 1.1.0 - 2019-08-15
+## 1.1.0 - 2019-08-17
 
 ### Changed
 
-- Rename `clear` to `remove` keeping `clear` as an alias which will be removed in the next major version.
+- Rename `clear` to `remove` everywhere keeping `clear` as an alias which will be removed in the next major version.
 
 ### Added
 
