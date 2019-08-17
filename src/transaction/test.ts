@@ -50,11 +50,11 @@ describe('transaction', () => {
     assert(optional)
   }, 10000)
 
-  it('allows clearing', async () => {
+  it('allows removing', async () => {
     const id = nanoid()
     const counter = ref(counters, id)
     await set(counter, { count: 0 })
-    await Promise.all([transaction(({ clear }) => clear(counter))])
+    await Promise.all([transaction(({ remove }) => remove(counter))])
     const counterFromDB = await get(counter)
     assert(!counterFromDB)
   }, 10000)

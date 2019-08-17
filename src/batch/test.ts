@@ -55,8 +55,8 @@ describe('batch', () => {
     assert(ed.data.name === 'Ed Tsech')
   })
 
-  it('allows clearing', async () => {
-    const { clear, commit } = batch()
+  it('allows removing', async () => {
+    const { remove, commit } = batch()
     const id = nanoid()
     const sashaRef = ref(users, `${id}-sasha`)
     const tatiRef = ref(users, `${id}-tati`)
@@ -66,9 +66,9 @@ describe('batch', () => {
       set(tatiRef, { name: 'Tati' }),
       set(edRef, { name: 'Ed' })
     ])
-    clear(sashaRef)
-    clear(tatiRef)
-    clear(edRef)
+    remove(sashaRef)
+    remove(tatiRef)
+    remove(edRef)
     await commit()
     const [sasha, tati, ed] = await Promise.all([
       get(sashaRef),

@@ -7,7 +7,7 @@ import { ModelUpdate } from '../update'
 import { Field } from '../field'
 
 /**
- * Creates batch API ({@link set}, {@link update}, {@link clear}) but unlike
+ * Creates batch API ({@link set}, {@link update}, {@link remove}) but unlike
  * regular functions do not return promise and perform operations only
  * when `commit` function is called.
  *
@@ -17,10 +17,10 @@ import { Field } from '../field'
  * type Counter = { count: number }
  * const counters = collection<Counter>('counters')
  *
- * const { set, update, clear, commit } = batch()
+ * const { set, update, remove, commit } = batch()
  *
  * for (let count = 0; count < 500; count++) {
- *   // Each batch can be up to 500 set, update and clear operations
+ *   // Each batch can be up to 500 set, update and remove operations
  *   set(counters, count.toString(), { count })
  * }
  *
@@ -28,7 +28,7 @@ import { Field } from '../field'
  * commit().then(() => console.log('Done!'))
  * ```
  *
- * @returns Batch API (set, update, clear, commit)
+ * @returns Batch API (set, update, remove, commit)
  */
 export function batch() {
   const firestoreBatch = firestore().batch()
@@ -200,12 +200,12 @@ export function batch() {
    * @param collection - The collection to remove document in
    * @param id - The id of the documented to remove
    */
-  function clear<Model>(collection: Collection<Model>, id: string): void
+  function remove<Model>(collection: Collection<Model>, id: string): void
 
   /**
    * @param ref - The reference to the document to remove
    */
-  function clear<Model>(ref: Ref<Model>): void
+  function remove<Model>(ref: Ref<Model>): void
 
   /**
    * Removes a document.
@@ -216,10 +216,10 @@ export function batch() {
    * type Counter = { count: number }
    * const counters = collection<Counter>('counters')
    *
-   * const { clear, commit } = batch()
+   * const { remove, commit } = batch()
    *
    * for (let count = 0; count < 500; count++) {
-   *   clear(counters, count.toString())
+   *   remove(counters, count.toString())
    * }
    *
    * commit()
@@ -227,7 +227,7 @@ export function batch() {
    *
    * @returns A promise that resolves when the operation is complete
    */
-  function clear<Model>(
+  function remove<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
     maybeId?: string
   ): void {
@@ -263,7 +263,8 @@ export function batch() {
   return {
     set,
     update,
-    clear,
+    remove,
+    clear: remove,
     commit
   }
 }

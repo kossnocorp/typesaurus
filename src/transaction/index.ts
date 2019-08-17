@@ -7,7 +7,7 @@ import { wrapData, unwrapData } from '../data'
 import set from '../set'
 import update, { ModelUpdate } from '../update'
 import { Field } from '../field'
-import clear from '../clear'
+import remove from '../remove'
 
 /**
  * The Transaction API type.
@@ -16,7 +16,8 @@ export type TransactionAPI = {
   get: typeof get
   set: typeof set
   update: typeof update
-  clear: typeof clear
+  remove: typeof remove
+  clear: typeof remove
 }
 
 /**
@@ -33,7 +34,7 @@ export type TransactionFunction = (api: TransactionAPI) => any
  * type Counter = { count: number }
  * const counters = collection<Counter>('counters')
  *
- * transaction(async ({ get, set, update, clear }) => {
+ * transaction(async ({ get, set, update, remove }) => {
  *   const { data: { count } } = await get('420')
  *   await set(counter, { count: count + 1 })
  * })
@@ -207,15 +208,15 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      * type Counter = { count: number }
      * const counters = collection<Counter>('counters')
      *
-     * transaction(async ({ get, clear }) => {
+     * transaction(async ({ get, remove }) => {
      *   const counter = await get('420')
-     *   if (counter === 420) await clear(counter.ref)
+     *   if (counter === 420) await remove(counter.ref)
      * })
      * ```
      *
      * @returns Promise that resolves when the operation is complete.
      */
-    async function clear<Model>(
+    async function remove<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
     ): Promise<void> {
@@ -239,6 +240,6 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       await t.delete(firebaseDoc)
     }
 
-    return transactionFn({ get, set, update, clear })
+    return transactionFn({ get, set, update, remove, clear: remove })
   })
 }
