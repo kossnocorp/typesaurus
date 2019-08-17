@@ -33,7 +33,8 @@ describe('update', () => {
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha Koss',
-      address: { city: 'Omsk' }
+      address: { city: 'Omsk' },
+      visits: 0
     })
   })
 
@@ -51,7 +52,8 @@ describe('update', () => {
     const userFromDB = await get(users, user.ref.id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha Koss',
-      address: { city: 'Moscow' }
+      address: { city: 'Moscow' },
+      visits: 0
     })
   })
 
@@ -111,7 +113,8 @@ describe('update', () => {
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha',
-      address: { city: 'Omsk' }
+      address: { city: 'Omsk' },
+      visits: 0
     })
   })
 
@@ -144,7 +147,8 @@ describe('update', () => {
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha',
       address: { city: 'Omsk' },
-      birthday: new Date(1987, 1, 11)
+      birthday: new Date(1987, 1, 11),
+      visits: 0
     })
   })
 
