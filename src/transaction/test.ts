@@ -36,14 +36,17 @@ describe('transaction', () => {
     await Promise.all([
       plusOne(counter),
       transaction(async ({ get, update }) => {
-        await get(counter)
-        await update(counter, { optional: true })
+        const counterFromDB = await get(counter)
+        await update(counter, {
+          count: counterFromDB.data.count + 1,
+          optional: true
+        })
       })
     ])
     const {
       data: { count, optional }
     } = await get(counter)
-    assert(count === 1)
+    assert(count === 2)
     assert(optional)
   }, 10000)
 
