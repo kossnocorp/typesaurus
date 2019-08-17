@@ -70,13 +70,13 @@ query(users, [where('name', '===', 'Sasha')])
 ### Remove data
 
 ```ts
-import { collection, clear } from 'typesaurus'
+import { collection, remove } from 'typesaurus'
 
 type User = { name: string }
 const users = collection<User>('users')
 
 // Remove a document with given id
-clear(users, '42')
+remove(users, '42')
 //=> Promise<void>
 ```
 
@@ -113,7 +113,7 @@ Real-time:
 - [`add`](https://typesaurus.com/modules/_add_index_.html#add) - Adds a new document with a random id to a collection.
 - [`set`](https://typesaurus.com/modules/_set_index_.html#set) - Sets a document to the given data.
 - [`update`](https://typesaurus.com/modules/_update_index_.html#update) - Updates a document.
-- [`clear`](https://typesaurus.com/modules/_clear_index_.html#clear) - Removes a document.
+- [`remove`](https://typesaurus.com/modules/_remove_index_.html#remove) - Removes a document.
 
 Operation helpers:
 

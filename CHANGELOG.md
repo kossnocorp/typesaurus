@@ -9,11 +9,13 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ## 1.1.0 - 2019-08-15
 
-### Fixed
+### Changed
 
-- Export `field` from the package root
+- Rename `clear` to `remove` keeping `clear` as an alias which will be removed in the next major version.
 
 ### Added
+
+- Export `field` from the package root
 
 - Added support for `value` (i.e. `value('increment', 1)`) in the field paths.
 

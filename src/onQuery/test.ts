@@ -14,7 +14,7 @@ import set from '../set'
 import sinon from 'sinon'
 import { subcollection } from '../subcollection'
 import { group } from '../group'
-import clear from '../clear'
+import remove from '../remove'
 
 describe('onQuery', () => {
   type Contact = { ownerId: string; name: string; year: number; birthday: Date }
@@ -547,7 +547,7 @@ describe('onQuery', () => {
     })
 
     afterEach(async () => {
-      await clear(contacts, theoId)
+      await remove(contacts, theoId)
     })
 
     it('subscribes to updates', done => {
@@ -566,7 +566,7 @@ describe('onQuery', () => {
           spy(names)
 
           if (spy.calledWithMatch(['Tati', 'Lesha', 'Theodor'])) {
-            await clear(lesha.ref)
+            await remove(lesha.ref)
           }
 
           if (spy.calledWithMatch(['Tati', 'Theodor'])) {
@@ -605,7 +605,7 @@ describe('onQuery', () => {
           }
           on()
           off()
-          await clear(lesha.ref)
+          await remove(lesha.ref)
           on()
         })
       })

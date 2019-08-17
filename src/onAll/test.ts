@@ -4,7 +4,7 @@ import set from '../set'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
 import get from '../get'
-import clear from '../clear'
+import remove from '../remove'
 import sinon from 'sinon'
 
 describe('onAll', () => {
@@ -19,8 +19,8 @@ describe('onAll', () => {
       set(books, 'sapiens', { title: 'Sapiens' }),
       set(books, '22laws', { title: 'The 22 Immutable Laws of Marketing' }),
       set(books, 'momtest', { title: 'The Mom Test' }),
-      clear(books, 'hp1'),
-      clear(books, 'hp2')
+      remove(books, 'hp1'),
+      remove(books, 'hp2')
     ])
   })
 
