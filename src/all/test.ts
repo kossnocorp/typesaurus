@@ -49,7 +49,7 @@ describe('all', () => {
   })
 
   it('expands dates', async () => {
-    const date = new Date()
+    const date = new Date(1987, 1, 11)
     await Promise.all([
       set(orders, 'order1', { book: ref(books, 'sapiens'), quantity: 1, date }),
       set(orders, 'order2', { book: ref(books, '22laws'), quantity: 1, date })
