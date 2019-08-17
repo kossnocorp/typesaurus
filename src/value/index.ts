@@ -2,18 +2,18 @@
  * Available value kinds.
  */
 export type ValueKind =
-  | 'clear'
+  | 'remove'
   | 'increment'
   | 'arrayUnion'
   | 'arrayRemove'
   | 'serverDate'
 
 /**
- * The clear value type.
+ * The remove value type.
  */
-export type ValueClear = {
+export type ValueRemove = {
   __type__: 'value'
-  kind: 'clear'
+  kind: 'remove'
 }
 
 /**
@@ -54,7 +54,7 @@ export interface ValueServerDate extends Date {
 /**
  * The value types that have no type constraints.
  */
-export type AnyUpdateValue = ValueClear
+export type AnyUpdateValue = ValueRemove
 
 /**
  * The value types to use for update operation.
@@ -67,7 +67,7 @@ export type UpdateValue<T> = T extends number
   ? ValueServerDate | AnyUpdateValue
   : AnyUpdateValue
 
-function value(kind: 'clear'): ValueClear
+function value(kind: 'remove'): ValueRemove
 
 function value<T extends number>(
   kind: 'increment',
@@ -121,28 +121,29 @@ function value<T extends Date>(kind: 'serverDate'): ValueServerDate
  *
  *   await update(users, '00sHm46UWKObv2W7XK9e', {
  *     // Remove the field
- *     note: value('clear')
+ *     note: value('remove')
  *     // Add values to the interests
  *     interests: value('arrayUnion', ['skateboarding', 'minecraft'])
  *   })
  * })()
  * ```
  *
- * @param kind - The value kind ('clear', 'increment', 'arrayUnion', 'arrayRemove' or 'serverDate')
+ * @param kind - The value kind ('remove', 'increment', 'arrayUnion', 'arrayRemove' or 'serverDate')
  * @param payload - The payload if required by the kind
  */
 function value(
-  kind: ValueKind,
+  kind: ValueKind | 'clear',
   payload?: any
 ):
-  | ValueClear
+  | ValueRemove
   | ValueIncrement
   | ValueArrayUnion
   | ValueArrayRemove
   | ValueServerDate {
   switch (kind) {
+    case 'remove':
     case 'clear':
-      return { __type__: 'value', kind: 'clear' }
+      return { __type__: 'value', kind: 'remove' }
 
     case 'increment':
       return { __type__: 'value', kind: 'increment', number: payload }

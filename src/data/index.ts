@@ -21,7 +21,7 @@ export function unwrapData(data: any) {
     } else if (data.__type__ === 'value') {
       const fieldValue = data as UpdateValue<any>
       switch (fieldValue.kind) {
-        case 'clear':
+        case 'remove':
           return FirestoreFieldValue.delete()
         case 'increment':
           return FirestoreFieldValue.increment(fieldValue.number)

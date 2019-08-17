@@ -101,7 +101,7 @@ describe('update', () => {
     assert(userFromDB.data.name === 'Tati')
   })
 
-  it('allows clearing values', async () => {
+  it('allows removing values', async () => {
     const user = await add(users, {
       name: 'Sasha',
       address: { city: 'Omsk' },
@@ -109,7 +109,7 @@ describe('update', () => {
       guest: true
     })
     const { id } = user.ref
-    await update(users, id, { guest: value('clear') })
+    await update(users, id, { guest: value('remove') })
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha',
