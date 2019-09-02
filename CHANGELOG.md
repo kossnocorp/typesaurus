@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 1.2.0 - 2019-09-02
+
+### Changed
+
+- Now `ref` generates an id when one isn't passed.
+
 ## 1.1.0 - 2019-08-17
 
 ### Changed
