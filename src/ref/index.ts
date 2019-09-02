@@ -28,15 +28,34 @@ export interface Ref<Model> {
  *   })
  * ```
  *
+ * When id param is not passed it will be automatically generated:
+ *
+ * ```ts
+ * import { ref, set, Ref } from 'typesaurus'
+ *
+ * type User = { name: string }
+ * const users = collection<User>('users')
+ *
+ * const id = ref(users).id
+ * set(users, id, {name: 'John Doe'})
+ * ```
+ *
  * @param collection - The collection to create refernce in
- * @param id - The document id
+ * @param id=RANDOM_ID - The document id; generated when not passed
  * @returns The reference object
  */
 export function ref<Model>(
   collection: Collection<Model>,
-  id: string
+  id?: string
 ): Ref<Model> {
-  return { __type__: 'ref', collection, id }
+  if (id) {
+    return { __type__: 'ref', collection, id }
+  } else {
+    const id = firestore()
+      .collection(collection.path)
+      .doc().id
+    return { __type__: 'ref', collection, id }
+  }
 }
 
 /**
