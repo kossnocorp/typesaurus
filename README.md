@@ -15,13 +15,15 @@ TypeScript-first ORM for Firestore.
 ## Installation
 
 The library is available as an [npm package](https://www.npmjs.com/package/typesaurus).
-To install the package run:
+To install Typesaurus run:
 
 ```sh
-npm install typesaurus --save
+npm install typesaurus @google-cloud/firestore firebase firebase-admin --save
 # or with yarn
-yarn add typesaurus
+yarn add typesaurus @google-cloud/firestore firebase firebase-admin
 ```
+
+_Note that Typesaurus requires `firebase` package to work in the web environment and `@google-cloud/firestore` with `firebase-admin` to work in Node.js. These packages are listed in the peer dependencies and won't install automatically along with the Typesaurus package._
 
 ## Get started
 
