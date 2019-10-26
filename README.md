@@ -88,6 +88,7 @@ remove(users, '42')
 
 - [`all`](https://typesaurus.com/modules/_all_index_.html#all) - Returns all documents in a collection.
 - [`get`](https://typesaurus.com/modules/_get_index_.html#get) - Retrieves a document from a collection.
+- [`getMany`](https://typesaurus.com/modules/_get_index_.html#getMany) - Retrieves multiple documents from a collection.
 - [`query`](https://typesaurus.com/modules/_query_index_.html#query-1) - Queries passed collection using query objects ([`order`](https://typesaurus.com/modules/_order_index_.html#order), [`where`](https://typesaurus.com/modules/_where_index_.html#where), [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit)).
 
 Query helpers:
