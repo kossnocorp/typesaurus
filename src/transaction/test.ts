@@ -27,7 +27,7 @@ describe('transaction', () => {
       data: { count }
     } = await get(counter)
     assert(count === 3)
-  }, 10000)
+  })
 
   it('allows updating', async () => {
     const id = nanoid()
@@ -48,7 +48,7 @@ describe('transaction', () => {
     } = await get(counter)
     assert(count === 2)
     assert(optional)
-  }, 10000)
+  })
 
   it('allows removing', async () => {
     const id = nanoid()
@@ -57,5 +57,5 @@ describe('transaction', () => {
     await Promise.all([transaction(({ remove }) => remove(counter))])
     const counterFromDB = await get(counter)
     assert(!counterFromDB)
-  }, 10000)
+  })
 })

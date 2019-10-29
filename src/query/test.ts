@@ -339,7 +339,7 @@ describe('query', () => {
         docs.map(({ data: { name, state } }) => `${name}, ${state}`),
         ['Springfield, Missouri', 'Springfield, Wisconsin']
       )
-    }, 10000)
+    })
 
     it('allows to combine cursors', async () => {
       const docs = await query(contacts, [
