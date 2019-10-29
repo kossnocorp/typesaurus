@@ -33,6 +33,12 @@ module.exports = config => {
 
       plugins: [
         new webpack.DefinePlugin({
+          'process.env.FIREBASE_PROJECT_ID': JSON.stringify(
+            process.env.FIREBASE_PROJECT_ID
+          ),
+          'process.env.FIREBASE_API_KEY': JSON.stringify(
+            process.env.FIREBASE_API_KEY
+          ),
           'process.env.FIREBASE_USERNAME': JSON.stringify(
             process.env.FIREBASE_USERNAME
           ),
