@@ -3,7 +3,6 @@ import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
 import { wrapData } from '../data'
-import undefined = require('firebase/empty-import')
 
 /**
  * Retrieves multiple documents from a collection.
