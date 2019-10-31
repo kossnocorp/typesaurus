@@ -1,7 +1,7 @@
 import firestore from '../adaptor'
 import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
-import { ref, Ref } from '../ref'
+import { ref } from '../ref'
 import { wrapData } from '../data'
 
 /**
@@ -23,7 +23,8 @@ import { wrapData } from '../data'
  */
 async function getMany<Model>(
   collection: Collection<Model>,
-  ids: readonly string[]
+  ids: readonly string[],
+  onMissing: (id: string) => Model = (id) => { throw new Error(`Missing document with id ${id}`) }
 ): Promise<Doc<Model>[]> {
 
   if (ids.length === 0) {
@@ -34,6 +35,10 @@ async function getMany<Model>(
   const firestoreSnaps = await firestore().getAll(...ids.map(id => firestore().collection(collection.path).doc(id)));
 
   return firestoreSnaps.map(firestoreSnap => {
+    if (!firestoreSnap.exists) {
+      return onMissing(firestoreSnap.id);
+    }
+
     const firestoreData = firestoreSnap.data()
     const data = firestoreData && (wrapData(firestoreData) as Model)
     return doc(ref(collection, firestoreSnap.id), data);
