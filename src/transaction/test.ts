@@ -10,12 +10,21 @@ describe('transaction', () => {
   type Counter = { count: number; optional?: true }
   const counters = collection<Counter>('counters')
 
-  const plusOne = async (counter: Ref<Counter>) =>
-    transaction(async ({ get, set }) => {
+  beforeEach(() => {
+    typeof jest !== 'undefined' && jest.setTimeout(20000)
+  })
+
+  const plusOne = async (counter: Ref<Counter>, useUpdate?: boolean) =>
+    transaction(async ({ get, set, update }) => {
       const {
         data: { count }
       } = await get(counter)
-      return set(counter, { count: count + 1 })
+      const payload = { count: count + 1 }
+      if (useUpdate) {
+        return update(counter, payload)
+      } else {
+        return set(counter, payload)
+      }
     })
 
   it('performs transaction', async () => {
@@ -27,14 +36,14 @@ describe('transaction', () => {
       data: { count }
     } = await get(counter)
     assert(count === 3)
-  }, 10000)
+  })
 
   it('allows updating', async () => {
     const id = nanoid()
     const counter = ref(counters, id)
     await set(counter, { count: 0 })
     await Promise.all([
-      plusOne(counter),
+      plusOne(counter, true),
       transaction(async ({ get, update }) => {
         const counterFromDB = await get(counter)
         await update(counter, {
@@ -48,7 +57,7 @@ describe('transaction', () => {
     } = await get(counter)
     assert(count === 2)
     assert(optional)
-  }, 10000)
+  })
 
   it('allows removing', async () => {
     const id = nanoid()
@@ -57,5 +66,5 @@ describe('transaction', () => {
     await Promise.all([transaction(({ remove }) => remove(counter))])
     const counterFromDB = await get(counter)
     assert(!counterFromDB)
-  }, 10000)
+  })
 })

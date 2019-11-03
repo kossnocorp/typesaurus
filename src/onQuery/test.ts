@@ -479,7 +479,7 @@ describe('onQuery', () => {
           }
         )
       })
-    }, 10000)
+    })
 
     it('allows to combine cursors', done => {
       const spy = sinon.spy()
