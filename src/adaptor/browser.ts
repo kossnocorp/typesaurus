@@ -6,7 +6,16 @@ import * as firebase from 'firebase/app'
 import 'firebase/firestore'
 
 export default function store() {
-  return firebase.firestore()
+  const firestore = firebase.firestore()
+  // At the moment, the browser's Firestore adaptor doesn't support getAll.
+  // Get rid of the fallback when the issue is closed:
+  // https://github.com/firebase/firebase-js-sdk/issues/1176
+  if (!('getAll' in firestore)) return Object.assign(firestore, { getAll })
+  return firestore
+}
+
+function getAll(...docs: FirestoreDocumentReference[]) {
+  return Promise.all(docs.map(doc => doc.get()))
 }
 
 export type FirestoreQuery = firebase.firestore.Query
