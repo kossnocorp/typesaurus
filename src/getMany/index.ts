@@ -6,10 +6,10 @@ import { wrapData } from '../data'
 
 /**
  * Retrieves multiple documents from a collection.
- * 
+ *
  * You can specify a strategy to handle missing documents by passing the `onMissing` argument.
  * By default, missing documents will throw an error. Other strategies:
- * 
+ *
  *  * By providing `(id) => new MyModel(id, ...)`, you can provide a default value when a doc is missing
  *  * By providing `'ignore'`, missing documents are ignore and will be removed from the result
  *  * By providing `(id) => throw new CustomError(id)`, you can throw a a custom error
@@ -31,29 +31,41 @@ import { wrapData } from '../data'
 async function getMany<Model>(
   collection: Collection<Model>,
   ids: readonly string[],
-  onMissing: ((id: string) => Model) | 'ignore' = (id) => { throw new Error(`Missing document with id ${id}`) }
+  onMissing: ((id: string) => Model) | 'ignore' = id => {
+    throw new Error(`Missing document with id ${id}`)
+  }
 ): Promise<Doc<Model>[]> {
-
   if (ids.length === 0) {
     // Firestore#getAll doesn't like empty lists
-    return Promise.resolve([]);
+    return Promise.resolve([])
   }
 
-  const firestoreSnaps = await firestore().getAll(...ids.map(id => firestore().collection(collection.path).doc(id)));
+  const firestoreSnaps = await firestore().getAll(
+    ...ids.map(id =>
+      firestore()
+        .collection(collection.path)
+        .doc(id)
+    )
+  )
 
-  return firestoreSnaps.map(firestoreSnap => {
-    if (!firestoreSnap.exists) {
-      if (onMissing === 'ignore') {
-        return null
-      } else {
-        return doc(ref(collection, firestoreSnap.id), onMissing(firestoreSnap.id));
+  return firestoreSnaps
+    .map(firestoreSnap => {
+      if (!firestoreSnap.exists) {
+        if (onMissing === 'ignore') {
+          return null
+        } else {
+          return doc(
+            ref(collection, firestoreSnap.id),
+            onMissing(firestoreSnap.id)
+          )
+        }
       }
-    }
 
-    const firestoreData = firestoreSnap.data()
-    const data = firestoreData && (wrapData(firestoreData) as Model)
-    return doc(ref(collection, firestoreSnap.id), data);
-  }).filter(doc => doc != null) as Doc<Model>[];
+      const firestoreData = firestoreSnap.data()
+      const data = firestoreData && (wrapData(firestoreData) as Model)
+      return doc(ref(collection, firestoreSnap.id), data)
+    })
+    .filter(doc => doc != null) as Doc<Model>[]
 }
 
 export default getMany
