@@ -17,11 +17,11 @@ describe('getMany', () => {
   })
 
   afterAll(async () => {
-      await Promise.all([
-        remove(fruits, 'apple'),
-        remove(fruits, 'banana'),
-        remove(fruits, 'orange'),
-      ])
+    await Promise.all([
+      remove(fruits, 'apple'),
+      remove(fruits, 'banana'),
+      remove(fruits, 'orange')
+    ])
   })
 
   it('returns nothing when called with empty array', async () => {
@@ -39,7 +39,12 @@ describe('getMany', () => {
   })
 
   it('allows to get multiple docs by id', async () => {
-    const fruitsFromDB = await getMany(fruits, ['banana', 'apple', 'banana', 'orange'])
+    const fruitsFromDB = await getMany(fruits, [
+      'banana',
+      'apple',
+      'banana',
+      'orange'
+    ])
     expect(fruitsFromDB).toHaveLength(4)
     expect(fruitsFromDB[0].ref.id).toBe('banana')
     expect(fruitsFromDB[1].ref.id).toBe('apple')
@@ -55,13 +60,19 @@ describe('getMany', () => {
   })
 
   it('allows to specify custom logic when a document is not found', async () => {
-    const list = await getMany(fruits, ['nonexistant'], (id) => ({ color: `${id} is missing but I filled it in` }))
+    const list = await getMany(fruits, ['nonexistant'], id => ({
+      color: `${id} is missing but I filled it in`
+    }))
     expect(list).toHaveLength(1)
     expect(list[0].data.color).toBe('nonexistant is missing but I filled it in')
   })
 
   it('allows to ignore missing documents', async () => {
-    const list = await getMany(fruits, ['apple', 'nonexistant', 'banana'], 'ignore')
+    const list = await getMany(
+      fruits,
+      ['apple', 'nonexistant', 'banana'],
+      'ignore'
+    )
     expect(list).toHaveLength(2)
   })
 })
