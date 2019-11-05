@@ -42,8 +42,8 @@
     "webpack": "^4.37.0"
   },
   "peerDependencies": {
-    "@google-cloud/firestore": "^2",
-    "firebase": "^6",
-    "firebase-admin": "^8"
+    "@google-cloud/firestore": ">=2",
+    "firebase": ">=6",
+    "firebase-admin": ">=8"
   }
 }
