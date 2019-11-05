@@ -7,6 +7,16 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 2.1.0 - 2019-11-05
+
+### Changed
+
+- Loose up peer dependency requirements. See [#5](https://github.com/kossnocorp/typesaurus/issues/5) for the reasoning.
+
+### Added
+
+- [Add `getMany` function](https://github.com/kossnocorp/typesaurus/pull/10). Kudos to [@thomastoye](https://github.com/thomastoye)!
+
 ## 2.0.0 - 2019-09-25
 
 ### Changed
