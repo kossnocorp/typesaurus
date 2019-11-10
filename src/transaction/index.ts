@@ -17,7 +17,6 @@ export type TransactionAPI = {
   set: typeof set
   update: typeof update
   remove: typeof remove
-  clear: typeof remove
 }
 
 /**
@@ -240,6 +239,6 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       await t.delete(firebaseDoc)
     }
 
-    return transactionFn({ get, set, update, remove, clear: remove })
+    return transactionFn({ get, set, update, remove })
   })
 }

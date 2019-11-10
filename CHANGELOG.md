@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 3.0.0 - 2019-11-11
+
+### Changed
+
+- **BREAKING**: Remove deprecated `clear` that was renamed to `remove`.
+
 ## 2.1.0 - 2019-11-05
 
 ### Changed

@@ -1,7 +1,6 @@
 export { default as add } from './add'
 export { default as all } from './all'
 export * from './batch'
-export { default as clear } from './clear'
 export * from './collection'
 export * from './cursor'
 export * from './doc'

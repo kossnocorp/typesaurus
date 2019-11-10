@@ -264,7 +264,6 @@ export function batch() {
     set,
     update,
     remove,
-    clear: remove,
     commit
   }
 }

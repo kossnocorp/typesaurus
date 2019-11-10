@@ -132,7 +132,7 @@ function value<T extends Date>(kind: 'serverDate'): ValueServerDate
  * @param payload - The payload if required by the kind
  */
 function value(
-  kind: ValueKind | 'clear',
+  kind: ValueKind,
   payload?: any
 ):
   | ValueRemove
@@ -142,7 +142,6 @@ function value(
   | ValueServerDate {
   switch (kind) {
     case 'remove':
-    case 'clear':
       return { __type__: 'value', kind: 'remove' }
 
     case 'increment':
