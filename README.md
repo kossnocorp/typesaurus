@@ -58,7 +58,7 @@ const users = collection<User>('users')
 
 // Get a document with given id
 get(users, '42')
-//=> Promise<Doc<User> | undefined>
+//=> Promise<Doc<User> | null>
 
 // Get all documents in a collection
 all(users)

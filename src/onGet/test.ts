@@ -23,7 +23,7 @@ describe('get', () => {
 
   it('returns nothing if document is not present', done => {
     off = onGet(collection('nope'), 'nah', nothing => {
-      assert(nothing === undefined)
+      assert(nothing === null)
       done()
     })
   })

@@ -13,13 +13,13 @@ describe('remove', () => {
     const { id } = user.ref
     await remove(users, id)
     const userFromDB = await get(users, id)
-    assert(userFromDB === undefined)
+    assert(userFromDB === null)
   })
 
   it('allows removing by ref', async () => {
     const user = await add(users, { name: 'Sasha' })
     await remove(user.ref)
     const userFromDB = await get(users, user.ref.id)
-    assert(userFromDB === undefined)
+    assert(userFromDB === null)
   })
 })

@@ -13,7 +13,7 @@ describe('get', () => {
 
   it('returns nothing if document is not present', async () => {
     const nothing = await get(collection('nope'), 'nah')
-    assert(nothing === undefined)
+    assert(nothing === null)
   })
 
   it('allows to get by ref', async () => {

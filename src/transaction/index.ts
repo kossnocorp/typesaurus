@@ -60,12 +60,12 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
      * })
      * ```
      *
-     * @returns Promise to the document or undefined if not found
+     * @returns Promise to the document or null if not found
      */
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
-    ): Promise<Doc<Model> | undefined> {
+    ): Promise<Doc<Model> | null> {
       let collection: Collection<Model>
       let id: string
 
@@ -87,7 +87,7 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       // v below
       const firestoreData = firestoreSnap.data()
       const data = firestoreData && (wrapData(firestoreData) as Model)
-      return data ? doc(ref(collection, id), data) : undefined
+      return data ? doc(ref(collection, id), data) : null
     }
 
     /**

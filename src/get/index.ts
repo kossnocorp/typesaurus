@@ -7,7 +7,7 @@ import { wrapData } from '../data'
 /**
  * @param ref - The reference to the document
  */
-async function get<Model>(ref: Ref<Model>): Promise<Doc<Model> | undefined>
+async function get<Model>(ref: Ref<Model>): Promise<Doc<Model> | null>
 
 /**
  * @param collection - The collection to get document from
@@ -16,7 +16,7 @@ async function get<Model>(ref: Ref<Model>): Promise<Doc<Model> | undefined>
 async function get<Model>(
   collection: Collection<Model>,
   id: string
-): Promise<Doc<Model> | undefined>
+): Promise<Doc<Model> | null>
 
 /**
  * Retrieves a document from a collection.
@@ -35,12 +35,12 @@ async function get<Model>(
  * get(currentUser.ref)
  * ```
  *
- * @returns Promise to the document or undefined if not found
+ * @returns Promise to the document or null if not found
  */
 async function get<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   maybeId?: string
-): Promise<Doc<Model> | undefined> {
+): Promise<Doc<Model> | null> {
   let collection: Collection<Model>
   let id: string
 
@@ -59,7 +59,7 @@ async function get<Model>(
   const firestoreSnap = await firestoreDoc.get()
   const firestoreData = firestoreSnap.data()
   const data = firestoreData && (wrapData(firestoreData) as Model)
-  return data ? doc(ref(collection, id), data) : undefined
+  return data ? doc(ref(collection, id), data) : null
 }
 
 export default get

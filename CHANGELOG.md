@@ -13,6 +13,8 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 - **BREAKING**: Remove deprecated `clear` that was renamed to `remove`.
 
+- **BREAKING**: Return `null` instead of `undefined` when a document isn't found.
+
 ## 2.1.0 - 2019-11-05
 
 ### Changed

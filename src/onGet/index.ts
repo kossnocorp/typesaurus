@@ -4,7 +4,7 @@ import { doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
 import { wrapData } from '../data'
 
-type OnResult<Model> = (doc: Doc<Model> | undefined) => any
+type OnResult<Model> = (doc: Doc<Model> | null) => any
 
 type OnError = (error: Error) => any
 
@@ -83,7 +83,7 @@ function onGet<Model>(
   return firestoreDoc.onSnapshot(firestoreSnap => {
     const firestoreData = firestoreSnap.data()
     const data = firestoreData && (wrapData(firestoreData) as Model)
-    onResult(data && doc(ref(collection, id), data))
+    onResult((data && doc(ref(collection, id), data)) || null)
   }, onError)
 }
 
