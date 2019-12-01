@@ -11,10 +11,10 @@ test-watch:
 	@exit 1
 
 test-node:
-	${BIN}/jest
+	${BIN}/jest --env node
 
 test-node-watch:
-	${BIN}/jest --watch
+	${BIN}/jest --env node --watch
 
 test-browser:
 	${BIN}/karma start --single-run

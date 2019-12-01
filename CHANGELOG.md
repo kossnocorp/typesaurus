@@ -17,6 +17,11 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 - **BREAKING**: `untypedWhereArrayContains` was removed in favor of native support of `array-contains` filter in `where`.
 
+- **BREAKING**: Update Firebase dependencies to the latest versions:
+  - `@google-cloud/firestore`: `>=2.6.0`
+  - `firebase`: `>=7.5.0`
+  - `firebase-admin`: `>=8.8.0`
+
 ## 3.0.0 - 2019-11-11
 
 ### Changed
