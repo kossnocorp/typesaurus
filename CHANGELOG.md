@@ -7,6 +7,16 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## Unreleased
+
+### Fixed
+
+- Fix `array-contains` filter support in `where`.
+
+### Changed
+
+- **BREAKING**: `untypedWhereArrayContains` was removed in favor of native support of `array-contains` filter in `where`.
+
 ## 3.0.0 - 2019-11-11
 
 ### Changed

@@ -93,6 +93,37 @@ describe('query', () => {
     ])
   })
 
+  it('allows to query using array-contains filter', async () => {
+    type Post = { blogId: string; title: string; tags: string[] }
+    const posts = collection<Post>('posts')
+    const blogId = nanoid()
+    await Promise.all([
+      add(posts, {
+        blogId,
+        title: 'Post about cats',
+        tags: ['pets', 'cats']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about dogs',
+        tags: ['pets', 'dogs']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about hotdogs',
+        tags: ['food', 'hotdogs']
+      })
+    ])
+    const docs = await query(posts, [
+      where('blogId', '==', blogId),
+      where('tags', 'array-contains', 'pets')
+    ])
+    assert.deepEqual(docs.map(({ data: { title } }) => title).sort(), [
+      'Post about cats',
+      'Post about dogs'
+    ])
+  })
+
   it('expands references', async () => {
     const docs = await query(messages, [
       where('ownerId', '==', ownerId),

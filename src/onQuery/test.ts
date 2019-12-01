@@ -106,6 +106,44 @@ describe('onQuery', () => {
     })
   })
 
+  it('allows to query using array-contains filter', async () => {
+    const spy = sinon.spy()
+    type Post = { blogId: string; title: string; tags: string[] }
+    const posts = collection<Post>('posts')
+    const blogId = nanoid()
+    await Promise.all([
+      add(posts, {
+        blogId,
+        title: 'Post about cats',
+        tags: ['pets', 'cats']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about dogs',
+        tags: ['pets', 'dogs']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about hotdogs',
+        tags: ['food', 'hotdogs']
+      })
+    ])
+    return new Promise(resolve => {
+      off = onQuery(
+        posts,
+        [
+          where('blogId', '==', blogId),
+          where('tags', 'array-contains', 'pets')
+        ],
+        docs => {
+          spy(docs.map(({ data: { title } }) => title).sort())
+          if (spy.calledWithMatch(['Post about cats', 'Post about dogs']))
+            resolve()
+        }
+      )
+    })
+  })
+
   describe('with messages', () => {
     beforeEach(async () => {
       await Promise.all([

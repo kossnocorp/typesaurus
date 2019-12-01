@@ -7,16 +7,44 @@ export interface WhereQuery<_Model> {
   value: any
 }
 
+export type RegularWhereFilter = Exclude<
+  FirestoreWhereFilterOp,
+  'array-contains'
+>
+
 function where<Model, Key extends keyof Model>(
   field: Key | [Key],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key extends keyof Model,
+  ValueArray extends Model[Key],
+  ValueType extends keyof ValueArray
+>(
+  field: Key | [Key],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<Model, Key1 extends keyof Model, Key2 extends keyof Model[Key1]>(
   field: [Key1, Key2],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  ValueArray extends Model[Key1][Key2],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -26,8 +54,21 @@ function where<
   Key3 extends keyof Model[Key1][Key2]
 >(
   field: [Key1, Key2, Key3],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  ValueArray extends Model[Key1][Key2][Key3],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -38,8 +79,22 @@ function where<
   Key4 extends keyof Model[Key1][Key2][Key3]
 >(
   field: [Key1, Key2, Key3, Key4],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3][Key4]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  Key4 extends keyof Model[Key1][Key2][Key3],
+  ValueArray extends Model[Key1][Key2][Key3][Key4],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3, Key4],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -51,8 +106,23 @@ function where<
   Key5 extends keyof Model[Key1][Key2][Key3][Key4]
 >(
   field: [Key1, Key2, Key3, Key4, Key5],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3][Key4][Key5]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  Key4 extends keyof Model[Key1][Key2][Key3],
+  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3, Key4, Key5],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -65,8 +135,24 @@ function where<
   Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3][Key4][Key5][Key6]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  Key4 extends keyof Model[Key1][Key2][Key3],
+  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3, Key4, Key5, Key6],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -80,8 +166,25 @@ function where<
   Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  Key4 extends keyof Model[Key1][Key2][Key3],
+  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
+  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -96,8 +199,26 @@ function where<
   Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  Key4 extends keyof Model[Key1][Key2][Key3],
+  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -113,8 +234,27 @@ function where<
   Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  Key4 extends keyof Model[Key1][Key2][Key3],
+  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9],
+  filter: 'array-contains',
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 function where<
@@ -131,8 +271,28 @@ function where<
   Key10 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10],
-  filter: FirestoreWhereFilterOp,
+  filter: RegularWhereFilter,
   value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10]
+): WhereQuery<Model>
+// array-contains variation
+function where<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Model[Key1],
+  Key3 extends keyof Model[Key1][Key2],
+  Key4 extends keyof Model[Key1][Key2][Key3],
+  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  Key10 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
+  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10],
+  ValueType extends keyof ValueArray
+>(
+  field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10],
+  filter: RegularWhereFilter,
+  value: ValueArray[ValueType]
 ): WhereQuery<Model>
 
 /**
@@ -174,39 +334,3 @@ function where<Model>(
 }
 
 export { where }
-
-/**
- * Creates where query with array-contains filter operation.
- *
- * ```ts
- * import { untypedWhereArrayContains, query, collection } from 'typesaurus'
- *
- * type User = {
- *   name: string,
- *   interests: string[]
- * }
- *
- * const users = collection<User>('users')
- *
- * query(users, [untypedWhereArrayContains('interests', 'snowboarding'])
- *   .then(snowborders => {
- *     console.log(snowboarders.length)
- *     //=> 42
- *   })
- * ```
- *
- * @param field - The field or key path to query
- * @param value - The value to pass to the operation
- * @returns The where query object
- */
-export function untypedWhereArrayContains<Model>(
-  field: string | string[],
-  value: any
-): WhereQuery<Model> {
-  return {
-    type: 'where',
-    field,
-    filter: 'array-contains',
-    value
-  }
-}
