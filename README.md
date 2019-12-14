@@ -120,6 +120,7 @@ Real-time:
 Operation helpers:
 
 - [`field`](https://typesaurus.com/modules/_field_index_.html#field-1) - Creates a field object. It's used to update nested maps.
+- [`value`](https://typesaurus.com/modules/_value_index_.html#value) - Creates a value object. It's used to update map values using special operations i.e. `arrayRemove`, `serverDate`, `increment`, etc.
 
 ### Constructors
 
