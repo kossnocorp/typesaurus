@@ -108,7 +108,8 @@ describe('onQuery', () => {
 
   it('allows to query using array-contains filter', async () => {
     const spy = sinon.spy()
-    type Post = { blogId: string; title: string; tags: string[] }
+    type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
+    type Post = { blogId: string; title: string; tags: Tag[] }
     const posts = collection<Post>('posts')
     const blogId = nanoid()
     await Promise.all([
@@ -138,6 +139,94 @@ describe('onQuery', () => {
         docs => {
           spy(docs.map(({ data: { title } }) => title).sort())
           if (spy.calledWithMatch(['Post about cats', 'Post about dogs']))
+            resolve()
+        }
+      )
+    })
+  })
+
+  it('allows to query using in filter', async () => {
+    const spy = sinon.spy()
+    type Pet = {
+      ownerId: string
+      name: string
+      type: 'dog' | 'cat' | 'parrot' | 'snake'
+    }
+    const pets = collection<Pet>('pets')
+    const ownerId = nanoid()
+    await Promise.all([
+      add(pets, {
+        ownerId,
+        name: 'Persik',
+        type: 'dog'
+      }),
+      add(pets, {
+        ownerId,
+        name: 'Kimchi',
+        type: 'cat'
+      }),
+      add(pets, {
+        ownerId,
+        name: 'Snako',
+        type: 'snake'
+      })
+    ])
+    return new Promise(resolve => {
+      off = onQuery(
+        pets,
+        [where('ownerId', '==', ownerId), where('type', 'in', ['cat', 'dog'])],
+        docs => {
+          spy(docs.map(({ data: { name } }) => name).sort())
+          if (spy.calledWithMatch(['Kimchi', 'Persik'])) resolve()
+        }
+      )
+    })
+  })
+
+  it('allows to query using array-contains-any filter', async () => {
+    const spy = sinon.spy()
+    type Tag = 'pets' | 'cats' | 'dogs' | 'wildlife' | 'food' | 'hotdogs'
+    type Post = { blogId: string; title: string; tags: Tag[] }
+    const posts = collection<Post>('posts')
+    const blogId = nanoid()
+    await Promise.all([
+      add(posts, {
+        blogId,
+        title: 'Post about cats',
+        tags: ['pets', 'cats']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about dogs',
+        tags: ['pets', 'dogs']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about hotdogs',
+        tags: ['food', 'hotdogs']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about kangaroos',
+        tags: ['wildlife']
+      })
+    ])
+    return new Promise(resolve => {
+      off = onQuery(
+        posts,
+        [
+          where('blogId', '==', blogId),
+          where('tags', 'array-contains-any', ['pets', 'wildlife'])
+        ],
+        docs => {
+          spy(docs.map(({ data: { title } }) => title).sort())
+          if (
+            spy.calledWithMatch([
+              'Post about cats',
+              'Post about dogs',
+              'Post about kangaroos'
+            ])
+          )
             resolve()
         }
       )

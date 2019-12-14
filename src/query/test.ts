@@ -94,7 +94,8 @@ describe('query', () => {
   })
 
   it('allows to query using array-contains filter', async () => {
-    type Post = { blogId: string; title: string; tags: string[] }
+    type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
+    type Post = { blogId: string; title: string; tags: Tag[] }
     const posts = collection<Post>('posts')
     const blogId = nanoid()
     await Promise.all([
@@ -121,6 +122,83 @@ describe('query', () => {
     assert.deepEqual(docs.map(({ data: { title } }) => title).sort(), [
       'Post about cats',
       'Post about dogs'
+    ])
+  })
+
+  it('allows to query using in filter', async () => {
+    type Pet = {
+      ownerId: string
+      name: string
+      type: 'dog' | 'cat' | 'parrot' | 'snake'
+    }
+    const pets = collection<Pet>('pets')
+    const ownerId = nanoid()
+    await Promise.all([
+      add(pets, {
+        ownerId,
+        name: 'Persik',
+        type: 'dog'
+      }),
+      add(pets, {
+        ownerId,
+        name: 'Kimchi',
+        type: 'cat'
+      }),
+      add(pets, {
+        ownerId,
+        name: 'Snako',
+        type: 'snake'
+      })
+    ])
+    const docs = await query(pets, [
+      where('ownerId', '==', ownerId),
+      where('type', 'in', ['cat', 'dog'])
+    ])
+    assert.deepEqual(docs.map(({ data: { name } }) => name).sort(), [
+      'Kimchi',
+      'Persik'
+    ])
+  })
+
+  it('allows to query using array-contains-any filter', async () => {
+    type Tag = 'pets' | 'cats' | 'dogs' | 'wildlife' | 'food' | 'hotdogs'
+    type Post = {
+      blogId: string
+      title: string
+      tags: Tag[]
+    }
+    const posts = collection<Post>('posts')
+    const blogId = nanoid()
+    await Promise.all([
+      add(posts, {
+        blogId,
+        title: 'Post about cats',
+        tags: ['pets', 'cats']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about dogs',
+        tags: ['pets', 'dogs']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about hotdogs',
+        tags: ['food', 'hotdogs']
+      }),
+      add(posts, {
+        blogId,
+        title: 'Post about kangaroos',
+        tags: ['wildlife']
+      })
+    ])
+    const docs = await query(posts, [
+      where('blogId', '==', blogId),
+      where('tags', 'array-contains-any', ['pets', 'wildlife'])
+    ])
+    assert.deepEqual(docs.map(({ data: { title } }) => title).sort(), [
+      'Post about cats',
+      'Post about dogs',
+      'Post about kangaroos'
     ])
   })
 

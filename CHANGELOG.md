@@ -22,6 +22,10 @@ This change log follows the format documented in [Keep a CHANGELOG].
   - `firebase`: `>=7.5.0`
   - `firebase-admin`: `>=8.8.0`
 
+### Added
+
+- Added `in` and `array-contains-any` filters support to `where`. Read more about these filters in [the Firebase announcement](https://firebase.googleblog.com/2019/11/cloud-firestore-now-supports-in-queries.html).
+
 ## 3.0.0 - 2019-11-11
 
 ### Changed
