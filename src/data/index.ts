@@ -13,9 +13,7 @@ import { UpdateValue } from '../value'
  * @param data - the data to convert
  */
 export function unwrapData(data: any) {
-  if (data instanceof Date) {
-    return FirestoreTimestamp.fromDate(data)
-  } else if (data && typeof data === 'object') {
+  if (data && typeof data === 'object') {
     if (data.__type__ === 'ref') {
       return refToFirestoreDocument(data as Ref<any>)
     } else if (data.__type__ === 'value') {
@@ -32,6 +30,8 @@ export function unwrapData(data: any) {
         case 'serverDate':
           return FirestoreFieldValue.serverTimestamp()
       }
+    } else if (data instanceof Date) {
+      return FirestoreTimestamp.fromDate(data)
     }
 
     const unwrappedObject: { [key: string]: any } = Object.assign(

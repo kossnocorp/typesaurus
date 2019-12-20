@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 4.0.1 - 2019-12-20
+
+### Fixed
+
+- Make `serverDate` value to actually call Firebase's `serverTimestamp` instead of passing current date.
+
 ## 4.0.0 - 2019-12-14
 
 ### Fixed
