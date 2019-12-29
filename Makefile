@@ -32,6 +32,9 @@ build:
 publish: build
 	cd lib && npm publish --access public
 
+publish-next: build
+	cd lib && npm publish --access public --tag next
+
 docs:
 	@${BIN}/typedoc --theme minimal --name Typesaurus
 .PHONY: docs
