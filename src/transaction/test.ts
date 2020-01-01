@@ -22,13 +22,15 @@ describe('transaction', () => {
         } = await get(counter)
         return count
       },
-      ({ data: count, set, update }) => {
-        const payload = { count: count + 1 }
+      async ({ data: count, set, update }) => {
+        const newCount = count + 1
+        const payload = { count: newCount }
         if (useUpdate) {
-          return update(counter, payload)
+          await update(counter, payload)
         } else {
-          return set(counter, payload)
+          await set(counter, payload)
         }
+        return newCount
       }
     )
 
@@ -41,6 +43,18 @@ describe('transaction', () => {
       data: { count }
     } = await get(counter)
     assert(count === 3)
+  })
+
+  it('returns the value from the write function', async () => {
+    const id = nanoid()
+    const counter = ref(counters, id)
+    await set(counter, { count: 0 })
+    const results = await Promise.all([
+      plusOne(counter),
+      plusOne(counter),
+      plusOne(counter)
+    ])
+    assert.deepEqual(results.sort(), [1, 2, 3])
   })
 
   it('allows updating', async () => {
