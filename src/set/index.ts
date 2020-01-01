@@ -10,6 +10,7 @@ interface SetOptions {
 
 /**
  * @param ref - the reference to the document to set
+ * @param data - the document data
  * @param options - { merge: boolean (default: false) }
  */
 async function set<Model>(
