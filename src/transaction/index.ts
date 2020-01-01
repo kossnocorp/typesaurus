@@ -1,31 +1,184 @@
 import firestore from '../adaptor'
-import get from '../get'
 import { Collection } from '../collection'
-import { Ref, ref } from '../ref'
+import { unwrapData, wrapData } from '../data'
 import { Doc, doc } from '../doc'
-import { wrapData, unwrapData } from '../data'
-import set from '../set'
-import update, { ModelUpdate } from '../update'
 import { Field } from '../field'
-import remove from '../remove'
+import { Ref, ref } from '../ref'
+import update, { ModelUpdate } from '../update'
 
 /**
- * The Transaction API type.
+ * The Transaction API object. It unions a set of functions ({@link Transaction.get|get},
+ * {@link Transaction.set|set}, {@link Transaction.update|update}, {@link Transaction.remove|remove})
+ * that are similar to regular get, set, update and remove with the only
+ * difference that the transaction counterparts' changes will rollback and retry if
+ * the state of data received with {@link Transaction.get|get} would change.
  */
-export type TransactionAPI = {
-  get: typeof get
-  set: typeof set
-  update: typeof update
-  remove: typeof remove
+export interface Transaction {
+  /**
+   * Retrieves a document from a collection.
+   *
+   * ```ts
+   * import { transaction, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * transaction(async ({ get, set }) => {
+   *   const counter = await get('420')
+   *   //=> { __type__: 'doc', data: { count: 42 }, ... }
+   *   await set(counter.ref, { count: counter.data.count + 1 })
+   * })
+   * ```
+   *
+   * @returns Promise to the document or null if not found
+   *
+   * @param ref - The reference to the document
+   */
+  get<Model>(ref: Ref<Model>): Promise<Doc<Model> | null>
+  /**
+   * @param collection - The collection to get document from
+   * @param id - The document id
+   */
+  get<Model>(
+    collection: Collection<Model>,
+    id: string
+  ): Promise<Doc<Model> | null>
+
+  /**
+   * Sets a document to the given data.
+   *
+   * ```ts
+   * import { transaction, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * transaction(async ({ get, set }) => {
+   *   const counter = await get('420')
+   *   await set(counter.ref, { count: counter.data.count + 1 })
+   *   //=> { __type__: 'doc', data: { count: 43 }, ... }
+   * })
+   * ```
+   *
+   * @returns A promise to the document
+   *
+   * @param ref - the reference to the document to set
+   * @param data - the document data
+   */
+  set<Model>(ref: Ref<Model>, data: Model): Promise<Doc<Model>>
+  /**
+   * @param collection - the collection to set document in
+   * @param id - the id of the document to set
+   * @param data - the document data
+   */
+  set<Model>(
+    collection: Collection<Model>,
+    id: string,
+    data: Model
+  ): Promise<Doc<Model>>
+
+  /**
+   * Updates a document.
+   *
+   * ```ts
+   * import { transaction, field, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * transaction(async ({ get, set }) => {
+   *   const counter = await get('420')
+   *   await update(counter.ref, { count: counter.data.count + 1 })
+   *   //=> { __type__: 'doc', data: { count: 43 }, ... }
+   *   // Or using field paths:
+   *   await update(users, '00sHm46UWKObv2W7XK9e', [
+   *     field('name', 'Sasha Koss'),
+   *     field(['address', 'city'], 'Moscow')
+   *   ])
+   * })
+   * ```
+   *
+   * @returns A promise that resolves when operation is finished
+   *
+   * @param collection - the collection to update document in
+   * @param id - the id of the document to update
+   * @param data - the document data to update
+   */
+  update<Model>(
+    collection: Collection<Model>,
+    id: string,
+    data: Field<Model>[]
+  ): Promise<void>
+  /**
+   * @param ref - the reference to the document to set
+   * @param data - the document data to update
+   */
+  update<Model>(ref: Ref<Model>, data: Field<Model>[]): Promise<void>
+  /**
+   * @param collection - the collection to update document in
+   * @param id - the id of the document to update
+   * @param data - the document data to update
+   */
+  update<Model>(
+    collection: Collection<Model>,
+    id: string,
+    data: ModelUpdate<Model>
+  ): Promise<void>
+  /**
+   * @param ref - the reference to the document to set
+   * @param data - the document data to update
+   */
+  update<Model>(ref: Ref<Model>, data: ModelUpdate<Model>): Promise<void>
+
+  /**
+   * Removes a document.
+   *
+   * ```ts
+   * import { transaction, field, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * transaction(async ({ get, remove }) => {
+   *   const counter = await get('420')
+   *   if (counter === 420) await remove(counter.ref)
+   * })
+   * ```
+   *
+   * @returns Promise that resolves when the operation is complete.
+   *
+   * @param collection - The collection to remove document in
+   * @param id - The id of the documented to remove
+   */
+  remove<Model>(collection: Collection<Model>, id: string): Promise<void>
+  /**
+   * @param ref - The reference to the document to remove
+   */
+  remove<Model>(ref: Ref<Model>): Promise<void>
 }
+
+/**
+ * Alias to {@link Transaction}.
+ *
+ * @deprecated
+ */
+export type TransactionAPI = Transaction
 
 /**
  * The transaction body function type.
  */
-export type TransactionFunction = (api: TransactionAPI) => any
+export type TransactionFunction = (api: Transaction) => any
 
 /**
- * Performs transaction.
+ * Performs transaction. It accepts a function that receives {@link Transaction|transaction API}
+ * with a set of functions ({@link Transaction.get|get}, {@link Transaction.set|set},
+ * {@link Transaction.update|update}, {@link Transaction.remove|remove})
+ * that are similar to regular get, set, update and remove with the only
+ * difference that the transaction counterparts' changes will rollback and retry if
+ * the state of data received with {@link Transaction.get|get} would change.
+ *
+ * Note that transactions must always include at least one {@link Transaction.get|get}
+ * call, and all reads must be before writes. Read more about transactions in {@link https://firebase.google.com/docs/firestore/manage-data/transactions|Firebase documentation}.
  *
  * ```ts
  * import { transaction, collection } from 'typesaurus'
@@ -44,24 +197,6 @@ export type TransactionFunction = (api: TransactionAPI) => any
  */
 export function transaction(transactionFn: TransactionFunction): Promise<any> {
   return firestore().runTransaction(t => {
-    /**
-     * Retrieves a document from a collection.
-     *
-     * ```ts
-     * import { transaction, collection } from 'typesaurus'
-     *
-     * type Counter = { count: number }
-     * const counters = collection<Counter>('counters')
-     *
-     * transaction(async ({ get, set }) => {
-     *   const counter = await get('420')
-     *   //=> { __type__: 'doc', data: { count: 42 }, ... }
-     *   await set(counter.ref, { count: counter.data.count + 1 })
-     * })
-     * ```
-     *
-     * @returns Promise to the document or null if not found
-     */
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
@@ -90,24 +225,6 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       return data ? doc(ref(collection, id), data) : null
     }
 
-    /**
-     * Sets a document to the given data.
-     *
-     * ```ts
-     * import { transaction, collection } from 'typesaurus'
-     *
-     * type Counter = { count: number }
-     * const counters = collection<Counter>('counters')
-     *
-     * transaction(async ({ get, set }) => {
-     *   const counter = await get('420')
-     *   await set(counter.ref, { count: counter.data.count + 1 })
-     *   //=> { __type__: 'doc', data: { count: 43 }, ... }
-     * })
-     * ```
-     *
-     * @returns A promise to the document
-     */
     async function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | Model,
@@ -138,83 +255,6 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       return doc(ref(collection, id), data)
     }
 
-    /**
-     * Updates a document.
-     *
-     * ```ts
-     * import { transaction, field, collection } from 'typesaurus'
-     *
-     * type Counter = { count: number }
-     * const counters = collection<Counter>('counters')
-     *
-     * transaction(async ({ get, set }) => {
-     *   const counter = await get('420')
-     *   await update(counter.ref, { count: counter.data.count + 1 })
-     *   //=> { __type__: 'doc', data: { count: 43 }, ... }
-     *   // Or using field paths:
-     *   await update(users, '00sHm46UWKObv2W7XK9e', [
-     *     field('name', 'Sasha Koss'),
-     *     field(['address', 'city'], 'Moscow')
-     *   ])
-     * })
-     * ```
-     *
-     * @returns A promise that resolves when operation is finished
-     */
-    async function update<Model>(
-      collectionOrRef: Collection<Model> | Ref<Model>,
-      idOrData: string | Field<Model>[] | ModelUpdate<Model>,
-      maybeData?: Field<Model>[] | ModelUpdate<Model>
-    ): Promise<void> {
-      let collection: Collection<Model>
-      let id: string
-      let data: Model
-
-      if (collectionOrRef.__type__ === 'collection') {
-        collection = collectionOrRef as Collection<Model>
-        id = idOrData as string
-        data = maybeData as Model
-      } else {
-        const ref = collectionOrRef as Ref<Model>
-        collection = ref.collection
-        id = ref.id
-        data = idOrData as Model
-      }
-
-      const firebaseDoc = firestore()
-        .collection(collection.path)
-        .doc(id)
-      const updateData = Array.isArray(data)
-        ? data.reduce(
-            (acc, { key, value }) => {
-              acc[Array.isArray(key) ? key.join('.') : key] = value
-              return acc
-            },
-            {} as { [key: string]: any }
-          )
-        : data
-      // ^ above
-      // TODO: Refactor code above because is all the same as in the regular update function
-      await t.update(firebaseDoc, unwrapData(updateData))
-    }
-
-    /**
-     * Removes a document.
-     *
-     * ```ts
-     * import { transaction, field, collection } from 'typesaurus'
-     *
-     * type Counter = { count: number }
-     * const counters = collection<Counter>('counters')
-     *
-     * transaction(async ({ get, remove }) => {
-     *   const counter = await get('420')
-     *   if (counter === 420) await remove(counter.ref)
-     * })
-     * ```
-     *
-     * @returns Promise that resolves when the operation is complete.
-     */
     async function remove<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
