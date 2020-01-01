@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "4.1.0-beta",
+  "version": "4.1.0",
   "description": "Type-safe ORM for Firestore",
   "keywords": [
     "Firebase",
