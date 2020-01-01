@@ -38,7 +38,7 @@
     "puppeteer": "^1.19.0",
     "sinon": "^7.3.2",
     "typedoc": "^0.15.0",
-    "typescript": "^3.6.0-beta",
+    "typescript": "^3.7.4",
     "webpack": "^4.37.0"
   },
   "peerDependencies": {
