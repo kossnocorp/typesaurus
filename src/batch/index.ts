@@ -9,7 +9,7 @@ import { Field } from '../field'
 /**
  * The batch API object. It unions a set of functions ({@link Batch.set|set},
  * {@link Batch.update|update}, {@link Batch.remove|remove}) that are
- * similar to regular set, update and removd with the only difference that
+ * similar to regular set, update and remove with the only difference that
  * the batch counterparts do not return a promise and perform operations only
  * when {@link Batch.commit|commit} function is called.
  */
