@@ -4,16 +4,13 @@ import { unwrapData, wrapData } from '../data'
 import { Doc, doc } from '../doc'
 import { Field } from '../field'
 import { Ref, ref } from '../ref'
-import update, { ModelUpdate } from '../update'
+import { ModelUpdate } from '../update'
 
 /**
- * The Transaction API object. It unions a set of functions ({@link Transaction.get|get},
- * {@link Transaction.set|set}, {@link Transaction.update|update}, {@link Transaction.remove|remove})
- * that are similar to regular get, set, update and remove with the only
- * difference that the transaction counterparts' changes will rollback and retry if
- * the state of data received with {@link Transaction.get|get} would change.
+ * The transaction read API object. It contains {@link TransactionRead.get|get}
+ * the function that allows reading documents from the database.
  */
-export interface Transaction {
+export interface TransactionRead {
   /**
    * Retrieves a document from a collection.
    *
@@ -23,11 +20,12 @@ export interface Transaction {
    * type Counter = { count: number }
    * const counters = collection<Counter>('counters')
    *
-   * transaction(async ({ get, set }) => {
-   *   const counter = await get('420')
+   * transaction(
+   *   ({ get }) => get('420'),
    *   //=> { __type__: 'doc', data: { count: 42 }, ... }
-   *   await set(counter.ref, { count: counter.data.count + 1 })
-   * })
+   *   ({ data: counter, set }) =>
+   *     set(counter.ref, { count: counter.data.count + 1 })
+   * )
    * ```
    *
    * @returns Promise to the document or null if not found
@@ -43,6 +41,17 @@ export interface Transaction {
     collection: Collection<Model>,
     id: string
   ): Promise<Doc<Model> | null>
+}
+
+/**
+ * The transaction write API object. It unions a set of functions ({@link TransactionWrite.set|set},
+ * {@link TransactionWrite.update|update} and {@link TransactionWrite.remove|remove})
+ * that are similar to regular set, update and remove with the only
+ * difference that the transaction counterparts will retry writes if
+ * the state of data received with {@link TransactionRead.get|get} would change.
+ */
+export interface TransactionWrite<ReadResult> {
+  data: ReadResult
 
   /**
    * Sets a document to the given data.
@@ -53,11 +62,12 @@ export interface Transaction {
    * type Counter = { count: number }
    * const counters = collection<Counter>('counters')
    *
-   * transaction(async ({ get, set }) => {
-   *   const counter = await get('420')
-   *   await set(counter.ref, { count: counter.data.count + 1 })
+   * transaction(
+   *   ({ get }) => get('420'),
+   *   ({ data: counter, set }) =>
+   *     set(counter.ref, { count: counter.data.count + 1 })
    *   //=> { __type__: 'doc', data: { count: 43 }, ... }
-   * })
+   * )
    * ```
    *
    * @returns A promise to the document
@@ -86,16 +96,19 @@ export interface Transaction {
    * type Counter = { count: number }
    * const counters = collection<Counter>('counters')
    *
-   * transaction(async ({ get, set }) => {
-   *   const counter = await get('420')
-   *   await update(counter.ref, { count: counter.data.count + 1 })
+   * transaction(
+   *   ({ get }) => get('420'),
+   *   ({ data: counter, update }) =>
+   *     update(counter.ref, { count: counter.data.count + 1 })
    *   //=> { __type__: 'doc', data: { count: 43 }, ... }
-   *   // Or using field paths:
-   *   await update(users, '00sHm46UWKObv2W7XK9e', [
-   *     field('name', 'Sasha Koss'),
-   *     field(['address', 'city'], 'Moscow')
-   *   ])
-   * })
+   * )
+   *
+   * // ...or using field paths:
+   * transaction(
+   *   ({ get }) => get('420'),
+   *   ({ data: counter, update }) =>
+   *     update(counter.ref, [field('count', counter.data.count + 1)])
+   * )
    * ```
    *
    * @returns A promise that resolves when operation is finished
@@ -143,6 +156,13 @@ export interface Transaction {
    *   const counter = await get('420')
    *   if (counter === 420) await remove(counter.ref)
    * })
+   * transaction(
+   *   ({ get }) => get('420'),
+   *   ({ data: counter, remove }) => {
+   *     console.log(counter.data.count)
+   *     return remove(counter.ref)
+   *   }
+   * )
    * ```
    *
    * @returns Promise that resolves when the operation is complete.
@@ -158,27 +178,25 @@ export interface Transaction {
 }
 
 /**
- * Alias to {@link Transaction}.
- *
- * @deprecated
+ * The transaction body function type.
  */
-export type TransactionAPI = Transaction
+export type TransactionReadFunction<ReadResult> = (
+  api: TransactionRead
+) => Promise<ReadResult>
 
 /**
  * The transaction body function type.
  */
-export type TransactionFunction = (api: Transaction) => any
+export type TransactionWriteFunction<ReadResult> = (
+  api: TransactionWrite<ReadResult>
+) => any
 
 /**
- * Performs transaction. It accepts a function that receives {@link Transaction|transaction API}
- * with a set of functions ({@link Transaction.get|get}, {@link Transaction.set|set},
- * {@link Transaction.update|update}, {@link Transaction.remove|remove})
- * that are similar to regular get, set, update and remove with the only
- * difference that the transaction counterparts' changes will rollback and retry if
- * the state of data received with {@link Transaction.get|get} would change.
- *
- * Note that transactions must always include at least one {@link Transaction.get|get}
- * call, and all reads must be before writes. Read more about transactions in {@link https://firebase.google.com/docs/firestore/manage-data/transactions|Firebase documentation}.
+ * The function allows performing transactions. It accepts two functions.
+ * The first receives {@link TransactionRead|transaction read API} that allows
+ * getting data from the database and pass it to the second function.
+ * The second function gets {@link TransactionWrite|transaction write API}
+ * with the data returned from the first function.
  *
  * ```ts
  * import { transaction, collection } from 'typesaurus'
@@ -186,16 +204,23 @@ export type TransactionFunction = (api: Transaction) => any
  * type Counter = { count: number }
  * const counters = collection<Counter>('counters')
  *
- * transaction(async ({ get, set, update, remove }) => {
- *   const { data: { count } } = await get('420')
- *   await set(counter, { count: count + 1 })
- * })
+ * transaction(
+ *   ({ get }) => get('420'),
+ *   ({ data: counter, update }) =>
+ *     update(counter.ref, { count: counter.data.count + 1 })
+ * )
  * ```
  *
- * @param transactionFn - The transaction body function that accepts transaction API
+ * @param readFunction - the transaction read function that accepts transaction
+ *   read API and returns data for write function
+ * @param writeFunction - the transaction write function that accepts
+ *   transaction write API with the data returned by the read function
  * @returns Promise that is resolved when transaction is closed
  */
-export function transaction(transactionFn: TransactionFunction): Promise<any> {
+export function transaction<ReadResult>(
+  readFunction: TransactionReadFunction<ReadResult>,
+  writeFunction: TransactionWriteFunction<ReadResult>
+): Promise<any> {
   return firestore().runTransaction(t => {
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
@@ -316,6 +341,8 @@ export function transaction(transactionFn: TransactionFunction): Promise<any> {
       await t.delete(firebaseDoc)
     }
 
-    return transactionFn({ get, set, update, remove })
+    return readFunction({ get }).then(data =>
+      writeFunction({ data, set, update, remove })
+    )
   })
 }
