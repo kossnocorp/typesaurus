@@ -187,9 +187,9 @@ export type TransactionReadFunction<ReadResult> = (
 /**
  * The transaction body function type.
  */
-export type TransactionWriteFunction<ReadResult> = (
+export type TransactionWriteFunction<ReadResult, WriteResult> = (
   api: TransactionWrite<ReadResult>
-) => any
+) => Promise<WriteResult>
 
 /**
  * The function allows performing transactions. It accepts two functions.
@@ -217,10 +217,10 @@ export type TransactionWriteFunction<ReadResult> = (
  *   transaction write API with the data returned by the read function
  * @returns Promise that is resolved when transaction is closed
  */
-export function transaction<ReadResult>(
+export function transaction<ReadResult, WriteResult>(
   readFunction: TransactionReadFunction<ReadResult>,
-  writeFunction: TransactionWriteFunction<ReadResult>
-): Promise<any> {
+  writeFunction: TransactionWriteFunction<ReadResult, WriteResult>
+): Promise<WriteResult> {
   return firestore().runTransaction(t => {
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
