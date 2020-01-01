@@ -15,17 +15,22 @@ describe('transaction', () => {
   })
 
   const plusOne = async (counter: Ref<Counter>, useUpdate?: boolean) =>
-    transaction(async ({ get, set, update }) => {
-      const {
-        data: { count }
-      } = await get(counter)
-      const payload = { count: count + 1 }
-      if (useUpdate) {
-        return update(counter, payload)
-      } else {
-        return set(counter, payload)
+    transaction(
+      async ({ get }) => {
+        const {
+          data: { count }
+        } = await get(counter)
+        return count
+      },
+      ({ data: count, set, update }) => {
+        const payload = { count: count + 1 }
+        if (useUpdate) {
+          return update(counter, payload)
+        } else {
+          return set(counter, payload)
+        }
       }
-    })
+    )
 
   it('performs transaction', async () => {
     const id = nanoid()
@@ -44,13 +49,14 @@ describe('transaction', () => {
     await set(counter, { count: 0 })
     await Promise.all([
       plusOne(counter, true),
-      transaction(async ({ get, update }) => {
-        const counterFromDB = await get(counter)
-        await update(counter, {
-          count: counterFromDB.data.count + 1,
-          optional: true
-        })
-      })
+      transaction(
+        ({ get }) => get(counter),
+        ({ data: counterFromDB, update }) =>
+          update(counter, {
+            count: counterFromDB.data.count + 1,
+            optional: true
+          })
+      )
     ])
     const {
       data: { count, optional }
@@ -63,7 +69,10 @@ describe('transaction', () => {
     const id = nanoid()
     const counter = ref(counters, id)
     await set(counter, { count: 0 })
-    await Promise.all([transaction(({ remove }) => remove(counter))])
+    await Promise.all([
+      plusOne(counter, true),
+      transaction(({ get }) => get(counter), ({ remove }) => remove(counter))
+    ])
     const counterFromDB = await get(counter)
     assert(!counterFromDB)
   })
