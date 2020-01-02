@@ -13,7 +13,9 @@ TypeScript-first ODM for Firestore.
 - Say goodbye to exceptions!
 
 <hr>
+<div align="center">
 🔥🔥🔥 <strong>The project is sponsered by <a href='https://backupfire.dev/'>Backup Fire</a>, backup service for Firebase</strong> 🔥🔥🔥
+</div>
 <hr>
 
 ## Installation
