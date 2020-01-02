@@ -1,4 +1,8 @@
 module.exports = {
   roots: ['<rootDir>/src/'],
-  setupFiles: ['<rootDir>/test/setupJest.ts']
+  setupFiles: [
+    process.env.FIRESTORE_EMULATOR_HOST
+      ? '<rootDir>/test/setupJestLocal.ts'
+      : '<rootDir>/test/setupJestSystem.ts'
+  ]
 }
