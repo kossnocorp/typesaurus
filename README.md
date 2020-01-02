@@ -1,6 +1,6 @@
 # 🦕 Typesaurus
 
-TypeScript-first ORM for Firestore.
+TypeScript-first ODM for Firestore.
 
 **Why?**
 
