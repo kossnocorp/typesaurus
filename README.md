@@ -12,6 +12,10 @@ TypeScript-first ODM for Firestore.
 - Say goodbye to `any`!
 - Say goodbye to exceptions!
 
+<hr>
+🔥🔥🔥 <strong>The project is sponsered by <a href='https://backupfire.dev/'>Backup Fire</a>, backup service for Firebase</strong> 🔥🔥🔥
+<hr>
+
 ## Installation
 
 The library is available as an [npm package](https://www.npmjs.com/package/typesaurus).
