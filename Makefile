@@ -3,23 +3,25 @@
 
 BIN = $(shell yarn bin)
 
-test: test-node test-browser
+test:
+	${BIN}/firebase emulators:exec --only firestore "${BIN}/jest --env node"
 .PHONY: test
 
 test-watch:
-	@echo 'Not implemented!'
-	@exit 1
+	${BIN}/firebase emulators:exec --only firestore "${BIN}/jest --env node --watch"
 
-test-node:
+test-system: test-system-node test-system-browser
+
+test-system-node:
 	${BIN}/jest --env node
 
-test-node-watch:
+test-system-node-watch:
 	${BIN}/jest --env node --watch
 
-test-browser:
+test-system-browser:
 	${BIN}/karma start --single-run
 
-test-browser-watch:
+test-system-browser-watch:
 	${BIN}/karma start
 
 build:
