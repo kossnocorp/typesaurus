@@ -11,7 +11,11 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ### Changed
 
-- Deprecate `TransactionAPI` type in favor of newly added `Transaction`.
+- **BREAKING**: Rework the `transaction` function. Now it accepts two functions as arguments. The first function allows only reading, and another allows only writing. It will make it impossible to perform reads after writes, which would throw an exception as it's a Firebase limitation. [#16](https://github.com/kossnocorp/typesaurus/pull/16)
+
+- Define the `transaction` function result type. [#16](https://github.com/kossnocorp/typesaurus/pull/16)
+
+- Remove `@google-cloud/firestore`, `firebase`, and `firebase-admin` from the peer dependencies to get rid of unavoidable warnings when Typesaurus is used only in the web or Node.js environment. [#17](https://github.com/kossnocorp/typesaurus/pull/19)
 
 ## 4.1.0 - 2020-01-01
 

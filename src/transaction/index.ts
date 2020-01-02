@@ -51,6 +51,9 @@ export interface TransactionRead {
  * the state of data received with {@link TransactionRead.get|get} would change.
  */
 export interface TransactionWrite<ReadResult> {
+  /**
+   * The result of the read function.
+   */
   data: ReadResult
 
   /**
@@ -196,7 +199,7 @@ export type TransactionWriteFunction<ReadResult, WriteResult> = (
  * The first receives {@link TransactionRead|transaction read API} that allows
  * getting data from the database and pass it to the second function.
  * The second function gets {@link TransactionWrite|transaction write API}
- * with the data returned from the first function.
+ * with the data returned from the first function as `data` property of the argument.
  *
  * ```ts
  * import { transaction, collection } from 'typesaurus'
