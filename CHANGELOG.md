@@ -11,6 +11,8 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ### Changed
 
+- **BREAKING**: Rework the `subcollection` function to support nested subcollections. [#18](https://github.com/kossnocorp/typesaurus/pull/18)
+
 - **BREAKING**: Rework the `transaction` function. Now it accepts two functions as arguments. The first function allows only reading, and another allows only writing. It will make it impossible to perform reads after writes, which would throw an exception as it's a Firebase limitation. [#16](https://github.com/kossnocorp/typesaurus/pull/16)
 
 - Define the `transaction` function result type. [#16](https://github.com/kossnocorp/typesaurus/pull/16)
