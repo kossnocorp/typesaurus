@@ -19,7 +19,7 @@ To install Typesaurus run:
 
 ```sh
 npm install typesaurus --save
-# Or using yarn:
+# Or using Yarn:
 yarn add typesaurus
 ```
 
@@ -27,6 +27,29 @@ _Note that Typesaurus requires `firebase` package to work in the web environment
 so that they won't install automatically along with the Typesaurus package._
 
 ## Get started
+
+### Initialization
+
+To start working with Typesaurus, initialize Firebase normally.
+
+In the web environment ([see Firebase docs](https://firebase.google.com/docs/web/setup#add-sdks-initialize)):
+
+```ts
+import * as firebase from 'firebase/app'
+import 'firebase/firestore'
+
+firebase.initializeApp({
+  // Project configuration
+})
+```
+
+In Node.js ([see Firebase docs](https://firebase.google.com/docs/admin/setup#initialize-sdk)):
+
+```ts
+import * as admin from 'firebase-admin'
+
+admin.initializeApp()
+```
 
 ### Add data
 
