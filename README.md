@@ -14,7 +14,7 @@ TypeScript-first ODM for Firestore.
 
 <hr>
 <div align="center">
-🔥🔥🔥 <strong>The project is sponsered by <a href='https://backupfire.dev/'>Backup Fire</a>, backup service for Firebase</strong> 🔥🔥🔥
+🔥🔥🔥 <strong>The project is sponsored by <a href='https://backupfire.dev/'>Backup Fire</a>, backup service for Firebase</strong> 🔥🔥🔥
 </div>
 <hr>
 
