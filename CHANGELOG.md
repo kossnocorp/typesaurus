@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 5.1.0 - 2020-01-27
+
+### Added
+
+- Added ability to use docs in cursors (`startAt`, `startAfter`, etc.). [#28](https://github.com/kossnocorp/typesaurus/pull/28)
+
 ## 5.0.0 - 2020-01-02
 
 ### Changed
