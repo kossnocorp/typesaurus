@@ -624,25 +624,24 @@ describe('onQuery', () => {
       )
     })
 
-    // TODO: Figure out how to use references as cursors
-    // it.skip('allows to pass refs as cursors', done => {
-    //   off = onQuery(
-    //     contacts,
-    //     [
-    //       where('ownerId', '==', ownerId),
-    //       order('year', 'asc', [startAt(tati.ref)]),
-    //       limit(2)
-    //     ],
-    //     docs => {
-    //       off()
-    //       assert.deepEqual(docs.map(({ data: { name } }) => name), [
-    //         'Tati',
-    //         'Lesha'
-    //       ])
-    //       done()
-    //     }
-    //   )
-    // })
+    it('allows to pass docs as cursors', done => {
+      off = onQuery(
+        contacts,
+        [
+          where('ownerId', '==', ownerId),
+          order('year', 'asc', [startAt(tati)]),
+          limit(2)
+        ],
+        docs => {
+          off()
+          assert.deepEqual(docs.map(({ data: { name } }) => name), [
+            'Tati',
+            'Lesha'
+          ])
+          done()
+        }
+      )
+    })
 
     it('allows using dates as cursors', done => {
       const spy = sinon.spy()

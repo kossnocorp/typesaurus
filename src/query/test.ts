@@ -459,18 +459,17 @@ describe('query', () => {
       assert.deepEqual(docs.map(({ data: { name } }) => name), ['Tati'])
     })
 
-    // TODO: Figure out how to use references as cursors
-    // it.skip('allows to pass refs as cursors', async () => {
-    //   const docs = await query(contacts, [
-    //     where('ownerId', '==', ownerId),
-    //     order('year', 'asc', [startAt(tati.ref)]),
-    //     limit(2)
-    //   ])
-    //   assert.deepEqual(docs.map(({ data: { name } }) => name), [
-    //     'Tati',
-    //     'Lesha'
-    //   ])
-    // })
+    it('allows to pass docs as cursors', async () => {
+      const docs = await query(contacts, [
+        where('ownerId', '==', ownerId),
+        order('year', 'asc', [startAt(tati)]),
+        limit(2)
+      ])
+      assert.deepEqual(docs.map(({ data: { name } }) => name), [
+        'Tati',
+        'Lesha'
+      ])
+    })
 
     it('allows using dates as cursors', async () => {
       const docs = await query(contacts, [

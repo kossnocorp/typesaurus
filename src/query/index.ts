@@ -62,7 +62,19 @@ export async function query<Model>(
             field.toString(),
             method
           )
-          if (cursors) acc.cursors = acc.cursors.concat(cursors)
+          if (cursors)
+            acc.cursors = acc.cursors.concat(
+              cursors.map(({ method, value }) => ({
+                method,
+                value:
+                  typeof value === 'object' &&
+                  value !== null &&
+                  '__type__' in value &&
+                  value.__type__ === 'doc'
+                    ? value.data[field]
+                    : value
+              }))
+            )
           break
         }
 
