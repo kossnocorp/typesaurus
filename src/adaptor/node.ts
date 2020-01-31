@@ -5,17 +5,44 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 
+export type AdaptorFirestore = () => admin.firestore.Firestore
+
+const adminFirestore = () => admin.firestore()
+let currentFirestore: AdaptorFirestore = adminFirestore
+
 export default function store() {
-  return admin.firestore()
+  return currentFirestore()
+}
+
+export type AdaptorConsts = {
+  DocumentReference: typeof admin.firestore.DocumentReference
+  Timestamp: typeof admin.firestore.Timestamp
+  FieldValue: typeof admin.firestore.FieldValue
+}
+
+const adminConsts = {
+  DocumentReference: admin.firestore.DocumentReference,
+  Timestamp: admin.firestore.Timestamp,
+  FieldValue: admin.firestore.FieldValue
+}
+let currentConsts: AdaptorConsts = adminConsts
+
+export function consts(): AdaptorConsts {
+  return currentConsts
+}
+
+export function injectAdaptor(
+  firestore: AdaptorFirestore,
+  consts: AdaptorConsts
+) {
+  currentFirestore = firestore
+  currentConsts = consts
 }
 
 export type FirestoreQuery = admin.firestore.Query
 export type FirestoreDocumentReference = admin.firestore.DocumentReference
-export const FirestoreDocumentReference = admin.firestore.DocumentReference
 export type FirestoreDocumentData = admin.firestore.DocumentData
 export type FirestoreTimestamp = admin.firestore.Timestamp
-export const FirestoreTimestamp = admin.firestore.Timestamp
-export const FirestoreFieldValue = admin.firestore.FieldValue
 export type FirebaseWriteBatch = admin.firestore.WriteBatch
 export type FirestoreCollectionReference = admin.firestore.CollectionReference
 export type FirestoreTransaction = admin.firestore.Transaction
