@@ -6,5 +6,3 @@ admin.initializeApp(
     credential: admin.credential.cert(serviceKey as admin.ServiceAccount)
   }
 )
-
-jest.setTimeout(10000)
