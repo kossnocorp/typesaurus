@@ -4,6 +4,7 @@
 
 import * as firebase from 'firebase/app'
 import 'firebase/firestore'
+import { getAll } from './utils'
 
 export default function store() {
   const firestore = firebase.firestore()
@@ -14,19 +15,26 @@ export default function store() {
   return firestore
 }
 
-function getAll(...docs: FirestoreDocumentReference[]) {
-  return Promise.all(docs.map(doc => doc.get()))
+export function consts() {
+  return {
+    DocumentReference: firebase.firestore.DocumentReference,
+    Timestamp: firebase.firestore.Timestamp,
+    FieldValue: firebase.firestore.FieldValue
+  }
+}
+
+export function injectAdaptor() {
+  throw new Error(
+    'Injecting adaptor is not supported in the browser environment'
+  )
 }
 
 export type FirestoreQuery = firebase.firestore.Query
 export type FirestoreDocumentReference = firebase.firestore.DocumentReference
-export const FirestoreDocumentReference = firebase.firestore.DocumentReference
 export type FirestoreDocumentData = firebase.firestore.DocumentData
 export type FirestoreTimestamp = firebase.firestore.Timestamp
-export const FirestoreTimestamp = firebase.firestore.Timestamp
 export type FirestoreCollectionReference = firebase.firestore.CollectionReference
 export type FirestoreOrderByDirection = firebase.firestore.OrderByDirection
 export type FirestoreWhereFilterOp = firebase.firestore.WhereFilterOp
 export type FirestoreTransaction = firebase.firestore.Transaction
-export const FirestoreFieldValue = firebase.firestore.FieldValue
 export type FirebaseWriteBatch = firebase.firestore.WriteBatch

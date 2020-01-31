@@ -1,8 +1,4 @@
-import {
-  FirestoreDocumentReference,
-  FirestoreFieldValue,
-  FirestoreTimestamp
-} from '../adaptor'
+import { consts } from '../adaptor'
 import { pathToRef, Ref, refToFirestoreDocument } from '../ref'
 import { UpdateValue } from '../value'
 
@@ -20,18 +16,18 @@ export function unwrapData(data: any) {
       const fieldValue = data as UpdateValue<any>
       switch (fieldValue.kind) {
         case 'remove':
-          return FirestoreFieldValue.delete()
+          return consts().FieldValue.delete()
         case 'increment':
-          return FirestoreFieldValue.increment(fieldValue.number)
+          return consts().FieldValue.increment(fieldValue.number)
         case 'arrayUnion':
-          return FirestoreFieldValue.arrayUnion(...fieldValue.values)
+          return consts().FieldValue.arrayUnion(...fieldValue.values)
         case 'arrayRemove':
-          return FirestoreFieldValue.arrayRemove(...fieldValue.values)
+          return consts().FieldValue.arrayRemove(...fieldValue.values)
         case 'serverDate':
-          return FirestoreFieldValue.serverTimestamp()
+          return consts().FieldValue.serverTimestamp()
       }
     } else if (data instanceof Date) {
-      return FirestoreTimestamp.fromDate(data)
+      return consts().Timestamp.fromDate(data)
     }
 
     const unwrappedObject: { [key: string]: any } = Object.assign(
@@ -56,9 +52,9 @@ export function unwrapData(data: any) {
  * @param data - the data to convert
  */
 export function wrapData(data: unknown) {
-  if (data instanceof FirestoreDocumentReference) {
+  if (data instanceof consts().DocumentReference) {
     return pathToRef(data.path)
-  } else if (data instanceof FirestoreTimestamp) {
+  } else if (data instanceof consts().Timestamp) {
     return data.toDate()
   } else if (data && typeof data === 'object') {
     const wrappedData: { [key: string]: any } = Object.assign(

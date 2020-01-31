@@ -1,3 +1,3 @@
-import * as admin from 'firebase-admin'
+import { injectTestingAdaptor } from '../src/testing'
 
-admin.initializeApp({ projectId: 'wut' })
+injectTestingAdaptor()
