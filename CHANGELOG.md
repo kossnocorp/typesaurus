@@ -7,6 +7,10 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 5.2.0 - 2020-02-04
+
+- [Added testing module `typesaurus/testing`](https://typesaurus.com/modules/_testing_index_.html) with `injectTestingAdaptor` and `setApp` that allow to use Typesaurus with [`@firebase/testing`](https://firebase.google.com/docs/rules/unit-tests#run_local_tests).
+
 ## 5.1.0 - 2020-01-27
 
 ### Added

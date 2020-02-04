@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "5.2.0-beta.1",
+  "version": "5.2.0",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
