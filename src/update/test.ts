@@ -5,7 +5,7 @@ import add from '../add'
 import { collection } from '../collection'
 import field from '../field'
 import get from '../get'
-import { Ref } from '../ref'
+import { ref, Ref } from '../ref'
 import set from '../set'
 import { value } from '../value'
 
@@ -172,6 +172,9 @@ describe('update', () => {
     type Favorite = { userId: string; favorites: string[] }
     const favorites = collection<Favorite>('favorites')
 
+    type Movies = {title: string, likedBy: Ref<User>[]}
+    const movies = collection<Movies>('movies')
+
     it('union update', async () => {
       const userId = nanoid()
       const fav = await add(favorites, {
@@ -223,6 +226,48 @@ describe('update', () => {
       assert.deepEqual(favFromDB.data, {
         userId,
         favorites: ['The Mom Test']
+      })
+    })
+
+    it('union update references', async () => {
+      const user1 = ref(users)
+      const user2 = ref(users)
+      const movie = await add(movies, {
+        title: "Harry Potter and the Sorcerer's Stone",
+        likedBy: [user1]
+      })
+
+      await update(movie.ref, {
+        likedBy: value('arrayUnion', [user2])
+      })
+      const movieFromDB = await get(movie.ref)
+      assert.deepEqual(movieFromDB.data, {
+        title: "Harry Potter and the Sorcerer's Stone",
+        likedBy: [
+          user1,
+          user2
+        ]
+      })
+    })
+
+    it('remove update references', async () => {
+      const user1 = ref(users)
+      const user2 = ref(users)
+      const movie = await add(movies, {
+        title: 'Harry Potter and the Chamber of Secrets',
+        likedBy: [
+          user1,
+          user2
+        ]
+      })
+
+      await update(movie.ref, {
+        likedBy: value('arrayRemove', [user2])
+      })
+      const bookFromDB = await get(movie.ref)
+      assert.deepEqual(bookFromDB.data, {
+        title: 'Harry Potter and the Chamber of Secrets',
+        likedBy: [user1]
       })
     })
   })
