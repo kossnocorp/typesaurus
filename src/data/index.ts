@@ -8,7 +8,7 @@ import { UpdateValue } from '../value'
  *
  * @param data - the data to convert
  */
-export function unwrapData(data: any) {
+export function unwrapData(data: any): any {
   if (data && typeof data === 'object') {
     if (data.__type__ === 'ref') {
       return refToFirestoreDocument(data as Ref<any>)
@@ -20,9 +20,9 @@ export function unwrapData(data: any) {
         case 'increment':
           return consts().FieldValue.increment(fieldValue.number)
         case 'arrayUnion':
-          return consts().FieldValue.arrayUnion(...fieldValue.values)
+          return consts().FieldValue.arrayUnion(...unwrapData(fieldValue.values))
         case 'arrayRemove':
-          return consts().FieldValue.arrayRemove(...fieldValue.values)
+          return consts().FieldValue.arrayRemove(...unwrapData(fieldValue.values))
         case 'serverDate':
           return consts().FieldValue.serverTimestamp()
       }
