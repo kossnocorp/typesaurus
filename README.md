@@ -140,6 +140,7 @@ Real-time:
 
 - [`onAll`](https://typesaurus.com/modules/_onall_index_.html#onall) - Subscribes to all documents in a collection.
 - [`onGet`](https://typesaurus.com/modules/_onget_index_.html#onget) - Subscribes to the diven document.
+- [`onGetMany`](https://typesaurus.com/modules/_ongetmany_index_.html#ongetmany) - Subscribes to multiple documents from a collection.
 - [`onQuery`](https://typesaurus.com/modules/_onquery_index_.html#onquery) - Subscribes to a collection query built using query objects ([`order`](https://typesaurus.com/modules/_order_index_.html#order), [`where`](https://typesaurus.com/modules/_where_index_.html#where), [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit)).
 
 ### Operations
