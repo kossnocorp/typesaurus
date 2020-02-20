@@ -2,7 +2,7 @@
 
 TypeScript-first ODM for Firestore.
 
-_Looking for **React** adaptor?_ Check [Reactopod](https://github.com/kossnocorp/reactopod)!
+_Looking for **React** adaptor?_ Check [Typesaurus React](https://github.com/kossnocorp/typesaurus-react)!
 
 **Why?**
 
