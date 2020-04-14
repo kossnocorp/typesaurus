@@ -6,6 +6,10 @@ import { Field } from '../field'
 import { Ref, ref } from '../ref'
 import { ModelUpdate } from '../update'
 
+interface SetOptions {
+  merge?: boolean
+}
+
 /**
  * The transaction read API object. It contains {@link TransactionRead.get|get}
  * the function that allows reading documents from the database.
@@ -77,17 +81,24 @@ export interface TransactionWrite<ReadResult> {
    *
    * @param ref - the reference to the document to set
    * @param data - the document data
+   * @param options - { merge: boolean (default: false) }
    */
-  set<Model>(ref: Ref<Model>, data: Model): Promise<Doc<Model>>
+  set<Model>(
+    ref: Ref<Model>,
+    data: Model,
+    options?: SetOptions
+  ): Promise<Doc<Model>>
   /**
    * @param collection - the collection to set document in
    * @param id - the id of the document to set
    * @param data - the document data
+   * @param options - { merge: boolean (default: false) }
    */
   set<Model>(
     collection: Collection<Model>,
     id: string,
-    data: Model
+    data: Model,
+    options?: SetOptions
   ): Promise<Doc<Model>>
 
   /**
@@ -256,21 +267,25 @@ export function transaction<ReadResult, WriteResult>(
     async function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | Model,
-      maybeData?: Model
+      dataOrOptions?: Model | SetOptions,
+      maybeOptions?: SetOptions
     ): Promise<Doc<Model>> {
       let collection: Collection<Model>
       let id: string
       let data: Model
+      let options: FirebaseFirestore.SetOptions | undefined
 
       if (collectionOrRef.__type__ === 'collection') {
         collection = collectionOrRef as Collection<Model>
         id = idOrData as string
-        data = maybeData as Model
+        data = dataOrOptions as Model
+        options = maybeOptions as SetOptions | undefined
       } else {
         const ref = collectionOrRef as Ref<Model>
         collection = ref.collection
         id = ref.id
         data = idOrData as Model
+        options = dataOrOptions as FirebaseFirestore.SetOptions | undefined
       }
 
       const firestoreDoc = firestore()
@@ -278,7 +293,7 @@ export function transaction<ReadResult, WriteResult>(
         .doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
-      await t.set(firestoreDoc, unwrapData(data))
+      await t.set(firestoreDoc, unwrapData(data), options)
       // v below
       return doc(ref(collection, id), data)
     }

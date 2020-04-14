@@ -6,6 +6,10 @@ import { unwrapData } from '../data'
 import { ModelUpdate } from '../update'
 import { Field } from '../field'
 
+interface SetOptions {
+  merge?: boolean
+}
+
 /**
  * The batch API object. It unions a set of functions ({@link Batch.set|set},
  * {@link Batch.update|update}, {@link Batch.remove|remove}) that are
@@ -36,14 +40,16 @@ export interface Batch {
    *
    * @param ref - The reference to the document to set
    * @param data - The document data
+   * @param options - { merge: boolean (default: false) }
    */
-  set<Model>(ref: Ref<Model>, data: Model): Doc<Model>
+  set<Model>(ref: Ref<Model>, data: Model, options?: SetOptions): Doc<Model>
   /**
    * @param collection - The collection to set document in
    * @param id - The id of the document to set
    * @param data - The document data
+   * @param options - { merge: boolean (default: false) }
    */
-  set<Model>(collection: Collection<Model>, id: string, data: Model): Doc<Model>
+  set<Model>(collection: Collection<Model>, id: string, data: Model, options?: SetOptions): Doc<Model>
 
   /**
    * Updates a document.
@@ -169,21 +175,25 @@ export function batch(): Batch {
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
     idOrData: string | Model,
-    maybeData?: Model
+    dataOrOptions?: Model | SetOptions,
+    maybeOptions?: SetOptions
   ): Doc<Model> {
     let collection: Collection<Model>
     let id: string
     let data: Model
+    let options: FirebaseFirestore.SetOptions | undefined
 
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = maybeData as Model
+      data = dataOrOptions as Model
+      options = maybeOptions as SetOptions | undefined
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
       id = ref.id
       data = idOrData as Model
+      options = dataOrOptions as FirebaseFirestore.SetOptions | undefined
     }
 
     const firestoreDoc = firestore()
@@ -191,7 +201,7 @@ export function batch(): Batch {
       .doc(id)
     // ^ above
     // TODO: Refactor code above and below because is all the same as in the regular set function
-    firestoreBatch.set(firestoreDoc, unwrapData(data))
+    firestoreBatch.set(firestoreDoc, unwrapData(data), options)
     // v below
     return doc(ref(collection, id), data)
   }
