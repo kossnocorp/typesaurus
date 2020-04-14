@@ -7,6 +7,16 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 5.4.0 - 2020-04-14
+
+### Fixes
+
+- [Fixed `CollectionEntity` type definition](https://github.com/kossnocorp/typesaurus/pull/39).
+
+### Added
+
+- [Added `merge` option to `batch.set` and `transaction.set`](https://github.com/kossnocorp/typesaurus/pull/38).
+
 ## 5.3.0 - 2020-02-20
 
 ### Fixes
