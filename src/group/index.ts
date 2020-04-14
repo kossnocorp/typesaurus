@@ -9,7 +9,7 @@ export interface CollectionGroup<_Model> {
   path: string
 }
 
-type CollectionEntity<Model> = Collection<Model> | Subcollection<any, Model>
+type CollectionEntity<Model> = Collection<Model> | Subcollection<Model, any>
 
 function group<A>(
   path: string,
