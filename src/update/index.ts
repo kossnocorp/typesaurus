@@ -10,7 +10,7 @@ import { Ref } from '../ref'
  * making values optional and allow to set value object.
  */
 export type UpdateModel<Model> = {
-  [Key in keyof Model]?: Model[Key] | UpdateValue<Model[Key]>
+  [Key in keyof Model]?: UpdateModel<Model[Key]> | UpdateValue<Model[Key]>
 }
 
 /**
@@ -87,17 +87,17 @@ async function update<Model>(
 ): Promise<void> {
   let collection: Collection<Model>
   let id: string
-  let data: Model
+  let data: UpdateModel<Model>
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
     id = idOrData as string
-    data = maybeData as Model
+    data = maybeData as UpdateModel<Model>
   } else {
     const ref = collectionOrRef as Ref<Model>
     collection = ref.collection
     id = ref.id
-    data = idOrData as Model
+    data = idOrData as UpdateModel<Model>
   }
 
   const firebaseDoc = firestore()
