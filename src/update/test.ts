@@ -80,22 +80,22 @@ describe('update', () => {
   it('supports references', async () => {
     const userId1 = nanoid()
     const userId2 = nanoid()
-    const user1 = await set(users, userId1, {
+    await set(users, userId1, {
       name: 'Sasha',
       address: { city: 'Omsk' },
       visits: 0
     })
-    const user2 = await set(users, userId2, {
+    await set(users, userId2, {
       name: 'Tati',
       address: { city: 'Dimitrovgrad' },
       visits: 0
     })
     const postId = nanoid()
-    const post = await set(posts, postId, {
-      author: user1.ref,
+    await set(posts, postId, {
+      author: ref(users, userId1),
       text: 'Hello!'
     })
-    await update(posts, post.ref.id, { author: user2.ref })
+    await update(posts, postId, { author: ref(users, userId2) })
     const postFromDB = await get(posts, postId)
     const userFromDB = await get(users, postFromDB.data.author.id)
     assert(userFromDB.data.name === 'Tati')
@@ -172,7 +172,7 @@ describe('update', () => {
     type Favorite = { userId: string; favorites: string[] }
     const favorites = collection<Favorite>('favorites')
 
-    type Movies = {title: string, likedBy: Ref<User>[]}
+    type Movies = { title: string; likedBy: Ref<User>[] }
     const movies = collection<Movies>('movies')
 
     it('union update', async () => {
@@ -243,10 +243,7 @@ describe('update', () => {
       const movieFromDB = await get(movie.ref)
       assert.deepEqual(movieFromDB.data, {
         title: "Harry Potter and the Sorcerer's Stone",
-        likedBy: [
-          user1,
-          user2
-        ]
+        likedBy: [user1, user2]
       })
     })
 
@@ -255,10 +252,7 @@ describe('update', () => {
       const user2 = ref(users)
       const movie = await add(movies, {
         title: 'Harry Potter and the Chamber of Secrets',
-        likedBy: [
-          user1,
-          user2
-        ]
+        likedBy: [user1, user2]
       })
 
       await update(movie.ref, {

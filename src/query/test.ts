@@ -22,38 +22,36 @@ describe('query', () => {
   const messages = collection<Message>('messages')
 
   const ownerId = nanoid()
+  const leshaId = `lesha-${ownerId}`
+  const sashaId = `sasha-${ownerId}`
+  const tatiId = `tati-${ownerId}`
 
-  let lesha: Doc<Contact>
-  let sasha: Doc<Contact>
-  let tati: Doc<Contact>
-
-  beforeAll(async () => {
-    lesha = await set(contacts, `lesha-${ownerId}`, {
-      ownerId,
-      name: 'Lesha',
-      year: 1995,
-      birthday: new Date(1995, 6, 2)
-    })
-    sasha = await set(contacts, `sasha-${ownerId}`, {
-      ownerId,
-      name: 'Sasha',
-      year: 1987,
-      birthday: new Date(1987, 1, 11)
-    })
-    tati = await set(contacts, `tati-${ownerId}`, {
-      ownerId,
-      name: 'Tati',
-      year: 1989,
-      birthday: new Date(1989, 6, 10)
-    })
-
-    await Promise.all([
-      add(messages, { ownerId, author: sasha.ref, text: '+1' }),
-      add(messages, { ownerId, author: lesha.ref, text: '+1' }),
-      add(messages, { ownerId, author: tati.ref, text: 'wut' }),
-      add(messages, { ownerId, author: sasha.ref, text: 'lul' })
+  beforeAll(() =>
+    Promise.all([
+      set(contacts, leshaId, {
+        ownerId,
+        name: 'Lesha',
+        year: 1995,
+        birthday: new Date(1995, 6, 2)
+      }),
+      set(contacts, sashaId, {
+        ownerId,
+        name: 'Sasha',
+        year: 1987,
+        birthday: new Date(1987, 1, 11)
+      }),
+      set(contacts, tatiId, {
+        ownerId,
+        name: 'Tati',
+        year: 1989,
+        birthday: new Date(1989, 6, 10)
+      }),
+      add(messages, { ownerId, author: ref(contacts, sashaId), text: '+1' }),
+      add(messages, { ownerId, author: ref(contacts, leshaId), text: '+1' }),
+      add(messages, { ownerId, author: ref(contacts, tatiId), text: 'wut' }),
+      add(messages, { ownerId, author: ref(contacts, sashaId), text: 'lul' })
     ])
-  })
+  )
 
   it('queries documents', async () => {
     const docs = await query(contacts, [where('ownerId', '==', ownerId)])
@@ -220,7 +218,7 @@ describe('query', () => {
   it('allows to query by reference', async () => {
     const docs = await query(messages, [
       where('ownerId', '==', ownerId),
-      where('author', '==', sasha.ref)
+      where('author', '==', ref(contacts, sashaId))
     ])
     assert.deepEqual(docs.map(doc => doc.data.text).sort(), ['+1', 'lul'])
   })
@@ -460,6 +458,7 @@ describe('query', () => {
     })
 
     it('allows to pass docs as cursors', async () => {
+      const tati = await get(contacts, tatiId)
       const docs = await query(contacts, [
         where('ownerId', '==', ownerId),
         order('year', 'asc', [startAt(tati)]),

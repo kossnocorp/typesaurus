@@ -59,29 +59,6 @@ describe('transaction', () => {
       assert.deepEqual(results.sort(), [1, 2, 3])
     })
 
-    it('allows set and overwrite', async () => {
-      const id = nanoid()
-      const counter = ref(counters, id)
-      await set(counter, { count: 0, optional: true })
-      await transaction(
-        ({ get }) => get(counter),
-        ({ data: counterFromDB, set }) =>
-          set(
-            counter,
-            {
-              count: counterFromDB.data.count + 1
-            },
-            { merge: true }
-          )
-      )
-      const {
-        data: { count, optional }
-      } = await get(counter)
-
-      assert(count === 1)
-      assert(optional)
-    })
-
     it('allows updating', async () => {
       const id = nanoid()
       const counter = ref(counters, id)

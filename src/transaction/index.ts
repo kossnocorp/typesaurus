@@ -4,11 +4,8 @@ import { unwrapData, wrapData } from '../data'
 import { Doc, doc } from '../doc'
 import { Field } from '../field'
 import { Ref, ref } from '../ref'
-import { ModelUpdate } from '../update'
-
-interface SetOptions {
-  merge?: boolean
-}
+import { UpdateModel } from '../update'
+import { SetModel } from '../set'
 
 /**
  * The transaction read API object. It contains {@link TransactionRead.get|get}
@@ -73,33 +70,23 @@ export interface TransactionWrite<ReadResult> {
    *   ({ get }) => get('420'),
    *   ({ data: counter, set }) =>
    *     set(counter.ref, { count: counter.data.count + 1 })
-   *   //=> { __type__: 'doc', data: { count: 43 }, ... }
    * )
    * ```
    *
-   * @returns A promise to the document
-   *
    * @param ref - the reference to the document to set
    * @param data - the document data
-   * @param options - { merge: boolean (default: false) }
    */
-  set<Model>(
-    ref: Ref<Model>,
-    data: Model,
-    options?: SetOptions
-  ): Promise<Doc<Model>>
+  set<Model>(ref: Ref<Model>, data: SetModel<Model>): Promise<void>
   /**
    * @param collection - the collection to set document in
    * @param id - the id of the document to set
    * @param data - the document data
-   * @param options - { merge: boolean (default: false) }
    */
   set<Model>(
     collection: Collection<Model>,
     id: string,
-    data: Model,
-    options?: SetOptions
-  ): Promise<Doc<Model>>
+    data: SetModel<Model>
+  ): Promise<void>
 
   /**
    * Updates a document.
@@ -149,13 +136,13 @@ export interface TransactionWrite<ReadResult> {
   update<Model>(
     collection: Collection<Model>,
     id: string,
-    data: ModelUpdate<Model>
+    data: UpdateModel<Model>
   ): Promise<void>
   /**
    * @param ref - the reference to the document to set
    * @param data - the document data to update
    */
-  update<Model>(ref: Ref<Model>, data: ModelUpdate<Model>): Promise<void>
+  update<Model>(ref: Ref<Model>, data: UpdateModel<Model>): Promise<void>
 
   /**
    * Removes a document.
@@ -266,26 +253,22 @@ export function transaction<ReadResult, WriteResult>(
 
     async function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
-      idOrData: string | Model,
-      dataOrOptions?: Model | SetOptions,
-      maybeOptions?: SetOptions
-    ): Promise<Doc<Model>> {
+      idOrData: string | SetModel<Model>,
+      dataOrOptions?: SetModel<Model>
+    ): Promise<void> {
       let collection: Collection<Model>
       let id: string
-      let data: Model
-      let options: FirebaseFirestore.SetOptions | undefined
+      let data: SetModel<Model>
 
       if (collectionOrRef.__type__ === 'collection') {
         collection = collectionOrRef as Collection<Model>
         id = idOrData as string
-        data = dataOrOptions as Model
-        options = maybeOptions as SetOptions | undefined
+        data = dataOrOptions as SetModel<Model>
       } else {
         const ref = collectionOrRef as Ref<Model>
         collection = ref.collection
         id = ref.id
-        data = idOrData as Model
-        options = dataOrOptions as FirebaseFirestore.SetOptions | undefined
+        data = idOrData as SetModel<Model>
       }
 
       const firestoreDoc = firestore()
@@ -293,15 +276,13 @@ export function transaction<ReadResult, WriteResult>(
         .doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
-      await t.set(firestoreDoc, unwrapData(data), options)
-      // v below
-      return doc(ref(collection, id), data)
+      await t.set(firestoreDoc, unwrapData(data))
     }
 
     async function update<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
-      idOrData: string | Field<Model>[] | ModelUpdate<Model>,
-      maybeData?: Field<Model>[] | ModelUpdate<Model>
+      idOrData: string | Field<Model>[] | UpdateModel<Model>,
+      maybeData?: Field<Model>[] | UpdateModel<Model>
     ): Promise<void> {
       let collection: Collection<Model>
       let id: string
