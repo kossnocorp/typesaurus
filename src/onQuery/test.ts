@@ -23,15 +23,15 @@ describe('onQuery', () => {
   const contacts = collection<Contact>('contacts')
   const messages = collection<Message>('messages')
 
+  let ownerId: string
+  let leshaId: string
+  let sashaId: string
+  let tatiId: string
+
   let off: () => void | undefined
 
-  let lesha: Doc<Contact>
-  let sasha: Doc<Contact>
-  let tati: Doc<Contact>
-  let ownerId: string
-
   function setLesha() {
-    return set(contacts, `lesha-${ownerId}`, {
+    return set(contacts, leshaId, {
       ownerId,
       name: 'Lesha',
       year: 1995,
@@ -41,19 +41,25 @@ describe('onQuery', () => {
 
   beforeEach(async () => {
     ownerId = nanoid()
-    lesha = await setLesha()
-    sasha = await set(contacts, `sasha-${ownerId}`, {
-      ownerId,
-      name: 'Sasha',
-      year: 1987,
-      birthday: new Date(1987, 1, 11)
-    })
-    tati = await set(contacts, `tati-${ownerId}`, {
-      ownerId,
-      name: 'Tati',
-      year: 1989,
-      birthday: new Date(1989, 6, 10)
-    })
+    leshaId = `lesha-${ownerId}`
+    sashaId = `sasha-${ownerId}`
+    tatiId = `tati-${ownerId}`
+
+    return Promise.all([
+      setLesha(),
+      set(contacts, sashaId, {
+        ownerId,
+        name: 'Sasha',
+        year: 1987,
+        birthday: new Date(1987, 1, 11)
+      }),
+      set(contacts, tatiId, {
+        ownerId,
+        name: 'Tati',
+        year: 1989,
+        birthday: new Date(1989, 6, 10)
+      })
+    ])
   })
 
   afterEach(() => {
@@ -236,10 +242,10 @@ describe('onQuery', () => {
   describe('with messages', () => {
     beforeEach(async () => {
       await Promise.all([
-        add(messages, { ownerId, author: sasha.ref, text: '+1' }),
-        add(messages, { ownerId, author: lesha.ref, text: '+1' }),
-        add(messages, { ownerId, author: tati.ref, text: 'wut' }),
-        add(messages, { ownerId, author: sasha.ref, text: 'lul' })
+        add(messages, { ownerId, author: ref(contacts, sashaId), text: '+1' }),
+        add(messages, { ownerId, author: ref(contacts, leshaId), text: '+1' }),
+        add(messages, { ownerId, author: ref(contacts, tatiId), text: 'wut' }),
+        add(messages, { ownerId, author: ref(contacts, sashaId), text: 'lul' })
       ])
     })
 
@@ -262,7 +268,10 @@ describe('onQuery', () => {
       const spy = sinon.spy()
       off = onQuery(
         messages,
-        [where('ownerId', '==', ownerId), where('author', '==', sasha.ref)],
+        [
+          where('ownerId', '==', ownerId),
+          where('author', '==', ref(contacts, sashaId))
+        ],
         docs => {
           spy(docs.map(doc => doc.data.text).sort())
           if (spy.calledWithMatch(['+1', 'lul'])) done()
@@ -382,14 +391,30 @@ describe('onQuery', () => {
     })
 
     describe('with messages', () => {
-      beforeEach(async () => {
-        await Promise.all([
-          add(messages, { ownerId, author: sasha.ref, text: '+1' }),
-          add(messages, { ownerId, author: lesha.ref, text: '+1' }),
-          add(messages, { ownerId, author: tati.ref, text: 'wut' }),
-          add(messages, { ownerId, author: sasha.ref, text: 'lul' })
+      beforeEach(() =>
+        Promise.all([
+          add(messages, {
+            ownerId,
+            author: ref(contacts, sashaId),
+            text: '+1'
+          }),
+          add(messages, {
+            ownerId,
+            author: ref(contacts, leshaId),
+            text: '+1'
+          }),
+          add(messages, {
+            ownerId,
+            author: ref(contacts, tatiId),
+            text: 'wut'
+          }),
+          add(messages, {
+            ownerId,
+            author: ref(contacts, sashaId),
+            text: 'lul'
+          })
         ])
-      })
+      )
 
       it('allows ordering by references', done => {
         const spy = sinon.spy()
@@ -624,7 +649,8 @@ describe('onQuery', () => {
       )
     })
 
-    it('allows to pass docs as cursors', done => {
+    it('allows to pass docs as cursors', async done => {
+      const tati = await get(contacts, tatiId)
       off = onQuery(
         contacts,
         [
@@ -692,7 +718,7 @@ describe('onQuery', () => {
           spy(names)
 
           if (spy.calledWithMatch(['Tati', 'Lesha', 'Theodor'])) {
-            await remove(lesha.ref)
+            await remove(contacts, leshaId)
           }
 
           if (spy.calledWithMatch(['Tati', 'Theodor'])) {
@@ -732,7 +758,7 @@ describe('onQuery', () => {
           }
           on()
           off()
-          await remove(lesha.ref)
+          await remove(contacts, leshaId)
           on()
         })
       })

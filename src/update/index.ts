@@ -9,7 +9,7 @@ import { Ref } from '../ref'
  * Type of the data passed to the update function. It extends the model
  * making values optional and allow to set value object.
  */
-export type ModelUpdate<Model> = {
+export type UpdateModel<Model> = {
   [Key in keyof Model]?: Model[Key] | UpdateValue<Model[Key]>
 }
 
@@ -41,7 +41,7 @@ async function update<Model>(
 async function update<Model>(
   collection: Collection<Model>,
   id: string,
-  data: ModelUpdate<Model>
+  data: UpdateModel<Model>
 ): Promise<void>
 
 /**
@@ -50,7 +50,7 @@ async function update<Model>(
  */
 async function update<Model>(
   ref: Ref<Model>,
-  data: ModelUpdate<Model>
+  data: UpdateModel<Model>
 ): Promise<void>
 
 /**
@@ -82,8 +82,8 @@ async function update<Model>(
  */
 async function update<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  idOrData: string | Field<Model>[] | ModelUpdate<Model>,
-  maybeData?: Field<Model>[] | ModelUpdate<Model>
+  idOrData: string | Field<Model>[] | UpdateModel<Model>,
+  maybeData?: Field<Model>[] | UpdateModel<Model>
 ): Promise<void> {
   let collection: Collection<Model>
   let id: string

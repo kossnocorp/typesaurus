@@ -67,6 +67,22 @@ export type UpdateValue<T> = T extends number
   ? ValueServerDate | AnyUpdateValue
   : AnyUpdateValue
 
+/**
+ * The value types to use for set operation.
+ */
+export type SetValue<T> = T extends Date ? ValueServerDate : never
+
+/**
+ * The value types to use for upset operation.
+ */
+export type UpsetValue<T> = T extends number
+  ? ValueIncrement
+  : T extends Array<any>
+  ? ValueArrayUnion | ValueArrayRemove
+  : T extends Date
+  ? ValueServerDate
+  : never
+
 function value(kind: 'remove'): ValueRemove
 
 function value<T extends number>(

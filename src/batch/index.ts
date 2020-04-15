@@ -3,12 +3,9 @@ import { Collection } from '../collection'
 import { Ref, ref } from '../ref'
 import { Doc, doc } from '../doc'
 import { unwrapData } from '../data'
-import { ModelUpdate } from '../update'
+import { UpdateModel } from '../update'
 import { Field } from '../field'
-
-interface SetOptions {
-  merge?: boolean
-}
+import { SetModel } from '../set'
 
 /**
  * The batch API object. It unions a set of functions ({@link Batch.set|set},
@@ -40,16 +37,18 @@ export interface Batch {
    *
    * @param ref - The reference to the document to set
    * @param data - The document data
-   * @param options - { merge: boolean (default: false) }
    */
-  set<Model>(ref: Ref<Model>, data: Model, options?: SetOptions): Doc<Model>
+  set<Model>(ref: Ref<Model>, data: SetModel<Model>): Doc<Model>
   /**
    * @param collection - The collection to set document in
    * @param id - The id of the document to set
    * @param data - The document data
-   * @param options - { merge: boolean (default: false) }
    */
-  set<Model>(collection: Collection<Model>, id: string, data: Model, options?: SetOptions): Doc<Model>
+  set<Model>(
+    collection: Collection<Model>,
+    id: string,
+    data: SetModel<Model>
+  ): Doc<Model>
 
   /**
    * Updates a document.
@@ -98,13 +97,13 @@ export interface Batch {
   update<Model>(
     collection: Collection<Model>,
     id: string,
-    data: ModelUpdate<Model>
+    data: UpdateModel<Model>
   ): void
   /**
    * @param ref - The reference to the document to set
    * @param data - The document data to update
    */
-  update<Model>(ref: Ref<Model>, data: ModelUpdate<Model>): void
+  update<Model>(ref: Ref<Model>, data: UpdateModel<Model>): void
 
   /**
    * Removes a document.
@@ -174,26 +173,22 @@ export function batch(): Batch {
 
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
-    idOrData: string | Model,
-    dataOrOptions?: Model | SetOptions,
-    maybeOptions?: SetOptions
-  ): Doc<Model> {
+    idOrData: string | SetModel<Model>,
+    dataOrOptions?: SetModel<Model>
+  ): void {
     let collection: Collection<Model>
     let id: string
-    let data: Model
-    let options: FirebaseFirestore.SetOptions | undefined
+    let data: SetModel<Model>
 
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = dataOrOptions as Model
-      options = maybeOptions as SetOptions | undefined
+      data = dataOrOptions as SetModel<Model>
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
       id = ref.id
-      data = idOrData as Model
-      options = dataOrOptions as FirebaseFirestore.SetOptions | undefined
+      data = idOrData as SetModel<Model>
     }
 
     const firestoreDoc = firestore()
@@ -201,15 +196,13 @@ export function batch(): Batch {
       .doc(id)
     // ^ above
     // TODO: Refactor code above and below because is all the same as in the regular set function
-    firestoreBatch.set(firestoreDoc, unwrapData(data), options)
-    // v below
-    return doc(ref(collection, id), data)
+    firestoreBatch.set(firestoreDoc, unwrapData(data))
   }
 
   function update<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
-    idOrData: string | Field<Model>[] | ModelUpdate<Model>,
-    maybeData?: Field<Model>[] | ModelUpdate<Model>
+    idOrData: string | Field<Model>[] | UpdateModel<Model>,
+    maybeData?: Field<Model>[] | UpdateModel<Model>
   ): void {
     let collection: Collection<Model>
     let id: string
