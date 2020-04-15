@@ -62,6 +62,31 @@ describe('batch', () => {
     })
   })
 
+  it('allows upsetting', async () => {
+    const { upset, commit } = batch()
+    const id = nanoid()
+    const sashaRef = ref(users, `${id}-sasha`)
+    const tatiRef = ref(users, `${id}-tati`)
+    const edRef = ref(users, `${id}-ed`)
+    await Promise.all([
+      set(sashaRef, { name: 'Sasha', foo: true }),
+      set(tatiRef, { name: 'Tati', foo: true }),
+      set(edRef, { name: 'Ed', foo: true })
+    ])
+    upset(sashaRef, { name: 'Sasha Koss' })
+    upset(tatiRef, { name: 'Tati Shepeleva', foo: false })
+    upset(edRef, { name: 'Ed Tsech' })
+    await commit()
+    const [sasha, tati, ed] = await Promise.all([
+      get(sashaRef),
+      get(tatiRef),
+      get(edRef)
+    ])
+    assert.deepEqual(sasha.data, { name: 'Sasha Koss', foo: true })
+    assert.deepEqual(tati.data, { name: 'Tati Shepeleva', foo: false })
+    assert.deepEqual(ed.data, { name: 'Ed Tsech', foo: true })
+  })
+
   it('allows updating', async () => {
     const { update, commit } = batch()
     const id = nanoid()
