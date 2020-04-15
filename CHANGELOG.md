@@ -7,6 +7,24 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 6.0.0 - TODO
+
+### Changed
+
+- **BREAKING**: `set`, `transaction.set` and `batch.set` now return `Promise<void>` (or `void` in case of `batch.set`) to avoid confusion that the returned data match the current database state which might be not a case when using with field values i.e. `value('serverDate')`.
+
+- **BREAKING**: `set`, `transaction.set` and `batch.set` now don't accept `merge` option. Instead use the new `upset` function that provides better typing and ensures data consistency.
+
+- **BREAKING**: `value('serverDate')` now returns a simple object instead of monkey-patched `Date` instance.
+
+- **BREAKING**: `ModelUpdate` renamed to `UpdateModel` for consitency with `SetModel` and `MergeModel`.
+
+- `update` now allows passing partial data into nested fields. Previously only root fields were optional.
+
+### Added
+
+- Added new `upset`, `batch.set` and `transaction.set` functions that sets or updates the value of given document. It replaces `merge` option available in the previous version of Typesaurus.
+
 ## 5.4.0 - 2020-04-14
 
 ### Fixes
