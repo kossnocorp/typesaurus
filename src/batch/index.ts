@@ -1,11 +1,11 @@
 import firestore from '../adaptor'
 import { Collection } from '../collection'
-import { Ref, ref } from '../ref'
-import { Doc, doc } from '../doc'
+import { Ref } from '../ref'
 import { unwrapData } from '../data'
 import { UpdateModel } from '../update'
 import { Field } from '../field'
 import { SetModel } from '../set'
+import { UpsetModel } from '../upset'
 
 /**
  * The batch API object. It unions a set of functions ({@link Batch.set|set},
@@ -33,12 +33,10 @@ export interface Batch {
    * commit()
    * ```
    *
-   * @returns The document
-   *
    * @param ref - The reference to the document to set
    * @param data - The document data
    */
-  set<Model>(ref: Ref<Model>, data: SetModel<Model>): Doc<Model>
+  set<Model>(ref: Ref<Model>, data: SetModel<Model>): void
   /**
    * @param collection - The collection to set document in
    * @param id - The id of the document to set
@@ -48,7 +46,40 @@ export interface Batch {
     collection: Collection<Model>,
     id: string,
     data: SetModel<Model>
-  ): Doc<Model>
+  ): void
+
+  /**
+   * Sets or updates a document with the given data.
+   *
+   * ```ts
+   * import { batch, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * const { upset, commit } = batch()
+   *
+   * for (let count = 0; count < 500; count++) {
+   *   upset(counters, count.toString(), { count })
+   * }
+   *
+   * commit()
+   * ```
+   *
+   * @param ref - The reference to the document to set or update
+   * @param data - The document data
+   */
+  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model>): void
+  /**
+   * @param collection - The collection to set or update document in
+   * @param id - The id of the document to set or update
+   * @param data - The document data
+   */
+  upset<Model>(
+    collection: Collection<Model>,
+    id: string,
+    data: UpsetModel<Model>
+  ): void
 
   /**
    * Updates a document.
@@ -144,10 +175,10 @@ export interface Batch {
 
 /**
  * Creates {@link Batch|batch API} with a set of functions ({@link Batch.set|set},
- * {@link Batch.update|update}, {@link Batch.remove|remove}) that are
- * similar to regular set, update and remove with the only difference that
- * the batch counterparts do not return a promise and perform operations only
- * when {@link Batch.commit|commit} function is called.
+ * {@link Batch.upset|upset}, {@link Batch.update|update}, {@link Batch.remove|remove})
+ * that are similar to regular set, update and remove with the only difference
+ * that the batch counterparts do not return a promise and perform operations
+ * only when {@link Batch.commit|commit} function is called.
  *
  * ```ts
  * import { batch, collection } from 'typesaurus'
@@ -174,7 +205,7 @@ export function batch(): Batch {
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
     idOrData: string | SetModel<Model>,
-    dataOrOptions?: SetModel<Model>
+    maybeData?: SetModel<Model>
   ): void {
     let collection: Collection<Model>
     let id: string
@@ -183,7 +214,7 @@ export function batch(): Batch {
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = dataOrOptions as SetModel<Model>
+      data = maybeData as SetModel<Model>
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
@@ -197,6 +228,34 @@ export function batch(): Batch {
     // ^ above
     // TODO: Refactor code above and below because is all the same as in the regular set function
     firestoreBatch.set(firestoreDoc, unwrapData(data))
+  }
+
+  function upset<Model>(
+    collectionOrRef: Collection<Model> | Ref<Model>,
+    idOrData: string | UpsetModel<Model>,
+    maybeData?: UpsetModel<Model>
+  ): void {
+    let collection: Collection<Model>
+    let id: string
+    let data: UpsetModel<Model>
+
+    if (collectionOrRef.__type__ === 'collection') {
+      collection = collectionOrRef as Collection<Model>
+      id = idOrData as string
+      data = maybeData as UpsetModel<Model>
+    } else {
+      const ref = collectionOrRef as Ref<Model>
+      collection = ref.collection
+      id = ref.id
+      data = idOrData as UpsetModel<Model>
+    }
+
+    const firestoreDoc = firestore()
+      .collection(collection.path)
+      .doc(id)
+    // ^ above
+    // TODO: Refactor code above and below because is all the same as in the regular set function
+    firestoreBatch.set(firestoreDoc, unwrapData(data), { merge: true })
   }
 
   function update<Model>(
@@ -264,5 +323,5 @@ export function batch(): Batch {
     await firestoreBatch.commit()
   }
 
-  return { set, update, remove, commit }
+  return { set, upset, update, remove, commit }
 }
