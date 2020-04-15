@@ -6,6 +6,7 @@ import { Field } from '../field'
 import { Ref, ref } from '../ref'
 import { UpdateModel } from '../update'
 import { SetModel } from '../set'
+import { UpsetModel } from '../upset'
 
 /**
  * The transaction read API object. It contains {@link TransactionRead.get|get}
@@ -86,6 +87,37 @@ export interface TransactionWrite<ReadResult> {
     collection: Collection<Model>,
     id: string,
     data: SetModel<Model>
+  ): Promise<void>
+
+  /**
+   * Sets or updates a document with the given data.
+   *
+   * ```ts
+   * import { transaction, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * transaction(
+   *   ({ get }) => get('420'),
+   *   ({ data: counter, upset }) =>
+   *     upset(counter.ref, { count: counter.data.count + 1 })
+   * )
+   * ```
+   *
+   * @param ref - the reference to the document to set or update
+   * @param data - the document data
+   */
+  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model>): Promise<void>
+  /**
+   * @param collection - the collection to set document in
+   * @param id - the id of the document to set
+   * @param data - the document data
+   */
+  upset<Model>(
+    collection: Collection<Model>,
+    id: string,
+    data: UpsetModel<Model>
   ): Promise<void>
 
   /**
@@ -254,7 +286,7 @@ export function transaction<ReadResult, WriteResult>(
     async function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | SetModel<Model>,
-      dataOrOptions?: SetModel<Model>
+      maybeData?: SetModel<Model>
     ): Promise<void> {
       let collection: Collection<Model>
       let id: string
@@ -263,7 +295,7 @@ export function transaction<ReadResult, WriteResult>(
       if (collectionOrRef.__type__ === 'collection') {
         collection = collectionOrRef as Collection<Model>
         id = idOrData as string
-        data = dataOrOptions as SetModel<Model>
+        data = maybeData as SetModel<Model>
       } else {
         const ref = collectionOrRef as Ref<Model>
         collection = ref.collection
@@ -277,6 +309,34 @@ export function transaction<ReadResult, WriteResult>(
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
       await t.set(firestoreDoc, unwrapData(data))
+    }
+
+    async function upset<Model>(
+      collectionOrRef: Collection<Model> | Ref<Model>,
+      idOrData: string | SetModel<Model>,
+      maybeData?: UpsetModel<Model>
+    ): Promise<void> {
+      let collection: Collection<Model>
+      let id: string
+      let data: UpsetModel<Model>
+
+      if (collectionOrRef.__type__ === 'collection') {
+        collection = collectionOrRef as Collection<Model>
+        id = idOrData as string
+        data = maybeData as UpsetModel<Model>
+      } else {
+        const ref = collectionOrRef as Ref<Model>
+        collection = ref.collection
+        id = ref.id
+        data = idOrData as UpsetModel<Model>
+      }
+
+      const firestoreDoc = firestore()
+        .collection(collection.path)
+        .doc(id)
+      // ^ above
+      // TODO: Refactor code above and below because is all the same as in the regular set function
+      await t.set(firestoreDoc, unwrapData(data), { merge: true })
     }
 
     async function update<Model>(
@@ -341,7 +401,7 @@ export function transaction<ReadResult, WriteResult>(
     }
 
     return readFunction({ get }).then(data =>
-      writeFunction({ data, set, update, remove })
+      writeFunction({ data, set, upset, update, remove })
     )
   })
 }
