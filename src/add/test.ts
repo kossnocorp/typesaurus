@@ -15,7 +15,7 @@ describe('add', () => {
   it('adds document to collection', async () => {
     const data = { name: 'Sasha' }
     const user = await add(users, data)
-    const { id } = user.ref
+    const { id } = user
     assert(typeof id === 'string')
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, data)
@@ -24,10 +24,10 @@ describe('add', () => {
   it('supports references', async () => {
     const user = await add(users, { name: 'Sasha' })
     const post = await add(posts, {
-      author: user.ref,
+      author: user,
       text: 'Hello!'
     })
-    const postFromDB = await get(posts, post.ref.id)
+    const postFromDB = await get(posts, post.id)
     const userFromDB = await get(users, postFromDB.data.author.id)
     assert.deepEqual(userFromDB.data, { name: 'Sasha' })
   })
@@ -40,18 +40,19 @@ describe('add', () => {
       text: 'Hello!',
       date
     })
-    const postFromDB = await get(posts, post.ref.id)
+    const postFromDB = await get(posts, post.id)
     assert(postFromDB.data.date instanceof Date)
     assert(postFromDB.data.date.getTime() === date.getTime())
   })
 
   it('supports server dates', async () => {
     const userRef = ref(users, '42')
-    const post = await add(posts, {
+    const postRef = await add(posts, {
       author: userRef,
       text: 'Hello!',
       date: value('serverDate')
     })
+    const post = await get(postRef)
     const now = Date.now()
     const returnedDate = post.data.date
     assert(returnedDate instanceof Date)
