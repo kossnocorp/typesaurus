@@ -7,7 +7,7 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
-## 6.0.0 - TODO
+## 6.0.0 - 2020-04-16
 
 ### Changed
 
@@ -19,7 +19,7 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 - **BREAKING**: `value('serverDate')` now returns a simple object instead of monkey-patched `Date` instance.
 
-- **BREAKING**: `ModelUpdate` renamed to `UpdateModel` for consitency with `SetModel` and `MergeModel`.
+- **BREAKING**: `ModelUpdate` renamed to `UpdateModel` for consitency with `SetModel` and `UpsetModel`.
 
 - **BREAKING**: `ref` now don't generate id if the second argument is omitted, use `id` function to generate new id instead.
 
