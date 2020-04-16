@@ -1,8 +1,8 @@
-import firestore from '../adaptor'
 import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
 import { wrapData } from '../data'
+import adaptor from '../adaptor'
 
 /**
  * @param ref - The reference to the document
@@ -41,6 +41,7 @@ async function get<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   maybeId?: string
 ): Promise<Doc<Model> | null> {
+  const a = await adaptor()
   let collection: Collection<Model>
   let id: string
 
@@ -53,12 +54,10 @@ async function get<Model>(
     id = ref.id
   }
 
-  const firestoreDoc = firestore()
-    .collection(collection.path)
-    .doc(id)
+  const firestoreDoc = a.firestore.collection(collection.path).doc(id)
   const firestoreSnap = await firestoreDoc.get()
   const firestoreData = firestoreSnap.data()
-  const data = firestoreData && (wrapData(firestoreData) as Model)
+  const data = firestoreData && (wrapData(a, firestoreData) as Model)
   return data ? doc(ref(collection, id), data) : null
 }
 

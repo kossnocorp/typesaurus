@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor, { Adaptor } from '../adaptor'
 import { Collection } from '../collection'
 
 /**
@@ -46,16 +46,14 @@ export interface Ref<Model> {
  */
 export function ref<Model>(
   collection: Collection<Model>,
-  id?: string
+  id: string
 ): Ref<Model> {
-  if (id) {
-    return { __type__: 'ref', collection, id }
-  } else {
-    const id = firestore()
-      .collection(collection.path)
-      .doc().id
-    return { __type__: 'ref', collection, id }
-  }
+  return { __type__: 'ref', collection, id }
+}
+
+export async function id(collection: Collection<any>) {
+  const a = await adaptor()
+  return a.firestore.collection(collection.path).doc().id
 }
 
 /**
@@ -74,8 +72,11 @@ export function getRefPath(ref: Ref<any>) {
  * @param ref - The reference to create Firestore document from
  * @returns Firestore document
  */
-export function refToFirestoreDocument<Model>(ref: Ref<Model>) {
-  return firestore().doc(getRefPath(ref))
+export function refToFirestoreDocument<Model>(
+  { firestore }: Adaptor,
+  ref: Ref<Model>
+) {
+  return firestore.doc(getRefPath(ref))
 }
 
 /**

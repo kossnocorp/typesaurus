@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { UpdateValue } from '../value'
 import { Field } from '../field'
@@ -85,6 +85,7 @@ async function update<Model>(
   idOrData: string | Field<Model>[] | UpdateModel<Model>,
   maybeData?: Field<Model>[] | UpdateModel<Model>
 ): Promise<void> {
+  const a = await adaptor()
   let collection: Collection<Model>
   let id: string
   let data: UpdateModel<Model>
@@ -100,9 +101,7 @@ async function update<Model>(
     data = idOrData as UpdateModel<Model>
   }
 
-  const firebaseDoc = firestore()
-    .collection(collection.path)
-    .doc(id)
+  const firebaseDoc = a.firestore.collection(collection.path).doc(id)
   const updateData = Array.isArray(data)
     ? data.reduce(
         (acc, { key, value }) => {
@@ -112,7 +111,7 @@ async function update<Model>(
         {} as { [key: string]: any }
       )
     : data
-  await firebaseDoc.update(unwrapData(updateData))
+  await firebaseDoc.update(unwrapData(a, updateData))
 }
 
 export default update
