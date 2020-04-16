@@ -11,7 +11,9 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ### Changed
 
-- **BREAKING**: `set`, `transaction.set` and `batch.set` now return `Promise<void>` (or `void` in case of `batch.set`) to avoid confusion that the returned data match the current database state which might be not a case when using with field values i.e. `value('serverDate')`.
+- **BREAKING**: `add` now return `Ref` instead of `Doc` to avoid confusion that the returned data match the current database state which might be not a case when using with field values i.e. `value('serverDate')`.
+
+- **BREAKING**: `set`, `transaction.set` and `batch.set` now return `Promise<void>` (or `void` in case of `batch.set`). The same reasoning as for the `add` (see above).
 
 - **BREAKING**: `set`, `transaction.set` and `batch.set` now don't accept `merge` option. Instead use the new `upset` function that provides better typing and ensures data consistency.
 

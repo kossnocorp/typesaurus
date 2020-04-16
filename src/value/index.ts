@@ -46,7 +46,7 @@ export type ValueArrayRemove = {
 /**
  * The server date value type.
  */
-export interface ValueServerDate extends Date {
+export type ValueServerDate = {
   __type__: 'value'
   kind: 'serverDate'
 }
@@ -66,6 +66,11 @@ export type UpdateValue<T> = T extends number
   : T extends Date
   ? ValueServerDate | AnyUpdateValue
   : AnyUpdateValue
+
+/**
+ * The value types to use for add operation.
+ */
+export type AddValue<T> = T extends Date ? ValueServerDate : never
 
 /**
  * The value types to use for set operation.
@@ -170,9 +175,7 @@ function value(
       return { __type__: 'value', kind: 'arrayRemove', values: payload }
 
     case 'serverDate':
-      const date = new Date()
-      Object.assign(date, { __type__: 'value', kind: 'serverDate' })
-      return date as ValueServerDate
+      return { __type__: 'value', kind: 'serverDate' }
   }
 }
 
