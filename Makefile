@@ -33,6 +33,8 @@ build:
 	@${BIN}/prettier "lib/**/*.[jt]s" --write --loglevel silent
 	@cp {package.json,*.md} lib
 	@rsync --archive --prune-empty-dirs --exclude '*.ts' --relative src/./ lib
+	@${BIN}/tsc --outDir lib/esm --module es2020 --target es2019
+	@cp src/adaptor/package.esm.json lib/esm/adaptor/package.json
 
 publish: build
 	cd lib && npm publish --access public
