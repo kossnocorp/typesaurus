@@ -51,9 +51,9 @@ export function ref<Model>(
   return { __type__: 'ref', collection, id }
 }
 
-export async function id(collection: Collection<any>) {
+export async function id() {
   const a = await adaptor()
-  return a.firestore.collection(collection.path).doc().id
+  return a.firestore.collection('nope').doc().id
 }
 
 /**

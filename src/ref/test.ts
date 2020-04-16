@@ -21,7 +21,7 @@ describe('Ref', () => {
 
   describe('id', () => {
     it('generates random id', async () => {
-      const userId = await id(users)
+      const userId = await id()
       assert(typeof userId === 'string')
       assert(userId.length > 10)
     })
