@@ -1,0 +1,4 @@
+{
+  "module": "../esm/cursor/index.js",
+  "sideEffects": false
+}
