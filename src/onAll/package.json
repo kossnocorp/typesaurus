@@ -1,0 +1,4 @@
+{
+  "module": "../esm/onAll/index.js",
+  "sideEffects": false
+}

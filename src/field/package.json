@@ -1,0 +1,4 @@
+{
+  "module": "../esm/field/index.js",
+  "sideEffects": false
+}

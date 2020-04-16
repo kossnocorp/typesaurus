@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "6.0.0-alpha.1",
+  "version": "6.0.0-alpha.4",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
@@ -8,6 +8,8 @@
     "TypeScript"
   ],
   "main": "index.js",
+  "module": "esm/index.js",
+  "sideEffects": false,
   "repository": "https://github.com/kossnocorp/typesaurus",
   "author": "Sasha Koss <koss@nocorp.me>",
   "license": "MIT",
@@ -35,11 +37,11 @@
     "mocha": "^6.2.0",
     "nanoid": "^2.0.3",
     "power-assert": "^1.6.1",
-    "prettier": "^1.17.1",
+    "prettier": "^2.0.4",
     "puppeteer": "^1.19.0",
     "sinon": "^7.3.2",
     "typedoc": "^0.15.0",
-    "typescript": "^3.7.4",
+    "typescript": "^3.8.3",
     "webpack": "^4.37.0"
   }
 }

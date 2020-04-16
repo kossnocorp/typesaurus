@@ -1,0 +1,4 @@
+{
+  "module": "../esm/remove/index.js",
+  "sideEffects": false
+}
