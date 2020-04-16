@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { Ref } from '../ref'
 
@@ -34,6 +34,7 @@ async function remove<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   maybeId?: string
 ): Promise<void> {
+  const a = await adaptor()
   let collection: Collection<Model>
   let id: string
 
@@ -46,9 +47,7 @@ async function remove<Model>(
     id = ref.id
   }
 
-  const firebaseDoc = firestore()
-    .collection(collection.path)
-    .doc(id)
+  const firebaseDoc = a.firestore.collection(collection.path).doc(id)
   await firebaseDoc.delete()
 }
 

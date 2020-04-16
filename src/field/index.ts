@@ -1,4 +1,4 @@
-import { UpdateValue } from '../value/index'
+import { UpdateValue } from '../value'
 
 /**
  * The field type. It contains path to the property and property value.

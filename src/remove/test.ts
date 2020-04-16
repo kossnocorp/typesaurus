@@ -10,7 +10,7 @@ describe('remove', () => {
 
   it('removes document', async () => {
     const user = await add(users, { name: 'Sasha' })
-    const { id } = user.ref
+    const { id } = user
     await remove(users, id)
     const userFromDB = await get(users, id)
     assert(userFromDB === null)
@@ -18,8 +18,8 @@ describe('remove', () => {
 
   it('allows removing by ref', async () => {
     const user = await add(users, { name: 'Sasha' })
-    await remove(user.ref)
-    const userFromDB = await get(users, user.ref.id)
+    await remove(user)
+    const userFromDB = await get(users, user.id)
     assert(userFromDB === null)
   })
 })

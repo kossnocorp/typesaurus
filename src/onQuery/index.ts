@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
 import { ref, pathToRef } from '../ref'
@@ -13,7 +13,7 @@ type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
   | FirebaseFirestore.Query
 
-// TODO: Refactor with onQuery
+// TODO: Refactor with query
 
 /**
  * The query type.
@@ -58,101 +58,111 @@ export default function onQuery<Model>(
   onResult: (docs: Doc<Model>[]) => any,
   onError?: (err: Error) => any
 ): () => void {
-  try {
-    const { firestoreQuery, cursors } = queries.reduce(
-      (acc, q) => {
-        switch (q.type) {
-          case 'order': {
-            const { field, method, cursors } = q
-            acc.firestoreQuery = acc.firestoreQuery.orderBy(
-              field.toString(),
-              method
-            )
-            if (cursors)
-              acc.cursors = acc.cursors.concat(
-                cursors.map(({ method, value }) => ({
-                  method,
-                  value:
-                    typeof value === 'object' &&
-                    value !== null &&
-                    '__type__' in value &&
-                    value.__type__ === 'doc'
-                      ? value.data[field]
-                      : value
-                }))
+  let unsubCalled = false
+  let firebaseUnsub: () => void
+  const unsub = () => {
+    unsubCalled = true
+    firebaseUnsub && firebaseUnsub()
+  }
+
+  adaptor()
+    .then(a => {
+      if (unsubCalled) return
+
+      const { firestoreQuery, cursors } = queries.reduce(
+        (acc, q) => {
+          switch (q.type) {
+            case 'order': {
+              const { field, method, cursors } = q
+              acc.firestoreQuery = acc.firestoreQuery.orderBy(
+                field.toString(),
+                method
               )
-            break
+              if (cursors)
+                acc.cursors = acc.cursors.concat(
+                  cursors.map(({ method, value }) => ({
+                    method,
+                    value:
+                      typeof value === 'object' &&
+                      value !== null &&
+                      '__type__' in value &&
+                      value.__type__ === 'doc'
+                        ? value.data[field]
+                        : value
+                  }))
+                )
+              break
+            }
+
+            case 'where': {
+              const { field, filter, value } = q
+              const fieldName = Array.isArray(field) ? field.join('.') : field
+              acc.firestoreQuery = acc.firestoreQuery.where(
+                fieldName,
+                filter,
+                unwrapData(a, value)
+              )
+              break
+            }
+
+            case 'limit': {
+              const { number } = q
+              acc.firestoreQuery = acc.firestoreQuery.limit(number)
+              break
+            }
           }
 
-          case 'where': {
-            const { field, filter, value } = q
-            const fieldName = Array.isArray(field) ? field.join('.') : field
-            acc.firestoreQuery = acc.firestoreQuery.where(
-              fieldName,
-              filter,
-              unwrapData(value)
-            )
-            break
-          }
-
-          case 'limit': {
-            const { number } = q
-            acc.firestoreQuery = acc.firestoreQuery.limit(number)
-            break
-          }
+          return acc
+        },
+        {
+          firestoreQuery:
+            collection.__type__ === 'collectionGroup'
+              ? a.firestore.collectionGroup(collection.path)
+              : a.firestore.collection(collection.path),
+          cursors: []
+        } as {
+          firestoreQuery: FirebaseQuery
+          cursors: Cursor<Model, keyof Model>[]
         }
+      )
 
-        return acc
-      },
-      {
-        firestoreQuery:
-          collection.__type__ === 'collectionGroup'
-            ? firestore().collectionGroup(collection.path)
-            : firestore().collection(collection.path),
-        cursors: []
-      } as {
-        firestoreQuery: FirebaseQuery
-        cursors: Cursor<Model, keyof Model>[]
-      }
-    )
+      const groupedCursors = cursors.reduce(
+        (acc, cursor) => {
+          let methodValues = acc.find(([method]) => method === cursor.method)
+          if (!methodValues) {
+            methodValues = [cursor.method, []]
+            acc.push(methodValues)
+          }
+          methodValues[1].push(unwrapData(a, cursor.value))
+          return acc
+        },
+        [] as [CursorMethod, any[]][]
+      )
 
-    const groupedCursors = cursors.reduce(
-      (acc, cursor) => {
-        let methodValues = acc.find(([method]) => method === cursor.method)
-        if (!methodValues) {
-          methodValues = [cursor.method, []]
-          acc.push(methodValues)
-        }
-        methodValues[1].push(unwrapData(cursor.value))
-        return acc
-      },
-      [] as [CursorMethod, any[]][]
-    )
+      const paginatedFirestoreQuery =
+        cursors.length && cursors.every(cursor => cursor.value !== undefined)
+          ? groupedCursors.reduce((acc, [method, values]) => {
+              return acc[method](...values)
+            }, firestoreQuery)
+          : firestoreQuery
 
-    const paginatedFirestoreQuery =
-      cursors.length && cursors.every(cursor => cursor.value !== undefined)
-        ? groupedCursors.reduce((acc, [method, values]) => {
-            return acc[method](...values)
-          }, firestoreQuery)
-        : firestoreQuery
-
-    return paginatedFirestoreQuery.onSnapshot(
-      (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
-        onResult(
-          firestoreSnap.docs.map(d =>
-            doc(
-              collection.__type__ === 'collectionGroup'
-                ? pathToRef(d.ref.path)
-                : ref(collection, d.id),
-              wrapData(d.data()) as Model
+      firebaseUnsub = paginatedFirestoreQuery.onSnapshot(
+        (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
+          onResult(
+            firestoreSnap.docs.map(d =>
+              doc(
+                collection.__type__ === 'collectionGroup'
+                  ? pathToRef(d.ref.path)
+                  : ref(collection, d.id),
+                wrapData(a, d.data()) as Model
+              )
             )
           )
-        )
-      },
-      onError
-    )
-  } catch (err) {
-    setTimeout(() => onError && onError(err))
-    return () => {}
-  }
+        },
+        onError
+      )
+    })
+    .catch(onError)
+
+  return unsub
 }

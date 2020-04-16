@@ -7,7 +7,7 @@ import add from '../add'
 import update from '../update'
 import sinon from 'sinon'
 
-describe('get', () => {
+describe('onGet', () => {
   type User = { name: string }
   type Post = { author: Ref<User>; text: string; date?: Date }
 
@@ -31,7 +31,7 @@ describe('get', () => {
   it('allows to get by ref', async () => {
     const user = await add(users, { name: 'Sasha' })
     return new Promise(resolve => {
-      off = onGet(user.ref, userFromDB => {
+      off = onGet(user, userFromDB => {
         assert.deepEqual(userFromDB.data, { name: 'Sasha' })
         resolve()
       })
@@ -41,11 +41,11 @@ describe('get', () => {
   it('expands references', async () => {
     const user = await add(users, { name: 'Sasha' })
     const post = await add(posts, {
-      author: user.ref,
+      author: user,
       text: 'Hello!'
     })
     return new Promise(resolve => {
-      off = onGet(posts, post.ref.id, async postFromDB => {
+      off = onGet(posts, post.id, async postFromDB => {
         assert(postFromDB.data.author.__type__ === 'ref')
         const userFromDB = await get(users, postFromDB.data.author.id)
         assert.deepEqual(userFromDB.data, { name: 'Sasha' })
@@ -63,7 +63,7 @@ describe('get', () => {
       date
     })
     return new Promise(resolve => {
-      off = onGet(posts, post.ref.id, postFromDB => {
+      off = onGet(posts, post.id, postFromDB => {
         assert(postFromDB.data.date.getTime() === date.getTime())
         resolve()
       })
@@ -75,11 +75,11 @@ describe('get', () => {
       const spy = sinon.spy()
       const user = await add(users, { name: 'Sasha' })
       return new Promise(resolve => {
-        off = onGet(user.ref, async doc => {
+        off = onGet(user, async doc => {
           const { name } = doc.data
           spy(name)
           if (name === 'Sasha') {
-            await update(user.ref, { name: 'Sasha Koss' })
+            await update(user, { name: 'Sasha Koss' })
           } else if (name === 'Sasha Koss') {
             assert(spy.calledWith('Sasha'))
             assert(spy.calledWith('Sasha Koss'))
@@ -96,7 +96,7 @@ describe('get', () => {
           const spy = sinon.spy()
           const user = await add(users, { name: 'Sasha' })
           const on = () => {
-            off = onGet(user.ref, doc => {
+            off = onGet(user, doc => {
               const { name } = doc.data
               spy(name)
               if (name === 'Sasha Koss') {
@@ -109,8 +109,8 @@ describe('get', () => {
           }
           on()
           off()
-          await update(user.ref, { name: 'Sashka' })
-          await update(user.ref, { name: 'Sasha Koss' })
+          await update(user, { name: 'Sashka' })
+          await update(user, { name: 'Sasha Koss' })
           on()
         })
       })

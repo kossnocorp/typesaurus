@@ -5,7 +5,7 @@ import add from '../add'
 import { collection } from '../collection'
 import field from '../field'
 import get from '../get'
-import { ref, Ref } from '../ref'
+import { ref, Ref, id } from '../ref'
 import set from '../set'
 import { value } from '../value'
 
@@ -28,7 +28,7 @@ describe('update', () => {
       address: { city: 'Omsk' },
       visits: 0
     })
-    const { id } = user.ref
+    const { id } = user
     await update(users, id, { name: 'Sasha Koss' })
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
@@ -44,12 +44,12 @@ describe('update', () => {
       address: { city: 'Omsk' },
       visits: 0
     })
-    await update(user.ref, { name: 'Sasha Koss' })
-    await update(user.ref, [
+    await update(user, { name: 'Sasha Koss' })
+    await update(user, [
       field('name', 'Sasha Koss'),
       field(['address', 'city'], 'Moscow')
     ])
-    const userFromDB = await get(users, user.ref.id)
+    const userFromDB = await get(users, user.id)
     assert.deepEqual(userFromDB.data, {
       name: 'Sasha Koss',
       address: { city: 'Moscow' },
@@ -63,7 +63,7 @@ describe('update', () => {
       address: { city: 'Omsk' },
       visits: 0
     })
-    const { id } = user.ref
+    const { id } = user
     await update(users, id, [
       field('name', 'Sasha Koss'),
       field(['address', 'city'], 'Dimitrovgrad'),
@@ -108,7 +108,7 @@ describe('update', () => {
       visits: 0,
       guest: true
     })
-    const { id } = user.ref
+    const { id } = user
     await update(users, id, { guest: value('remove') })
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
@@ -124,7 +124,7 @@ describe('update', () => {
       address: { city: 'Omsk' },
       visits: 0
     })
-    const { id } = user.ref
+    const { id } = user
     await update(users, id, { visits: value('increment', 2) })
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
@@ -141,7 +141,7 @@ describe('update', () => {
       birthday: new Date(1987, 2, 11),
       visits: 0
     })
-    const { id } = user.ref
+    const { id } = user
     await update(users, id, { birthday: new Date(1987, 1, 11) })
     const userFromDB = await get(users, id)
     assert.deepEqual(userFromDB.data, {
@@ -159,7 +159,7 @@ describe('update', () => {
       birthday: new Date(1987, 2, 11),
       visits: 0
     })
-    const { id } = user.ref
+    const { id } = user
     await update(users, id, { birthday: value('serverDate') })
     const userFromDB = await get(users, id)
     const dateFromDB = userFromDB.data.birthday
@@ -185,7 +185,7 @@ describe('update', () => {
           'The Mom Test'
         ]
       })
-      const { id } = fav.ref
+      const { id } = fav
       await update(favorites, id, {
         favorites: value('arrayUnion', [
           "Harry Potter and the Sorcerer's Stone",
@@ -215,7 +215,7 @@ describe('update', () => {
           'The Mom Test'
         ]
       })
-      const { id } = fav.ref
+      const { id } = fav
       await update(favorites, id, {
         favorites: value('arrayRemove', [
           'The 22 Immutable Laws of Marketing',
@@ -230,17 +230,17 @@ describe('update', () => {
     })
 
     it('union update references', async () => {
-      const user1 = ref(users)
-      const user2 = ref(users)
+      const user1 = ref(users, await id(users))
+      const user2 = ref(users, await id(users))
       const movie = await add(movies, {
         title: "Harry Potter and the Sorcerer's Stone",
         likedBy: [user1]
       })
 
-      await update(movie.ref, {
+      await update(movie, {
         likedBy: value('arrayUnion', [user2])
       })
-      const movieFromDB = await get(movie.ref)
+      const movieFromDB = await get(movie)
       assert.deepEqual(movieFromDB.data, {
         title: "Harry Potter and the Sorcerer's Stone",
         likedBy: [user1, user2]
@@ -248,17 +248,17 @@ describe('update', () => {
     })
 
     it('remove update references', async () => {
-      const user1 = ref(users)
-      const user2 = ref(users)
+      const user1 = ref(users, await id(users))
+      const user2 = ref(users, await id(users))
       const movie = await add(movies, {
         title: 'Harry Potter and the Chamber of Secrets',
         likedBy: [user1, user2]
       })
 
-      await update(movie.ref, {
+      await update(movie, {
         likedBy: value('arrayRemove', [user2])
       })
-      const bookFromDB = await get(movie.ref)
+      const bookFromDB = await get(movie)
       assert.deepEqual(bookFromDB.data, {
         title: 'Harry Potter and the Chamber of Secrets',
         likedBy: [user1]

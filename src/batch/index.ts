@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor, { Adaptor, FirebaseWriteBatch } from '../adaptor'
 import { Collection } from '../collection'
 import { Ref } from '../ref'
 import { unwrapData } from '../data'
@@ -200,7 +200,12 @@ export interface Batch {
  * @returns The batch API object.
  */
 export function batch(): Batch {
-  const firestoreBatch = firestore().batch()
+  const commands: BatchCommand[] = []
+
+  const firestoreBatch = lazy(async () => {
+    const { firestore } = await adaptor()
+    return firestore.batch()
+  })
 
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
@@ -222,12 +227,12 @@ export function batch(): Batch {
       data = idOrData as SetModel<Model>
     }
 
-    const firestoreDoc = firestore()
-      .collection(collection.path)
-      .doc(id)
-    // ^ above
-    // TODO: Refactor code above and below because is all the same as in the regular set function
-    firestoreBatch.set(firestoreDoc, unwrapData(data))
+    commands.push((adaptor, firestoreBatch) => {
+      const firestoreDoc = adaptor.firestore.collection(collection.path).doc(id)
+      // ^ above
+      // TODO: Refactor code above and below because is all the same as in the regular set function
+      firestoreBatch.set(firestoreDoc, unwrapData(adaptor, data))
+    })
   }
 
   function upset<Model>(
@@ -250,12 +255,14 @@ export function batch(): Batch {
       data = idOrData as UpsetModel<Model>
     }
 
-    const firestoreDoc = firestore()
-      .collection(collection.path)
-      .doc(id)
-    // ^ above
-    // TODO: Refactor code above and below because is all the same as in the regular set function
-    firestoreBatch.set(firestoreDoc, unwrapData(data), { merge: true })
+    commands.push((adaptor, firestoreBatch) => {
+      const firestoreDoc = adaptor.firestore.collection(collection.path).doc(id)
+      // ^ above
+      // TODO: Refactor code above and below because is all the same as in the regular set function
+      firestoreBatch.set(firestoreDoc, unwrapData(adaptor, data), {
+        merge: true
+      })
+    })
   }
 
   function update<Model>(
@@ -278,21 +285,21 @@ export function batch(): Batch {
       data = idOrData as Model
     }
 
-    const firebaseDoc = firestore()
-      .collection(collection.path)
-      .doc(id)
-    const updateData = Array.isArray(data)
-      ? data.reduce(
-          (acc, { key, value }) => {
-            acc[Array.isArray(key) ? key.join('.') : key] = value
-            return acc
-          },
-          {} as { [key: string]: any }
-        )
-      : data
-    // ^ above
-    // TODO: Refactor code above because is all the same as in the regular update function
-    firestoreBatch.update(firebaseDoc, unwrapData(updateData))
+    commands.push((adaptor, firestoreBatch) => {
+      const firebaseDoc = adaptor.firestore.collection(collection.path).doc(id)
+      const updateData = Array.isArray(data)
+        ? data.reduce(
+            (acc, { key, value }) => {
+              acc[Array.isArray(key) ? key.join('.') : key] = value
+              return acc
+            },
+            {} as { [key: string]: any }
+          )
+        : data
+      // ^ above
+      // TODO: Refactor code above because is all the same as in the regular update function
+      firestoreBatch.update(firebaseDoc, unwrapData(adaptor, updateData))
+    })
   }
 
   function remove<Model>(
@@ -311,17 +318,30 @@ export function batch(): Batch {
       id = ref.id
     }
 
-    const firebaseDoc = firestore()
-      .collection(collection.path)
-      .doc(id)
-    // ^ above
-    // TODO: Refactor code above because is all the same as in the regular remove function
-    firestoreBatch.delete(firebaseDoc)
+    commands.push((adaptor, firestoreBatch) => {
+      const firebaseDoc = adaptor.firestore.collection(collection.path).doc(id)
+      // ^ above
+      // TODO: Refactor code above because is all the same as in the regular remove function
+      firestoreBatch.delete(firebaseDoc)
+    })
   }
 
   async function commit() {
-    await firestoreBatch.commit()
+    const a = await adaptor()
+    const b = a.firestore.batch()
+    commands.forEach(fn => fn(a, b))
+    await b.commit()
   }
 
   return { set, upset, update, remove, commit }
+}
+
+type BatchCommand = (adaptor: Adaptor, batch: FirebaseWriteBatch) => void
+
+function lazy<Type>(fn: () => Promise<Type>): () => Promise<Type> {
+  let instance: Type | undefined = undefined
+  return async () => {
+    if (instance === undefined) instance = await fn()
+    return instance
+  }
 }

@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
@@ -14,7 +14,7 @@ type OnError = (error: Error) => any
  * the initial fetch is resolved or the document updates.
  * @param onError - The function is called with error when request fails.
  */
-function onGet<Model>(
+export default function onGet<Model>(
   ref: Ref<Model>,
   onResult: OnResult<Model>,
   onError?: OnError
@@ -27,7 +27,7 @@ function onGet<Model>(
  * the initial fetch is resolved or the document updates.
  * @param onError - The function is called with error when request fails.
  */
-function onGet<Model>(
+export default function onGet<Model>(
   collection: Collection<Model>,
   id: string,
   onResult: OnResult<Model>,
@@ -53,12 +53,19 @@ function onGet<Model>(
  *
  * @returns Function that unsubscribes the listener from the updates
  */
-function onGet<Model>(
+export default function onGet<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   idOrOnResult: string | OnResult<Model>,
   onResultOrOnError?: OnResult<Model> | OnError,
   maybeOnError?: OnError
 ): () => void {
+  let unsubCalled = false
+  let firebaseUnsub: () => void
+  const unsub = () => {
+    unsubCalled = true
+    firebaseUnsub && firebaseUnsub()
+  }
+
   let collection: Collection<Model>
   let id: string
   let onResult: OnResult<Model>
@@ -77,14 +84,15 @@ function onGet<Model>(
     onError = onResultOrOnError as OnError | undefined
   }
 
-  const firestoreDoc = firestore()
-    .collection(collection.path)
-    .doc(id)
-  return firestoreDoc.onSnapshot(firestoreSnap => {
-    const firestoreData = firestoreSnap.data()
-    const data = firestoreData && (wrapData(firestoreData) as Model)
-    onResult((data && doc(ref(collection, id), data)) || null)
-  }, onError)
-}
+  adaptor().then(a => {
+    if (unsubCalled) return
+    const firestoreDoc = a.firestore.collection(collection.path).doc(id)
+    firebaseUnsub = firestoreDoc.onSnapshot(firestoreSnap => {
+      const firestoreData = firestoreSnap.data()
+      const data = firestoreData && (wrapData(a, firestoreData) as Model)
+      onResult((data && doc(ref(collection, id), data)) || null)
+    }, onError)
+  })
 
-export default onGet
+  return unsub
+}

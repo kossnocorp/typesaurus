@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
 import { ref, pathToRef } from '../ref'
@@ -53,6 +53,7 @@ export async function query<Model>(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[]
 ): Promise<Doc<Model>[]> {
+  const a = await adaptor()
   const { firestoreQuery, cursors } = queries.reduce(
     (acc, q) => {
       switch (q.type) {
@@ -84,7 +85,7 @@ export async function query<Model>(
           acc.firestoreQuery = acc.firestoreQuery.where(
             fieldName,
             filter,
-            unwrapData(value)
+            unwrapData(a, value)
           )
           break
         }
@@ -101,8 +102,8 @@ export async function query<Model>(
     {
       firestoreQuery:
         collection.__type__ === 'collectionGroup'
-          ? firestore().collectionGroup(collection.path)
-          : firestore().collection(collection.path),
+          ? a.firestore.collectionGroup(collection.path)
+          : a.firestore.collection(collection.path),
       cursors: []
     } as {
       firestoreQuery: FirebaseQuery
@@ -117,7 +118,7 @@ export async function query<Model>(
         methodValues = [cursor.method, []]
         acc.push(methodValues)
       }
-      methodValues[1].push(unwrapData(cursor.value))
+      methodValues[1].push(unwrapData(a, cursor.value))
       return acc
     },
     [] as [CursorMethod, any[]][]
@@ -137,7 +138,7 @@ export async function query<Model>(
       collection.__type__ === 'collectionGroup'
         ? pathToRef(d.ref.path)
         : ref(collection, d.id),
-      wrapData(d.data()) as Model
+      wrapData(a, d.data()) as Model
     )
   )
 }
