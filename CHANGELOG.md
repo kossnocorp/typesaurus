@@ -31,7 +31,7 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 - Added new `upset`, `batch.set` and `transaction.set` functions that sets or updates the value of given document. It replaces `merge` option available in the previous version of Typesaurus.
 
--
+- Added new `id` function that generates random id for a document.
 
 ## 5.4.0 - 2020-04-14
 
