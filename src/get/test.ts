@@ -18,17 +18,17 @@ describe('get', () => {
 
   it('allows to get by ref', async () => {
     const user = await add(users, { name: 'Sasha' })
-    const userFromDB = await get(user.ref)
+    const userFromDB = await get(user)
     assert.deepEqual(userFromDB.data, { name: 'Sasha' })
   })
 
   it('expands references', async () => {
     const user = await add(users, { name: 'Sasha' })
     const post = await add(posts, {
-      author: user.ref,
+      author: user,
       text: 'Hello!'
     })
-    const postFromDB = await get(posts, post.ref.id)
+    const postFromDB = await get(posts, post.id)
     assert(postFromDB.data.author.__type__ === 'ref')
     const userFromDB = await get(users, postFromDB.data.author.id)
     assert.deepEqual(userFromDB.data, { name: 'Sasha' })
@@ -42,7 +42,7 @@ describe('get', () => {
       text: 'Hello!',
       date
     })
-    const postFromDB = await get(posts, post.ref.id)
+    const postFromDB = await get(posts, post.id)
     assert(postFromDB.data.date.getTime() === date.getTime())
   })
 })

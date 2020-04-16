@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { unwrapData } from '../data'
 import { Ref } from '../ref'
@@ -51,6 +51,7 @@ async function set<Model>(
   idOrData: string | SetModel<Model>,
   maybeData?: SetModel<Model>
 ): Promise<void> {
+  const a = await adaptor()
   let collection: Collection<Model>
   let id: string
   let data: SetModel<Model>
@@ -66,10 +67,8 @@ async function set<Model>(
     data = idOrData as SetModel<Model>
   }
 
-  const firestoreDoc = firestore()
-    .collection(collection.path)
-    .doc(id)
-  await firestoreDoc.set(unwrapData(data))
+  const firestoreDoc = a.firestore.collection(collection.path).doc(id)
+  await firestoreDoc.set(unwrapData(a, data))
 }
 
 export default set

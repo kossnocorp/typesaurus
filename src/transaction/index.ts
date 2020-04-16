@@ -1,11 +1,11 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { unwrapData, wrapData } from '../data'
 import { Doc, doc } from '../doc'
 import { Field } from '../field'
 import { Ref, ref } from '../ref'
-import { UpdateModel } from '../update'
 import { SetModel } from '../set'
+import { UpdateModel } from '../update'
 import { UpsetModel } from '../upset'
 
 /**
@@ -250,11 +250,12 @@ export type TransactionWriteFunction<ReadResult, WriteResult> = (
  *   transaction write API with the data returned by the read function
  * @returns Promise that is resolved when transaction is closed
  */
-export function transaction<ReadResult, WriteResult>(
+export async function transaction<ReadResult, WriteResult>(
   readFunction: TransactionReadFunction<ReadResult>,
   writeFunction: TransactionWriteFunction<ReadResult, WriteResult>
 ): Promise<WriteResult> {
-  return firestore().runTransaction(t => {
+  const a = await adaptor()
+  return a.firestore.runTransaction(t => {
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
@@ -271,15 +272,13 @@ export function transaction<ReadResult, WriteResult>(
         id = ref.id
       }
 
-      const firestoreDoc = firestore()
-        .collection(collection.path)
-        .doc(id)
+      const firestoreDoc = a.firestore.collection(collection.path).doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular get function
       const firestoreSnap = await t.get(firestoreDoc)
       // v below
       const firestoreData = firestoreSnap.data()
-      const data = firestoreData && (wrapData(firestoreData) as Model)
+      const data = firestoreData && (wrapData(a, firestoreData) as Model)
       return data ? doc(ref(collection, id), data) : null
     }
 
@@ -303,12 +302,10 @@ export function transaction<ReadResult, WriteResult>(
         data = idOrData as SetModel<Model>
       }
 
-      const firestoreDoc = firestore()
-        .collection(collection.path)
-        .doc(id)
+      const firestoreDoc = a.firestore.collection(collection.path).doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
-      await t.set(firestoreDoc, unwrapData(data))
+      await t.set(firestoreDoc, unwrapData(a, data))
     }
 
     async function upset<Model>(
@@ -331,12 +328,10 @@ export function transaction<ReadResult, WriteResult>(
         data = idOrData as UpsetModel<Model>
       }
 
-      const firestoreDoc = firestore()
-        .collection(collection.path)
-        .doc(id)
+      const firestoreDoc = a.firestore.collection(collection.path).doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
-      await t.set(firestoreDoc, unwrapData(data), { merge: true })
+      await t.set(firestoreDoc, unwrapData(a, data), { merge: true })
     }
 
     async function update<Model>(
@@ -359,9 +354,7 @@ export function transaction<ReadResult, WriteResult>(
         data = idOrData as Model
       }
 
-      const firebaseDoc = firestore()
-        .collection(collection.path)
-        .doc(id)
+      const firebaseDoc = a.firestore.collection(collection.path).doc(id)
       const updateData = Array.isArray(data)
         ? data.reduce(
             (acc, { key, value }) => {
@@ -373,7 +366,7 @@ export function transaction<ReadResult, WriteResult>(
         : data
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
-      await t.update(firebaseDoc, unwrapData(updateData))
+      await t.update(firebaseDoc, unwrapData(a, updateData))
     }
 
     async function remove<Model>(
@@ -392,9 +385,7 @@ export function transaction<ReadResult, WriteResult>(
         id = ref.id
       }
 
-      const firebaseDoc = firestore()
-        .collection(collection.path)
-        .doc(id)
+      const firebaseDoc = a.firestore.collection(collection.path).doc(id)
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
       await t.delete(firebaseDoc)

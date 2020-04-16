@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { doc, Doc } from '../doc'
 import { ref } from '../ref'
@@ -28,24 +28,22 @@ import { wrapData } from '../data'
  *
  * @returns Promise to a list of found documents
  */
-async function getMany<Model>(
+export default async function getMany<Model>(
   collection: Collection<Model>,
   ids: readonly string[],
   onMissing: ((id: string) => Model) | 'ignore' = id => {
     throw new Error(`Missing document with id ${id}`)
   }
 ): Promise<Doc<Model>[]> {
+  const a = await adaptor()
+
   if (ids.length === 0) {
     // Firestore#getAll doesn't like empty lists
     return Promise.resolve([])
   }
 
-  const firestoreSnaps = await firestore().getAll(
-    ...ids.map(id =>
-      firestore()
-        .collection(collection.path)
-        .doc(id)
-    )
+  const firestoreSnaps = await a.firestore.getAll(
+    ...ids.map(id => a.firestore.collection(collection.path).doc(id))
   )
 
   return firestoreSnaps
@@ -62,10 +60,8 @@ async function getMany<Model>(
       }
 
       const firestoreData = firestoreSnap.data()
-      const data = firestoreData && (wrapData(firestoreData) as Model)
+      const data = firestoreData && (wrapData(a, firestoreData) as Model)
       return doc(ref(collection, firestoreSnap.id), data)
     })
     .filter(doc => doc != null) as Doc<Model>[]
 }
-
-export default getMany

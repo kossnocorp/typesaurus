@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { unwrapData } from '../data'
 import { Ref } from '../ref'
@@ -18,7 +18,7 @@ export type UpsetModel<Model> = {
  * @param ref - the reference to the document to set or update
  * @param data - the document data
  */
-async function upset<Model>(
+export default async function upset<Model>(
   ref: Ref<Model>,
   data: UpsetModel<Model>
 ): Promise<void>
@@ -28,7 +28,7 @@ async function upset<Model>(
  * @param id - the id of the document to set or update
  * @param data - the document data
  */
-async function upset<Model>(
+export default async function upset<Model>(
   collection: Collection<Model>,
   id: string,
   data: UpsetModel<Model>
@@ -51,11 +51,12 @@ async function upset<Model>(
  * //=> { name: 'Sasha Koss', deleted: true }
  * ```
  */
-async function upset<Model>(
+export default async function upset<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   idOrData: string | UpsetModel<Model>,
   maybeData?: UpsetModel<Model>
 ): Promise<void> {
+  const a = await adaptor()
   let collection: Collection<Model>
   let id: string
   let data: UpsetModel<Model>
@@ -71,10 +72,6 @@ async function upset<Model>(
     data = idOrData as UpsetModel<Model>
   }
 
-  const firestoreDoc = firestore()
-    .collection(collection.path)
-    .doc(id)
-  await firestoreDoc.set(unwrapData(data), { merge: true })
+  const firestoreDoc = a.firestore.collection(collection.path).doc(id)
+  await firestoreDoc.set(unwrapData(a, data), { merge: true })
 }
-
-export default upset

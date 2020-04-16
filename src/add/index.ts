@@ -1,4 +1,4 @@
-import firestore from '../adaptor'
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { unwrapData } from '../data'
 import { ref } from '../ref'
@@ -36,8 +36,9 @@ export default async function add<Model>(
   collection: Collection<Model>,
   data: AddModel<Model>
 ) {
-  const firebaseDoc = await firestore()
+  const a = await adaptor()
+  const firebaseDoc = await a.firestore
     .collection(collection.path)
-    .add(unwrapData(data))
+    .add(unwrapData(a, data))
   return ref(collection, firebaseDoc.id)
 }

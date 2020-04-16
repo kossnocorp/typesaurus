@@ -5,20 +5,21 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 
-export type AdaptorFirestore = () => admin.firestore.Firestore
-
-const adminFirestore = () => admin.firestore()
-let currentFirestore: AdaptorFirestore = adminFirestore
-
-export default function store() {
-  return currentFirestore()
+export type Adaptor = {
+  firestore: admin.firestore.Firestore
+  consts: AdaptorConsts
 }
+
+export type AdaptorFirestore = () => admin.firestore.Firestore
 
 export type AdaptorConsts = {
   DocumentReference: typeof admin.firestore.DocumentReference
   Timestamp: typeof admin.firestore.Timestamp
   FieldValue: typeof admin.firestore.FieldValue
 }
+
+const adminFirestore = () => admin.firestore()
+let currentFirestore: AdaptorFirestore = adminFirestore
 
 const adminConsts = {
   DocumentReference: admin.firestore.DocumentReference,
@@ -27,8 +28,11 @@ const adminConsts = {
 }
 let currentConsts: AdaptorConsts = adminConsts
 
-export function consts(): AdaptorConsts {
-  return currentConsts
+export default async function adaptor() {
+  return {
+    firestore: currentFirestore(),
+    consts: currentConsts
+  }
 }
 
 export function injectAdaptor(

@@ -21,11 +21,17 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 - **BREAKING**: `ModelUpdate` renamed to `UpdateModel` for consitency with `SetModel` and `MergeModel`.
 
+- **BREAKING**: `ref` now don't generate id if the second argument is omitted, use `id` function to generate new id instead.
+
 - `update` now allows passing partial data into nested fields. Previously only root fields were optional.
+
+- Now the browser adaptor imports `firebase/app` and `firebase/firestore` on-demand (using ESM's `import()`) rather than in the root level of the library. That dramatically improves initial paint time and helps with bundle caching. Now every time you make a small change in the app, the user won't have to download `firestore` modules as well.
 
 ### Added
 
 - Added new `upset`, `batch.set` and `transaction.set` functions that sets or updates the value of given document. It replaces `merge` option available in the previous version of Typesaurus.
+
+-
 
 ## 5.4.0 - 2020-04-14
 
