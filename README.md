@@ -152,6 +152,7 @@ Real-time:
 - [`add`](https://typesaurus.com/modules/_add_index_.html#add) - Adds a new document with a random id to a collection.
 - [`set`](https://typesaurus.com/modules/_set_index_.html#set) - Sets a document to the given data.
 - [`update`](https://typesaurus.com/modules/_update_index_.html#update) - Updates a document.
+- [`upset`](https://typesaurus.com/modules/_upset_index_.html#upset) - Updates or sets a document.
 - [`remove`](https://typesaurus.com/modules/_remove_index_.html#remove) - Removes a document.
 
 Operation helpers:
