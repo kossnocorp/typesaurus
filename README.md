@@ -34,6 +34,10 @@ yarn add typesaurus
 _Note that Typesaurus requires `firebase` package to work in the web environment and `firebase-admin` to work in Node.js. These packages aren't listed as dependencies,
 so that they won't install automatically along with the Typesaurus package._
 
+## Configuration
+
+Typesaurus does not require additional configuration, however **when using with ESM-enabled bundler, you should transpile `node_modules`**. TypeScript preserves many modern languages features when it compiles to ESM code. So if you have to support older browsers, use Babel to process the dependencies code
+
 ## Get started
 
 ### Initialization

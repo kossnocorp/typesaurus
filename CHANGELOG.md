@@ -11,6 +11,8 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ### Changed
 
+- **BREAKING**: When using with ESM-enabled bundler, you should transpile `node_modules`. TypeScript preserves many modern languages features when it compiles to ESM code. So if you have to support older browsers, use Babel to process the dependencies code.
+
 - **BREAKING**: `add` now return `Ref` instead of `Doc` to avoid confusion that the returned data match the current database state which might be not a case when using with field values i.e. `value('serverDate')`.
 
 - **BREAKING**: `set`, `transaction.set` and `batch.set` now return `Promise<void>` (or `void` in case of `batch.set`). The same reasoning as for the `add` (see above).
@@ -28,6 +30,8 @@ This change log follows the format documented in [Keep a CHANGELOG].
 - Now the browser adaptor imports `firebase/app` and `firebase/firestore` on-demand (using ESM's `import()`) rather than in the root level of the library. That dramatically improves initial paint time and helps with bundle caching. Now every time you make a small change in the app, the user won't have to download `firestore` modules as well.
 
 ### Added
+
+- Added ESM version of the code that enables tree-shaking.
 
 - Added new `upset`, `batch.set` and `transaction.set` functions that sets or updates the value of given document. It replaces `merge` option available in the previous version of Typesaurus.
 
