@@ -1,4 +1,5 @@
 {
   "browser": "./browser/index",
-  "main": "./node"
+  "main": "./node",
+  "react-native": "./native"
 }
