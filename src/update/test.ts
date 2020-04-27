@@ -230,8 +230,8 @@ describe('update', () => {
     })
 
     it('union update references', async () => {
-      const user1 = ref(users, await id(users))
-      const user2 = ref(users, await id(users))
+      const user1 = ref(users, await id())
+      const user2 = ref(users, await id())
       const movie = await add(movies, {
         title: "Harry Potter and the Sorcerer's Stone",
         likedBy: [user1]
@@ -248,8 +248,8 @@ describe('update', () => {
     })
 
     it('remove update references', async () => {
-      const user1 = ref(users, await id(users))
-      const user2 = ref(users, await id(users))
+      const user1 = ref(users, await id())
+      const user2 = ref(users, await id())
       const movie = await add(movies, {
         title: 'Harry Potter and the Chamber of Secrets',
         likedBy: [user1, user2]
