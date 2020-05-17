@@ -44,7 +44,7 @@ function group<A, B, C>(
  * const allPosts = group('posts', [posts, userPosts, companyPosts])
  * //=> { __type__: 'collectionGroup', path: 'posts' }
  *
- * query(allPosts, [where(author, '==', ref(users, '00sHm46UWKObv2W7XK9e'))])
+ * query(allPosts, [where('author', '==', ref(users, '00sHm46UWKObv2W7XK9e'))])
  * //=> Promise<Post[]>
  * ```
  *
