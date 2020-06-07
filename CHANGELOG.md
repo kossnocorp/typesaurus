@@ -7,6 +7,16 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 8.0.0 - 2020-??-??
+
+### Changed
+
+- **BREAKING**: `AnyUpdateValue` type was removed.
+
+- **BREAKING**: `UpdateValue` type now accepts two type arguments: object and key instead of a single type.
+
+- **BREAKING**: Disallow using `value('remove')` on non-optional fields.
+
 ## 7.1.0 - 2020-12-09
 
 - Third argument in `doc` (`meta`) now optional.

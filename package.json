@@ -41,7 +41,7 @@
     "puppeteer": "^1.19.0",
     "sinon": "^7.3.2",
     "typedoc": "^0.15.0",
-    "typescript": "^3.8.3",
+    "typescript": "^3.9.5",
     "webpack": "^4.37.0"
   }
 }
