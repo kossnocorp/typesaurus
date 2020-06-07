@@ -51,21 +51,31 @@ export type ValueServerDate = {
   kind: 'serverDate'
 }
 
-/**
- * The value types that have no type constraints.
- */
-export type AnyUpdateValue = ValueRemove
+type MaybeValueRemoveOr<Model, Key extends keyof Model, ValueType> = Partial<
+  Pick<Model, Key>
+> extends Pick<Model, Key>
+  ? ValueRemove | ValueType
+  : ValueType
+
+type MaybeValueRemove<Model, Key extends keyof Model> = Partial<
+  Pick<Model, Key>
+> extends Pick<Model, Key>
+  ? ValueRemove
+  : never
 
 /**
  * The value types to use for update operation.
  */
-export type UpdateValue<T> = T extends number
-  ? AnyUpdateValue | ValueIncrement
-  : T extends Array<any>
-  ? AnyUpdateValue | ValueArrayUnion | ValueArrayRemove
-  : T extends Date
-  ? ValueServerDate | AnyUpdateValue
-  : AnyUpdateValue
+export type UpdateValue<
+  Model,
+  Key extends keyof Model
+> = Model[Key] extends number
+  ? MaybeValueRemoveOr<Model, Key, ValueIncrement>
+  : Model[Key] extends Array<any>
+  ? MaybeValueRemoveOr<Model, Key, ValueArrayUnion | ValueArrayRemove>
+  : Model[Key] extends Date
+  ? MaybeValueRemoveOr<Model, Key, ValueServerDate>
+  : MaybeValueRemove<Model, Key>
 
 /**
  * The value types to use for add operation.
