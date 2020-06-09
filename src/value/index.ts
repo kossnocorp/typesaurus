@@ -61,21 +61,26 @@ type MaybeValueRemove<Model, Key extends keyof Model> = Partial<
   Pick<Model, Key>
 > extends Pick<Model, Key>
   ? ValueRemove
+  : Undefined<Model[Key]> extends Model[Key]
+  ? ValueRemove
   : never
+
+type Undefined<T> = T extends undefined ? T : never
 
 /**
  * The value types to use for update operation.
  */
-export type UpdateValue<
-  Model,
-  Key extends keyof Model
-> = Model[Key] extends number
-  ? MaybeValueRemoveOr<Model, Key, ValueIncrement>
-  : Model[Key] extends Array<any>
-  ? MaybeValueRemoveOr<Model, Key, ValueArrayUnion | ValueArrayRemove>
-  : Model[Key] extends Date
-  ? MaybeValueRemoveOr<Model, Key, ValueServerDate>
-  : MaybeValueRemove<Model, Key>
+export type UpdateValue<Model, Key> = Key extends keyof Model
+  ? Model[Key] extends infer Type
+    ? Type extends number
+      ? MaybeValueRemoveOr<Model, Key, ValueIncrement>
+      : Type extends Array<any>
+      ? MaybeValueRemoveOr<Model, Key, ValueArrayUnion | ValueArrayRemove>
+      : Type extends Date
+      ? MaybeValueRemoveOr<Model, Key, ValueServerDate>
+      : MaybeValueRemove<Model, Key>
+    : never
+  : never
 
 /**
  * The value types to use for add operation.
