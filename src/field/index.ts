@@ -1,5 +1,21 @@
 import { UpdateValue } from '../value'
 
+type Whole<Type, Key extends keyof Type> = Type[Key] extends
+  | infer Value
+  | undefined
+  ? Value
+  : never
+
+type PartialValue<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Whole<Model, Key1>
+> = Partial<Pick<Model, Key1>> extends Pick<Model, Key1>
+  ? Partial<Model[Key1]> extends Model[Key1]
+    ? Whole<Model, Key1>[Key2]
+    : never
+  : Whole<Model, Key1>[Key2]
+
 /**
  * The field type. It contains path to the property and property value.
  */
@@ -13,9 +29,13 @@ function field<Model, Key extends keyof Model>(
   value: Model[Key] | UpdateValue<Model, Key>
 ): Field<Model>
 
-function field<Model, Key1 extends keyof Model, Key2 extends keyof Model[Key1]>(
+function field<
+  Model,
+  Key1 extends keyof Model,
+  Key2 extends keyof Whole<Model, Key1>
+>(
   key: [Key1, Key2],
-  value: Model[Key1][Key2] | UpdateValue<Model[Key1], Key2>
+  value: PartialValue<Model, Key1, Key2> | UpdateValue<Whole<Model, Key1>, Key2>
 ): Field<Model>
 
 function field<
