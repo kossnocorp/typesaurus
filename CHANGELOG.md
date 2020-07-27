@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 6.1.0 - 2020-07-27
+
+### Added
+
+- Added collection group support to `all` and `onAll`.
+
 ## 6.0.0 - 2020-04-16
 
 ### Changed

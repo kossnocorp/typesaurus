@@ -6,6 +6,10 @@ import { Ref, ref } from '../ref'
 import get from '../get'
 import remove from '../remove'
 import sinon from 'sinon'
+import nanoid from 'nanoid'
+import { subcollection } from '../subcollection'
+import add from '../add'
+import { group } from '../group'
 
 describe('onAll', () => {
   type Book = { title: string }
@@ -31,9 +35,9 @@ describe('onAll', () => {
     off = undefined
   })
 
-  it('returns all documents in a collection', done => {
+  it('returns all documents in a collection', (done) => {
     const spy = sinon.spy()
-    off = onAll(books, docs => {
+    off = onAll(books, (docs) => {
       spy(docs.map(({ data: { title } }) => title).sort())
       if (
         spy.calledWithMatch([
@@ -52,12 +56,12 @@ describe('onAll', () => {
       set(orders, 'order2', { book: ref(books, '22laws'), quantity: 1 })
     ])
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const spy = sinon.spy()
-      off = onAll(orders, async docs => {
+      off = onAll(orders, async (docs) => {
         off()
         const orderedBooks = await Promise.all(
-          docs.map(doc => get(books, doc.data.book.id))
+          docs.map((doc) => get(books, doc.data.book.id))
         )
         spy(orderedBooks.map(({ data: { title } }) => title).sort())
         if (
@@ -75,8 +79,8 @@ describe('onAll', () => {
       set(orders, 'order2', { book: ref(books, '22laws'), quantity: 1, date })
     ])
 
-    return new Promise(resolve => {
-      off = onAll(orders, docs => {
+    return new Promise((resolve) => {
+      off = onAll(orders, (docs) => {
         if (docs.length === 2 && docs[0].data.date && docs[1].data.date) {
           off()
           if (typeof window === undefined) {
@@ -93,10 +97,50 @@ describe('onAll', () => {
     })
   })
 
+  it('allows to get all data from collection groups', async () => {
+    const commentsGroupName = `comments-${nanoid()}`
+    type Comment = { text: string }
+
+    const bookComments = subcollection<Comment, Book>(commentsGroupName, books)
+    const orderComments = subcollection<Comment, Order>(
+      commentsGroupName,
+      orders
+    )
+
+    await Promise.all([
+      add(bookComments('qwe'), {
+        text: 'hello'
+      }),
+
+      add(bookComments('asd'), {
+        text: 'cruel'
+      }),
+
+      add(orderComments('zxc'), {
+        text: 'world'
+      })
+    ])
+
+    const allComments = group(commentsGroupName, [bookComments, orderComments])
+    return new Promise((resolve) => {
+      off = onAll(allComments, (comments) => {
+        if (comments.length === 3) {
+          off()
+          assert.deepEqual(comments.map((c) => c.data.text).sort(), [
+            'cruel',
+            'hello',
+            'world'
+          ])
+          resolve()
+        }
+      })
+    })
+  })
+
   describe('real-time', () => {
-    it('subscribes to updates', done => {
+    it('subscribes to updates', (done) => {
       const spy = sinon.spy()
-      off = onAll(books, async docs => {
+      off = onAll(books, async (docs) => {
         const titles = docs.map(({ data: { title } }) => title).sort()
         spy(titles)
 
@@ -127,10 +171,10 @@ describe('onAll', () => {
     // TODO: WTF browser Firebase returns elements gradually unlike Node.js version.
     if (typeof window === undefined) {
       it('returns function that unsubscribes from the updates', () => {
-        return new Promise(async resolve => {
+        return new Promise(async (resolve) => {
           const spy = sinon.spy()
           const on = () => {
-            off = onAll(books, docs => {
+            off = onAll(books, (docs) => {
               const titles = docs.map(({ data: { title } }) => title).sort()
               spy(titles)
               if (titles.length === 5) {

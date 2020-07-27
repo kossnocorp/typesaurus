@@ -1,8 +1,9 @@
 import { Collection } from '../collection'
 import adaptor from '../adaptor'
 import { doc, Doc } from '../doc'
-import { ref } from '../ref'
+import { ref, pathToRef } from '../ref'
 import { wrapData } from '../data'
+import { CollectionGroup } from '../group'
 
 /**
  * Subscribes to all documents in a collection.
@@ -29,7 +30,7 @@ import { wrapData } from '../data'
  * @param onError - The function is called with error when request fails.
  */
 export default function onAll<Model>(
-  collection: Collection<Model>,
+  collection: Collection<Model> | CollectionGroup<Model>,
   onResult: (docs: Doc<Model>[]) => any,
   onError?: (error: Error) => any
 ): () => void {
@@ -40,16 +41,22 @@ export default function onAll<Model>(
     firebaseUnsub && firebaseUnsub()
   }
 
-  adaptor().then(a => {
+  adaptor().then((a) => {
     if (unsubCalled) return
-    firebaseUnsub = a.firestore
-      .collection(collection.path)
-      .onSnapshot(firebaseSnap => {
-        const docs = firebaseSnap.docs.map(d =>
-          doc(ref(collection, d.id), wrapData(a, d.data()) as Model)
+    firebaseUnsub = (collection.__type__ === 'collectionGroup'
+      ? a.firestore.collectionGroup(collection.path)
+      : a.firestore.collection(collection.path)
+    ).onSnapshot((firebaseSnap) => {
+      const docs = firebaseSnap.docs.map((d) =>
+        doc<Model>(
+          collection.__type__ === 'collectionGroup'
+            ? pathToRef(d.ref.path)
+            : ref(collection, d.id),
+          wrapData(a, d.data()) as Model
         )
-        onResult(docs)
-      }, onError)
+      )
+      onResult(docs)
+    }, onError)
   })
 
   return unsub

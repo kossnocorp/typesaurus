@@ -1,8 +1,9 @@
 import { Collection } from '../collection'
 import adaptor from '../adaptor'
 import { doc, Doc } from '../doc'
-import { ref } from '../ref'
+import { ref, pathToRef } from '../ref'
 import { wrapData } from '../data'
+import { CollectionGroup } from '../group'
 
 /**
  * Returns all documents in a collection.
@@ -27,11 +28,19 @@ import { wrapData } from '../data'
  * @returns A promise to all documents
  */
 export default async function all<Model>(
-  collection: Collection<Model>
+  collection: Collection<Model> | CollectionGroup<Model>
 ): Promise<Doc<Model>[]> {
   const a = await adaptor()
-  const firebaseSnap = await a.firestore.collection(collection.path).get()
-  return firebaseSnap.docs.map(d =>
-    doc(ref(collection, d.id), wrapData(a, d.data()) as Model)
+  const firebaseSnap = await (collection.__type__ === 'collectionGroup'
+    ? a.firestore.collectionGroup(collection.path)
+    : a.firestore.collection(collection.path)
+  ).get()
+  return firebaseSnap.docs.map((d) =>
+    doc(
+      collection.__type__ === 'collectionGroup'
+        ? pathToRef(d.ref.path)
+        : ref(collection, d.id),
+      wrapData(a, d.data()) as Model
+    )
   )
 }

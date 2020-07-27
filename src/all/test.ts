@@ -1,10 +1,14 @@
-import all from '.'
+import all from '../all'
 import assert from 'assert'
 import set from '../set'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
 import get from '../get'
 import remove from '../remove'
+import nanoid from 'nanoid'
+import { subcollection } from '../subcollection'
+import add from '../add'
+import { group } from '../group'
 
 describe('all', () => {
   type Book = { title: string }
@@ -40,7 +44,7 @@ describe('all', () => {
     const docs = await all(orders)
     assert(docs[0].data.book.__type__ === 'ref')
     const orderedBooks = await Promise.all(
-      docs.map(doc => get(books, doc.data.book.id))
+      docs.map((doc) => get(books, doc.data.book.id))
     )
     assert.deepEqual(orderedBooks.map(({ data: { title } }) => title).sort(), [
       'Sapiens',
@@ -57,5 +61,38 @@ describe('all', () => {
     const docs = await all(orders)
     assert(docs[0].data.date.getTime() === date.getTime())
     assert(docs[1].data.date.getTime() === date.getTime())
+  })
+
+  it('allows to get all data from collection groups', async () => {
+    const commentsGroupName = `comments-${nanoid()}`
+    type Comment = { text: string }
+
+    const bookComments = subcollection<Comment, Book>(commentsGroupName, books)
+    const orderComments = subcollection<Comment, Order>(
+      commentsGroupName,
+      orders
+    )
+
+    await Promise.all([
+      add(bookComments('qwe'), {
+        text: 'hello'
+      }),
+
+      add(bookComments('asd'), {
+        text: 'cruel'
+      }),
+
+      add(orderComments('zxc'), {
+        text: 'world'
+      })
+    ])
+
+    const allComments = group(commentsGroupName, [bookComments, orderComments])
+    const comments = await all(allComments)
+    assert.deepEqual(comments.map((c) => c.data.text).sort(), [
+      'cruel',
+      'hello',
+      'world'
+    ])
   })
 })
