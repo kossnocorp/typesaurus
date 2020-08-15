@@ -1,8 +1,9 @@
 import { FirestoreWhereFilterOp } from '../adaptor'
+import { DocId } from '../docId'
 
 export interface WhereQuery<_Model> {
   type: 'where'
-  field: string | string[]
+  field: string | string[] | DocId
   filter: FirestoreWhereFilterOp
   value: any
 }
@@ -14,7 +15,7 @@ export type BasicWhereFilter = Exclude<
 
 // Basic filter variation
 function where<Model, Key extends keyof Model>(
-  field: Key | [Key],
+  field: Key | [Key] | DocId,
   filter: BasicWhereFilter,
   value: Model[Key]
 ): WhereQuery<Model>
@@ -25,13 +26,13 @@ function where<
   ValueArray extends Model[Key],
   ValueType extends keyof ValueArray
 >(
-  field: Key | [Key],
+  field: Key | [Key] | DocId,
   filter: 'array-contains',
   value: ValueArray[ValueType]
 ): WhereQuery<Model>
 // in variation
 function where<Model, Key extends keyof Model>(
-  field: Key | [Key],
+  field: Key | [Key] | DocId,
   filter: 'in',
   value: Model[Key][]
 ): WhereQuery<Model>
@@ -459,7 +460,7 @@ function where<
  * @returns The where query object
  */
 function where<Model>(
-  field: string | string[],
+  field: string | string[] | DocId,
   filter: FirestoreWhereFilterOp,
   value: any
 ): WhereQuery<Model> {

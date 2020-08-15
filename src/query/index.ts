@@ -8,6 +8,7 @@ import { LimitQuery } from '../limit'
 import { Cursor, CursorMethod } from '../cursor'
 import { wrapData, unwrapData } from '../data'
 import { CollectionGroup } from '../group'
+import { DocId } from '../docId'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -60,7 +61,7 @@ export async function query<Model>(
         case 'order': {
           const { field, method, cursors } = q
           acc.firestoreQuery = acc.firestoreQuery.orderBy(
-            field.toString(),
+            (field instanceof DocId) ? a.consts.FieldPath.documentId() : field.toString(),
             method
           )
           if (cursors)
@@ -71,8 +72,8 @@ export async function query<Model>(
                   typeof value === 'object' &&
                   value !== null &&
                   '__type__' in value &&
-                  value.__type__ === 'doc'
-                    ? value.data[field]
+                  value.__type__ == 'doc'
+                    ? ((field instanceof DocId) ? value.ref.id : value.data[field])
                     : value
               }))
             )
@@ -83,7 +84,7 @@ export async function query<Model>(
           const { field, filter, value } = q
           const fieldName = Array.isArray(field) ? field.join('.') : field
           acc.firestoreQuery = acc.firestoreQuery.where(
-            fieldName,
+            (fieldName instanceof DocId) ? a.consts.FieldPath.documentId() : fieldName,
             filter,
             unwrapData(a, value)
           )

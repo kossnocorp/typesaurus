@@ -49,6 +49,7 @@ export function injectTestingAdaptor(app: App) {
     {
       DocumentReference: testing.firestore.DocumentReference,
       Timestamp: testing.firestore.Timestamp,
+      FieldPath: testing.firestore.FieldPath,
       FieldValue: testing.firestore.FieldValue
     }
   )

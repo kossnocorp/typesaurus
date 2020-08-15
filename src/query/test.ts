@@ -13,6 +13,7 @@ import get from '../get'
 import set from '../set'
 import { subcollection } from '../subcollection'
 import { group } from '../group'
+import { docId } from '../docId'
 
 describe('query', () => {
   type Contact = { ownerId: string; name: string; year: number; birthday: Date }
@@ -480,6 +481,60 @@ describe('query', () => {
         'Tati',
         'Lesha'
       ])
+    })
+  })
+
+  describe('docId', () => {
+    type Counter = { n: number }
+    const shardedCounters = collection<Counter>('shardedCounters')
+
+    it('allows to query by documentId', async () => {
+      await Promise.all([
+        set(shardedCounters, `draft-0`, { n: 0 }),
+        set(shardedCounters, `draft-1`, { n: 0 }),
+        set(shardedCounters, `published-0`, { n: 0 }),
+        set(shardedCounters, `published-1`, { n: 0 }),
+        set(shardedCounters, `suspended-0`, { n: 0 }),
+        set(shardedCounters, `suspended-1`, { n: 0 }),
+      ])
+      const docs = await query(shardedCounters, [
+        where(docId, '>=', 'published'),
+        where(docId, '<', 'publishee')
+      ])
+      assert.deepEqual(docs.map(doc => doc.ref.id), [
+        'published-0',
+        'published-1'
+      ])
+    })
+
+    it('allows ordering by documentId', async () => {
+      const descend = await query(shardedCounters, [
+        where(docId, '>=', 'published'),
+        where(docId, '<', 'publishee'),
+        order(docId, 'desc')
+      ])
+      assert(descend.length === 2)
+      assert(descend[0].ref.id === `published-1`)
+      assert(descend[1].ref.id === `published-0`)
+
+      const ascend = await query(shardedCounters, [
+        where(docId, '>=', 'published'),
+        where(docId, '<', 'publishee'),
+        order(docId, 'asc')
+      ])
+      assert(ascend.length === 2)
+      assert(ascend[0].ref.id === `published-0`)
+      assert(ascend[1].ref.id === `published-1`)
+    })
+
+    it('allows cursors to use documentId', async () => {
+      const docs = await query(shardedCounters, [
+        order(docId, 'asc', [startAt('draft-1'), endAt('published-1')])
+      ])
+      assert(docs.length === 3)
+      assert(docs[0].ref.id === `draft-1`)
+      assert(docs[1].ref.id === `published-0`)
+      assert(docs[2].ref.id === `published-1`)
     })
   })
 })

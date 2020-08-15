@@ -1,12 +1,13 @@
 import { FirestoreOrderByDirection } from '../adaptor'
 import { Cursor } from '../cursor'
+import { DocId } from '../docId'
 
 /**
  * The order query type. Used to build query.
  */
 export interface OrderQuery<Model, Key extends keyof Model> {
   type: 'order'
-  field: Key
+  field: Key | DocId
   method: FirestoreOrderByDirection
   cursors: Cursor<Model, Key>[] | undefined
 }
@@ -15,7 +16,7 @@ export interface OrderQuery<Model, Key extends keyof Model> {
  * @param field - Apply ascending order on given field
  */
 function order<Model, Key extends keyof Model>(
-  field: Key
+  field: Key | DocId
 ): OrderQuery<Model, Key>
 
 /**
@@ -23,7 +24,7 @@ function order<Model, Key extends keyof Model>(
  * @param cursors - Cursors that define pagination rules ({@link startAfter}, {@link startAt}, {@link endBefore} and {@link endAt})
  */
 function order<Model, Key extends keyof Model>(
-  field: Key,
+  field: Key | DocId,
   cursors: Cursor<Model, Key>[]
 ): OrderQuery<Model, Key>
 
@@ -33,7 +34,7 @@ function order<Model, Key extends keyof Model>(
  * @param cursors - Cursors that define pagination rules ({@link startAfter}, {@link startAt}, {@link endBefore} and {@link endAt})
  */
 function order<Model, Key extends keyof Model>(
-  field: Key,
+  field: Key | DocId,
   method: FirestoreOrderByDirection,
   cursors?: Cursor<Model, Key>[]
 ): OrderQuery<Model, Key>
@@ -66,7 +67,7 @@ function order<Model, Key extends keyof Model>(
  * @returns The order query object
  */
 function order<Model, Key extends keyof Model>(
-  field: Key,
+  field: Key | DocId,
   maybeMethod?: FirestoreOrderByDirection | Cursor<Model, Key>[],
   maybeCursors?: Cursor<Model, Key>[]
 ): OrderQuery<Model, Key> {
