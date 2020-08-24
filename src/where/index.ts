@@ -15,7 +15,20 @@ export type BasicWhereFilter = Exclude<
 
 // Basic filter variation
 function where<Model, Key extends keyof Model>(
+  field: DocId,
+  filter: BasicWhereFilter,
+  value: string
+): WhereQuery<Model>
+// in variation
+function where<Model, Key extends keyof Model>(
   field: Key | [Key] | DocId,
+  filter: 'in',
+  value: string[]
+): WhereQuery<Model>
+
+// Basic filter variation
+function where<Model, Key extends keyof Model>(
+  field: Key | [Key],
   filter: BasicWhereFilter,
   value: Model[Key]
 ): WhereQuery<Model>
@@ -26,13 +39,13 @@ function where<
   ValueArray extends Model[Key],
   ValueType extends keyof ValueArray
 >(
-  field: Key | [Key] | DocId,
+  field: Key | [Key],
   filter: 'array-contains',
   value: ValueArray[ValueType]
 ): WhereQuery<Model>
 // in variation
 function where<Model, Key extends keyof Model>(
-  field: Key | [Key] | DocId,
+  field: Key | [Key],
   filter: 'in',
   value: Model[Key][]
 ): WhereQuery<Model>

@@ -8,6 +8,7 @@ import { LimitQuery } from '../limit'
 import { Cursor, CursorMethod } from '../cursor'
 import { wrapData, unwrapData } from '../data'
 import { CollectionGroup } from '../group'
+import { DocId } from '../docId'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -66,7 +67,7 @@ export default function onQuery<Model>(
   }
 
   adaptor()
-    .then(a => {
+    .then((a) => {
       if (unsubCalled) return
 
       const { firestoreQuery, cursors } = queries.reduce(
@@ -75,7 +76,9 @@ export default function onQuery<Model>(
             case 'order': {
               const { field, method, cursors } = q
               acc.firestoreQuery = acc.firestoreQuery.orderBy(
-                field.toString(),
+                field instanceof DocId
+                  ? a.consts.FieldPath.documentId()
+                  : field.toString(),
                 method
               )
               if (cursors)
@@ -87,7 +90,9 @@ export default function onQuery<Model>(
                       value !== null &&
                       '__type__' in value &&
                       value.__type__ === 'doc'
-                        ? value.data[field]
+                        ? field instanceof DocId
+                          ? value.ref.id
+                          : value.data[field]
                         : value
                   }))
                 )
@@ -98,7 +103,9 @@ export default function onQuery<Model>(
               const { field, filter, value } = q
               const fieldName = Array.isArray(field) ? field.join('.') : field
               acc.firestoreQuery = acc.firestoreQuery.where(
-                fieldName,
+                fieldName instanceof DocId
+                  ? a.consts.FieldPath.documentId()
+                  : fieldName,
                 filter,
                 unwrapData(a, value)
               )
@@ -126,21 +133,18 @@ export default function onQuery<Model>(
         }
       )
 
-      const groupedCursors = cursors.reduce(
-        (acc, cursor) => {
-          let methodValues = acc.find(([method]) => method === cursor.method)
-          if (!methodValues) {
-            methodValues = [cursor.method, []]
-            acc.push(methodValues)
-          }
-          methodValues[1].push(unwrapData(a, cursor.value))
-          return acc
-        },
-        [] as [CursorMethod, any[]][]
-      )
+      const groupedCursors = cursors.reduce((acc, cursor) => {
+        let methodValues = acc.find(([method]) => method === cursor.method)
+        if (!methodValues) {
+          methodValues = [cursor.method, []]
+          acc.push(methodValues)
+        }
+        methodValues[1].push(unwrapData(a, cursor.value))
+        return acc
+      }, [] as [CursorMethod, any[]][])
 
       const paginatedFirestoreQuery =
-        cursors.length && cursors.every(cursor => cursor.value !== undefined)
+        cursors.length && cursors.every((cursor) => cursor.value !== undefined)
           ? groupedCursors.reduce((acc, [method, values]) => {
               return acc[method](...values)
             }, firestoreQuery)
@@ -149,7 +153,7 @@ export default function onQuery<Model>(
       firebaseUnsub = paginatedFirestoreQuery.onSnapshot(
         (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
           onResult(
-            firestoreSnap.docs.map(d =>
+            firestoreSnap.docs.map((d) =>
               doc(
                 collection.__type__ === 'collectionGroup'
                   ? pathToRef(d.ref.path)

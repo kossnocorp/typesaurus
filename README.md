@@ -132,6 +132,7 @@ Query helpers:
 - [`order`](https://typesaurus.com/modules/_order_index_.html#order) - Creates order query object with given field, ordering method and pagination cursors.
 - [`limit`](https://typesaurus.com/modules/_limit_index_.html#limit) - Creates a limit query object. It's used to paginate queries.
 - [`where`](https://typesaurus.com/modules/_where_index_.html#where) - Creates where query with array-contains filter operation.
+- [`docId`](https://typesaurus.com/modules/_docId_index_.html#docId) - Constant-helper that allows to sort or order by the document ID.
 
 Pagination helpers:
 
