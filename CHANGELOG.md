@@ -7,6 +7,16 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 6.2.0 - 2020-08-24
+
+### Fixed
+
+- [Fixed `onGetMany` notified only one time](https://github.com/kossnocorp/typesaurus/pull/66).
+
+### Added
+
+- Added `docId` constant-helper that allows to sort or filter by the document ID.
+
 ## 6.1.0 - 2020-07-27
 
 ### Added
