@@ -49,7 +49,7 @@ function onGetMany<Model>(
       id,
       doc => {
         result[idIndex] = doc
-        waiting--
+        if (waiting) waiting--
         if (waiting === 0) {
           onResult(result)
         }

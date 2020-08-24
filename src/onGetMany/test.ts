@@ -123,16 +123,27 @@ describe('onGetMany', () => {
 
   describe('real-time', () => {
     it('subscribes to updates', async () => {
-      const spy = sinon.spy()
-      await set(fruits, 'mango', { color: 'green' })
+      await Promise.all([
+        set(fruits, 'apple', { color: 'green' }),
+        set(fruits, 'mango', { color: 'green' })
+      ])
 
       setTimeout(() => {
         update(fruits, 'mango', { color: 'yellow' })
       })
 
       return new Promise(resolve => {
-        off = onGetMany(fruits, ['mango'], list => {
-          if (list[0].data.color === 'yellow') resolve()
+        off = onGetMany(fruits, ['apple', 'mango'], list => {
+          const colorOf = id =>
+            list.find(doc => doc.ref.id === id)!.data.color
+
+          if (colorOf('mango') === 'yellow') {
+            update(fruits, 'mango', { color: 'red' })
+            update(fruits, 'apple', { color: 'red' })
+          }
+          if (colorOf('mango') === 'red' && colorOf('apple') === 'red') {
+            resolve()
+          }
         })
       })
     })
