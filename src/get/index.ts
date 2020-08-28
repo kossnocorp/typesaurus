@@ -1,8 +1,8 @@
+import adaptor from '../adaptor'
 import { Collection } from '../collection'
+import { wrapData } from '../data'
 import { doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
-import { wrapData } from '../data'
-import adaptor from '../adaptor'
 
 /**
  * @param ref - The reference to the document
@@ -58,7 +58,9 @@ async function get<Model>(
   const firestoreSnap = await firestoreDoc.get()
   const firestoreData = firestoreSnap.data()
   const data = firestoreData && (wrapData(a, firestoreData) as Model)
-  return data ? doc(ref(collection, id), data) : null
+  return data
+    ? doc(ref(collection, id), data, a.getDocMeta(firestoreSnap))
+    : null
 }
 
 export default get

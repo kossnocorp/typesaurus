@@ -255,7 +255,7 @@ export async function transaction<ReadResult, WriteResult>(
   writeFunction: TransactionWriteFunction<ReadResult, WriteResult>
 ): Promise<WriteResult> {
   const a = await adaptor()
-  return a.firestore.runTransaction(t => {
+  return a.firestore.runTransaction((t) => {
     async function get<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
@@ -279,7 +279,9 @@ export async function transaction<ReadResult, WriteResult>(
       // v below
       const firestoreData = firestoreSnap.data()
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
-      return data ? doc(ref(collection, id), data) : null
+      return data
+        ? doc(ref(collection, id), data, a.getDocMeta(firestoreSnap))
+        : null
     }
 
     async function set<Model>(
@@ -356,13 +358,10 @@ export async function transaction<ReadResult, WriteResult>(
 
       const firebaseDoc = a.firestore.collection(collection.path).doc(id)
       const updateData = Array.isArray(data)
-        ? data.reduce(
-            (acc, { key, value }) => {
-              acc[Array.isArray(key) ? key.join('.') : key] = value
-              return acc
-            },
-            {} as { [key: string]: any }
-          )
+        ? data.reduce((acc, { key, value }) => {
+            acc[Array.isArray(key) ? key.join('.') : key] = value
+            return acc
+          }, {} as { [key: string]: any })
         : data
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
@@ -391,7 +390,7 @@ export async function transaction<ReadResult, WriteResult>(
       await t.delete(firebaseDoc)
     }
 
-    return readFunction({ get }).then(data =>
+    return readFunction({ get }).then((data) =>
       writeFunction({ data, set, upset, update, remove })
     )
   })

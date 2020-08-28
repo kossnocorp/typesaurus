@@ -1,8 +1,8 @@
 import adaptor from '../adaptor'
 import { Collection } from '../collection'
+import { wrapData } from '../data'
 import { doc, Doc } from '../doc'
 import { ref } from '../ref'
-import { wrapData } from '../data'
 
 /**
  * Retrieves multiple documents from a collection.
@@ -31,7 +31,7 @@ import { wrapData } from '../data'
 export default async function getMany<Model>(
   collection: Collection<Model>,
   ids: readonly string[],
-  onMissing: ((id: string) => Model) | 'ignore' = id => {
+  onMissing: ((id: string) => Model) | 'ignore' = (id) => {
     throw new Error(`Missing document with id ${id}`)
   }
 ): Promise<Doc<Model>[]> {
@@ -43,25 +43,30 @@ export default async function getMany<Model>(
   }
 
   const firestoreSnaps = await a.firestore.getAll(
-    ...ids.map(id => a.firestore.collection(collection.path).doc(id))
+    ...ids.map((id) => a.firestore.collection(collection.path).doc(id))
   )
 
   return firestoreSnaps
-    .map(firestoreSnap => {
+    .map((firestoreSnap) => {
       if (!firestoreSnap.exists) {
         if (onMissing === 'ignore') {
           return null
         } else {
           return doc(
             ref(collection, firestoreSnap.id),
-            onMissing(firestoreSnap.id)
+            onMissing(firestoreSnap.id),
+            a.getDocMeta(firestoreSnap)
           )
         }
       }
 
       const firestoreData = firestoreSnap.data()
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
-      return doc(ref(collection, firestoreSnap.id), data)
+      return doc(
+        ref(collection, firestoreSnap.id),
+        data,
+        a.getDocMeta(firestoreSnap)
+      )
     })
-    .filter(doc => doc != null) as Doc<Model>[]
+    .filter((doc) => doc != null) as Doc<Model>[]
 }

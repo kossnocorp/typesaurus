@@ -4,10 +4,14 @@
 
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
+import { Metadata } from '../doc'
 
 export type Adaptor = {
   firestore: admin.firestore.Firestore
   consts: AdaptorConsts
+  getDocMeta: (
+    snapshot: admin.firestore.DocumentSnapshot
+  ) => Metadata | undefined
 }
 
 export type AdaptorFirestore = () => admin.firestore.Firestore
@@ -33,7 +37,8 @@ let currentConsts: AdaptorConsts = adminConsts
 export default async function adaptor() {
   return {
     firestore: currentFirestore(),
-    consts: currentConsts
+    consts: currentConsts,
+    getDocMeta: (_snapshot: admin.firestore.DocumentSnapshot) => undefined
   }
 }
 

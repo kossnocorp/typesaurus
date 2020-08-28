@@ -1,14 +1,14 @@
 import adaptor from '../adaptor'
 import { Collection } from '../collection'
-import { doc, Doc } from '../doc'
-import { ref, pathToRef } from '../ref'
-import { WhereQuery } from '../where'
-import { OrderQuery } from '../order'
-import { LimitQuery } from '../limit'
 import { Cursor, CursorMethod } from '../cursor'
-import { wrapData, unwrapData } from '../data'
-import { CollectionGroup } from '../group'
+import { unwrapData, wrapData } from '../data'
+import { doc, Doc } from '../doc'
 import { DocId } from '../docId'
+import { CollectionGroup } from '../group'
+import { LimitQuery } from '../limit'
+import { OrderQuery } from '../order'
+import { pathToRef, ref } from '../ref'
+import { WhereQuery } from '../where'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -153,12 +153,13 @@ export default function onQuery<Model>(
       firebaseUnsub = paginatedFirestoreQuery.onSnapshot(
         (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
           onResult(
-            firestoreSnap.docs.map((d) =>
+            firestoreSnap.docs.map((snap) =>
               doc(
                 collection.__type__ === 'collectionGroup'
-                  ? pathToRef(d.ref.path)
-                  : ref(collection, d.id),
-                wrapData(a, d.data()) as Model
+                  ? pathToRef(snap.ref.path)
+                  : ref(collection, snap.id),
+                wrapData(a, snap.data()) as Model,
+                a.getDocMeta(snap)
               )
             )
           )

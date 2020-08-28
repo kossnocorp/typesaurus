@@ -137,12 +137,13 @@ export async function query<Model>(
 
   const firebaseSnap = await paginatedFirestoreQuery.get()
 
-  return firebaseSnap.docs.map((d) =>
+  return firebaseSnap.docs.map((snap) =>
     doc(
       collection.__type__ === 'collectionGroup'
-        ? pathToRef(d.ref.path)
-        : ref(collection, d.id),
-      wrapData(a, d.data()) as Model
+        ? pathToRef(snap.ref.path)
+        : ref(collection, snap.id),
+      wrapData(a, snap.data()) as Model,
+      a.getDocMeta(snap)
     )
   )
 }

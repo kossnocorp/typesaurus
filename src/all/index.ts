@@ -1,9 +1,9 @@
-import { Collection } from '../collection'
 import adaptor from '../adaptor'
-import { doc, Doc } from '../doc'
-import { ref, pathToRef } from '../ref'
+import { Collection } from '../collection'
 import { wrapData } from '../data'
+import { doc, Doc } from '../doc'
 import { CollectionGroup } from '../group'
+import { pathToRef, ref } from '../ref'
 
 /**
  * Returns all documents in a collection.
@@ -35,12 +35,13 @@ export default async function all<Model>(
     ? a.firestore.collectionGroup(collection.path)
     : a.firestore.collection(collection.path)
   ).get()
-  return firebaseSnap.docs.map((d) =>
+  return firebaseSnap.docs.map((snap) =>
     doc(
       collection.__type__ === 'collectionGroup'
-        ? pathToRef(d.ref.path)
-        : ref(collection, d.id),
-      wrapData(a, d.data()) as Model
+        ? pathToRef(snap.ref.path)
+        : ref(collection, snap.id),
+      wrapData(a, snap.data()) as Model,
+      a.getDocMeta(snap)
     )
   )
 }

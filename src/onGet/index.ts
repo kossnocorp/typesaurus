@@ -1,8 +1,8 @@
 import adaptor from '../adaptor'
 import { Collection } from '../collection'
+import { wrapData } from '../data'
 import { doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
-import { wrapData } from '../data'
 
 type OnResult<Model> = (doc: Doc<Model> | null) => any
 
@@ -84,13 +84,15 @@ export default function onGet<Model>(
     onError = onResultOrOnError as OnError | undefined
   }
 
-  adaptor().then(a => {
+  adaptor().then((a) => {
     if (unsubCalled) return
     const firestoreDoc = a.firestore.collection(collection.path).doc(id)
-    firebaseUnsub = firestoreDoc.onSnapshot(firestoreSnap => {
-      const firestoreData = firestoreSnap.data()
+    firebaseUnsub = firestoreDoc.onSnapshot((snap) => {
+      const firestoreData = snap.data()
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
-      onResult((data && doc(ref(collection, id), data)) || null)
+      onResult(
+        (data && doc(ref(collection, id), data, a.getDocMeta(snap))) || null
+      )
     }, onError)
   })
 

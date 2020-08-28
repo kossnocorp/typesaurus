@@ -21,7 +21,11 @@ export default async function adaptor() {
       Timestamp: firebase.firestore.Timestamp,
       FieldPath: firebase.firestore.FieldPath,
       FieldValue: firebase.firestore.FieldValue
-    }
+    },
+    getMeta: (snapshot: firebase.firestore.DocumentSnapshot) => ({
+      fromCache: snapshot.metadata.fromCache,
+      hasPendingWrites: snapshot.metadata.hasPendingWrites
+    })
   }
 }
 
@@ -30,13 +34,3 @@ export function injectAdaptor() {
     'Injecting adaptor is not supported in the browser environment'
   )
 }
-
-// export type FirestoreQuery = type import('firebase').firestore.Query
-// export type FirestoreDocumentReference = firebase.firestore.DocumentReference
-// export type FirestoreDocumentData = firebase.firestore.DocumentData
-// export type FirestoreTimestamp = firebase.firestore.Timestamp
-// export type FirestoreCollectionReference = firebase.firestore.CollectionReference
-// export type FirestoreOrderByDirection = firebase.firestore.OrderByDirection
-// export type FirestoreWhereFilterOp = firebase.firestore.WhereFilterOp
-// export type FirestoreTransaction = firebase.firestore.Transaction
-// export type FirebaseWriteBatch = firebase.firestore.WriteBatch
