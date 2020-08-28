@@ -21,7 +21,7 @@ export default async function adaptor() {
       FieldPath: firebase.firestore.FieldPath,
       FieldValue: firebase.firestore.FieldValue
     },
-    getMeta: (snapshot: firebase.firestore.DocumentSnapshot) => ({
+    getDocMeta: (snapshot: firebase.firestore.DocumentSnapshot) => ({
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites
     })
