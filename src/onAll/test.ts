@@ -10,6 +10,8 @@ import nanoid from 'nanoid'
 import { subcollection } from '../subcollection'
 import add from '../add'
 import { group } from '../group'
+import onQuery from '../onQuery'
+import { where } from '../where'
 
 describe('onAll', () => {
   type Book = { title: string }
@@ -137,34 +139,54 @@ describe('onAll', () => {
     })
   })
 
+  describe('empty', () => {
+    it('should notify with values all indicate empty', (done) => {
+      off = onAll(collection('void'), (docs, { docChanges, empty }) => {
+        expect(empty).toBeTruthy()
+        expect(docs).toHaveLength(0)
+        expect(docChanges()).toHaveLength(0)
+        done()
+      })
+    })
+  })
+
   describe('real-time', () => {
     it('subscribes to updates', (done) => {
-      const spy = sinon.spy()
-      off = onAll(books, async (docs) => {
+      let c = 0
+      off = onAll(books, async (docs, { docChanges }) => {
         const titles = docs.map(({ data: { title } }) => title).sort()
-        spy(titles)
+        const changes = docChanges()
+          .map(({ type, doc: { data: { title } }}) => ({ type, title }))
+          .sort((a, b) => a.title.localeCompare(b.title))
 
-        if (
-          titles.length === 3 &&
-          spy.calledWithMatch([
-            'Sapiens',
-            'The 22 Immutable Laws of Marketing',
-            'The Mom Test'
-          ])
-        ) {
-          await set(books, 'hp1', {
-            title: "Harry Potter and the Sorcerer's Stone"
-          })
-        } else if (
-          titles.length === 4 &&
-          spy.calledWithMatch([
-            "Harry Potter and the Sorcerer's Stone",
-            'Sapiens',
-            'The 22 Immutable Laws of Marketing',
-            'The Mom Test'
-          ])
-        )
-          done()
+        switch (++c) {
+          case 1:
+            expect(titles).toEqual([
+              'Sapiens',
+              'The 22 Immutable Laws of Marketing',
+              'The Mom Test'
+            ])
+            expect(changes).toEqual([
+              { type: 'added', title: 'Sapiens' },
+              { type: 'added', title: 'The 22 Immutable Laws of Marketing' },
+              { type: 'added', title: 'The Mom Test' }
+            ])
+            await set(books, 'hp1', {
+              title: "Harry Potter and the Sorcerer's Stone"
+            })
+            return
+          case 2:
+            expect(titles).toEqual([
+              "Harry Potter and the Sorcerer's Stone",
+              'Sapiens',
+              'The 22 Immutable Laws of Marketing',
+              'The Mom Test'
+            ])
+            expect(changes).toEqual([
+              { type: 'added', title: "Harry Potter and the Sorcerer's Stone" },
+            ])
+            done()
+        }
       })
     })
 

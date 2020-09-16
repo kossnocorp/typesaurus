@@ -770,24 +770,30 @@ describe('onQuery', () => {
     })
   })
 
+  describe('empty', () => {
+    it('should notify with values all indicate empty', (done) => {
+      off = onQuery(
+        collection<{ ability: string[] }>('penguin'),
+        [where('ability', 'array-contains', 'fly')],
+        (docs, { docChanges, empty }) => {
+          expect(empty).toBeTruthy()
+          expect(docs).toHaveLength(0)
+          expect(docChanges()).toHaveLength(0)
+          done()
+        }
+      )
+    })
+  })
+
   describe('real-time', () => {
     const theoId = `theo-${ownerId}`
-
-    beforeEach(async () => {
-      await set(contacts, theoId, {
-        ownerId,
-        name: 'Theodor',
-        year: 2019,
-        birthday: new Date(2019, 5, 4)
-      })
-    })
 
     afterEach(async () => {
       await remove(contacts, theoId)
     })
 
     it('subscribes to updates', (done) => {
-      const spy = sinon.spy()
+      let c = 0
       off = onQuery(
         contacts,
         [
@@ -797,16 +803,31 @@ describe('onQuery', () => {
           order('year', 'asc', [startAt(1989)]),
           limit(3)
         ],
-        async (docs) => {
-          const names = docs.map(({ data: { name } }) => name)
-          spy(names)
+        async (docs, { docChanges }) => {
+          const names = docs.map(({ data: { name } }) => name).sort()
+          const changes = docChanges()
+            .map(({ type, doc: { data: { name } }}) => ({ type, name }))
+            .sort((a, b) => a.name.localeCompare(b.name))
 
-          if (spy.calledWithMatch(['Tati', 'Lesha', 'Theodor'])) {
-            await remove(contacts, leshaId)
-          }
-
-          if (spy.calledWithMatch(['Tati', 'Theodor'])) {
-            done()
+          switch (++c) {
+            case 1:
+              expect(names).toEqual(['Lesha', 'Tati'])
+              expect(changes).toEqual([{ type: 'added', name: 'Lesha' }, { type: 'added', name: 'Tati' }])
+              await set(contacts, theoId, {
+                ownerId,
+                name: 'Theodor',
+                year: 2019,
+                birthday: new Date(2019, 5, 4)
+              })
+              return
+            case 2:
+              expect(names).toEqual(['Lesha', 'Tati', 'Theodor'])
+              expect(changes).toEqual([{ type: 'added', name: 'Theodor' }])
+              await remove(contacts, leshaId)
+              return
+            case 3:
+              expect(changes).toEqual([{ type: 'removed', name: 'Theodor'}])
+              done()
           }
         }
       )
