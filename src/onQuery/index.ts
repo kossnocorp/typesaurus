@@ -153,7 +153,7 @@ export default function onQuery<Model>(
 
       firebaseUnsub = paginatedFirestoreQuery.onSnapshot(
         (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
-          const docs = firestoreSnap.docs.map((snap) =>
+          const docs: Doc<Model>[] = firestoreSnap.docs.map((snap) =>
             doc(
               collection.__type__ === 'collectionGroup'
                 ? pathToRef(snap.ref.path)
