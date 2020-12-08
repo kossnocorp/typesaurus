@@ -77,7 +77,7 @@ export interface TransactionWrite<ReadResult> {
    * @param ref - the reference to the document to set
    * @param data - the document data
    */
-  set<Model>(ref: Ref<Model>, data: SetModel<Model>): Promise<void>
+  set<Model>(ref: Ref<Model>, data: SetModel<Model>): void
   /**
    * @param collection - the collection to set document in
    * @param id - the id of the document to set
@@ -87,7 +87,7 @@ export interface TransactionWrite<ReadResult> {
     collection: Collection<Model>,
     id: string,
     data: SetModel<Model>
-  ): Promise<void>
+  ): void
 
   /**
    * Sets or updates a document with the given data.
@@ -108,7 +108,7 @@ export interface TransactionWrite<ReadResult> {
    * @param ref - the reference to the document to set or update
    * @param data - the document data
    */
-  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model>): Promise<void>
+  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model>): void
   /**
    * @param collection - the collection to set document in
    * @param id - the id of the document to set
@@ -118,7 +118,7 @@ export interface TransactionWrite<ReadResult> {
     collection: Collection<Model>,
     id: string,
     data: UpsetModel<Model>
-  ): Promise<void>
+  ): void
 
   /**
    * Updates a document.
@@ -154,12 +154,12 @@ export interface TransactionWrite<ReadResult> {
     collection: Collection<Model>,
     id: string,
     data: Field<Model>[]
-  ): Promise<void>
+  ): void
   /**
    * @param ref - the reference to the document to set
    * @param data - the document data to update
    */
-  update<Model>(ref: Ref<Model>, data: Field<Model>[]): Promise<void>
+  update<Model>(ref: Ref<Model>, data: Field<Model>[]): void
   /**
    * @param collection - the collection to update document in
    * @param id - the id of the document to update
@@ -169,12 +169,12 @@ export interface TransactionWrite<ReadResult> {
     collection: Collection<Model>,
     id: string,
     data: UpdateModel<Model>
-  ): Promise<void>
+  ): void
   /**
    * @param ref - the reference to the document to set
    * @param data - the document data to update
    */
-  update<Model>(ref: Ref<Model>, data: UpdateModel<Model>): Promise<void>
+  update<Model>(ref: Ref<Model>, data: UpdateModel<Model>): void
 
   /**
    * Removes a document.
@@ -203,11 +203,11 @@ export interface TransactionWrite<ReadResult> {
    * @param collection - The collection to remove document in
    * @param id - The id of the documented to remove
    */
-  remove<Model>(collection: Collection<Model>, id: string): Promise<void>
+  remove<Model>(collection: Collection<Model>, id: string): void
   /**
    * @param ref - The reference to the document to remove
    */
-  remove<Model>(ref: Ref<Model>): Promise<void>
+  remove<Model>(ref: Ref<Model>): void
 }
 
 /**
@@ -284,11 +284,11 @@ export async function transaction<ReadResult, WriteResult>(
         : null
     }
 
-    async function set<Model>(
+    function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | SetModel<Model>,
       maybeData?: SetModel<Model>
-    ): Promise<void> {
+    ): void {
       let collection: Collection<Model>
       let id: string
       let data: SetModel<Model>
@@ -307,14 +307,14 @@ export async function transaction<ReadResult, WriteResult>(
       const firestoreDoc = a.firestore.collection(collection.path).doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
-      await t.set(firestoreDoc, unwrapData(a, data))
+      t.set(firestoreDoc, unwrapData(a, data))
     }
 
-    async function upset<Model>(
+    function upset<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | SetModel<Model>,
       maybeData?: UpsetModel<Model>
-    ): Promise<void> {
+    ): void {
       let collection: Collection<Model>
       let id: string
       let data: UpsetModel<Model>
@@ -333,14 +333,14 @@ export async function transaction<ReadResult, WriteResult>(
       const firestoreDoc = a.firestore.collection(collection.path).doc(id)
       // ^ above
       // TODO: Refactor code above and below because is all the same as in the regular set function
-      await t.set(firestoreDoc, unwrapData(a, data), { merge: true })
+      t.set(firestoreDoc, unwrapData(a, data), { merge: true })
     }
 
-    async function update<Model>(
+    function update<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | Field<Model>[] | UpdateModel<Model>,
       maybeData?: Field<Model>[] | UpdateModel<Model>
-    ): Promise<void> {
+    ): void {
       let collection: Collection<Model>
       let id: string
       let data: Model
@@ -365,13 +365,13 @@ export async function transaction<ReadResult, WriteResult>(
         : data
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
-      await t.update(firebaseDoc, unwrapData(a, updateData))
+      t.update(firebaseDoc, unwrapData(a, updateData))
     }
 
-    async function remove<Model>(
+    function remove<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeId?: string
-    ): Promise<void> {
+    ): void {
       let collection: Collection<Model>
       let id: string
 
@@ -387,7 +387,7 @@ export async function transaction<ReadResult, WriteResult>(
       const firebaseDoc = a.firestore.collection(collection.path).doc(id)
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
-      await t.delete(firebaseDoc)
+      t.delete(firebaseDoc)
     }
 
     return readFunction({ get }).then((data) =>
