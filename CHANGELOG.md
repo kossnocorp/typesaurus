@@ -15,6 +15,8 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 - [Added ability to query nested subcollection groups](https://github.com/kossnocorp/typesaurus/pull/52).
 
+- [Added ability to access changes in `onAll` and `onQuery`](https://github.com/kossnocorp/typesaurus/pull/67).
+
 ## 6.2.0 - 2020-08-24
 
 ### Fixed
