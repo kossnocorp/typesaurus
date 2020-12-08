@@ -4,6 +4,7 @@ import { wrapData } from '../data'
 import { doc, Doc } from '../doc'
 import { CollectionGroup } from '../group'
 import { pathToRef, ref } from '../ref'
+import { SnapshotInfo } from '../snapshot'
 
 /**
  * Subscribes to all documents in a collection.
@@ -31,7 +32,7 @@ import { pathToRef, ref } from '../ref'
  */
 export default function onAll<Model>(
   collection: Collection<Model> | CollectionGroup<Model>,
-  onResult: (docs: Doc<Model>[]) => any,
+  onResult: (docs: Doc<Model>[], info: SnapshotInfo<Model>) => any,
   onError?: (error: Error) => any
 ): () => void {
   let unsubCalled = false
@@ -46,8 +47,8 @@ export default function onAll<Model>(
     firebaseUnsub = (collection.__type__ === 'collectionGroup'
       ? a.firestore.collectionGroup(collection.path)
       : a.firestore.collection(collection.path)
-    ).onSnapshot((firebaseSnap) => {
-      const docs = firebaseSnap.docs.map((snap) =>
+    ).onSnapshot((firestoreSnap) => {
+      const docs = firestoreSnap.docs.map((snap) =>
         doc<Model>(
           collection.__type__ === 'collectionGroup'
             ? pathToRef(snap.ref.path)
@@ -56,7 +57,30 @@ export default function onAll<Model>(
           a.getDocMeta(snap)
         )
       )
-      onResult(docs)
+      const changes = () =>
+        firestoreSnap.docChanges().map((change) => ({
+          type: change.type,
+          oldIndex: change.oldIndex,
+          newIndex: change.newIndex,
+          doc:
+            docs[
+              change.type === 'removed' ? change.oldIndex : change.newIndex
+            ] ||
+            // If change.type indicates 'removed', sometimes(not all the time) `docs` does not
+            // contain the removed document. In that case, we'll restore it from `change.doc`:
+            doc(
+              collection.__type__ === 'collectionGroup'
+                ? pathToRef(change.doc.ref.path)
+                : ref(collection, change.doc.id),
+              wrapData(a, change.doc.data()) as Model,
+              a.getDocMeta(change.doc)
+            )
+        }))
+      onResult(docs, {
+        changes,
+        size: firestoreSnap.size,
+        empty: firestoreSnap.empty
+      })
     }, onError)
   })
 

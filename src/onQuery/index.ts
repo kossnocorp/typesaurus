@@ -9,6 +9,7 @@ import { LimitQuery } from '../limit'
 import { OrderQuery } from '../order'
 import { pathToRef, ref } from '../ref'
 import { WhereQuery } from '../where'
+import { SnapshotInfo } from '../snapshot'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -56,7 +57,7 @@ export type Query<Model, Key extends keyof Model> =
 export default function onQuery<Model>(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
-  onResult: (docs: Doc<Model>[]) => any,
+  onResult: (docs: Doc<Model>[], info: SnapshotInfo<Model>) => any,
   onError?: (err: Error) => any
 ): () => void {
   let unsubCalled = false
@@ -152,17 +153,40 @@ export default function onQuery<Model>(
 
       firebaseUnsub = paginatedFirestoreQuery.onSnapshot(
         (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
-          onResult(
-            firestoreSnap.docs.map((snap) =>
-              doc(
-                collection.__type__ === 'collectionGroup'
-                  ? pathToRef(snap.ref.path)
-                  : ref(collection, snap.id),
-                wrapData(a, snap.data()) as Model,
-                a.getDocMeta(snap)
-              )
+          const docs = firestoreSnap.docs.map((snap) =>
+            doc(
+              collection.__type__ === 'collectionGroup'
+                ? pathToRef(snap.ref.path)
+                : ref(collection, snap.id),
+              wrapData(a, snap.data()) as Model,
+              a.getDocMeta(snap)
             )
           )
+
+          const changes = () =>
+            firestoreSnap.docChanges().map((change) => ({
+              type: change.type,
+              oldIndex: change.oldIndex,
+              newIndex: change.newIndex,
+              doc:
+                docs[
+                  change.type === 'removed' ? change.oldIndex : change.newIndex
+                ] ||
+                // If change.type indicates 'removed', sometimes(not all the time) `docs` does not
+                // contain the removed document. In that case, we'll restore it from `change.doc`:
+                doc(
+                  collection.__type__ === 'collectionGroup'
+                    ? pathToRef(change.doc.ref.path)
+                    : ref(collection, change.doc.id),
+                  wrapData(a, change.doc.data()) as Model,
+                  a.getDocMeta(change.doc)
+                )
+            }))
+          onResult(docs, {
+            changes,
+            size: firestoreSnap.size,
+            empty: firestoreSnap.empty
+          })
         },
         onError
       )
