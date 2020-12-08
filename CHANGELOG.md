@@ -7,6 +7,14 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 7.0.0 - 2020-12-08
+
+- **BREAKING**: [Transaction write functions now synchronous and don't return promises](https://github.com/kossnocorp/typesaurus/pull/64).
+
+- Added `meta` to doc, which presents only in the web environment.
+
+- [Added ability to query nested subcollection groups](https://github.com/kossnocorp/typesaurus/pull/52).
+
 ## 6.2.0 - 2020-08-24
 
 ### Fixed
