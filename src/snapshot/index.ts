@@ -37,7 +37,7 @@ export interface SnapshotInfo<Model> {
    * this is the first snapshot, all documents will be in the list as added
    * changes.
    */
-  docChanges: () => DocChange<Model>[]
+  changes: () => DocChange<Model>[]
 
   /** The number of documents in the QuerySnapshot. */
   readonly size: number

@@ -775,10 +775,10 @@ describe('onQuery', () => {
       off = onQuery(
         collection<{ ability: string[] }>('penguin'),
         [where('ability', 'array-contains', 'fly')],
-        (docs, { docChanges, empty }) => {
+        (docs, { changes, empty }) => {
           expect(empty).toBeTruthy()
           expect(docs).toHaveLength(0)
-          expect(docChanges()).toHaveLength(0)
+          expect(changes()).toHaveLength(0)
           done()
         }
       )
@@ -803,16 +803,19 @@ describe('onQuery', () => {
           order('year', 'asc', [startAt(1989)]),
           limit(3)
         ],
-        async (docs, { docChanges }) => {
+        async (docs, { changes }) => {
           const names = docs.map(({ data: { name } }) => name).sort()
-          const changes = docChanges()
-            .map(({ type, doc: { data: { name } }}) => ({ type, name }))
+          const docChanges = changes()
+            .map(({ type, doc: { data: { name } } }) => ({ type, name }))
             .sort((a, b) => a.name.localeCompare(b.name))
 
           switch (++c) {
             case 1:
               expect(names).toEqual(['Lesha', 'Tati'])
-              expect(changes).toEqual([{ type: 'added', name: 'Lesha' }, { type: 'added', name: 'Tati' }])
+              expect(docChanges).toEqual([
+                { type: 'added', name: 'Lesha' },
+                { type: 'added', name: 'Tati' }
+              ])
               await set(contacts, theoId, {
                 ownerId,
                 name: 'Theodor',
@@ -822,11 +825,11 @@ describe('onQuery', () => {
               return
             case 2:
               expect(names).toEqual(['Lesha', 'Tati', 'Theodor'])
-              expect(changes).toEqual([{ type: 'added', name: 'Theodor' }])
+              expect(docChanges).toEqual([{ type: 'added', name: 'Theodor' }])
               await remove(contacts, leshaId)
               return
             case 3:
-              expect(changes).toEqual([{ type: 'removed', name: 'Theodor'}])
+              expect(docChanges).toEqual([{ type: 'removed', name: 'Theodor' }])
               done()
           }
         }

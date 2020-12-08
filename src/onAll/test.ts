@@ -141,10 +141,10 @@ describe('onAll', () => {
 
   describe('empty', () => {
     it('should notify with values all indicate empty', (done) => {
-      off = onAll(collection('void'), (docs, { docChanges, empty }) => {
+      off = onAll(collection('void'), (docs, { changes, empty }) => {
         expect(empty).toBeTruthy()
         expect(docs).toHaveLength(0)
-        expect(docChanges()).toHaveLength(0)
+        expect(changes()).toHaveLength(0)
         done()
       })
     })
@@ -153,10 +153,10 @@ describe('onAll', () => {
   describe('real-time', () => {
     it('subscribes to updates', (done) => {
       let c = 0
-      off = onAll(books, async (docs, { docChanges }) => {
+      off = onAll(books, async (docs, { changes }) => {
         const titles = docs.map(({ data: { title } }) => title).sort()
-        const changes = docChanges()
-          .map(({ type, doc: { data: { title } }}) => ({ type, title }))
+        const docChanges = changes()
+          .map(({ type, doc: { data: { title } } }) => ({ type, title }))
           .sort((a, b) => a.title.localeCompare(b.title))
 
         switch (++c) {
@@ -166,7 +166,7 @@ describe('onAll', () => {
               'The 22 Immutable Laws of Marketing',
               'The Mom Test'
             ])
-            expect(changes).toEqual([
+            expect(docChanges).toEqual([
               { type: 'added', title: 'Sapiens' },
               { type: 'added', title: 'The 22 Immutable Laws of Marketing' },
               { type: 'added', title: 'The Mom Test' }
@@ -182,8 +182,8 @@ describe('onAll', () => {
               'The 22 Immutable Laws of Marketing',
               'The Mom Test'
             ])
-            expect(changes).toEqual([
-              { type: 'added', title: "Harry Potter and the Sorcerer's Stone" },
+            expect(docChanges).toEqual([
+              { type: 'added', title: "Harry Potter and the Sorcerer's Stone" }
             ])
             done()
         }

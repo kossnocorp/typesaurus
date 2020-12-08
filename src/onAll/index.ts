@@ -57,22 +57,30 @@ export default function onAll<Model>(
           a.getDocMeta(snap)
         )
       )
-      const docChanges = () => firestoreSnap.docChanges().map(change => ({
-        type: change.type,
-        oldIndex: change.oldIndex,
-        newIndex: change.newIndex,
-        doc: docs[change.type === 'removed' ? change.oldIndex : change.newIndex] ||
-          // If change.type indicates 'removed', sometimes(not all the time) `docs` does not
-          // contain the removed document. In that case, we'll restore it from `change.doc`:
-          doc(
-            collection.__type__ === 'collectionGroup'
-              ? pathToRef(change.doc.ref.path)
-              : ref(collection, change.doc.id),
-            wrapData(a, change.doc.data()) as Model,
-            a.getDocMeta(change.doc)
-          )
-      }))
-      onResult(docs, { docChanges, size: firestoreSnap.size, empty: firestoreSnap.empty })
+      const changes = () =>
+        firestoreSnap.docChanges().map((change) => ({
+          type: change.type,
+          oldIndex: change.oldIndex,
+          newIndex: change.newIndex,
+          doc:
+            docs[
+              change.type === 'removed' ? change.oldIndex : change.newIndex
+            ] ||
+            // If change.type indicates 'removed', sometimes(not all the time) `docs` does not
+            // contain the removed document. In that case, we'll restore it from `change.doc`:
+            doc(
+              collection.__type__ === 'collectionGroup'
+                ? pathToRef(change.doc.ref.path)
+                : ref(collection, change.doc.id),
+              wrapData(a, change.doc.data()) as Model,
+              a.getDocMeta(change.doc)
+            )
+        }))
+      onResult(docs, {
+        changes,
+        size: firestoreSnap.size,
+        empty: firestoreSnap.empty
+      })
     }, onError)
   })
 
