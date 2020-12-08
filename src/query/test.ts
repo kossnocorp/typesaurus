@@ -271,6 +271,39 @@ describe('query', () => {
     ])
   })
 
+  it('allows querying nested subcollection groups', async () => {
+    const contactMessages = subcollection<Message, Contact>(
+      'contactMessages',
+      contacts
+    )
+    type Post = {
+      ownerId: string
+      title: string
+    }
+    const nestedPost = subcollection<Post, Message, Contact>(
+      'posts',
+      contactMessages
+    )
+
+    const ownerId = nanoid()
+    const messageId = nanoid()
+    const nestedPostRef = nestedPost([messageId, ownerId])
+    await add(nestedPostRef, {
+      ownerId,
+      title: 'Hello'
+    })
+    await add(nestedPostRef, {
+      ownerId,
+      title: 'Hello, again!'
+    })
+    const allPosts = group('posts', [nestedPost])
+    const posts = await query(allPosts, [where('ownerId', '==', ownerId)])
+    assert.deepEqual(posts.map((m) => m.data.title).sort(), [
+      'Hello',
+      'Hello, again!'
+    ])
+  })
+
   describe('ordering', () => {
     it('allows ordering', async () => {
       const docs = await query(contacts, [

@@ -1,5 +1,5 @@
 import { Collection } from '../collection'
-import { Subcollection } from '../subcollection'
+import { Subcollection, NestedSubcollection } from '../subcollection'
 
 /**
  * The collection group type. It contains the collection name.
@@ -9,7 +9,10 @@ export interface CollectionGroup<_Model> {
   path: string
 }
 
-type CollectionEntity<Model> = Collection<Model> | Subcollection<Model, any>
+type CollectionEntity<Model> =
+  | Collection<Model>
+  | Subcollection<Model, any>
+  | NestedSubcollection<Model, Model, any>
 
 function group<A>(
   path: string,
