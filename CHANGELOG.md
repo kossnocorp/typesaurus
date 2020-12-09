@@ -7,6 +7,10 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 7.1.0 - 2020-12-09
+
+- Third argument in `doc` (`meta`) now optional.
+
 ## 7.0.0 - 2020-12-08
 
 - **BREAKING**: [Transaction write functions now synchronous and don't return promises](https://github.com/kossnocorp/typesaurus/pull/64).
