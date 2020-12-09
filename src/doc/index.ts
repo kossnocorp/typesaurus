@@ -46,7 +46,7 @@ export type Metadata = {
 export function doc<Model>(
   ref: Ref<Model>,
   data: Model,
-  meta: Metadata | undefined
+  meta: Metadata | undefined = undefined
 ): Doc<Model> {
   return { __type__: 'doc', ref, data, meta }
 }
