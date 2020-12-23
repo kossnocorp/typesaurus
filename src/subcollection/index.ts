@@ -83,7 +83,7 @@ export function subcollection<
 
 /**
  * Creates a subcollection function which accepts parent document reference or id
- * and returns the subcollection trasnformed into a collection object.
+ * and returns the subcollection transformed into a collection object.
  *
  * ```ts
  * import { subcollection, collection, ref, add } from 'typesaurus'
@@ -105,7 +105,7 @@ export function subcollection<
  * create nested subcollection:
  *
  * ```ts
- * import { subcollection, collection, ref, add, Ref } from '.'
+ * import { subcollection, collection, ref, add, Ref } from 'typesaurus'
  *
  * type User = { name: string }
  * type Post = { author: Ref<User>; text: string; date?: Date }
