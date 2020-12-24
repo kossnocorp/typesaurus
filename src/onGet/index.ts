@@ -35,7 +35,7 @@ export default function onGet<Model>(
 ): () => void
 
 /**
- * Subscribes to the diven document.
+ * Subscribes to the given document.
  *
  * ```ts
  * import { onGet, collection } from 'typesaurus'
