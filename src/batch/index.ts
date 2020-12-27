@@ -4,6 +4,7 @@ import { Ref } from '../ref'
 import { unwrapData } from '../data'
 import { UpdateModel } from '../update'
 import { Field } from '../field'
+import { AddModel } from '../add'
 import { SetModel } from '../set'
 import { UpsetModel } from '../upset'
 
@@ -15,6 +16,32 @@ import { UpsetModel } from '../upset'
  * when {@link Batch.commit|commit} function is called.
  */
 export interface Batch {
+  /**
+     Adds a new document with a random id to a collection.
+   *
+   * ```ts
+   * import { batch, collection } from 'typesaurus'
+   *
+   * type Counter = { count: number }
+   * const counters = collection<Counter>('counters')
+   *
+   * const { add, commit } = batch()
+   *
+   * for (let count = 0; count < 500; count++) {
+   *   add(counters, { count })
+   * }
+   *
+   * commit()
+   * ```
+   *
+   * @param collection - The collection to add to
+   * @param data - The data to add to
+   */
+  add<Model>(
+    collection: Collection<Model>,
+    data: AddModel<Model>
+  ): void
+
   /**
    * Sets a document to the given data.
    *
@@ -207,6 +234,17 @@ export function batch(): Batch {
     return firestore.batch()
   })
 
+  function add<Model>(
+    collection: Collection<Model>,
+    data: AddModel<Model>
+  ): void {
+    commands.push((adaptor, firestoreBatch) => {
+      const firestoreDoc = adaptor.firestore.collection(collection.path).doc()
+
+      firestoreBatch.set(firestoreDoc, unwrapData(adaptor, data))
+    })
+  }
+
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
     idOrData: string | SetModel<Model>,
@@ -333,7 +371,7 @@ export function batch(): Batch {
     await b.commit()
   }
 
-  return { set, upset, update, remove, commit }
+  return { add, set, upset, update, remove, commit }
 }
 
 type BatchCommand = (adaptor: Adaptor, batch: FirebaseWriteBatch) => void
