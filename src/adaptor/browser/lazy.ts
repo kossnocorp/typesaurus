@@ -19,6 +19,7 @@ export default async function adaptor() {
     consts: {
       DocumentReference: firebase.firestore.DocumentReference,
       Timestamp: firebase.firestore.Timestamp,
+      Geopoint: admin.firestore.Geopoint,
       FieldPath: firebase.firestore.FieldPath,
       FieldValue: firebase.firestore.FieldValue
     },
