@@ -10,6 +10,18 @@ import { Adaptor } from '../adaptor'
  * @param data - the data to convert
  */
 export function unwrapData(adaptor: Adaptor, data: any): any {
+  var __importStar =
+  (this && this.__importStar) ||
+  function (mod) {
+    if (mod && mod.__esModule) return mod
+    var result = {}
+    if (mod != null)
+      for (var k in mod)
+        if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k]
+    result['default'] = mod
+    return result
+  }
+  const admin = __importStar(require('firebase-admin'))
   if (data && typeof data === 'object') {
     if (data.__type__ === 'ref') {
       return refToFirestoreDocument(adaptor, data as Ref<any>)
@@ -33,6 +45,10 @@ export function unwrapData(adaptor: Adaptor, data: any): any {
       }
     } else if (data instanceof Date) {
       return adaptor.consts.Timestamp.fromDate(data)
+    } else if (data instanceof admin.firestore.GeoPoint) {
++     return new admin.firestore.GeoPoint(data._latitude, data._longitude)
++   } else if (data instanceof admin.firestore.Timestamp) {
++     return new admin.firestore.Timestamp(data._seconds, data._nanoseconds)
     }
 
     const unwrappedObject: { [key: string]: any } = Object.assign(
