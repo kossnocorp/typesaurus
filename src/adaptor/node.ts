@@ -29,6 +29,7 @@ let currentFirestore: AdaptorFirestore = adminFirestore
 const adminConsts = {
   DocumentReference: admin.firestore.DocumentReference,
   Timestamp: admin.firestore.Timestamp,
+  Geopoint: admin.firestore.Geopoint,
   FieldPath: admin.firestore.FieldPath,
   FieldValue: admin.firestore.FieldValue
 }
