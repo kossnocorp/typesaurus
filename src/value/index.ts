@@ -43,6 +43,10 @@ export type ValueArrayRemove = {
   values: any[]
 }
 
+export interface ServerDate extends Date {
+  __dontUseWillBeUndefined__: true
+}
+
 /**
  * The server date value type.
  */
