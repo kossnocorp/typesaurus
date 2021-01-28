@@ -18,9 +18,9 @@ export default async function adaptor() {
     consts: {
       DocumentReference: firebase.firestore.DocumentReference,
       Timestamp: firebase.firestore.Timestamp,
-+     Geopoint: admin.firestore.Geopoint,
       FieldPath: firebase.firestore.FieldPath,
-      FieldValue: firebase.firestore.FieldValue
+      FieldValue: firebase.firestore.FieldValue,
+      GeoPoint: firebase.firestore.GeoPoint,
     },
     getDocMeta: (snapshot: firebase.firestore.DocumentSnapshot) => ({
       fromCache: snapshot.metadata.fromCache,
