@@ -1,21 +1,53 @@
 import { Ref } from '../ref'
+import { ServerDate } from '../value'
+
+export type ServerTimestampsStrategy = 'estimate' | 'previous' | 'none'
 
 /**
  * The document type. It contains the reference in the DB and the model data.
  */
-export interface Doc<Model> {
+export type Doc<
+  Model,
+  FromCache extends boolean,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = NodeDoc<Model> | WebDoc<Model, FromCache, ServerTimestamps>
+
+export interface NodeDoc<Model> {
   __type__: 'doc'
-  data: Model
   ref: Ref<Model>
-  meta: Metadata | undefined
+  data: Model
+  environment: 'node'
+  fromCache?: false
+  hasPendingWrites?: false
+  serverTimestamps?: undefined
 }
 
-/**
- * The document metadata type. Exists only in the web environment.
- */
-export type Metadata = {
-  fromCache: boolean
+export interface WebDoc<
+  Model,
+  FromCache extends boolean,
+  ServerTimestamps extends ServerTimestampsStrategy
+> {
+  __type__: 'doc'
+  ref: Ref<Model>
+  data: FromCache extends false
+    ? Model
+    : ServerTimestamps extends 'estimate'
+    ? Model
+    : MaybeFromCache<Model>
+  environment: 'web'
+  fromCache: FromCache
   hasPendingWrites: boolean
+  serverTimestamps: ServerTimestamps
+}
+
+export type MaybeFromCache<Model> = {
+  [Key in keyof Model]: Model[Key] extends ServerDate
+    ? Date | null
+    : Model[Key] extends Date
+    ? Date
+    : Model[Key] extends {}
+    ? MaybeFromCache<Model[Key]>
+    : Model[Key]
 }
 
 /**
@@ -43,10 +75,21 @@ export type Metadata = {
  * @param data - The model data
  * @returns The document object
  */
-export function doc<Model>(
+export function doc<
+  Model,
+  FromCache extends boolean,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   ref: Ref<Model>,
   data: Model,
-  meta: Metadata | undefined = undefined
-): Doc<Model> {
-  return { __type__: 'doc', ref, data, meta }
+  meta: Omit<
+    Doc<Model, FromCache, ServerTimestamps>,
+    '__type__' | 'ref' | 'data'
+  >
+): Doc<Model, FromCache, ServerTimestamps> {
+  return { __type__: 'doc', ref, data, ...meta } as Doc<
+    Model,
+    FromCache,
+    ServerTimestamps
+  >
 }
