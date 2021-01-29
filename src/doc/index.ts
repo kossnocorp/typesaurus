@@ -1,12 +1,17 @@
+import { ServerTimestampsStrategy } from '../adaptor/types'
 import { Ref } from '../ref'
 import { ServerDate } from '../value'
 
-export type ServerTimestampsStrategy = 'estimate' | 'previous' | 'none'
+export type DocOptions<ServerTimestamps extends ServerTimestampsStrategy> = {
+  serverTimestamps?: ServerTimestamps
+}
 
 /**
  * The document type. It contains the reference in the DB and the model data.
  */
-export type Doc<
+export type Doc<Model> = AnyDoc<Model, boolean, ServerTimestampsStrategy>
+
+export type AnyDoc<
   Model,
   FromCache extends boolean,
   ServerTimestamps extends ServerTimestampsStrategy
@@ -83,11 +88,11 @@ export function doc<
   ref: Ref<Model>,
   data: Model,
   meta: Omit<
-    Doc<Model, FromCache, ServerTimestamps>,
+    AnyDoc<Model, FromCache, ServerTimestamps>,
     '__type__' | 'ref' | 'data'
   >
-): Doc<Model, FromCache, ServerTimestamps> {
-  return { __type__: 'doc', ref, data, ...meta } as Doc<
+): AnyDoc<Model, FromCache, ServerTimestamps> {
+  return { __type__: 'doc', ref, data, ...meta } as AnyDoc<
     Model,
     FromCache,
     ServerTimestamps

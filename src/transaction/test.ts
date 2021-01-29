@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { transaction } from '.'
 import { collection } from '../collection'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 import set from '../set'
 import { ref, Ref } from '../ref'
 import get from '../get'
@@ -102,7 +102,10 @@ describe('transaction', () => {
     await set(counter, { count: 0 })
     await Promise.all([
       plusOne(counter, true),
-      transaction(({ get }) => get(counter), ({ remove }) => remove(counter))
+      transaction(
+        ({ get }) => get(counter),
+        ({ remove }) => remove(counter)
+      )
     ])
     const counterFromDB = await get(counter)
     assert(!counterFromDB)

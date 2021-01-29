@@ -1,8 +1,11 @@
+import { ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
-import { Doc } from '../doc'
+import { AnyDoc, DocOptions } from '../doc'
 import onGet from '../onGet'
 
-type OnResult<Model> = (doc: Doc<Model>[]) => any
+type OnResult<Model, ServerTimestamps extends ServerTimestampsStrategy> = (
+  doc: AnyDoc<Model, boolean, ServerTimestamps>[]
+) => any
 
 type OnError = (error: Error) => any
 
@@ -31,14 +34,15 @@ type OnError = (error: Error) => any
  *
  * @returns Function that unsubscribes the listener from the updates
  */
-function onGetMany<Model>(
+function onGetMany<Model, ServerTimestamps extends ServerTimestampsStrategy>(
   collection: Collection<Model>,
   ids: readonly string[],
-  onResult: OnResult<Model>,
-  onError?: OnError
+  onResult: OnResult<Model, ServerTimestamps>,
+  onError?: OnError,
   // onMissing: ((id: string) => Model) | 'ignore' = id => {
   //   throw new Error(`Missing document with id ${id}`)
   // }
+  options?: DocOptions<ServerTimestamps>
 ): () => void {
   let waiting = ids.length
   const result = new Array(ids.length)
@@ -47,7 +51,7 @@ function onGetMany<Model>(
     onGet(
       collection,
       id,
-      doc => {
+      (doc) => {
         result[idIndex] = doc
         if (waiting) waiting--
         if (waiting === 0) {
@@ -60,7 +64,7 @@ function onGetMany<Model>(
 
   if (ids.length === 0) onResult([])
 
-  return () => offs.map(off => off())
+  return () => offs.map((off) => off())
 }
 
 export default onGetMany

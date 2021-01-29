@@ -1,6 +1,6 @@
 import adaptor from '../adaptor'
 import { Collection } from '../collection'
-import { doc, Doc } from '../doc'
+import { AnyDoc, doc, Doc, DocOptions } from '../doc'
 import { ref, pathToRef } from '../ref'
 import { WhereQuery } from '../where'
 import { OrderQuery } from '../order'
@@ -9,6 +9,7 @@ import { Cursor, CursorMethod } from '../cursor'
 import { wrapData, unwrapData } from '../data'
 import { CollectionGroup } from '../group'
 import { DocId } from '../docId'
+import { ServerTimestampsStrategy } from '../adaptor/types'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -50,10 +51,14 @@ export type Query<Model, Key extends keyof Model> =
  * @param queries - The query objects
  * @returns The promise to the query results
  */
-export async function query<Model>(
+export async function query<
+  Model,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model> | CollectionGroup<Model>,
-  queries: Query<Model, keyof Model>[]
-): Promise<Doc<Model>[]> {
+  queries: Query<Model, keyof Model>[],
+  options?: DocOptions<ServerTimestamps>
+): Promise<AnyDoc<Model, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
   const { firestoreQuery, cursors } = queries.reduce(
     (acc, q) => {
@@ -68,6 +73,7 @@ export async function query<Model>(
           )
           if (cursors)
             acc.cursors = acc.cursors.concat(
+              // @ts-ignore
               cursors.map(({ method, value }) => ({
                 method,
                 value:
@@ -142,8 +148,12 @@ export async function query<Model>(
       collection.__type__ === 'collectionGroup'
         ? pathToRef(snap.ref.path)
         : ref(collection, snap.id),
-      wrapData(a, snap.data()) as Model,
-      a.getDocMeta(snap)
+      wrapData(a, a.getDocData(snap, options)) as Model,
+      {
+        environment: a.environment,
+        serverTimestamps: options?.serverTimestamps,
+        ...a.getDocMeta(snap)
+      }
     )
   )
 }

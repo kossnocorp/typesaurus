@@ -2,7 +2,7 @@ import assert from 'assert'
 import { batch } from '.'
 import { collection } from '../collection'
 import { ref } from '../ref'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 import get from '../get'
 import set from '../set'
 

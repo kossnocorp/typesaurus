@@ -1,5 +1,5 @@
 import assert from 'assert'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 import get from '../get'
 import set from '.'
 import { collection } from '../collection'
