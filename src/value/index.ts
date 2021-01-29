@@ -1,3 +1,5 @@
+import { RuntimeEnvironment } from '../adaptor/types'
+
 /**
  * Available value kinds.
  */
@@ -89,12 +91,21 @@ export type UpdateValue<Model, Key> = Key extends keyof Model
 /**
  * The value types to use for add operation.
  */
-export type AddValue<T> = T extends Date ? ValueServerDate : never
+export type AddValue<T> = T extends ServerDate ? ValueServerDate : never
 
 /**
  * The value types to use for set operation.
  */
-export type SetValue<T> = T extends Date ? ValueServerDate : never
+export type SetValue<
+  Type,
+  Environment extends RuntimeEnvironment
+> = Environment extends 'node'
+  ? Type extends ServerDate
+    ? ValueServerDate | Date
+    : never
+  : Type extends ServerDate
+  ? ValueServerDate
+  : never
 
 /**
  * The value types to use for upset operation.
@@ -103,7 +114,7 @@ export type UpsetValue<T> = T extends number
   ? ValueIncrement
   : T extends Array<any>
   ? ValueArrayUnion | ValueArrayRemove
-  : T extends Date
+  : T extends ServerDate
   ? ValueServerDate
   : never
 

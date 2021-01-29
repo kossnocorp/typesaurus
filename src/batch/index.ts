@@ -4,8 +4,9 @@ import { Ref } from '../ref'
 import { unwrapData } from '../data'
 import { UpdateModel } from '../update'
 import { Field } from '../field'
-import { SetModel } from '../set'
+import { SetModel, SetOptions } from '../set'
 import { UpsetModel } from '../upset'
+import { RuntimeEnvironment } from '../adaptor/types'
 
 /**
  * The batch API object. It unions a set of functions ({@link Batch.set|set},
@@ -36,16 +37,19 @@ export interface Batch {
    * @param ref - The reference to the document to set
    * @param data - The document data
    */
-  set<Model>(ref: Ref<Model>, data: SetModel<Model>): void
+  set<Model, Environment extends RuntimeEnvironment>(
+    ref: Ref<Model>,
+    data: SetModel<Model, Environment>
+  ): void
   /**
    * @param collection - The collection to set document in
    * @param id - The id of the document to set
    * @param data - The document data
    */
-  set<Model>(
+  set<Model, Environment extends RuntimeEnvironment>(
     collection: Collection<Model>,
     id: string,
-    data: SetModel<Model>
+    data: SetModel<Model, Environment>
   ): void
 
   /**
@@ -207,24 +211,28 @@ export function batch(): Batch {
     return firestore.batch()
   })
 
-  function set<Model>(
+  function set<Model, Environment extends RuntimeEnvironment>(
     collectionOrRef: Collection<Model> | Ref<Model>,
-    idOrData: string | SetModel<Model>,
-    maybeData?: SetModel<Model>
+    idOrData: string | SetModel<Model, Environment>,
+    maybeDataOrOptions?: SetModel<Model, Environment> | SetOptions<Environment>,
+    maybeOptions?: SetOptions<Environment>
   ): void {
     let collection: Collection<Model>
     let id: string
-    let data: SetModel<Model>
+    let data: SetModel<Model, Environment>
+    let options: SetOptions<Environment> | undefined
 
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = maybeData as SetModel<Model>
+      data = maybeDataOrOptions as SetModel<Model, Environment>
+      options = maybeOptions
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
       id = ref.id
-      data = idOrData as SetModel<Model>
+      data = idOrData as SetModel<Model, Environment>
+      options = maybeDataOrOptions as SetOptions<Environment> | undefined
     }
 
     commands.push((adaptor, firestoreBatch) => {
@@ -288,13 +296,10 @@ export function batch(): Batch {
     commands.push((adaptor, firestoreBatch) => {
       const firebaseDoc = adaptor.firestore.collection(collection.path).doc(id)
       const updateData = Array.isArray(data)
-        ? data.reduce(
-            (acc, { key, value }) => {
-              acc[Array.isArray(key) ? key.join('.') : key] = value
-              return acc
-            },
-            {} as { [key: string]: any }
-          )
+        ? data.reduce((acc, { key, value }) => {
+            acc[Array.isArray(key) ? key.join('.') : key] = value
+            return acc
+          }, {} as { [key: string]: any })
         : data
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
@@ -329,7 +334,7 @@ export function batch(): Batch {
   async function commit() {
     const a = await adaptor()
     const b = a.firestore.batch()
-    commands.forEach(fn => fn(a, b))
+    commands.forEach((fn) => fn(a, b))
     await b.commit()
   }
 

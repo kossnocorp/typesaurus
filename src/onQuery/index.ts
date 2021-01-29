@@ -2,7 +2,7 @@ import adaptor from '../adaptor'
 import { Collection } from '../collection'
 import { Cursor, CursorMethod } from '../cursor'
 import { unwrapData, wrapData } from '../data'
-import { doc, Doc } from '../doc'
+import { AnyDoc, doc, DocOptions } from '../doc'
 import { DocId } from '../docId'
 import { CollectionGroup } from '../group'
 import { LimitQuery } from '../limit'
@@ -10,6 +10,7 @@ import { OrderQuery } from '../order'
 import { pathToRef, ref } from '../ref'
 import { WhereQuery } from '../where'
 import { SnapshotInfo } from '../snapshot'
+import { ServerTimestampsStrategy } from '../adaptor/types'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -54,11 +55,18 @@ export type Query<Model, Key extends keyof Model> =
  * @param onError - The function is called with error when request fails.
  * @returns Function that unsubscribes the listener from the updates
  */
-export default function onQuery<Model>(
+export default function onQuery<
+  Model,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
-  onResult: (docs: Doc<Model>[], info: SnapshotInfo<Model>) => any,
-  onError?: (err: Error) => any
+  onResult: (
+    docs: AnyDoc<Model, boolean, ServerTimestamps>[],
+    info: SnapshotInfo<Model>
+  ) => any,
+  onError?: (err: Error) => any,
+  options?: DocOptions<ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -84,6 +92,7 @@ export default function onQuery<Model>(
               )
               if (cursors)
                 acc.cursors = acc.cursors.concat(
+                  // @ts-ignore
                   cursors.map(({ method, value }) => ({
                     method,
                     value:
@@ -153,13 +162,21 @@ export default function onQuery<Model>(
 
       firebaseUnsub = paginatedFirestoreQuery.onSnapshot(
         (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
-          const docs: Doc<Model>[] = firestoreSnap.docs.map((snap) =>
+          const docs: AnyDoc<
+            Model,
+            boolean,
+            ServerTimestamps
+          >[] = firestoreSnap.docs.map((snap) =>
             doc(
               collection.__type__ === 'collectionGroup'
                 ? pathToRef(snap.ref.path)
                 : ref(collection, snap.id),
-              wrapData(a, snap.data()) as Model,
-              a.getDocMeta(snap)
+              wrapData(a, a.getDocData(snap, options)) as Model,
+              {
+                environment: a.environment,
+                serverTimestamps: options?.serverTimestamps,
+                ...a.getDocMeta(snap)
+              }
             )
           )
 
@@ -178,8 +195,12 @@ export default function onQuery<Model>(
                   collection.__type__ === 'collectionGroup'
                     ? pathToRef(change.doc.ref.path)
                     : ref(collection, change.doc.id),
-                  wrapData(a, change.doc.data()) as Model,
-                  a.getDocMeta(change.doc)
+                  wrapData(a, a.getDocData(change.doc, options)) as Model,
+                  {
+                    environment: a.environment,
+                    serverTimestamps: options?.serverTimestamps,
+                    ...a.getDocMeta(change.doc)
+                  }
                 )
             }))
           onResult(docs, {

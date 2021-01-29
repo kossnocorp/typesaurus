@@ -1,7 +1,8 @@
 import adaptor from '../adaptor'
+import { ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { wrapData } from '../data'
-import { doc, Doc } from '../doc'
+import { AnyDoc, doc, Doc, DocOptions } from '../doc'
 import { CollectionGroup } from '../group'
 import { pathToRef, ref } from '../ref'
 import { SnapshotInfo } from '../snapshot'
@@ -30,10 +31,17 @@ import { SnapshotInfo } from '../snapshot'
  * the initial fetch is resolved or the collection updates.
  * @param onError - The function is called with error when request fails.
  */
-export default function onAll<Model>(
+export default function onAll<
+  Model,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model> | CollectionGroup<Model>,
-  onResult: (docs: Doc<Model>[], info: SnapshotInfo<Model>) => any,
-  onError?: (error: Error) => any
+  onResult: (
+    docs: AnyDoc<Model, boolean, ServerTimestamps>[],
+    info: SnapshotInfo<Model>
+  ) => any,
+  onError?: (error: Error) => any,
+  options?: DocOptions<ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -49,12 +57,16 @@ export default function onAll<Model>(
       : a.firestore.collection(collection.path)
     ).onSnapshot((firestoreSnap) => {
       const docs = firestoreSnap.docs.map((snap) =>
-        doc<Model>(
+        doc<Model, boolean, ServerTimestamps>(
           collection.__type__ === 'collectionGroup'
             ? pathToRef(snap.ref.path)
             : ref(collection, snap.id),
-          wrapData(a, snap.data()) as Model,
-          a.getDocMeta(snap)
+          wrapData(a, a.getDocData(snap, options)) as Model,
+          {
+            environment: a.environment,
+            serverTimestamps: options?.serverTimestamps,
+            ...a.getDocMeta(snap)
+          }
         )
       )
       const changes = () =>
@@ -72,8 +84,12 @@ export default function onAll<Model>(
               collection.__type__ === 'collectionGroup'
                 ? pathToRef(change.doc.ref.path)
                 : ref(collection, change.doc.id),
-              wrapData(a, change.doc.data()) as Model,
-              a.getDocMeta(change.doc)
+              wrapData(a, a.getDocData(change.doc, options)) as Model,
+              {
+                environment: a.environment,
+                serverTimestamps: options?.serverTimestamps,
+                ...a.getDocMeta(change.doc)
+              }
             )
         }))
       onResult(docs, {

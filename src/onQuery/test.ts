@@ -1,5 +1,5 @@
 import assert from 'assert'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 import add from '../add'
 import { where } from '../where'
 import { limit } from '../limit'

@@ -1,7 +1,8 @@
 import adaptor from '../adaptor'
+import { ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { wrapData } from '../data'
-import { doc, Doc } from '../doc'
+import { AnyDoc, doc, DocOptions } from '../doc'
 import { CollectionGroup } from '../group'
 import { pathToRef, ref } from '../ref'
 
@@ -27,9 +28,13 @@ import { pathToRef, ref } from '../ref'
  * @param collection - The collection to get all documents from
  * @returns A promise to all documents
  */
-export default async function all<Model>(
-  collection: Collection<Model> | CollectionGroup<Model>
-): Promise<Doc<Model>[]> {
+export default async function all<
+  Model,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
+  collection: Collection<Model> | CollectionGroup<Model>,
+  options?: DocOptions<ServerTimestamps>
+): Promise<AnyDoc<Model, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
   const firebaseSnap = await (collection.__type__ === 'collectionGroup'
     ? a.firestore.collectionGroup(collection.path)
@@ -40,8 +45,12 @@ export default async function all<Model>(
       collection.__type__ === 'collectionGroup'
         ? pathToRef(snap.ref.path)
         : ref(collection, snap.id),
-      wrapData(a, snap.data()) as Model,
-      a.getDocMeta(snap)
+      wrapData(a, a.getDocData(snap, options)) as Model,
+      {
+        environment: a.environment,
+        serverTimestamps: options?.serverTimestamps,
+        ...a.getDocMeta(snap)
+      }
     )
   )
 }
