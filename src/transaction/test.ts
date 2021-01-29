@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { transaction } from '.'
 import { collection } from '../collection'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 import set from '../set'
 import { ref, Ref } from '../ref'
 import get from '../get'

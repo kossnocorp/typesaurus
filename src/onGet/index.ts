@@ -1,7 +1,8 @@
 import adaptor from '../adaptor'
+import { ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { wrapData } from '../data'
-import { doc, Doc } from '../doc'
+import { doc, Doc, DocOptions } from '../doc'
 import { ref, Ref } from '../ref'
 
 type OnResult<Model> = (doc: Doc<Model> | null) => any
@@ -14,10 +15,14 @@ type OnError = (error: Error) => any
  * the initial fetch is resolved or the document updates.
  * @param onError - The function is called with error when request fails.
  */
-export default function onGet<Model>(
+export default function onGet<
+  Model,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   ref: Ref<Model>,
   onResult: OnResult<Model>,
-  onError?: OnError
+  onError?: OnError,
+  options?: DocOptions<ServerTimestamps>
 ): () => void
 
 /**
@@ -27,11 +32,15 @@ export default function onGet<Model>(
  * the initial fetch is resolved or the document updates.
  * @param onError - The function is called with error when request fails.
  */
-export default function onGet<Model>(
+export default function onGet<
+  Model,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model>,
   id: string,
   onResult: OnResult<Model>,
-  onError?: OnError
+  onError?: OnError,
+  options?: DocOptions<ServerTimestamps>
 ): () => void
 
 /**
@@ -53,11 +62,15 @@ export default function onGet<Model>(
  *
  * @returns Function that unsubscribes the listener from the updates
  */
-export default function onGet<Model>(
+export default function onGet<
+  Model,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   idOrOnResult: string | OnResult<Model>,
   onResultOrOnError?: OnResult<Model> | OnError,
-  maybeOnError?: OnError
+  maybeOnErrorOrOptions?: OnError | DocOptions<ServerTimestamps>,
+  maybeOptions?: DocOptions<ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -70,28 +83,37 @@ export default function onGet<Model>(
   let id: string
   let onResult: OnResult<Model>
   let onError: OnError | undefined
+  let options: DocOptions<ServerTimestamps> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
     id = idOrOnResult as string
     onResult = onResultOrOnError as OnResult<Model>
-    onError = maybeOnError
+    onError = maybeOnErrorOrOptions as OnError | undefined
+    options = maybeOptions as DocOptions<ServerTimestamps>
   } else {
     const ref = collectionOrRef as Ref<Model>
     collection = ref.collection
     id = ref.id
     onResult = idOrOnResult as OnResult<Model>
     onError = onResultOrOnError as OnError | undefined
+    options = maybeOnErrorOrOptions as DocOptions<ServerTimestamps>
   }
 
   adaptor().then((a) => {
     if (unsubCalled) return
     const firestoreDoc = a.firestore.collection(collection.path).doc(id)
     firebaseUnsub = firestoreDoc.onSnapshot((snap) => {
-      const firestoreData = snap.data()
+      const firestoreData = a.getDocData(snap, options)
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
       onResult(
-        (data && doc(ref(collection, id), data, a.getDocMeta(snap))) || null
+        (data &&
+          doc(ref(collection, id), data, {
+            environment: a.environment,
+            serverTimestamps: options?.serverTimestamps,
+            ...a.getDocMeta(snap)
+          })) ||
+          null
       )
     }, onError)
   })

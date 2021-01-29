@@ -4,6 +4,7 @@
 
 import * as firebase from 'firebase/app'
 import 'firebase/firestore'
+import { DocumentDataOptions } from '../types'
 import { getAll } from '../utils'
 
 export default async function adaptor() {
@@ -24,7 +25,11 @@ export default async function adaptor() {
     getDocMeta: (snapshot: firebase.firestore.DocumentSnapshot) => ({
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites
-    })
+    }),
+    getDocData: (
+      snapshot: firebase.firestore.DocumentSnapshot,
+      options?: DocumentDataOptions
+    ) => snapshot.data(options)
   }
 }
 

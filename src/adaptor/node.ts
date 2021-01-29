@@ -4,14 +4,23 @@
 
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
-import { Metadata } from '../doc'
+import {
+  DocumentDataOptions,
+  DocumentMetaData,
+  RuntimeEnvironment
+} from './types'
 
 export type Adaptor = {
   firestore: admin.firestore.Firestore
   consts: AdaptorConsts
+  environment: RuntimeEnvironment
   getDocMeta: (
     snapshot: admin.firestore.DocumentSnapshot
-  ) => Metadata | undefined
+  ) => DocumentMetaData | {}
+  getDocData: (
+    snapshot: admin.firestore.DocumentSnapshot,
+    options?: DocumentDataOptions
+  ) => FirestoreDocumentData | undefined
 }
 
 export type AdaptorFirestore = () => admin.firestore.Firestore
@@ -34,11 +43,13 @@ const adminConsts = {
 }
 let currentConsts: AdaptorConsts = adminConsts
 
-export default async function adaptor() {
+export default async function adaptor(): Promise<Adaptor> {
   return {
     firestore: currentFirestore(),
     consts: currentConsts,
-    getDocMeta: (_snapshot: admin.firestore.DocumentSnapshot) => undefined
+    environment: 'node',
+    getDocMeta: () => ({}),
+    getDocData: (snapshot) => snapshot.data()
   }
 }
 

@@ -1,5 +1,5 @@
 import assert from 'assert'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 import { getRefPath, ref, pathToRef, id } from '.'
 import { collection } from '../collection'
 
