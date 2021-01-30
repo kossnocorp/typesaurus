@@ -83,5 +83,27 @@ describe('set', () => {
         returnedDate!.getTime() < now && returnedDate!.getTime() > now - 10000
       )
     })
+
+    it('allows to assert environment which allows setting dates', async () => {
+      // @ts-expect-error
+      await set(users, nanoid(), {
+        name: 'Sasha',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        birthday: new Date(1987, 1, 11)
+      })
+
+      await set(
+        users,
+        nanoid(),
+        {
+          name: 'Sasha',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          birthday: new Date(1987, 1, 11)
+        },
+        { assertEnvironment: 'node' }
+      )
+    })
   })
 })
