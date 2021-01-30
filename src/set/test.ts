@@ -85,6 +85,7 @@ describe('set', () => {
     })
 
     it('allows to assert environment which allows setting dates', async () => {
+      // TODO: Find a way to make the error show on fields like when assertEnvironment: 'web'
       // @ts-expect-error
       await set(users, nanoid(), {
         name: 'Sasha',
@@ -93,17 +94,51 @@ describe('set', () => {
         birthday: new Date(1987, 1, 11)
       })
 
-      await set(
-        users,
-        nanoid(),
-        {
-          name: 'Sasha',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          birthday: new Date(1987, 1, 11)
-        },
-        { assertEnvironment: 'node' }
-      )
+      const nodeSet = () =>
+        set(
+          users,
+          nanoid(),
+          {
+            name: 'Sasha',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { assertEnvironment: 'node' }
+        )
+
+      const webSet = () =>
+        set(
+          users,
+          nanoid(),
+          {
+            name: 'Sasha',
+            // @ts-expect-error
+            createdAt: new Date(),
+            // @ts-expect-error
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { assertEnvironment: 'web' }
+        )
+
+      if (typeof window === 'undefined') {
+        await nodeSet()
+        try {
+          await webSet()
+          assert.fail('It should catch!')
+        } catch (err) {
+          assert(err.message === 'Expected web environment')
+        }
+      } else {
+        await webSet()
+        try {
+          await nodeSet()
+          assert.fail('It should catch!')
+        } catch (err) {
+          assert(err.message === 'Expected node environment')
+        }
+      }
     })
   })
 })
