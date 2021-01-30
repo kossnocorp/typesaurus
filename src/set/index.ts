@@ -1,23 +1,31 @@
+import { Server } from 'http'
 import adaptor from '../adaptor'
 import { RuntimeEnvironment } from '../adaptor/types'
 import { Collection } from '../collection'
 import { unwrapData } from '../data'
 import { Ref } from '../ref'
-import { SetValue } from '../value'
+import { ServerDate, SetValue } from '../value'
 
 /**
  * Type of the data passed to the set function. It extends the model
  * allowing to set server date field value.
  */
-export type SetModel<Model, Environment extends RuntimeEnvironment> = {
+export type SetModel<
+  Model,
+  Environment extends RuntimeEnvironment | undefined
+> = {
   [Key in keyof Model]:
-    | (Model[Key] extends object
+    | (Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
+        ? Environment extends 'node' // Date can be used only in the node environment
+          ? Date | ServerDate
+          : ServerDate
+        : Model[Key] extends object // If it's an object, recursively pass through SetModel
         ? SetModel<Model[Key], Environment>
         : Model[Key])
-    | SetValue<Model[Key], Environment>
+    | SetValue<Model[Key]>
 }
 
-export type SetOptions<Environment extends RuntimeEnvironment> = {
+export type SetOptions<Environment extends RuntimeEnvironment | undefined> = {
   assertEnvironment?: Environment
 }
 
@@ -25,7 +33,10 @@ export type SetOptions<Environment extends RuntimeEnvironment> = {
  * @param ref - the reference to the document to set
  * @param data - the document data
  */
-async function set<Model, Environment extends RuntimeEnvironment>(
+async function set<
+  Model,
+  Environment extends RuntimeEnvironment | undefined = undefined
+>(
   ref: Ref<Model>,
   data: SetModel<Model, Environment>,
   options?: SetOptions<Environment>
@@ -36,7 +47,10 @@ async function set<Model, Environment extends RuntimeEnvironment>(
  * @param id - the id of the document to set
  * @param data - the document data
  */
-async function set<Model, Environment extends RuntimeEnvironment>(
+async function set<
+  Model,
+  Environment extends RuntimeEnvironment | undefined = undefined
+>(
   collection: Collection<Model>,
   id: string,
   data: SetModel<Model, Environment>,
@@ -58,7 +72,10 @@ async function set<Model, Environment extends RuntimeEnvironment>(
  * //=> { name: 'Sasha Koss' }
  * ```
  */
-async function set<Model, Environment extends RuntimeEnvironment>(
+async function set<
+  Model,
+  Environment extends RuntimeEnvironment | undefined = undefined
+>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   idOrData: string | SetModel<Model, Environment>,
   maybeDataOrOptions?: SetModel<Model, Environment> | SetOptions<Environment>,

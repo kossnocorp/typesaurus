@@ -96,16 +96,7 @@ export type AddValue<T> = T extends ServerDate ? ValueServerDate : never
 /**
  * The value types to use for set operation.
  */
-export type SetValue<
-  Type,
-  Environment extends RuntimeEnvironment
-> = Environment extends 'node'
-  ? Type extends ServerDate
-    ? ValueServerDate | Date
-    : never
-  : Type extends ServerDate
-  ? ValueServerDate
-  : never
+export type SetValue<Type> = Type extends ServerDate ? ValueServerDate : never
 
 /**
  * The value types to use for upset operation.
