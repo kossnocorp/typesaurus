@@ -10,7 +10,7 @@ import { OrderQuery } from '../order'
 import { pathToRef, ref } from '../ref'
 import { WhereQuery } from '../where'
 import { SnapshotInfo } from '../snapshot'
-import { ServerTimestampsStrategy } from '../adaptor/types'
+import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -62,7 +62,7 @@ export default function onQuery<
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
   onResult: (
-    docs: AnyDoc<Model, boolean, ServerTimestamps>[],
+    docs: AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[],
     info: SnapshotInfo<Model>
   ) => any,
   onError?: (err: Error) => any,
@@ -164,6 +164,7 @@ export default function onQuery<
         (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
           const docs: AnyDoc<
             Model,
+            RuntimeEnvironment,
             boolean,
             ServerTimestamps
           >[] = firestoreSnap.docs.map((snap) =>

@@ -50,34 +50,28 @@ export interface WebDoc<
 > {
   __type__: 'doc'
   ref: Ref<Model>
-  data: ModelData<Model, 'web', FromCache, ServerTimestamps>
+  data: FromCache extends false
+    ? ModelData<Model, false>
+    : ServerTimestamps extends 'estimate'
+    ? ModelData<Model, false>
+    : ModelData<Model, true>
   environment: 'web'
   fromCache: FromCache
   hasPendingWrites: boolean
   serverTimestamps: ServerTimestamps
 }
 
-export type ModelNodeData<Model> = ModelData<
-  Model,
-  'node',
-  boolean,
-  ServerTimestampsStrategy
->
+export type ModelNodeData<Model> = ModelData<Model, false>
 
-export type ModelData<
-  Model,
-  Environment extends RuntimeEnvironment | undefined,
-  FromCache extends boolean,
-  ServerTimestamps extends ServerTimestampsStrategy
-> = {
+export type ModelData<Model, ServerDateNullable extends boolean> = {
   [Key in keyof Model]: Exclude<Model[Key], undefined> extends ServerDate // Process server dates
-    ?
-        | Exclude<Model[Key], ServerDate> // Preserve "| undefined"
-        | ResolvedServerDate<Environment, FromCache, ServerTimestamps>
+    ? ServerDateNullable extends true
+      ? Date | null
+      : Date
     : Exclude<Model[Key], undefined> extends Date // Stop dates from being processed as an object
     ? Model[Key]
     : Model[Key] extends object // If it's an object, recursively pass through ModelData
-    ? ModelData<Model[Key], Environment, FromCache, ServerTimestamps>
+    ? ModelData<Model[Key], ServerDateNullable>
     : Model[Key]
 }
 

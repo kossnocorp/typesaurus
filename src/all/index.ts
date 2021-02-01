@@ -1,5 +1,5 @@
 import adaptor from '../adaptor'
-import { ServerTimestampsStrategy } from '../adaptor/types'
+import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { wrapData } from '../data'
 import { AnyDoc, doc, DocOptions } from '../doc'
@@ -34,7 +34,7 @@ export default async function all<
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
   options?: DocOptions<ServerTimestamps>
-): Promise<AnyDoc<Model, boolean, ServerTimestamps>[]> {
+): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
   const firebaseSnap = await (collection.__type__ === 'collectionGroup'
     ? a.firestore.collectionGroup(collection.path)

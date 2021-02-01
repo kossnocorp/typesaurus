@@ -9,7 +9,7 @@ import { Cursor, CursorMethod } from '../cursor'
 import { wrapData, unwrapData } from '../data'
 import { CollectionGroup } from '../group'
 import { DocId } from '../docId'
-import { ServerTimestampsStrategy } from '../adaptor/types'
+import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -58,7 +58,7 @@ export async function query<
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
   options?: DocOptions<ServerTimestamps>
-): Promise<AnyDoc<Model, boolean, ServerTimestamps>[]> {
+): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
   const { firestoreQuery, cursors } = queries.reduce(
     (acc, q) => {

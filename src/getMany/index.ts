@@ -1,5 +1,5 @@
 import adaptor from '../adaptor'
-import { ServerTimestampsStrategy } from '../adaptor/types'
+import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { wrapData } from '../data'
 import { AnyDoc, doc, Doc, DocOptions } from '../doc'
@@ -49,7 +49,7 @@ export default async function getMany<
     onMissing = defaultOnMissing,
     ...options
   }: DocOptions<ServerTimestamps> & OnMissingOptions<Model> = {}
-): Promise<AnyDoc<Model, boolean, ServerTimestamps>[]> {
+): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
 
   if (ids.length === 0) {
@@ -87,5 +87,10 @@ export default async function getMany<
         ...a.getDocMeta(firestoreSnap)
       })
     })
-    .filter((doc) => doc != null) as AnyDoc<Model, boolean, ServerTimestamps>[]
+    .filter((doc) => doc != null) as AnyDoc<
+    Model,
+    RuntimeEnvironment,
+    boolean,
+    ServerTimestamps
+  >[]
 }

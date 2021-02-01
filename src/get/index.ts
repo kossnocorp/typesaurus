@@ -1,5 +1,5 @@
 import adaptor from '../adaptor'
-import { ServerTimestampsStrategy } from '../adaptor/types'
+import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { wrapData } from '../data'
 import { AnyDoc, doc, Doc, DocOptions } from '../doc'
@@ -50,7 +50,12 @@ async function get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   maybeIdOrOptions?: string | DocOptions<ServerTimestamps>,
   maybeOptions?: DocOptions<ServerTimestamps>
-): Promise<AnyDoc<Model, boolean, ServerTimestamps> | null> {
+): Promise<AnyDoc<
+  Model,
+  RuntimeEnvironment,
+  boolean,
+  ServerTimestamps
+> | null> {
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
