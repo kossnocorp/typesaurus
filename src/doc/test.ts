@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { nanoid } from 'nanoid'
-import { doc } from '.'
-import { assertType } from '../../test/utils'
+import { AnyDoc, Doc, doc } from '.'
+import { assertType, TypeEqual } from '../../test/utils'
 import { collection } from '../collection'
 import { ref } from '../ref'
 import { ServerDate } from '../value'
@@ -25,7 +25,8 @@ describe('Doc', () => {
         {
           __type__: 'doc',
           ref: userRef,
-          data: { name: 'Sasha', createdAt, birthday }
+          data: { name: 'Sasha', createdAt, birthday },
+          meta: { environment: 'node' }
         }
       )
     })
@@ -37,22 +38,88 @@ describe('Doc', () => {
         birthday: new Date(1987, 1, 11)
       }
 
+      // Test dates in the node environment
+
       const nodeDoc = doc(ref(users, nanoid()), user, { environment: 'node' })
-      assertType<Date>(nodeDoc.data.birthday)
-      if (nodeDoc.environment === 'node') {
-        assertType<Date>(nodeDoc.data.createdAt)
-      }
+      assertType<TypeEqual<Date, typeof nodeDoc.data.createdAt>>(true)
+      assertType<TypeEqual<Date | undefined, typeof nodeDoc.data.updatedAt>>(
+        true
+      )
+      assertType<TypeEqual<Date, typeof nodeDoc.data.birthday>>(true)
+      assertType<TypeEqual<Date | undefined, typeof nodeDoc.data.deathday>>(
+        true
+      )
+
+      type TypeEqual<T, U> = Exclude<T, U> extends never
+        ? Exclude<U, T> extends never
+          ? true
+          : false
+        : false
+
+      const expectType = <T>(_: T): void => undefined
+
+      // Test dates within cached doc
 
       const webDoc = doc(ref(users, nanoid()), user, {
         environment: 'web',
         fromCache: true,
         hasPendingWrites: true
       })
-      assertType<Date>(webDoc.data.birthday)
-      assertType<Date | null>(webDoc.data.createdAt)
+      expectType<TypeEqual<Date | null, typeof webDoc.data.createdAt>>(true)
+      assertType<
+        TypeEqual<Date | null | undefined, typeof webDoc.data.updatedAt>
+      >(true)
+      assertType<TypeEqual<Date, typeof webDoc.data.birthday>>(true)
+      assertType<TypeEqual<Date | undefined, typeof webDoc.data.deathday>>(true)
 
-      if (!webDoc.fromCache) {
-        assertType<Date>(webDoc.data.createdAt)
+      // Test dates within not-cached doc
+
+      const notCachedDoc = doc(ref(users, nanoid()), user, {
+        environment: 'web',
+        fromCache: false,
+        hasPendingWrites: false
+      })
+      assertType<TypeEqual<Date, typeof notCachedDoc.data.createdAt>>(true)
+      assertType<
+        TypeEqual<Date | undefined, typeof notCachedDoc.data.updatedAt>
+      >(true)
+      assertType<TypeEqual<Date, typeof notCachedDoc.data.birthday>>(true)
+      assertType<
+        TypeEqual<Date | undefined, typeof notCachedDoc.data.deathday>
+      >(true)
+
+      // Test doc of an unknown type
+
+      const unknownDoc = {} as Doc<User>
+      assertType<TypeEqual<Date | null, typeof unknownDoc.data.createdAt>>(true)
+      assertType<
+        TypeEqual<Date | null | undefined, typeof unknownDoc.data.updatedAt>
+      >(true)
+      assertType<TypeEqual<Date, typeof unknownDoc.data.birthday>>(true)
+      assertType<TypeEqual<Date | undefined, typeof unknownDoc.data.deathday>>(
+        true
+      )
+
+      if (unknownDoc.environment === 'node') {
+        assertType<TypeEqual<Date, typeof unknownDoc.data.createdAt>>(true)
+        assertType<
+          TypeEqual<Date | undefined, typeof unknownDoc.data.updatedAt>
+        >(true)
+        assertType<TypeEqual<Date, typeof unknownDoc.data.birthday>>(true)
+        assertType<
+          TypeEqual<Date | undefined, typeof unknownDoc.data.deathday>
+        >(true)
+      }
+
+      if (!unknownDoc.fromCache) {
+        assertType<TypeEqual<Date, typeof unknownDoc.data.createdAt>>(true)
+        assertType<
+          TypeEqual<Date | undefined, typeof unknownDoc.data.updatedAt>
+        >(true)
+        assertType<TypeEqual<Date, typeof unknownDoc.data.birthday>>(true)
+        assertType<
+          TypeEqual<Date | undefined, typeof unknownDoc.data.deathday>
+        >(true)
       }
     })
 
@@ -63,13 +130,22 @@ describe('Doc', () => {
         birthday: new Date(1987, 1, 11)
       }
 
+      const unknownDoc = {} as Doc<User>
+
+      // Test estimate strategy
+
       const estimateDoc = doc(ref(users, nanoid()), user, {
         environment: 'web',
         fromCache: true,
         hasPendingWrites: true,
         serverTimestamps: 'estimate'
       })
-      assertType<Date>(estimateDoc.data.createdAt)
+      assertType<TypeEqual<Date, typeof estimateDoc.data.createdAt>>(true)
+      if (unknownDoc.serverTimestamps === 'estimate') {
+        assertType<TypeEqual<Date, typeof unknownDoc.data.createdAt>>(true)
+      }
+
+      // Test previous strategy
 
       const previousDoc = doc(ref(users, nanoid()), user, {
         environment: 'web',
@@ -77,7 +153,16 @@ describe('Doc', () => {
         hasPendingWrites: true,
         serverTimestamps: 'previous'
       })
-      assertType<Date | null>(previousDoc.data.createdAt)
+      assertType<TypeEqual<Date | null, typeof previousDoc.data.createdAt>>(
+        true
+      )
+      if (unknownDoc.serverTimestamps === 'previous') {
+        assertType<TypeEqual<Date | null, typeof unknownDoc.data.createdAt>>(
+          true
+        )
+      }
+
+      // Test none strategy
 
       const noneDoc = doc(ref(users, nanoid()), user, {
         environment: 'web',
@@ -85,15 +170,25 @@ describe('Doc', () => {
         hasPendingWrites: true,
         serverTimestamps: 'none'
       })
-      assertType<Date | null>(noneDoc.data.createdAt)
+      assertType<TypeEqual<Date | null, typeof noneDoc.data.createdAt>>(true)
+      if (unknownDoc.serverTimestamps === 'none') {
+        assertType<TypeEqual<Date | null, typeof unknownDoc.data.createdAt>>(
+          true
+        )
+      }
 
-      const noneButNoCachedDoc = doc(ref(users, nanoid()), user, {
+      const noneButNotCachedDoc = doc(ref(users, nanoid()), user, {
         environment: 'web',
         fromCache: false,
         hasPendingWrites: true,
         serverTimestamps: 'none'
       })
-      assertType<Date>(noneButNoCachedDoc.data.createdAt)
+      assertType<TypeEqual<Date, typeof noneButNotCachedDoc.data.createdAt>>(
+        true
+      )
+      if (unknownDoc.serverTimestamps === 'none' && !unknownDoc.fromCache) {
+        assertType<TypeEqual<Date, typeof unknownDoc.data.createdAt>>(true)
+      }
     })
 
     it('considers dates nested in arrays in objects', () => {
@@ -114,29 +209,50 @@ describe('Doc', () => {
         members: [president, tati]
       }
 
+      // Test in the node environment
+
       const nodeDoc = doc(ref(groups, nanoid()), group, { environment: 'node' })
-      assertType<Date>(nodeDoc.data.head.president.birthday)
-      assertType<Date>(nodeDoc.data.members[1]!.birthday)
-      if (nodeDoc.environment === 'node') {
-        assertType<Date>(nodeDoc.data.head.president.createdAt)
-        assertType<Date>(nodeDoc.data.members[1]!.createdAt)
-      }
+      assertType<TypeEqual<Date, typeof nodeDoc.data.head.president.birthday>>(
+        true
+      )
+      assertType<
+        TypeEqual<Date, ItemType<typeof nodeDoc.data.members>['birthday']>
+      >(true)
+      assertType<
+        TypeEqual<Date | undefined, typeof nodeDoc.data.head.president.deathday>
+      >(true)
+      assertType<
+        TypeEqual<
+          Date | undefined,
+          ItemType<typeof nodeDoc.data.members>['deathday']
+        >
+      >(true)
+
+      // Test in the web environment
 
       const webDoc = doc(ref(groups, nanoid()), group, {
         environment: 'web',
         fromCache: true,
         hasPendingWrites: true
       })
-      assertType<Date>(webDoc.data.head.president.birthday)
-      assertType<Date | null>(webDoc.data.head.president.createdAt)
+      assertType<TypeEqual<Date, typeof webDoc.data.head.president.birthday>>(
+        true
+      )
+      assertType<
+        TypeEqual<Date | null, typeof webDoc.data.head.president.createdAt>
+      >(true)
 
-      assertType<Date>(webDoc.data.members[1]!.birthday)
-      assertType<Date | null>(webDoc.data.members[1]!.createdAt)
+      assertType<
+        TypeEqual<Date, ItemType<typeof webDoc.data.members>['birthday']>
+      >(true)
+      assertType<
+        TypeEqual<
+          Date | null,
+          ItemType<typeof webDoc.data.members>['createdAt']
+        >
+      >(true)
 
-      if (!webDoc.fromCache) {
-        assertType<Date>(webDoc.data.head.president.createdAt)
-        assertType<Date>(webDoc.data.members[1]!.createdAt)
-      }
+      // Test with the estimate strategy
 
       const estimateDoc = doc(ref(groups, nanoid()), group, {
         environment: 'web',
@@ -144,8 +260,52 @@ describe('Doc', () => {
         hasPendingWrites: true,
         serverTimestamps: 'estimate'
       })
-      assertType<Date>(estimateDoc.data.head.president.createdAt)
-      assertType<Date>(estimateDoc.data.members[1]!.createdAt)
+      assertType<
+        TypeEqual<Date, typeof estimateDoc.data.head.president.createdAt>
+      >(true)
+      assertType<
+        TypeEqual<Date, ItemType<typeof estimateDoc.data.members>['createdAt']>
+      >(true)
+
+      // Test doc of an unknown type
+
+      const unknownDoc = {} as Doc<Group>
+      assertType<
+        TypeEqual<Date | null, typeof unknownDoc.data.head.president.createdAt>
+      >(true)
+      assertType<
+        TypeEqual<
+          Date | null,
+          ItemType<typeof unknownDoc.data.members>['createdAt']
+        >
+      >(true)
+
+      if (unknownDoc.environment === 'node') {
+        assertType<
+          TypeEqual<Date, typeof unknownDoc.data.head.president.createdAt>
+        >(true)
+        assertType<
+          TypeEqual<Date, ItemType<typeof unknownDoc.data.members>['createdAt']>
+        >(true)
+      }
+
+      if (!unknownDoc.fromCache) {
+        assertType<
+          TypeEqual<Date, typeof unknownDoc.data.head.president.createdAt>
+        >(true)
+        assertType<
+          TypeEqual<Date, ItemType<typeof unknownDoc.data.members>['createdAt']>
+        >(true)
+      }
+
+      if (unknownDoc.serverTimestamps === 'estimate') {
+        assertType<
+          TypeEqual<Date, typeof unknownDoc.data.head.president.createdAt>
+        >(true)
+        assertType<
+          TypeEqual<Date, ItemType<typeof unknownDoc.data.members>['createdAt']>
+        >(true)
+      }
     })
   })
 })
@@ -155,9 +315,12 @@ interface User {
   createdAt: ServerDate
   updatedAt?: ServerDate
   birthday: Date
+  deathday?: Date
 }
 
 interface Group {
   head: { president: User }
   members: User[]
 }
+
+type ItemType<ArrayType> = ArrayType extends Array<infer Type> ? Type : never
