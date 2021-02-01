@@ -63,7 +63,7 @@ export interface WebDoc<
 
 export type ModelNodeData<Model> = ModelData<Model, false>
 
-export type ModelData<Model, ServerDateNullable extends boolean> = {
+export type ModelData<Model, ServerDateNullable extends boolean = true> = {
   [Key in keyof Model]: Exclude<Model[Key], undefined> extends ServerDate // Process server dates
     ? ServerDateNullable extends true
       ? Date | null
