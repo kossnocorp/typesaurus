@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "8.0.0-alpha.9",
+  "version": "8.0.0-alpha.10",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
@@ -15,6 +15,7 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-typescript": "^7.3.3",
     "@firebase/rules-unit-testing": "^1.2.10",
@@ -41,8 +42,7 @@
     "puppeteer": "^1.19.0",
     "sinon": "^7.3.2",
     "typedoc": "^0.15.0",
-    "typescript": "^4.1.3",
-    "webpack": "^4.37.0",
-    "@babel/plugin-proposal-optional-chaining": "^7.8.0"
+    "typescript": "4.1.3",
+    "webpack": "^4.37.0"
   }
 }
