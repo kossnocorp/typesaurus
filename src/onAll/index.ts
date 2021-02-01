@@ -1,5 +1,5 @@
 import adaptor from '../adaptor'
-import { ServerTimestampsStrategy } from '../adaptor/types'
+import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { wrapData } from '../data'
 import { AnyDoc, doc, Doc, DocOptions } from '../doc'
@@ -37,7 +37,7 @@ export default function onAll<
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
   onResult: (
-    docs: AnyDoc<Model, boolean, ServerTimestamps>[],
+    docs: AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[],
     info: SnapshotInfo<Model>
   ) => any,
   onError?: (error: Error) => any,
@@ -57,7 +57,7 @@ export default function onAll<
       : a.firestore.collection(collection.path)
     ).onSnapshot((firestoreSnap) => {
       const docs = firestoreSnap.docs.map((snap) =>
-        doc<Model, boolean, ServerTimestamps>(
+        doc<Model, RuntimeEnvironment, boolean, ServerTimestamps>(
           collection.__type__ === 'collectionGroup'
             ? pathToRef(snap.ref.path)
             : ref(collection, snap.id),

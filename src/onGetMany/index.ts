@@ -1,10 +1,10 @@
-import { ServerTimestampsStrategy } from '../adaptor/types'
+import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
 import { Collection } from '../collection'
 import { AnyDoc, DocOptions } from '../doc'
 import onGet from '../onGet'
 
 type OnResult<Model, ServerTimestamps extends ServerTimestampsStrategy> = (
-  doc: AnyDoc<Model, boolean, ServerTimestamps>[]
+  doc: AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]
 ) => any
 
 type OnError = (error: Error) => any
