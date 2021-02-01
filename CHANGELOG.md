@@ -7,15 +7,23 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
-## 8.0.0 - 2020-??-??
+## 8.0.0 - 2021-??-??
 
 ### Changed
+
+- **BREAKING**: Make TypeScript 3.8 the minimal supported version.
 
 - **BREAKING**: `AnyUpdateValue` type was removed.
 
 - **BREAKING**: `UpdateValue` type now accepts two type arguments: object and key instead of a single type.
 
-- **BREAKING**: Disallow using `value('remove')` on non-optional fields.
+- **BREAKING**: Disallowed using `value('remove')` on non-optional fields.
+
+- **BREAKING**: Removed `AddModel` and `SetModel` in favor of universal `WriteModel`.
+
+- **BREAKING**: `meta` argument in `doc` is again required.
+
+- **BREAKING**: Make `environment` a required meta property.
 
 ## 7.2.0 - 2021-05-25
 
