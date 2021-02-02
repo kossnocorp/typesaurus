@@ -1,10 +1,10 @@
 import assert from 'assert'
 import { nanoid } from 'nanoid'
-import { AnyDoc, Doc, doc } from '.'
+import { AnyModelData, Doc, doc } from '.'
 import { assertType, TypeEqual } from '../../test/utils'
 import { collection } from '../collection'
 import { ref } from '../ref'
-import { ServerDate } from '../value'
+import type { ServerDate } from '../types'
 
 describe('Doc', () => {
   const users = collection<User>('users')
@@ -91,6 +91,7 @@ describe('Doc', () => {
       // Test doc of an unknown type
 
       const unknownDoc = {} as Doc<User>
+
       assertType<TypeEqual<Date | null, typeof unknownDoc.data.createdAt>>(true)
       assertType<
         TypeEqual<Date | null | undefined, typeof unknownDoc.data.updatedAt>
@@ -308,6 +309,11 @@ describe('Doc', () => {
       }
     })
   })
+
+  it('does not mangle types', () => {
+    const data = {} as AnyModelData<{ field?: undefined }>
+    assertType<TypeEqual<undefined, typeof data.field>>(true)
+  })
 })
 
 interface User {
@@ -316,6 +322,7 @@ interface User {
   updatedAt?: ServerDate
   birthday: Date
   deathday?: Date
+  state?: 'qwe' | 'asd' | undefined
 }
 
 interface Group {

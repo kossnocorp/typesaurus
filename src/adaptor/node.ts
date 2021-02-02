@@ -4,11 +4,12 @@
 
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
-import {
-  DocumentDataOptions,
-  DocumentMetaData,
-  RuntimeEnvironment
-} from './types'
+import type {
+  DocOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import type { DocumentMetaData } from './types'
 
 export type Adaptor = {
   firestore: admin.firestore.Firestore
@@ -19,7 +20,7 @@ export type Adaptor = {
   ) => DocumentMetaData | {}
   getDocData: (
     snapshot: admin.firestore.DocumentSnapshot,
-    options?: DocumentDataOptions
+    options?: DocOptions<ServerTimestampsStrategy>
   ) => FirestoreDocumentData | undefined
 }
 

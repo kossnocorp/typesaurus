@@ -1,18 +1,20 @@
 import adaptor from '../adaptor'
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { AnyDoc, doc, Doc, DocOptions } from '../doc'
+import { AnyDoc, doc } from '../doc'
 import { ref } from '../ref'
-
-export type OnMissing<Model> = ((id: string) => Model) | 'ignore'
+import type {
+  DocOptions,
+  OnMissing,
+  OnMissingOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 export const defaultOnMissing: OnMissing<any> = (id) => {
   throw new Error(`Missing document with id ${id}`)
-}
-
-export type OnMissingOptions<Model> = {
-  onMissing?: OnMissing<Model>
 }
 
 /**
@@ -41,6 +43,7 @@ export type OnMissingOptions<Model> = {
  */
 export default async function getMany<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model>,
@@ -48,9 +51,13 @@ export default async function getMany<
   {
     onMissing = defaultOnMissing,
     ...options
-  }: DocOptions<ServerTimestamps> & OnMissingOptions<Model> = {}
+  }: DocOptions<ServerTimestamps> &
+    OperationOptions<Environment> &
+    OnMissingOptions<Model> = {}
 ): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
+
+  assertEnvironment(a, options.assertEnvironment)
 
   if (ids.length === 0) {
     // Firestore#getAll doesn't like empty lists

@@ -1,16 +1,22 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
-import { Cursor, CursorMethod } from '../cursor'
+import type { Collection } from '../collection'
+import type { Cursor, CursorMethod } from '../cursor'
 import { unwrapData, wrapData } from '../data'
-import { AnyDoc, doc, DocOptions } from '../doc'
+import { AnyDoc, doc } from '../doc'
 import { DocId } from '../docId'
-import { CollectionGroup } from '../group'
-import { LimitQuery } from '../limit'
-import { OrderQuery } from '../order'
+import type { CollectionGroup } from '../group'
+import type { LimitQuery } from '../limit'
+import type { OrderQuery } from '../order'
 import { pathToRef, ref } from '../ref'
-import { WhereQuery } from '../where'
-import { SnapshotInfo } from '../snapshot'
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
+import type { SnapshotInfo } from '../snapshot'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import type { WhereQuery } from '../where'
+import { environmentError } from '../_lib/assertEnvironment'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -25,6 +31,17 @@ export type Query<Model, Key extends keyof Model> =
   | OrderQuery<Model, Key>
   | WhereQuery<Model>
   | LimitQuery
+
+type OnResult<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = (
+  docs: AnyDoc<Model, Environment, boolean, ServerTimestamps>[],
+  info: SnapshotInfo<Model>
+) => any
+
+type OnError = (error: Error) => any
 
 /**
  * Subscribes to a collection query built using query objects ({@link order | order}, {@link where | where}, {@link limit | limit}).
@@ -57,16 +74,14 @@ export type Query<Model, Key extends keyof Model> =
  */
 export default function onQuery<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
-  onResult: (
-    docs: AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[],
-    info: SnapshotInfo<Model>
-  ) => any,
-  onError?: (err: Error) => any,
-  options?: DocOptions<ServerTimestamps>
+  onResult: OnResult<Model, Environment, ServerTimestamps>,
+  onError?: OnError,
+  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -78,6 +93,12 @@ export default function onQuery<
   adaptor()
     .then((a) => {
       if (unsubCalled) return
+
+      const error = environmentError(a, options?.assertEnvironment)
+      if (error) {
+        onError?.(error)
+        return
+      }
 
       const { firestoreQuery, cursors } = queries.reduce(
         (acc, q) => {
@@ -164,7 +185,7 @@ export default function onQuery<
         (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
           const docs: AnyDoc<
             Model,
-            RuntimeEnvironment,
+            Environment,
             boolean,
             ServerTimestamps
           >[] = firestoreSnap.docs.map((snap) =>
@@ -174,7 +195,7 @@ export default function onQuery<
                 : ref(collection, snap.id),
               wrapData(a, a.getDocData(snap, options)) as Model,
               {
-                environment: a.environment,
+                environment: a.environment as Environment,
                 serverTimestamps: options?.serverTimestamps,
                 ...a.getDocMeta(snap)
               }

@@ -1,13 +1,28 @@
 import adaptor from '../adaptor'
-import { ServerTimestampsStrategy } from '../adaptor/types'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { doc, Doc, DocOptions } from '../doc'
+import { AnyDoc, doc } from '../doc'
 import { ref, Ref } from '../ref'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { environmentError } from '../_lib/assertEnvironment'
 
-type OnResult<Model> = (doc: Doc<Model> | null) => any
+type OnResult<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = (doc: AnyDoc<Model, Environment, boolean, ServerTimestamps> | null) => any
 
 type OnError = (error: Error) => any
+
+type Options<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> & OperationOptions<Environment>
 
 /**
  * @param ref - The reference to the document
@@ -17,12 +32,13 @@ type OnError = (error: Error) => any
  */
 export default function onGet<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   ref: Ref<Model>,
-  onResult: OnResult<Model>,
+  onResult: OnResult<Model, Environment, ServerTimestamps>,
   onError?: OnError,
-  options?: DocOptions<ServerTimestamps>
+  options?: Options<Environment, ServerTimestamps>
 ): () => void
 
 /**
@@ -34,13 +50,14 @@ export default function onGet<
  */
 export default function onGet<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model>,
   id: string,
-  onResult: OnResult<Model>,
+  onResult: OnResult<Model, Environment, ServerTimestamps>,
   onError?: OnError,
-  options?: DocOptions<ServerTimestamps>
+  options?: Options<Environment, ServerTimestamps>
 ): () => void
 
 /**
@@ -64,13 +81,14 @@ export default function onGet<
  */
 export default function onGet<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  idOrOnResult: string | OnResult<Model>,
-  onResultOrOnError?: OnResult<Model> | OnError,
-  maybeOnErrorOrOptions?: OnError | DocOptions<ServerTimestamps>,
-  maybeOptions?: DocOptions<ServerTimestamps>
+  idOrOnResult: string | OnResult<Model, Environment, ServerTimestamps>,
+  onResultOrOnError?: OnResult<Model, Environment, ServerTimestamps> | OnError,
+  maybeOnErrorOrOptions?: OnError | Options<Environment, ServerTimestamps>,
+  maybeOptions?: Options<Environment, ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -81,26 +99,36 @@ export default function onGet<
 
   let collection: Collection<Model>
   let id: string
-  let onResult: OnResult<Model>
+  let onResult: OnResult<Model, Environment, ServerTimestamps>
   let onError: OnError | undefined
-  let options: DocOptions<ServerTimestamps> | undefined
+  let options: Options<Environment, ServerTimestamps> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
     id = idOrOnResult as string
-    onResult = onResultOrOnError as OnResult<Model>
+    onResult = onResultOrOnError as OnResult<
+      Model,
+      Environment,
+      ServerTimestamps
+    >
     onError = maybeOnErrorOrOptions as OnError | undefined
     options = maybeOptions as DocOptions<ServerTimestamps>
   } else {
     const ref = collectionOrRef as Ref<Model>
     collection = ref.collection
     id = ref.id
-    onResult = idOrOnResult as OnResult<Model>
+    onResult = idOrOnResult as OnResult<Model, Environment, ServerTimestamps>
     onError = onResultOrOnError as OnError | undefined
-    options = maybeOnErrorOrOptions as DocOptions<ServerTimestamps>
+    options = maybeOnErrorOrOptions as Options<Environment, ServerTimestamps>
   }
 
   adaptor().then((a) => {
+    const error = environmentError(a, options?.assertEnvironment)
+    if (error) {
+      onError?.(error)
+      return
+    }
+
     if (unsubCalled) return
     const firestoreDoc = a.firestore.collection(collection.path).doc(id)
     firebaseUnsub = firestoreDoc.onSnapshot((snap) => {
@@ -109,7 +137,7 @@ export default function onGet<
       onResult(
         (data &&
           doc(ref(collection, id), data, {
-            environment: a.environment,
+            environment: a.environment as Environment,
             serverTimestamps: options?.serverTimestamps,
             ...a.getDocMeta(snap)
           })) ||

@@ -9,6 +9,14 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ## 8.0.0 - 2021-??-??
 
+Typesaurus v8 includes two important changes that bring the type-safety to another level:
+
+1. TODO
+
+2. TODO
+
+See below for details.
+
 ### Changed
 
 - **BREAKING**: Make TypeScript 3.8 the minimal supported version.
@@ -24,6 +32,8 @@ This change log follows the format documented in [Keep a CHANGELOG].
 - **BREAKING**: `meta` argument in `doc` is again required.
 
 - **BREAKING**: Make `environment` a required meta property.
+
+- **BREAKING**: Moved `onMissing` to options in `getMany`.
 
 ## 7.2.0 - 2021-05-25
 

@@ -1,4 +1,4 @@
-import { RuntimeEnvironment } from '../adaptor/types'
+import type { ServerDate } from '../types'
 
 /**
  * Available value kinds.
@@ -43,10 +43,6 @@ export type ValueArrayRemove = {
   __type__: 'value'
   kind: 'arrayRemove'
   values: any[]
-}
-
-export interface ServerDate extends Date {
-  __dontUseWillBeUndefined__: true
 }
 
 /**

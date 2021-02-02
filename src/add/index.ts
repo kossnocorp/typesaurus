@@ -1,10 +1,9 @@
 import adaptor from '../adaptor'
-import type { RuntimeEnvironment } from '../adaptor/types'
 import type { Collection } from '../collection'
 import { unwrapData } from '../data'
 import { ref } from '../ref'
-import type { WriteModel, WriteOptions } from '../types'
-import assertEnvironment from '../_lib/assertEnvironment'
+import type { OperationOptions, RuntimeEnvironment, WriteModel } from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 /**
  * Adds a new document with a random id to a collection.
@@ -30,7 +29,7 @@ export default async function add<
 >(
   collection: Collection<Model>,
   data: WriteModel<Model, Environment>,
-  options?: WriteOptions<Environment>
+  options?: OperationOptions<Environment>
 ) {
   const a = await adaptor()
 

@@ -1,10 +1,9 @@
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
-import { Ref } from '../ref'
-import { ServerDate } from '../value'
-
-export type DocOptions<ServerTimestamps extends ServerTimestampsStrategy> = {
-  serverTimestamps?: ServerTimestamps
-}
+import type { Ref } from '../ref'
+import type {
+  RuntimeEnvironment,
+  ServerDate,
+  ServerTimestampsStrategy
+} from '../types'
 
 /**
  * The document type. It contains the reference in the DB and the model data.
@@ -51,29 +50,39 @@ export interface WebDoc<
   __type__: 'doc'
   ref: Ref<Model>
   data: FromCache extends false
-    ? ModelData<Model, false>
+    ? AnyModelData<Model, false>
     : ServerTimestamps extends 'estimate'
-    ? ModelData<Model, false>
-    : ModelData<Model, true>
+    ? AnyModelData<Model, false>
+    : AnyModelData<Model, true>
   environment: 'web'
   fromCache: FromCache
   hasPendingWrites: boolean
   serverTimestamps: ServerTimestamps
 }
 
-export type ModelNodeData<Model> = ModelData<Model, false>
+export type ModelNodeData<Model> = AnyModelData<Model, false>
 
-export type ModelData<Model, ServerDateNullable extends boolean = true> = {
-  [Key in keyof Model]: Exclude<Model[Key], undefined> extends ServerDate // Process server dates
-    ? ServerDateNullable extends true
-      ? Date | null
-      : Date
-    : Exclude<Model[Key], undefined> extends Date // Stop dates from being processed as an object
-    ? Model[Key]
-    : Model[Key] extends object // If it's an object, recursively pass through ModelData
-    ? ModelData<Model[Key], ServerDateNullable>
-    : Model[Key]
+// NOTE: For some reason this won't work: AnyModelData<Model, boolean>
+export type ModelData<Model> =
+  | AnyModelData<Model, true>
+  | AnyModelData<Model, false>
+
+export type AnyModelData<Model, ServerDateNullable extends boolean> = {
+  [Key in keyof Model]: ModelField<Model[Key], ServerDateNullable>
 }
+
+type ModelField<
+  Field,
+  ServerDateNullable extends boolean
+> = Field extends ServerDate // Process server dates
+  ? ServerDateNullable extends true
+    ? Date | null
+    : Date
+  : Field extends Date // Stop dates from being processed as an object
+  ? Field
+  : Field extends object // If it's an object, recursively pass through ModelData
+  ? AnyModelData<Field, ServerDateNullable>
+  : Field
 
 export type ResolvedServerDate<
   Environment extends RuntimeEnvironment | undefined,

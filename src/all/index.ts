@@ -1,10 +1,16 @@
 import adaptor from '../adaptor'
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { AnyDoc, doc, DocOptions } from '../doc'
-import { CollectionGroup } from '../group'
+import { AnyDoc, doc } from '../doc'
+import type { CollectionGroup } from '../group'
 import { pathToRef, ref } from '../ref'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 /**
  * Returns all documents in a collection.
@@ -30,16 +36,22 @@ import { pathToRef, ref } from '../ref'
  */
 export default async function all<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
-  options?: DocOptions<ServerTimestamps>
-): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
+  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
+): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
-  const firebaseSnap = await (collection.__type__ === 'collectionGroup'
-    ? a.firestore.collectionGroup(collection.path)
-    : a.firestore.collection(collection.path)
-  ).get()
+
+  assertEnvironment(a, options?.assertEnvironment)
+
+  const firestoreQuery =
+    collection.__type__ === 'collectionGroup'
+      ? a.firestore.collectionGroup(collection.path)
+      : a.firestore.collection(collection.path)
+  const firebaseSnap = await firestoreQuery.get()
+
   return firebaseSnap.docs.map((snap) =>
     doc(
       collection.__type__ === 'collectionGroup'
@@ -47,7 +59,7 @@ export default async function all<
         : ref(collection, snap.id),
       wrapData(a, a.getDocData(snap, options)) as Model,
       {
-        environment: a.environment,
+        environment: a.environment as Environment,
         serverTimestamps: options?.serverTimestamps,
         ...a.getDocMeta(snap)
       }

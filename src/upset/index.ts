@@ -1,8 +1,8 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { unwrapData } from '../data'
-import { Ref } from '../ref'
-import { UpsetValue } from '../value'
+import type { Ref } from '../ref'
+import type { UpsetValue } from '../value'
 
 /**
  * Type of the data passed to the merge function. It extends the model

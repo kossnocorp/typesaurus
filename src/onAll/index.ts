@@ -1,11 +1,28 @@
 import adaptor from '../adaptor'
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { AnyDoc, doc, Doc, DocOptions } from '../doc'
-import { CollectionGroup } from '../group'
+import { AnyDoc, doc } from '../doc'
+import type { CollectionGroup } from '../group'
 import { pathToRef, ref } from '../ref'
-import { SnapshotInfo } from '../snapshot'
+import type { SnapshotInfo } from '../snapshot'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { environmentError } from '../_lib/assertEnvironment'
+
+type OnResult<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = (
+  docs: AnyDoc<Model, Environment, boolean, ServerTimestamps>[],
+  info: SnapshotInfo<Model>
+) => any
+
+type OnError = (error: Error) => any
 
 /**
  * Subscribes to all documents in a collection.
@@ -33,15 +50,13 @@ import { SnapshotInfo } from '../snapshot'
  */
 export default function onAll<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
-  onResult: (
-    docs: AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[],
-    info: SnapshotInfo<Model>
-  ) => any,
-  onError?: (error: Error) => any,
-  options?: DocOptions<ServerTimestamps>
+  onResult: OnResult<Model, Environment, ServerTimestamps>,
+  onError?: OnError,
+  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -52,18 +67,25 @@ export default function onAll<
 
   adaptor().then((a) => {
     if (unsubCalled) return
+
+    const error = environmentError(a, options?.assertEnvironment)
+    if (error) {
+      onError?.(error)
+      return
+    }
+
     firebaseUnsub = (collection.__type__ === 'collectionGroup'
       ? a.firestore.collectionGroup(collection.path)
       : a.firestore.collection(collection.path)
     ).onSnapshot((firestoreSnap) => {
       const docs = firestoreSnap.docs.map((snap) =>
-        doc<Model, RuntimeEnvironment, boolean, ServerTimestamps>(
+        doc<Model, Environment, boolean, ServerTimestamps>(
           collection.__type__ === 'collectionGroup'
             ? pathToRef(snap.ref.path)
             : ref(collection, snap.id),
           wrapData(a, a.getDocData(snap, options)) as Model,
           {
-            environment: a.environment,
+            environment: a.environment as Environment,
             serverTimestamps: options?.serverTimestamps,
             ...a.getDocMeta(snap)
           }
@@ -92,6 +114,7 @@ export default function onAll<
               }
             )
         }))
+
       onResult(docs, {
         changes,
         size: firestoreSnap.size,

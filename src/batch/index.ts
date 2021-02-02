@@ -1,12 +1,12 @@
 import adaptor, { Adaptor, FirebaseWriteBatch } from '../adaptor'
-import { Collection } from '../collection'
-import { Ref } from '../ref'
+import type { Collection } from '../collection'
 import { unwrapData } from '../data'
-import { UpdateModel } from '../update'
-import { Field } from '../field'
-import { SetModel, SetOptions } from '../set'
-import { UpsetModel } from '../upset'
-import { RuntimeEnvironment } from '../adaptor/types'
+import type { Field } from '../field'
+import type { Ref } from '../ref'
+import type { OperationOptions, RuntimeEnvironment, WriteModel } from '../types'
+import type { UpdateModel } from '../update'
+import type { UpsetModel } from '../upset'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 /**
  * The batch API object. It unions a set of functions ({@link Batch.set|set},
@@ -15,7 +15,7 @@ import { RuntimeEnvironment } from '../adaptor/types'
  * the batch counterparts do not return a promise and perform operations only
  * when {@link Batch.commit|commit} function is called.
  */
-export interface Batch {
+export interface Batch<Environment extends RuntimeEnvironment> {
   /**
    * Sets a document to the given data.
    *
@@ -37,19 +37,16 @@ export interface Batch {
    * @param ref - The reference to the document to set
    * @param data - The document data
    */
-  set<Model, Environment extends RuntimeEnvironment>(
-    ref: Ref<Model>,
-    data: SetModel<Model, Environment>
-  ): void
+  set<Model>(ref: Ref<Model>, data: WriteModel<Model, Environment>): void
   /**
    * @param collection - The collection to set document in
    * @param id - The id of the document to set
    * @param data - The document data
    */
-  set<Model, Environment extends RuntimeEnvironment>(
+  set<Model>(
     collection: Collection<Model>,
     id: string,
-    data: SetModel<Model, Environment>
+    data: WriteModel<Model, Environment>
   ): void
 
   /**
@@ -203,36 +200,29 @@ export interface Batch {
  *
  * @returns The batch API object.
  */
-export function batch(): Batch {
+export function batch<Environment extends RuntimeEnvironment>(
+  options?: OperationOptions<Environment>
+): Batch<Environment> {
   const commands: BatchCommand[] = []
 
-  const firestoreBatch = lazy(async () => {
-    const { firestore } = await adaptor()
-    return firestore.batch()
-  })
-
-  function set<Model, Environment extends RuntimeEnvironment>(
+  function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
-    idOrData: string | SetModel<Model, Environment>,
-    maybeDataOrOptions?: SetModel<Model, Environment> | SetOptions<Environment>,
-    maybeOptions?: SetOptions<Environment>
+    idOrData: string | WriteModel<Model, Environment>,
+    maybeData?: WriteModel<Model, Environment>
   ): void {
     let collection: Collection<Model>
     let id: string
-    let data: SetModel<Model, Environment>
-    let options: SetOptions<Environment> | undefined
+    let data: WriteModel<Model, Environment>
 
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = maybeDataOrOptions as SetModel<Model, Environment>
-      options = maybeOptions
+      data = maybeData as WriteModel<Model, Environment>
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
       id = ref.id
-      data = idOrData as SetModel<Model, Environment>
-      options = maybeDataOrOptions as SetOptions<Environment> | undefined
+      data = idOrData as WriteModel<Model, Environment>
     }
 
     commands.push((adaptor, firestoreBatch) => {
@@ -333,6 +323,8 @@ export function batch(): Batch {
 
   async function commit() {
     const a = await adaptor()
+    assertEnvironment(a, options?.assertEnvironment)
+
     const b = a.firestore.batch()
     commands.forEach((fn) => fn(a, b))
     await b.commit()
@@ -342,11 +334,3 @@ export function batch(): Batch {
 }
 
 type BatchCommand = (adaptor: Adaptor, batch: FirebaseWriteBatch) => void
-
-function lazy<Type>(fn: () => Promise<Type>): () => Promise<Type> {
-  let instance: Type | undefined = undefined
-  return async () => {
-    if (instance === undefined) instance = await fn()
-    return instance
-  }
-}
