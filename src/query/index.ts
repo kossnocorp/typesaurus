@@ -1,15 +1,21 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
-import { AnyDoc, doc, Doc, DocOptions } from '../doc'
-import { ref, pathToRef } from '../ref'
-import { WhereQuery } from '../where'
-import { OrderQuery } from '../order'
-import { LimitQuery } from '../limit'
-import { Cursor, CursorMethod } from '../cursor'
-import { wrapData, unwrapData } from '../data'
-import { CollectionGroup } from '../group'
+import type { Collection } from '../collection'
+import type { Cursor, CursorMethod } from '../cursor'
+import { unwrapData, wrapData } from '../data'
+import { AnyDoc, doc } from '../doc'
 import { DocId } from '../docId'
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
+import type { CollectionGroup } from '../group'
+import type { LimitQuery } from '../limit'
+import type { OrderQuery } from '../order'
+import { pathToRef, ref } from '../ref'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import type { WhereQuery } from '../where'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
@@ -53,13 +59,17 @@ export type Query<Model, Key extends keyof Model> =
  */
 export async function query<
   Model,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
-  options?: DocOptions<ServerTimestamps>
-): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
+  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
+): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
+
+  assertEnvironment(a, options?.assertEnvironment)
+
   const { firestoreQuery, cursors } = queries.reduce(
     (acc, q) => {
       switch (q.type) {
@@ -150,7 +160,7 @@ export async function query<
         : ref(collection, snap.id),
       wrapData(a, a.getDocData(snap, options)) as Model,
       {
-        environment: a.environment,
+        environment: a.environment as Environment,
         serverTimestamps: options?.serverTimestamps,
         ...a.getDocMeta(snap)
       }

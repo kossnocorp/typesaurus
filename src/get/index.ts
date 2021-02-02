@@ -1,30 +1,45 @@
 import adaptor from '../adaptor'
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { AnyDoc, doc, Doc, DocOptions } from '../doc'
+import { AnyDoc, doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
+
+type Options<
+  Environment extends RuntimeEnvironment,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> & OperationOptions<Environment>
 
 /**
  * @param ref - The reference to the document
  */
-async function get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
+async function get<
+  Model,
+  Environment extends RuntimeEnvironment,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   ref: Ref<Model>,
-  options?: {
-    serverTimestamps?: ServerTimestamps
-  }
+  options?: Options<Environment, ServerTimestamps>
 ): Promise<Doc<Model> | null>
 
 /**
  * @param collection - The collection to get document from
  * @param id - The document id
  */
-async function get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
+async function get<
+  Model,
+  Environment extends RuntimeEnvironment,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model>,
   id: string,
-  options?: {
-    serverTimestamps?: ServerTimestamps
-  }
+  options?: Options<Environment, ServerTimestamps>
 ): Promise<Doc<Model> | null>
 
 /**
@@ -46,10 +61,14 @@ async function get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
  *
  * @returns Promise to the document or null if not found
  */
-async function get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
+async function get<
+  Model,
+  Environment extends RuntimeEnvironment,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  maybeIdOrOptions?: string | DocOptions<ServerTimestamps>,
-  maybeOptions?: DocOptions<ServerTimestamps>
+  maybeIdOrOptions?: string | Options<Environment, ServerTimestamps>,
+  maybeOptions?: Options<Environment, ServerTimestamps>
 ): Promise<AnyDoc<
   Model,
   RuntimeEnvironment,
@@ -59,7 +78,7 @@ async function get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
-  let options: DocOptions<ServerTimestamps> | undefined
+  let options: Options<Environment, ServerTimestamps> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
@@ -70,11 +89,11 @@ async function get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
     collection = ref.collection
     id = ref.id
     options = maybeIdOrOptions as
-      | {
-          serverTimestamps?: ServerTimestamps
-        }
+      | Options<Environment, ServerTimestamps>
       | undefined
   }
+
+  assertEnvironment(a, options?.assertEnvironment)
 
   const firestoreDoc = a.firestore.collection(collection.path).doc(id)
   const firestoreSnap = await firestoreDoc.get()

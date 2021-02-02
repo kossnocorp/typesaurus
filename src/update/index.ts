@@ -1,9 +1,9 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
-import { UpdateValue } from '../value'
-import { Field } from '../field'
+import type { Collection } from '../collection'
 import { unwrapData } from '../data'
-import { Ref } from '../ref'
+import type { Field } from '../field'
+import type { Ref } from '../ref'
+import type { UpdateValue } from '../value'
 
 /**
  * Type of the data passed to the update function. It extends the model

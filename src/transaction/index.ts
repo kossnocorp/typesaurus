@@ -1,19 +1,25 @@
 import adaptor from '../adaptor'
-import { RuntimeEnvironment, ServerTimestampsStrategy } from '../adaptor/types'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { unwrapData, wrapData } from '../data'
-import { Doc, doc, DocOptions } from '../doc'
-import { Field } from '../field'
+import { AnyDoc, doc } from '../doc'
+import type { Field } from '../field'
 import { Ref, ref } from '../ref'
-import { SetModel, SetOptions } from '../set'
-import { UpdateModel } from '../update'
-import { UpsetModel } from '../upset'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy,
+  WriteModel
+} from '../types'
+import type { UpdateModel } from '../update'
+import type { UpsetModel } from '../upset'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 /**
  * The transaction read API object. It contains {@link TransactionRead.get|get}
  * the function that allows reading documents from the database.
  */
-export interface TransactionRead {
+export interface TransactionRead<Environment extends RuntimeEnvironment> {
   /**
    * Retrieves a document from a collection.
    *
@@ -35,15 +41,19 @@ export interface TransactionRead {
    *
    * @param ref - The reference to the document
    */
-  get<Model>(ref: Ref<Model>): Promise<Doc<Model> | null>
+  get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
+    ref: Ref<Model>,
+    options?: DocOptions<ServerTimestamps>
+  ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps> | null>
   /**
    * @param collection - The collection to get document from
    * @param id - The document id
    */
-  get<Model>(
+  get<Model, ServerTimestamps extends ServerTimestampsStrategy>(
     collection: Collection<Model>,
-    id: string
-  ): Promise<Doc<Model> | null>
+    id: string,
+    options?: DocOptions<ServerTimestamps>
+  ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps> | null>
 }
 
 /**
@@ -53,7 +63,10 @@ export interface TransactionRead {
  * difference that the transaction counterparts will retry writes if
  * the state of data received with {@link TransactionRead.get|get} would change.
  */
-export interface TransactionWrite<ReadResult> {
+export interface TransactionWrite<
+  Environment extends RuntimeEnvironment,
+  ReadResult
+> {
   /**
    * The result of the read function.
    */
@@ -78,19 +91,16 @@ export interface TransactionWrite<ReadResult> {
    * @param ref - the reference to the document to set
    * @param data - the document data
    */
-  set<Model, Environment extends RuntimeEnvironment>(
-    ref: Ref<Model>,
-    data: SetModel<Model, Environment>
-  ): void
+  set<Model>(ref: Ref<Model>, data: WriteModel<Model, Environment>): void
   /**
    * @param collection - the collection to set document in
    * @param id - the id of the document to set
    * @param data - the document data
    */
-  set<Model, Environment extends RuntimeEnvironment>(
+  set<Model>(
     collection: Collection<Model>,
     id: string,
-    data: SetModel<Model, Environment>
+    data: WriteModel<Model, Environment>
   ): void
 
   /**
@@ -217,16 +227,19 @@ export interface TransactionWrite<ReadResult> {
 /**
  * The transaction body function type.
  */
-export type TransactionReadFunction<ReadResult> = (
-  api: TransactionRead
-) => Promise<ReadResult>
+export type TransactionReadFunction<
+  Environment extends RuntimeEnvironment,
+  ReadResult
+> = (api: TransactionRead<Environment>) => Promise<ReadResult>
 
 /**
  * The transaction body function type.
  */
-export type TransactionWriteFunction<ReadResult, WriteResult> = (
-  api: TransactionWrite<ReadResult>
-) => Promise<WriteResult>
+export type TransactionWriteFunction<
+  Environment extends RuntimeEnvironment,
+  ReadResult,
+  WriteResult
+> = (api: TransactionWrite<Environment, ReadResult>) => Promise<WriteResult>
 
 /**
  * The function allows performing transactions. It accepts two functions.
@@ -254,11 +267,19 @@ export type TransactionWriteFunction<ReadResult, WriteResult> = (
  *   transaction write API with the data returned by the read function
  * @returns Promise that is resolved when transaction is closed
  */
-export async function transaction<ReadResult, WriteResult>(
-  readFunction: TransactionReadFunction<ReadResult>,
-  writeFunction: TransactionWriteFunction<ReadResult, WriteResult>
+export async function transaction<
+  Environment extends RuntimeEnvironment,
+  ReadResult,
+  WriteResult
+>(
+  readFunction: TransactionReadFunction<Environment, ReadResult>,
+  writeFunction: TransactionWriteFunction<Environment, ReadResult, WriteResult>,
+  options?: OperationOptions<Environment>
 ): Promise<WriteResult> {
   const a = await adaptor()
+
+  assertEnvironment(a, options?.assertEnvironment)
+
   return a.firestore.runTransaction((t) => {
     async function get<
       Model,
@@ -267,7 +288,7 @@ export async function transaction<ReadResult, WriteResult>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       maybeIdOrOptions?: string | DocOptions<ServerTimestamps>,
       maybeOptions?: DocOptions<ServerTimestamps>
-    ): Promise<Doc<Model> | null> {
+    ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps> | null> {
       let collection: Collection<Model>
       let id: string
       let options: DocOptions<ServerTimestamps> | undefined
@@ -292,37 +313,31 @@ export async function transaction<ReadResult, WriteResult>(
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
       return data
         ? doc(ref(collection, id), data, {
-            environment: a.environment,
+            environment: a.environment as Environment,
             serverTimestamps: options?.serverTimestamps,
             ...a.getDocMeta(firestoreSnap)
           })
         : null
     }
 
-    function set<Model, Environment extends RuntimeEnvironment>(
+    function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
-      idOrData: string | SetModel<Model, Environment>,
-      maybeDataOrOptions?:
-        | SetModel<Model, Environment>
-        | SetOptions<Environment>,
-      maybeOptions?: SetOptions<Environment>
+      idOrData: string | WriteModel<Model, Environment>,
+      maybeData?: WriteModel<Model, Environment>
     ): void {
       let collection: Collection<Model>
       let id: string
-      let data: SetModel<Model, Environment>
-      let options: SetOptions<Environment> | undefined
+      let data: WriteModel<Model, Environment>
 
       if (collectionOrRef.__type__ === 'collection') {
         collection = collectionOrRef as Collection<Model>
         id = idOrData as string
-        data = maybeDataOrOptions as SetModel<Model, Environment>
-        options = maybeOptions
+        data = maybeData!
       } else {
         const ref = collectionOrRef as Ref<Model>
         collection = ref.collection
         id = ref.id
-        data = idOrData as SetModel<Model, Environment>
-        options = maybeDataOrOptions as SetOptions<Environment> | undefined
+        data = idOrData as WriteModel<Model, Environment>
       }
 
       const firestoreDoc = a.firestore.collection(collection.path).doc(id)
@@ -331,28 +346,24 @@ export async function transaction<ReadResult, WriteResult>(
       t.set(firestoreDoc, unwrapData(a, data))
     }
 
-    function upset<Model, Environment extends RuntimeEnvironment>(
+    function upset<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
-      idOrData: string | SetModel<Model, Environment>,
-      maybeDataOrOptions?: UpsetModel<Model> | SetOptions<Environment>,
-      maybeOptions?: SetOptions<Environment>
+      idOrData: string | WriteModel<Model, Environment>,
+      maybeData?: UpsetModel<Model>
     ): void {
       let collection: Collection<Model>
       let id: string
       let data: UpsetModel<Model>
-      let options: SetOptions<Environment> | undefined
 
       if (collectionOrRef.__type__ === 'collection') {
         collection = collectionOrRef as Collection<Model>
         id = idOrData as string
-        data = maybeDataOrOptions as UpsetModel<Model>
-        options = maybeOptions
+        data = maybeData!
       } else {
         const ref = collectionOrRef as Ref<Model>
         collection = ref.collection
         id = ref.id
         data = idOrData as UpsetModel<Model>
-        options = maybeDataOrOptions as SetOptions<Environment> | undefined
       }
 
       const firestoreDoc = a.firestore.collection(collection.path).doc(id)

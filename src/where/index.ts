@@ -1,4 +1,4 @@
-import { FirestoreWhereFilterOp } from '../adaptor'
+import type { FirestoreWhereFilterOp } from '../adaptor'
 import { DocId } from '../docId'
 
 export interface WhereQuery<_Model> {

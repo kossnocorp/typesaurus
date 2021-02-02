@@ -2,7 +2,7 @@
  * Lazy browser Firestore adaptor.
  */
 
-import { DocumentDataOptions } from '../types'
+import type { DocOptions, ServerTimestampsStrategy } from '../../types'
 import { getAll } from '../utils'
 
 export default async function adaptor() {
@@ -29,7 +29,7 @@ export default async function adaptor() {
     }),
     getDocData: (
       snapshot: firebase.firestore.DocumentSnapshot,
-      options?: DocumentDataOptions
+      options?: DocOptions<ServerTimestampsStrategy>
     ) => snapshot.data(options)
   }
 }

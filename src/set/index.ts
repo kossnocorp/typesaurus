@@ -1,10 +1,9 @@
 import adaptor from '../adaptor'
-import type { RuntimeEnvironment } from '../adaptor/types'
 import type { Collection } from '../collection'
 import { unwrapData } from '../data'
 import type { Ref } from '../ref'
-import type { WriteModel, WriteOptions } from '../types'
-import assertEnvironment from '../_lib/assertEnvironment'
+import type { OperationOptions, RuntimeEnvironment, WriteModel } from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 /**
  * @param ref - the reference to the document to set
@@ -16,7 +15,7 @@ async function set<
 >(
   ref: Ref<Model>,
   data: WriteModel<Model, Environment>,
-  options?: WriteOptions<Environment>
+  options?: OperationOptions<Environment>
 ): Promise<void>
 
 /**
@@ -31,7 +30,7 @@ async function set<
   collection: Collection<Model>,
   id: string,
   data: WriteModel<Model, Environment>,
-  options?: WriteOptions<Environment>
+  options?: OperationOptions<Environment>
 ): Promise<void>
 
 /**
@@ -57,14 +56,14 @@ async function set<
   idOrData: string | WriteModel<Model, Environment>,
   maybeDataOrOptions?:
     | WriteModel<Model, Environment>
-    | WriteOptions<Environment>,
-  maybeOptions?: WriteOptions<Environment>
+    | OperationOptions<Environment>,
+  maybeOptions?: OperationOptions<Environment>
 ): Promise<void> {
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
   let data: WriteModel<Model, Environment>
-  let options: WriteOptions<Environment> | undefined
+  let options: OperationOptions<Environment> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
@@ -76,7 +75,7 @@ async function set<
     collection = ref.collection
     id = ref.id
     data = idOrData as WriteModel<Model, Environment>
-    options = maybeDataOrOptions as WriteOptions<Environment> | undefined
+    options = maybeDataOrOptions as OperationOptions<Environment> | undefined
   }
 
   assertEnvironment(a, options?.assertEnvironment)

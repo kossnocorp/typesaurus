@@ -1,5 +1,14 @@
-import { ServerDate, SetValue } from '.'
-import { RuntimeEnvironment } from './adaptor/types'
+import type { SetValue } from '.'
+
+export interface ServerDate extends Date {
+  __dontUseWillBeUndefined__: true
+}
+
+export type ServerTimestampsStrategy = 'estimate' | 'previous' | 'none'
+
+export type RuntimeEnvironment = 'node' | 'web'
+
+export type OnMissing<Model> = ((id: string) => Model) | 'ignore'
 
 /**
  * Type of the data passed to the set function. It extends the model
@@ -20,6 +29,16 @@ export type WriteModel<
     | SetValue<Model[Key]>
 }
 
-export type WriteOptions<Environment extends RuntimeEnvironment | undefined> = {
+export interface OperationOptions<
+  Environment extends RuntimeEnvironment | undefined
+> {
   assertEnvironment?: Environment
+}
+
+export interface DocOptions<ServerTimestamps extends ServerTimestampsStrategy> {
+  serverTimestamps?: ServerTimestamps
+}
+
+export interface OnMissingOptions<Model> {
+  onMissing?: OnMissing<Model>
 }
