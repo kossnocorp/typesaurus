@@ -122,7 +122,7 @@ export interface TransactionWrite<
    * @param ref - the reference to the document to set or update
    * @param data - the document data
    */
-  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model>): void
+  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model, Environment>): void
   /**
    * @param collection - the collection to set document in
    * @param id - the id of the document to set
@@ -131,7 +131,7 @@ export interface TransactionWrite<
   upset<Model>(
     collection: Collection<Model>,
     id: string,
-    data: UpsetModel<Model>
+    data: UpsetModel<Model, Environment>
   ): void
 
   /**
@@ -349,11 +349,11 @@ export async function transaction<
     function upset<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
       idOrData: string | WriteModel<Model, Environment>,
-      maybeData?: UpsetModel<Model>
+      maybeData?: UpsetModel<Model, Environment>
     ): void {
       let collection: Collection<Model>
       let id: string
-      let data: UpsetModel<Model>
+      let data: UpsetModel<Model, Environment>
 
       if (collectionOrRef.__type__ === 'collection') {
         collection = collectionOrRef as Collection<Model>
@@ -363,7 +363,7 @@ export async function transaction<
         const ref = collectionOrRef as Ref<Model>
         collection = ref.collection
         id = ref.id
-        data = idOrData as UpsetModel<Model>
+        data = idOrData as UpsetModel<Model, Environment>
       }
 
       const firestoreDoc = a.firestore.collection(collection.path).doc(id)
