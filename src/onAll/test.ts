@@ -61,15 +61,15 @@ describe('onAll', () => {
     return new Promise((resolve) => {
       const spy = sinon.spy()
       off = onAll(orders, async (docs) => {
-        off()
+        off?.()
         const orderedBooks = await Promise.all(
           docs.map((doc) => get(books, doc.data.book.id))
         )
-        spy(orderedBooks.map(({ data: { title } }) => title).sort())
+        spy(orderedBooks.map((doc) => doc?.data.title).sort())
         if (
           spy.calledWithMatch(['Sapiens', 'The 22 Immutable Laws of Marketing'])
         )
-          resolve()
+          resolve(void 0)
       })
     })
   })
@@ -84,7 +84,7 @@ describe('onAll', () => {
     return new Promise((resolve) => {
       off = onAll(orders, (docs) => {
         if (docs.length === 2 && docs[0].data.date && docs[1].data.date) {
-          off()
+          off?.()
           if (typeof window === undefined) {
             assert(docs[0].data.date.getTime() === date.getTime())
             assert(docs[1].data.date.getTime() === date.getTime())
@@ -93,7 +93,7 @@ describe('onAll', () => {
             assert(docs[0].data.date.getTime() - date.getTime() < 20000)
             assert(docs[1].data.date.getTime() - date.getTime() < 20000)
           }
-          resolve()
+          resolve(void 0)
         }
       })
     })
@@ -127,13 +127,13 @@ describe('onAll', () => {
     return new Promise((resolve) => {
       off = onAll(allComments, (comments) => {
         if (comments.length === 3) {
-          off()
+          off?.()
           assert.deepEqual(comments.map((c) => c.data.text).sort(), [
             'cruel',
             'hello',
             'world'
           ])
-          resolve()
+          resolve(void 0)
         }
       })
     })
@@ -143,8 +143,8 @@ describe('onAll', () => {
     it('should notify with values all indicate empty', (done) => {
       off = onAll(collection('void'), (docs, { changes, empty }) => {
         expect(empty).toBeTruthy()
-        expect(docs).toHaveLength(0)
-        expect(changes()).toHaveLength(0)
+        assert(docs.length === 0)
+        expect(changes().length === 0)
         done()
       })
     })
@@ -200,7 +200,7 @@ describe('onAll', () => {
               const titles = docs.map(({ data: { title } }) => title).sort()
               spy(titles)
               if (titles.length === 5) {
-                off()
+                off?.()
                 assert(
                   spy.neverCalledWithMatch([
                     "Harry Potter and the Sorcerer's Stone",
@@ -218,12 +218,12 @@ describe('onAll', () => {
                     'The Mom Test'
                   ])
                 )
-                resolve()
+                resolve(void 0)
               }
             })
           }
           on()
-          off()
+          off?.()
           await set(books, 'hp1', {
             title: "Harry Potter and the Sorcerer's Stone"
           })

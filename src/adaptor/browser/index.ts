@@ -2,7 +2,7 @@
  * Browser Firestore adaptor.
  */
 
-import * as firebase from 'firebase/app'
+import firebase from 'firebase/app'
 import 'firebase/firestore'
 import type { DocOptions, ServerTimestampsStrategy } from '../../types'
 import { getAll } from '../utils'
@@ -22,6 +22,7 @@ export default async function adaptor() {
       FieldPath: firebase.firestore.FieldPath,
       FieldValue: firebase.firestore.FieldValue
     },
+    environment: 'web',
     getDocMeta: (snapshot: firebase.firestore.DocumentSnapshot) => ({
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites

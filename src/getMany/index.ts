@@ -57,7 +57,7 @@ export default async function getMany<
 ): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
 
-  assertEnvironment(a, options.assertEnvironment)
+  assertEnvironment(a, options?.assertEnvironment)
 
   if (ids.length === 0) {
     // Firestore#getAll doesn't like empty lists

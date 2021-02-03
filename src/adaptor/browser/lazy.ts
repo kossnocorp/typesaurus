@@ -23,6 +23,7 @@ export default async function adaptor() {
       FieldPath: firebase.firestore.FieldPath,
       FieldValue: firebase.firestore.FieldValue
     },
+    environment: 'web',
     getDocMeta: (snapshot: firebase.firestore.DocumentSnapshot) => ({
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites
