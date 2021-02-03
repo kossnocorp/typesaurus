@@ -70,7 +70,7 @@ export interface Batch<Environment extends RuntimeEnvironment> {
    * @param ref - The reference to the document to set or update
    * @param data - The document data
    */
-  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model>): void
+  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model, Environment>): void
   /**
    * @param collection - The collection to set or update document in
    * @param id - The id of the document to set or update
@@ -79,7 +79,7 @@ export interface Batch<Environment extends RuntimeEnvironment> {
   upset<Model>(
     collection: Collection<Model>,
     id: string,
-    data: UpsetModel<Model>
+    data: UpsetModel<Model, Environment>
   ): void
 
   /**
@@ -235,22 +235,22 @@ export function batch<Environment extends RuntimeEnvironment>(
 
   function upset<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
-    idOrData: string | UpsetModel<Model>,
-    maybeData?: UpsetModel<Model>
+    idOrData: string | UpsetModel<Model, Environment>,
+    maybeData?: UpsetModel<Model, Environment>
   ): void {
     let collection: Collection<Model>
     let id: string
-    let data: UpsetModel<Model>
+    let data: UpsetModel<Model, Environment>
 
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = maybeData as UpsetModel<Model>
+      data = maybeData as UpsetModel<Model, Environment>
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
       id = ref.id
-      data = idOrData as UpsetModel<Model>
+      data = idOrData as UpsetModel<Model, Environment>
     }
 
     commands.push((adaptor, firestoreBatch) => {

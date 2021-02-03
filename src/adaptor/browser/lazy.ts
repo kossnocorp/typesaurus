@@ -4,6 +4,7 @@
 
 import type { DocOptions, ServerTimestampsStrategy } from '../../types'
 import { getAll } from '../utils'
+import type firebase from 'firebase'
 
 export default async function adaptor() {
   const { default: firebase } = await import('firebase/app')
