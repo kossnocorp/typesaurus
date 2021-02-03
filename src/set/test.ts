@@ -4,7 +4,8 @@ import get from '../get'
 import set from '.'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
-import { ServerDate, value } from '../value'
+import { value } from '../value'
+import { ServerDate } from '../types'
 
 describe('set', () => {
   type User = { name: string }

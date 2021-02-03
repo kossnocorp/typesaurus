@@ -239,7 +239,7 @@ export type TransactionWriteFunction<
   Environment extends RuntimeEnvironment,
   ReadResult,
   WriteResult
-> = (api: TransactionWrite<Environment, ReadResult>) => Promise<WriteResult>
+> = (api: TransactionWrite<Environment, ReadResult>) => WriteResult
 
 /**
  * The function allows performing transactions. It accepts two functions.

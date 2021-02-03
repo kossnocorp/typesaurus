@@ -5,30 +5,39 @@ import { nanoid } from 'nanoid'
 import set from '../set'
 import { ref, Ref } from '../ref'
 import get from '../get'
+import sinon from 'sinon'
 
 describe('transaction', () => {
   type Counter = { count: number; optional?: true }
   const counters = collection<Counter>('counters')
+  let warn: typeof console.warn
+
+  beforeAll(() => {
+    warn = console.warn
+  })
 
   beforeEach(() => {
     typeof jest !== 'undefined' && jest.setTimeout(20000)
+    console.warn = sinon.spy()
+  })
+
+  afterAll(() => {
+    console.warn = warn
   })
 
   const plusOne = async (counter: Ref<Counter>, useUpdate?: boolean) =>
     transaction(
       async ({ get }) => {
-        const {
-          data: { count }
-        } = await get(counter)
-        return count
+        const doc = await get(counter)
+        return doc?.data.count || 0
       },
-      async ({ data: count, set, update }) => {
+      ({ data: count, set, update }) => {
         const newCount = count + 1
         const payload = { count: newCount }
         if (useUpdate) {
-          await update(counter, payload)
+          update(counter, payload)
         } else {
-          await set(counter, payload)
+          set(counter, payload)
         }
         return newCount
       }
@@ -39,10 +48,8 @@ describe('transaction', () => {
     const counter = ref(counters, id)
     await set(counter, { count: 0 })
     await Promise.all([plusOne(counter), plusOne(counter), plusOne(counter)])
-    const {
-      data: { count }
-    } = await get(counter)
-    assert(count === 3)
+    const doc = await get(counter)
+    assert(doc?.data.count === 3)
   })
 
   it('returns the value from the write function', async () => {
@@ -63,15 +70,13 @@ describe('transaction', () => {
     await set(counter, { count: 0, optional: true })
     await transaction(
       ({ get }) => get(counter),
-      async ({ data: counterFromDB, upset }) =>
-        upset(counter, { count: counterFromDB.data.count + 1 })
+      ({ data: counterFromDB, upset }) =>
+        upset(counter, { count: (counterFromDB?.data.count || 0) + 1 })
     )
-    const {
-      data: { count, optional }
-    } = await get(counter)
+    const doc = await get(counter)
 
-    assert(count === 1)
-    assert(optional)
+    assert(doc?.data.count === 1)
+    assert(doc?.data.optional)
   })
 
   it('allows updating', async () => {
@@ -84,29 +89,24 @@ describe('transaction', () => {
         ({ get }) => get(counter),
         async ({ data: counterFromDB, update }) =>
           update(counter, {
-            count: counterFromDB.data.count + 1,
+            count: (counterFromDB?.data.count || 0) + 1,
             optional: true
           })
       )
     ])
-    const {
-      data: { count, optional }
-    } = await get(counter)
-    assert(count === 2)
-    assert(optional)
+    const doc = await get(counter)
+    assert(doc?.data.count === 2)
+    assert(doc?.data.optional)
   })
 
   it('allows removing', async () => {
     const id = nanoid()
     const counter = ref(counters, id)
     await set(counter, { count: 0 })
-    await Promise.all([
-      plusOne(counter, true),
-      transaction(
-        ({ get }) => get(counter),
-        async ({ remove }) => remove(counter)
-      )
-    ])
+    await transaction(
+      ({ get }) => get(counter),
+      ({ remove }) => remove(counter)
+    )
     const counterFromDB = await get(counter)
     assert(!counterFromDB)
   })

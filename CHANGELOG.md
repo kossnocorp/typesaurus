@@ -35,6 +35,8 @@ See below for details.
 
 - **BREAKING**: Moved `onMissing` to options in `getMany`.
 
+- `TransactionWriteFunction` no longer expect to return a promise.
+
 ## 7.2.0 - 2021-05-25
 
 - Replace deprecated `@firebase/rules-testing` with `@firebase/rules-unit-testing`.

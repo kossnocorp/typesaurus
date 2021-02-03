@@ -46,7 +46,7 @@ describe('all', () => {
     const orderedBooks = await Promise.all(
       docs.map((doc) => get(books, doc.data.book.id))
     )
-    assert.deepEqual(orderedBooks.map(({ data: { title } }) => title).sort(), [
+    assert.deepEqual(orderedBooks.map((doc) => doc?.data.title).sort(), [
       'Sapiens',
       'The 22 Immutable Laws of Marketing'
     ])
@@ -59,8 +59,8 @@ describe('all', () => {
       set(orders, 'order2', { book: ref(books, '22laws'), quantity: 1, date })
     ])
     const docs = await all(orders)
-    assert(docs[0].data.date.getTime() === date.getTime())
-    assert(docs[1].data.date.getTime() === date.getTime())
+    assert(docs[0]?.data.date?.getTime() === date.getTime())
+    assert(docs[1]?.data.date?.getTime() === date.getTime())
   })
 
   it('allows to get all data from collection groups', async () => {

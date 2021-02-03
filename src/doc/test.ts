@@ -26,7 +26,7 @@ describe('Doc', () => {
           __type__: 'doc',
           ref: userRef,
           data: { name: 'Sasha', createdAt, birthday },
-          meta: { environment: 'node' }
+          environment: 'node'
         }
       )
     })

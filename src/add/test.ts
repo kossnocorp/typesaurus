@@ -4,7 +4,8 @@ import add from '.'
 import { collection } from '../collection'
 import get from '../get'
 import { Ref, ref } from '../ref'
-import { ServerDate, value } from '../value'
+import { ServerDate } from '../types'
+import { value } from '../value'
 
 describe('add', () => {
   type User = { name: string }
@@ -77,10 +78,11 @@ describe('add', () => {
 
     it('allows to assert environment which allows setting dates', async () => {
       // TODO: Find a way to make the error show on fields like when assertEnvironment: 'web'
-      // @ts-expect-error
-      await add(users, nanoid(), {
+      await add(users, {
         name: 'Sasha',
+        // @ts-expect-error
         createdAt: new Date(),
+        // @ts-expect-error
         updatedAt: new Date(),
         birthday: new Date(1987, 1, 11)
       })
@@ -88,7 +90,6 @@ describe('add', () => {
       const nodeAdd = () =>
         add(
           users,
-          nanoid(),
           {
             name: 'Sasha',
             createdAt: new Date(),
@@ -101,7 +102,6 @@ describe('add', () => {
       const webAdd = () =>
         add(
           users,
-          nanoid(),
           {
             name: 'Sasha',
             // @ts-expect-error
