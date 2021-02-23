@@ -72,3 +72,9 @@ export type FirestoreTransaction = admin.firestore.Transaction
 // TODO: Use admin reference after they added to firebase-admin
 export type FirestoreOrderByDirection = firestore.OrderByDirection
 export type FirestoreWhereFilterOp = firestore.WhereFilterOp
+export type FirestoreQuerySnapshot<
+  T = FirestoreDocumentData
+> = firestore.QuerySnapshot<T>
+export type FirestoreDocumentSnapshot<
+  T = FirestoreDocumentData
+> = firestore.DocumentSnapshot<T>

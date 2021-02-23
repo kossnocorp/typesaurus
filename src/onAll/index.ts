@@ -1,4 +1,4 @@
-import adaptor from '../adaptor'
+import adaptor, { FirestoreQuerySnapshot } from '../adaptor'
 import type { Collection } from '../collection'
 import { wrapData } from '../data'
 import { AnyDoc, doc } from '../doc'
@@ -8,6 +8,7 @@ import type { SnapshotInfo } from '../snapshot'
 import type {
   DocOptions,
   OperationOptions,
+  RealtimeOptions,
   RuntimeEnvironment,
   ServerTimestampsStrategy
 } from '../types'
@@ -56,7 +57,9 @@ export default function onAll<
   collection: Collection<Model> | CollectionGroup<Model>,
   onResult: OnResult<Model, Environment, ServerTimestamps>,
   onError?: OnError,
-  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
+  options?: DocOptions<ServerTimestamps> &
+    OperationOptions<Environment> &
+    RealtimeOptions
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -74,10 +77,7 @@ export default function onAll<
       return
     }
 
-    firebaseUnsub = (collection.__type__ === 'collectionGroup'
-      ? a.firestore.collectionGroup(collection.path)
-      : a.firestore.collection(collection.path)
-    ).onSnapshot((firestoreSnap) => {
+    const processResults = (firestoreSnap: FirestoreQuerySnapshot) => {
       const docs = firestoreSnap.docs.map((snap) =>
         doc<Model, Environment, boolean, ServerTimestamps>(
           collection.__type__ === 'collectionGroup'
@@ -120,7 +120,23 @@ export default function onAll<
         size: firestoreSnap.size,
         empty: firestoreSnap.empty
       })
-    }, onError)
+    }
+
+    const coll =
+      collection.__type__ === 'collectionGroup'
+        ? a.firestore.collectionGroup(collection.path)
+        : a.firestore.collection(collection.path)
+
+    firebaseUnsub =
+      a.environment === 'web'
+        ? coll.onSnapshot(
+            // @ts-ignore: In the web environment, the first argument might be options
+            { includeMetadataChanges: options?.includeMetadataChanges },
+            processResults,
+            // @ts-ignore
+            onError
+          )
+        : coll.onSnapshot(processResults, onError)
   })
 
   return unsub

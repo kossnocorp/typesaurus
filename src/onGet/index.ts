@@ -1,4 +1,4 @@
-import adaptor from '../adaptor'
+import adaptor, { FirestoreDocumentSnapshot } from '../adaptor'
 import type { Collection } from '../collection'
 import { wrapData } from '../data'
 import { AnyDoc, doc } from '../doc'
@@ -6,6 +6,7 @@ import { ref, Ref } from '../ref'
 import type {
   DocOptions,
   OperationOptions,
+  RealtimeOptions,
   RuntimeEnvironment,
   ServerTimestampsStrategy
 } from '../types'
@@ -19,10 +20,12 @@ type OnResult<
 
 type OnError = (error: Error) => any
 
-type Options<
+export type OnGetOptions<
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
-> = DocOptions<ServerTimestamps> & OperationOptions<Environment>
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  RealtimeOptions
 
 /**
  * @param ref - The reference to the document
@@ -38,7 +41,7 @@ export default function onGet<
   ref: Ref<Model>,
   onResult: OnResult<Model, Environment, ServerTimestamps>,
   onError?: OnError,
-  options?: Options<Environment, ServerTimestamps>
+  options?: OnGetOptions<Environment, ServerTimestamps>
 ): () => void
 
 /**
@@ -57,7 +60,7 @@ export default function onGet<
   id: string,
   onResult: OnResult<Model, Environment, ServerTimestamps>,
   onError?: OnError,
-  options?: Options<Environment, ServerTimestamps>
+  options?: OnGetOptions<Environment, ServerTimestamps>
 ): () => void
 
 /**
@@ -87,8 +90,8 @@ export default function onGet<
   collectionOrRef: Collection<Model> | Ref<Model>,
   idOrOnResult: string | OnResult<Model, Environment, ServerTimestamps>,
   onResultOrOnError?: OnResult<Model, Environment, ServerTimestamps> | OnError,
-  maybeOnErrorOrOptions?: OnError | Options<Environment, ServerTimestamps>,
-  maybeOptions?: Options<Environment, ServerTimestamps>
+  maybeOnErrorOrOptions?: OnError | OnGetOptions<Environment, ServerTimestamps>,
+  maybeOptions?: OnGetOptions<Environment, ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -101,7 +104,7 @@ export default function onGet<
   let id: string
   let onResult: OnResult<Model, Environment, ServerTimestamps>
   let onError: OnError | undefined
-  let options: Options<Environment, ServerTimestamps> | undefined
+  let options: OnGetOptions<Environment, ServerTimestamps> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
@@ -119,7 +122,10 @@ export default function onGet<
     id = ref.id
     onResult = idOrOnResult as OnResult<Model, Environment, ServerTimestamps>
     onError = onResultOrOnError as OnError | undefined
-    options = maybeOnErrorOrOptions as Options<Environment, ServerTimestamps>
+    options = maybeOnErrorOrOptions as OnGetOptions<
+      Environment,
+      ServerTimestamps
+    >
   }
 
   adaptor().then((a) => {
@@ -131,19 +137,31 @@ export default function onGet<
 
     if (unsubCalled) return
     const firestoreDoc = a.firestore.collection(collection.path).doc(id)
-    firebaseUnsub = firestoreDoc.onSnapshot((snap) => {
-      const firestoreData = a.getDocData(snap, options)
+
+    const processResults = (firestoreSnap: FirestoreDocumentSnapshot) => {
+      const firestoreData = a.getDocData(firestoreSnap, options)
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
       onResult(
         (data &&
           doc(ref(collection, id), data, {
             environment: a.environment as Environment,
             serverTimestamps: options?.serverTimestamps,
-            ...a.getDocMeta(snap)
+            ...a.getDocMeta(firestoreSnap)
           })) ||
           null
       )
-    }, onError)
+    }
+
+    firebaseUnsub =
+      a.environment === 'web'
+        ? firestoreDoc.onSnapshot(
+            // @ts-ignore: In the web environment, the first argument might be options
+            { includeMetadataChanges: options?.includeMetadataChanges },
+            processResults,
+            // @ts-ignore
+            onError
+          )
+        : firestoreDoc.onSnapshot(processResults, onError)
   })
 
   return unsub
