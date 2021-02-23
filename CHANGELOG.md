@@ -17,6 +17,10 @@ Typesaurus v8 includes two important changes that bring the type-safety to anoth
 
 See below for details.
 
+### Fixes
+
+- Fixed `group` type to properly derive the collection model.
+
 ### Changed
 
 - **BREAKING**: Make TypeScript 3.8 the minimal supported version.
