@@ -1,13 +1,8 @@
 import adaptor from '../adaptor'
 import type { Collection } from '../collection'
 import type { AnyDoc } from '../doc'
-import onGet from '../onGet'
-import type {
-  DocOptions,
-  OperationOptions,
-  RuntimeEnvironment,
-  ServerTimestampsStrategy
-} from '../types'
+import onGet, { OnGetOptions } from '../onGet'
+import type { RuntimeEnvironment, ServerTimestampsStrategy } from '../types'
 import { environmentError } from '../_lib/assertEnvironment'
 
 type OnResult<
@@ -55,7 +50,7 @@ function onGetMany<
   // onMissing: ((id: string) => Model) | 'ignore' = id => {
   //   throw new Error(`Missing document with id ${id}`)
   // }
-  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
+  options?: OnGetOptions<Environment, ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -91,7 +86,8 @@ function onGetMany<
             onResult(result)
           }
         },
-        onError
+        onError,
+        options
       )
     )
 

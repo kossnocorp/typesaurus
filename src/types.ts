@@ -42,3 +42,7 @@ export interface DocOptions<ServerTimestamps extends ServerTimestampsStrategy> {
 export interface OnMissingOptions<Model> {
   onMissing?: OnMissing<Model>
 }
+
+export interface RealtimeOptions {
+  includeMetadataChanges?: boolean
+}
