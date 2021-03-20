@@ -1,6 +1,5 @@
 import assert from 'assert'
-import { nanoid } from 'nanoid'
-import { getRefPath, ref, pathToRef, id } from '.'
+import { getRefPath, id, pathToRef, ref } from '.'
 import { collection } from '../collection'
 
 describe('Ref', () => {

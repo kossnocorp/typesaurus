@@ -1,13 +1,13 @@
 import assert from 'assert'
 import { nanoid } from 'nanoid'
-import get from '../get'
-import upset from '.'
+import { upset } from '.'
 import { collection } from '../collection'
+import { get } from '../get'
 import { Ref, ref } from '../ref'
-import { value } from '../value'
-import set from '../set'
-import update from '../update'
+import { set } from '../set'
 import { ServerDate } from '../types'
+import { update } from '../update'
+import { value } from '../value'
 
 describe('merge', () => {
   type User = { name: string; deleted?: boolean }

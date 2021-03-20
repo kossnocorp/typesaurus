@@ -6,6 +6,10 @@ import { OperationOptions, RuntimeEnvironment, ServerDate } from '../types'
 import { UpsetValue } from '../value'
 import { assertEnvironment } from '../_lib/assertEnvironment'
 
+export type UpsetOptions<
+  Environment extends RuntimeEnvironment | undefined
+> = OperationOptions<Environment>
+
 /**
  * Type of the data passed to the upset function. It extends the model
  * allowing to set server date field value.
@@ -29,13 +33,13 @@ export type UpsetModel<
  * @param ref - the reference to the document to set or update
  * @param data - the document data
  */
-export default async function upset<
+export async function upset<
   Model,
   Environment extends RuntimeEnvironment | undefined
 >(
   ref: Ref<Model>,
   data: UpsetModel<Model, Environment>,
-  options?: OperationOptions<Environment>
+  options?: UpsetOptions<Environment>
 ): Promise<void>
 
 /**
@@ -43,14 +47,14 @@ export default async function upset<
  * @param id - the id of the document to set or update
  * @param data - the document data
  */
-export default async function upset<
+export async function upset<
   Model,
   Environment extends RuntimeEnvironment | undefined
 >(
   collection: Collection<Model>,
   id: string,
   data: UpsetModel<Model, Environment>,
-  options?: OperationOptions<Environment>
+  options?: UpsetOptions<Environment>
 ): Promise<void>
 
 /**
@@ -70,7 +74,7 @@ export default async function upset<
  * //=> { name: 'Sasha Koss', deleted: true }
  * ```
  */
-export default async function upset<
+export async function upset<
   Model,
   Environment extends RuntimeEnvironment | undefined = undefined
 >(
@@ -78,14 +82,14 @@ export default async function upset<
   idOrData: string | UpsetModel<Model, Environment>,
   maybeDataOrOptions?:
     | UpsetModel<Model, Environment>
-    | OperationOptions<Environment>,
-  maybeOptions?: OperationOptions<Environment>
+    | UpsetOptions<Environment>,
+  maybeOptions?: UpsetOptions<Environment>
 ): Promise<void> {
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
   let data: UpsetModel<Model, Environment>
-  let options: OperationOptions<Environment> | undefined
+  let options: UpsetOptions<Environment> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
@@ -97,7 +101,7 @@ export default async function upset<
     collection = ref.collection
     id = ref.id
     data = idOrData as UpsetModel<Model, Environment>
-    options = maybeDataOrOptions as OperationOptions<Environment>
+    options = maybeDataOrOptions as UpsetOptions<Environment>
   }
 
   assertEnvironment(a, options?.assertEnvironment)

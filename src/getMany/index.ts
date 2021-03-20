@@ -13,6 +13,14 @@ import type {
 } from '../types'
 import { assertEnvironment } from '../_lib/assertEnvironment'
 
+export type GetManyOptions<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  OnMissingOptions<Model>
+
 export const defaultOnMissing: OnMissing<any> = (id) => {
   throw new Error(`Missing document with id ${id}`)
 }
@@ -41,7 +49,7 @@ export const defaultOnMissing: OnMissing<any> = (id) => {
  *
  * @returns Promise to a list of found documents
  */
-export default async function getMany<
+export async function getMany<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
@@ -51,10 +59,8 @@ export default async function getMany<
   {
     onMissing = defaultOnMissing,
     ...options
-  }: DocOptions<ServerTimestamps> &
-    OperationOptions<Environment> &
-    OnMissingOptions<Model> = {}
-): Promise<AnyDoc<Model, RuntimeEnvironment, boolean, ServerTimestamps>[]> {
+  }: GetManyOptions<Model, Environment, ServerTimestamps> = {}
+): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
 
   assertEnvironment(a, options?.assertEnvironment)
@@ -96,7 +102,7 @@ export default async function getMany<
     })
     .filter((doc) => doc != null) as AnyDoc<
     Model,
-    RuntimeEnvironment,
+    Environment,
     boolean,
     ServerTimestamps
   >[]

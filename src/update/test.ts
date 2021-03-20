@@ -1,12 +1,12 @@
 import assert from 'assert'
 import { nanoid } from 'nanoid'
-import update from '.'
-import add from '../add'
+import { update } from '.'
+import { add } from '../add'
 import { collection } from '../collection'
-import field from '../field'
-import get from '../get'
+import { field } from '../field'
+import { get } from '../get'
 import { ref, Ref, id } from '../ref'
-import set from '../set'
+import { set } from '../set'
 import { value } from '../value'
 
 describe('update', () => {

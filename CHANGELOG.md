@@ -39,6 +39,12 @@ See below for details.
 
 - **BREAKING**: Moved `onMissing` to options in `getMany`.
 
+- **BREAKING**: All modules now export functions as named exports instead of using `default`.
+
+- **BREAKING**: `Query` type now exported from `typesaurus` or `typesaurus/types` instead of `typesaurus/query` and `typesaurus/onQuery`.
+
+- Export options types for all functions.
+
 - `TransactionWriteFunction` no longer expect to return a promise.
 
 ## 7.2.0 - 2021-05-25

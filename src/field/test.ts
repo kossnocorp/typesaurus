@@ -1,4 +1,4 @@
-import field, { Field } from '.'
+import { field, Field } from '.'
 import { value } from '../value'
 
 describe('field', () => {

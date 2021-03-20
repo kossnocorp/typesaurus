@@ -1,13 +1,7 @@
-import assert, { rejects } from 'assert'
-import onGetMany from '.'
-import get from '../get'
+import { onGetMany } from '.'
 import { collection } from '../collection'
-import { Ref, ref } from '../ref'
-import add from '../add'
-import update from '../update'
-import sinon from 'sinon'
-import set from '../set'
-import remove from '../remove'
+import { set } from '../set'
+import { update } from '../update'
 
 describe('onGetMany', () => {
   type Fruit = { color: string }

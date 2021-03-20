@@ -11,35 +11,35 @@ import type {
 } from '../types'
 import { assertEnvironment } from '../_lib/assertEnvironment'
 
-type Options<
-  Environment extends RuntimeEnvironment,
+export type GetOptions<
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 > = DocOptions<ServerTimestamps> & OperationOptions<Environment>
 
 /**
  * @param ref - The reference to the document
  */
-async function get<
+export async function get<
   Model,
-  Environment extends RuntimeEnvironment,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   ref: Ref<Model>,
-  options?: Options<Environment, ServerTimestamps>
+  options?: GetOptions<Environment, ServerTimestamps>
 ): Promise<Doc<Model> | null>
 
 /**
  * @param collection - The collection to get document from
  * @param id - The document id
  */
-async function get<
+export async function get<
   Model,
-  Environment extends RuntimeEnvironment,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model>,
   id: string,
-  options?: Options<Environment, ServerTimestamps>
+  options?: GetOptions<Environment, ServerTimestamps>
 ): Promise<Doc<Model> | null>
 
 /**
@@ -61,14 +61,14 @@ async function get<
  *
  * @returns Promise to the document or null if not found
  */
-async function get<
+export async function get<
   Model,
-  Environment extends RuntimeEnvironment,
+  Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  maybeIdOrOptions?: string | Options<Environment, ServerTimestamps>,
-  maybeOptions?: Options<Environment, ServerTimestamps>
+  maybeIdOrOptions?: string | GetOptions<Environment, ServerTimestamps>,
+  maybeOptions?: GetOptions<Environment, ServerTimestamps>
 ): Promise<AnyDoc<
   Model,
   RuntimeEnvironment,
@@ -78,7 +78,7 @@ async function get<
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
-  let options: Options<Environment, ServerTimestamps> | undefined
+  let options: GetOptions<Environment, ServerTimestamps> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
@@ -89,7 +89,7 @@ async function get<
     collection = ref.collection
     id = ref.id
     options = maybeIdOrOptions as
-      | Options<Environment, ServerTimestamps>
+      | GetOptions<Environment, ServerTimestamps>
       | undefined
   }
 
@@ -107,5 +107,3 @@ async function get<
       })
     : null
 }
-
-export default get

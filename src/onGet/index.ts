@@ -12,6 +12,13 @@ import type {
 } from '../types'
 import { environmentError } from '../_lib/assertEnvironment'
 
+export type OnGetOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  RealtimeOptions
+
 type OnResult<
   Model,
   Environment extends RuntimeEnvironment | undefined,
@@ -20,20 +27,13 @@ type OnResult<
 
 type OnError = (error: Error) => any
 
-export type OnGetOptions<
-  Environment extends RuntimeEnvironment | undefined,
-  ServerTimestamps extends ServerTimestampsStrategy
-> = DocOptions<ServerTimestamps> &
-  OperationOptions<Environment> &
-  RealtimeOptions
-
 /**
  * @param ref - The reference to the document
  * @param onResult - The function which is called with the document when
  * the initial fetch is resolved or the document updates.
  * @param onError - The function is called with error when request fails.
  */
-export default function onGet<
+export function onGet<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
@@ -51,7 +51,7 @@ export default function onGet<
  * the initial fetch is resolved or the document updates.
  * @param onError - The function is called with error when request fails.
  */
-export default function onGet<
+export function onGet<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
@@ -82,7 +82,7 @@ export default function onGet<
  *
  * @returns Function that unsubscribes the listener from the updates
  */
-export default function onGet<
+export function onGet<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy

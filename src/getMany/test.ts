@@ -1,7 +1,7 @@
+import { getMany } from '.'
 import { collection } from '../collection'
-import set from '../set'
-import getMany from '.'
-import remove from '../remove'
+import { remove } from '../remove'
+import { set } from '../set'
 
 describe('getMany', () => {
   type Fruit = { color: string }

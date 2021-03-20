@@ -1,7 +1,7 @@
 import adaptor from '../adaptor'
 import type { Collection } from '../collection'
 import type { AnyDoc } from '../doc'
-import onGet, { OnGetOptions } from '../onGet'
+import { onGet, OnGetOptions } from '../onGet'
 import type { RuntimeEnvironment, ServerTimestampsStrategy } from '../types'
 import { environmentError } from '../_lib/assertEnvironment'
 
@@ -38,7 +38,7 @@ type OnError = (error: Error) => any
  *
  * @returns Function that unsubscribes the listener from the updates
  */
-function onGetMany<
+export function onGetMany<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
@@ -96,5 +96,3 @@ function onGetMany<
 
   return unsub
 }
-
-export default onGetMany

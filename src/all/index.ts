@@ -12,6 +12,11 @@ import type {
 } from '../types'
 import { assertEnvironment } from '../_lib/assertEnvironment'
 
+export type AllOptionns<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> & OperationOptions<Environment>
+
 /**
  * Returns all documents in a collection.
  *
@@ -34,13 +39,13 @@ import { assertEnvironment } from '../_lib/assertEnvironment'
  * @param collection - The collection to get all documents from
  * @returns A promise to all documents
  */
-export default async function all<
+export async function all<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
-  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
+  options?: AllOptionns<Environment, ServerTimestamps>
 ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
 
