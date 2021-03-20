@@ -5,33 +5,28 @@ import { unwrapData, wrapData } from '../data'
 import { AnyDoc, doc } from '../doc'
 import { DocId } from '../docId'
 import type { CollectionGroup } from '../group'
-import type { LimitQuery } from '../limit'
-import type { OrderQuery } from '../order'
 import { pathToRef, ref } from '../ref'
 import type { SnapshotInfo } from '../snapshot'
 import type {
   DocOptions,
   OperationOptions,
+  Query,
   RealtimeOptions,
   RuntimeEnvironment,
   ServerTimestampsStrategy
 } from '../types'
-import type { WhereQuery } from '../where'
 import { environmentError } from '../_lib/assertEnvironment'
+
+export type OnQueryOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  RealtimeOptions
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
   | FirebaseFirestore.Query
-
-// TODO: Refactor with query
-
-/**
- * The query type.
- */
-export type Query<Model, Key extends keyof Model> =
-  | OrderQuery<Model, Key>
-  | WhereQuery<Model>
-  | LimitQuery
 
 type OnResult<
   Model,
@@ -73,7 +68,7 @@ type OnError = (error: Error) => any
  * @param onError - The function is called with error when request fails.
  * @returns Function that unsubscribes the listener from the updates
  */
-export default function onQuery<
+export function onQuery<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
@@ -82,9 +77,7 @@ export default function onQuery<
   queries: Query<Model, keyof Model>[],
   onResult: OnResult<Model, Environment, ServerTimestamps>,
   onError?: OnError,
-  options?: DocOptions<ServerTimestamps> &
-    OperationOptions<Environment> &
-    RealtimeOptions
+  options?: OnQueryOptions<Environment, ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void

@@ -5,31 +5,24 @@ import { unwrapData, wrapData } from '../data'
 import { AnyDoc, doc } from '../doc'
 import { DocId } from '../docId'
 import type { CollectionGroup } from '../group'
-import type { LimitQuery } from '../limit'
-import type { OrderQuery } from '../order'
 import { pathToRef, ref } from '../ref'
 import type {
   DocOptions,
   OperationOptions,
+  Query,
   RuntimeEnvironment,
   ServerTimestampsStrategy
 } from '../types'
-import type { WhereQuery } from '../where'
 import { assertEnvironment } from '../_lib/assertEnvironment'
+
+export type QueryOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> & OperationOptions<Environment>
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
   | FirebaseFirestore.Query
-
-// TODO: Refactor with onQuery
-
-/**
- * The query type.
- */
-export type Query<Model, Key extends keyof Model> =
-  | OrderQuery<Model, Key>
-  | WhereQuery<Model>
-  | LimitQuery
 
 /**
  * Queries passed collection using query objects ({@link order}, {@link where}, {@link limit}).
@@ -64,7 +57,7 @@ export async function query<
 >(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
-  options?: DocOptions<ServerTimestamps> & OperationOptions<Environment>
+  options?: QueryOptions<Environment, ServerTimestamps>
 ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
 

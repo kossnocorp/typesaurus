@@ -1,11 +1,11 @@
 import assert from 'assert'
-import onGet from '.'
-import get from '../get'
-import { collection } from '../collection'
-import { Ref, ref } from '../ref'
-import add from '../add'
-import update from '../update'
 import sinon from 'sinon'
+import { onGet } from '.'
+import { add } from '../add'
+import { collection } from '../collection'
+import { get } from '../get'
+import { Ref, ref } from '../ref'
+import { update } from '../update'
 
 describe('onGet', () => {
   type User = { name: string }

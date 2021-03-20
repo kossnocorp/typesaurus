@@ -14,6 +14,13 @@ import type {
 } from '../types'
 import { environmentError } from '../_lib/assertEnvironment'
 
+export type OnAllOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  RealtimeOptions
+
 type OnResult<
   Model,
   Environment extends RuntimeEnvironment | undefined,
@@ -49,7 +56,7 @@ type OnError = (error: Error) => any
  * the initial fetch is resolved or the collection updates.
  * @param onError - The function is called with error when request fails.
  */
-export default function onAll<
+export function onAll<
   Model,
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
@@ -57,9 +64,7 @@ export default function onAll<
   collection: Collection<Model> | CollectionGroup<Model>,
   onResult: OnResult<Model, Environment, ServerTimestamps>,
   onError?: OnError,
-  options?: DocOptions<ServerTimestamps> &
-    OperationOptions<Environment> &
-    RealtimeOptions
+  options?: OnAllOptions<Environment, ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void

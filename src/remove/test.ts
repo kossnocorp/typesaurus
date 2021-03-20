@@ -1,6 +1,6 @@
-import get from '../get'
-import add from '../add'
-import remove from '.'
+import { get } from '../get'
+import { add } from '../add'
+import { remove } from '.'
 import assert from 'assert'
 import { collection } from '../collection'
 

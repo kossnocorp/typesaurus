@@ -1,4 +1,7 @@
 import type { SetValue } from '.'
+import type { LimitQuery } from './limit'
+import type { OrderQuery } from './order'
+import type { WhereQuery } from './where'
 
 export interface ServerDate extends Date {
   __dontUseWillBeUndefined__: true
@@ -46,3 +49,11 @@ export interface OnMissingOptions<Model> {
 export interface RealtimeOptions {
   includeMetadataChanges?: boolean
 }
+
+/**
+ * The query type.
+ */
+export type Query<Model, Key extends keyof Model> =
+  | OrderQuery<Model, Key>
+  | WhereQuery<Model>
+  | LimitQuery

@@ -1,6 +1,6 @@
 import assert from 'assert'
-import get from '.'
-import add from '../add'
+import { get } from '.'
+import { add } from '../add'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
 

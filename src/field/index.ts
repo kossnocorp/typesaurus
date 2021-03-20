@@ -24,12 +24,12 @@ export interface Field<_Model> {
   value: any
 }
 
-function field<Model, Key extends keyof Model>(
+export function field<Model, Key extends keyof Model>(
   key: Key | [Key],
   value: Model[Key] | UpdateValue<Model, Key>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Whole<Model, Key1>
@@ -38,7 +38,7 @@ function field<
   value: PartialValue<Model, Key1, Key2> | UpdateValue<Whole<Model, Key1>, Key2>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -48,7 +48,7 @@ function field<
   value: Model[Key1][Key2][Key3] | UpdateValue<Model[Key1][Key2], Key3>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -61,7 +61,7 @@ function field<
     | UpdateValue<Model[Key1][Key2][Key3], Key4>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -75,7 +75,7 @@ function field<
     | UpdateValue<Model[Key1][Key2][Key3][Key4], Key5>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -90,7 +90,7 @@ function field<
     | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5], Key6>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -106,7 +106,7 @@ function field<
     | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5][Key6], Key7>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -123,7 +123,7 @@ function field<
     | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7], Key8>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -141,7 +141,7 @@ function field<
     | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8], Key9>
 ): Field<Model>
 
-function field<
+export function field<
   Model,
   Key1 extends keyof Model,
   Key2 extends keyof Model[Key1],
@@ -183,8 +183,6 @@ function field<
  * @param value - The value
  * @returns The field object
  */
-function field<Model>(key: string | string[], value: any): Field<Model> {
+export function field<Model>(key: string | string[], value: any): Field<Model> {
   return { key, value }
 }
-
-export default field

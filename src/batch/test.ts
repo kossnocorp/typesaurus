@@ -3,9 +3,9 @@ import { pick } from 'js-fns'
 import { nanoid } from 'nanoid'
 import { batch } from '.'
 import { collection } from '../collection'
-import get from '../get'
+import { get } from '../get'
 import { ref } from '../ref'
-import set from '../set'
+import { set } from '../set'
 
 describe('batch', () => {
   type User = { name: string; foo?: boolean }

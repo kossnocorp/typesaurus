@@ -5,6 +5,10 @@ import { ref } from '../ref'
 import type { OperationOptions, RuntimeEnvironment, WriteModel } from '../types'
 import { assertEnvironment } from '../_lib/assertEnvironment'
 
+export type AddOptions<
+  Environment extends RuntimeEnvironment | undefined
+> = OperationOptions<Environment>
+
 /**
  * Adds a new document with a random id to a collection.
  *
@@ -23,7 +27,7 @@ import { assertEnvironment } from '../_lib/assertEnvironment'
  * @param data - The data to add to
  * @returns A promise to the ref
  */
-export default async function add<
+export async function add<
   Model,
   Environment extends RuntimeEnvironment | undefined = undefined
 >(

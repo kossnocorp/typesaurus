@@ -1,11 +1,11 @@
 import assert from 'assert'
 import { nanoid } from 'nanoid'
-import get from '../get'
-import set from '.'
+import { set } from '.'
 import { collection } from '../collection'
+import { get } from '../get'
 import { Ref, ref } from '../ref'
-import { value } from '../value'
 import { ServerDate } from '../types'
+import { value } from '../value'
 
 describe('set', () => {
   type User = { name: string }

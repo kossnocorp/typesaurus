@@ -1,11 +1,11 @@
 import assert from 'assert'
+import { nanoid } from 'nanoid'
+import sinon from 'sinon'
 import { transaction } from '.'
 import { collection } from '../collection'
-import { nanoid } from 'nanoid'
-import set from '../set'
+import { get } from '../get'
 import { ref, Ref } from '../ref'
-import get from '../get'
-import sinon from 'sinon'
+import { set } from '../set'
 
 describe('transaction', () => {
   type Counter = { count: number; optional?: true }

@@ -1,14 +1,14 @@
-import all from '../all'
 import assert from 'assert'
-import set from '../set'
-import { collection } from '../collection'
-import { Ref, ref } from '../ref'
-import get from '../get'
-import remove from '../remove'
 import { nanoid } from 'nanoid'
-import { subcollection } from '../subcollection'
-import add from '../add'
+import { add } from '../add'
+import { all } from '../all'
+import { collection } from '../collection'
+import { get } from '../get'
 import { group } from '../group'
+import { Ref, ref } from '../ref'
+import { remove } from '../remove'
+import { set } from '../set'
+import { subcollection } from '../subcollection'
 
 describe('all', () => {
   type Book = { title: string }
