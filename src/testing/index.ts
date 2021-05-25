@@ -1,4 +1,4 @@
-import * as testing from '@firebase/testing'
+import * as testing from '@firebase/rules-unit-testing'
 import { injectAdaptor } from '../adaptor'
 import { getAll } from '../adaptor/utils'
 
@@ -9,11 +9,11 @@ type App =
 let currentApp: App
 
 /**
- * Injects @firebase/testing adaptod instead of firebase-admin and set the given
+ * Injects @firebase/rules-unit-testing adaptod instead of firebase-admin and set the given
  * app to be used for Firestore operations.
  *
  * ```ts
- * import * as testing from '@firebase/testing'
+ * import * as testing from '@firebase/rules-unit-testing'
  * import { injectTestingAdaptor } from 'typesaurus/testing'
  *
  * // To initialize and inject an admin app (with exclusive access to the DB):
@@ -39,7 +39,7 @@ export function injectTestingAdaptor(app: App) {
   setApp(app)
   injectAdaptor(
     // TODO: Find a way to fix TS error:
-    // @ts-ignore: @firebase/testing and firebase-admin use different types
+    // @ts-ignore: @firebase/rules-unit-testing and firebase-admin use different types
     // for Firestore so I had to disable the error.
     () => {
       const firestore = currentApp.firestore()
@@ -60,7 +60,7 @@ export function injectTestingAdaptor(app: App) {
  * calling `injectTestingAdaptor`.
  *
  * ```ts
- * import * as testing from '@firebase/testing'
+ * import * as testing from '@firebase/rules-unit-testing'
  * import { injectTestingAdaptor, setApp } from 'typesaurus/testing'
  *
  * // Initialize as not authenticated:

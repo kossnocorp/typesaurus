@@ -176,7 +176,7 @@ Operation helpers:
 
 ### Testing
 
-Functions to be used with [`@firebase/testing`](https://firebase.google.com/docs/rules/unit-tests#run_local_tests):
+Functions to be used with [`@firebase/rules-unit-testing`](https://firebase.google.com/docs/rules/unit-tests#run_local_tests):
 
 - [`injectTestingAdaptor`](https://typesaurus.com/modules/_testing_index_.html#injecttestingadaptor) - Injects the testing adaptor and sets the given app to be used for Firestore operations.
 - [`injectApp`](https://typesaurus.com/modules/_testing_index_.html#setapp) - Sets the given app to be used for Firestore operations.
