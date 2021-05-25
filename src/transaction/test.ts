@@ -63,7 +63,7 @@ describe('transaction', () => {
     await set(counter, { count: 0, optional: true })
     await transaction(
       ({ get }) => get(counter),
-      ({ data: counterFromDB, upset }) =>
+      async ({ data: counterFromDB, upset }) =>
         upset(counter, { count: counterFromDB.data.count + 1 })
     )
     const {
@@ -82,7 +82,7 @@ describe('transaction', () => {
       plusOne(counter, true),
       transaction(
         ({ get }) => get(counter),
-        ({ data: counterFromDB, update }) =>
+        async ({ data: counterFromDB, update }) =>
           update(counter, {
             count: counterFromDB.data.count + 1,
             optional: true
@@ -102,7 +102,10 @@ describe('transaction', () => {
     await set(counter, { count: 0 })
     await Promise.all([
       plusOne(counter, true),
-      transaction(({ get }) => get(counter), ({ remove }) => remove(counter))
+      transaction(
+        ({ get }) => get(counter),
+        async ({ remove }) => remove(counter)
+      )
     ])
     const counterFromDB = await get(counter)
     assert(!counterFromDB)
