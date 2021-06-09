@@ -23,6 +23,29 @@ See below for details.
 
 ### Changed
 
+- **BREAKING**: Use `lazyfire` for ESM-enabled web environments to make Firebase modules load on demand. It ensures maximum performance, but requires installation of additional dependency and change of application initialization.
+
+  So, if you're using webpack or another ESM-enabled bundler, install `lazyfire`:
+
+  ```bash
+  npm install lazyfire --save
+  # Or using Yarn:
+  yarn add lazyfire
+  ```
+
+  And then change `firebase.initializeApp` to `configureApp`:
+
+  ```diff
+  -import * as firebase from 'firebase/app'
+  -import 'firebase/firestore'
+  +import { configureApp } from 'lazyfire'
+
+  -firebase.initializeApp({
+  +configureApp({
+   // Firebase app configuration
+  })
+  ```
+
 - **BREAKING**: Make TypeScript 3.8 the minimal supported version.
 
 - **BREAKING**: `AnyUpdateValue` type was removed.
