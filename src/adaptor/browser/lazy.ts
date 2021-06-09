@@ -5,12 +5,13 @@
 import type { DocOptions, ServerTimestampsStrategy } from '../../types'
 import { getAll } from '../utils'
 import type firebase from 'firebase'
+import { ensureApp } from 'lazyfire'
 
 export default async function adaptor() {
-  const { default: firebase } = await import('firebase/app')
+  const { app, firebase } = await ensureApp()
   await import('firebase/firestore')
 
-  const firestore = firebase.firestore()
+  const firestore = app.firestore()
   // At the moment, the browser's Firestore adaptor doesn't support getAll.
   // Get rid of the fallback when the issue is closed:
   // https://github.com/firebase/firebase-js-sdk/issues/1176
