@@ -91,6 +91,18 @@ describe('query', () => {
     ])
   })
 
+  it('type checks the fields', async () => {
+    type Location = { mapId: string; name: string; address?: { city: string } }
+    const locations = collection<Location>('locations')
+
+    await Promise.all([
+      // @ts-expect-error
+      query(locations, [where(['adddddress', 'city'], '==', 'New York')]),
+      // No errors, even though the address is optional
+      query(locations, [where(['address', 'city'], '==', 'New York')])
+    ])
+  })
+
   it('allows to query using array-contains filter', async () => {
     type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
     type Post = { blogId: string; title: string; tags: Tag[] }
