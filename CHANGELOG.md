@@ -70,6 +70,8 @@ See below for details.
 
 - `TransactionWriteFunction` no longer expect to return a promise.
 
+- Allow quering optional fields, inluding nested map fields using `where`.
+
 ## 7.2.0 - 2021-05-25
 
 - Replace deprecated `@firebase/rules-testing` with `@firebase/rules-unit-testing`.
