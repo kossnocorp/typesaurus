@@ -32,6 +32,17 @@ export type WriteModel<
     | SetValue<Model[Key]>
 }
 
+/**
+ * Type of the data used to access models in queries. Typesaurus allows querying
+ * and ordering (unlike writing) by fields that are possibly undefined,
+ * including map fields. This type makes model fields deeply required.
+ */
+export type QueryModel<Model> = {
+  [Key in keyof Model]-?: Model[Key] extends object
+    ? QueryModel<Model[Key]>
+    : Model[Key]
+}
+
 export interface OperationOptions<
   Environment extends RuntimeEnvironment | undefined
 > {

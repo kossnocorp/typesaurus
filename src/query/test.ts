@@ -96,6 +96,7 @@ describe('query', () => {
     const locations = collection<Location>('locations')
 
     await Promise.all([
+      // TODO: It doesn't work properly because of DocId, check what's the problem
       // @ts-expect-error
       query(locations, [where(['adddddress', 'city'], '==', 'New York')]),
       // No errors, even though the address is optional
