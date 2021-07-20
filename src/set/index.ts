@@ -1,34 +1,40 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { unwrapData } from '../data'
-import { Ref } from '../ref'
-import { SetValue } from '../value'
+import type { Ref } from '../ref'
+import type { OperationOptions, RuntimeEnvironment, WriteModel } from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
-/**
- * Type of the data passed to the set function. It extends the model
- * allowing to set server date field value.
- */
-export type SetModel<Model> = {
-  [Key in keyof Model]:
-    | (Model[Key] extends object ? SetModel<Model[Key]> : Model[Key])
-    | SetValue<Model[Key]>
-}
+export type SetOptions<
+  Environment extends RuntimeEnvironment | undefined = undefined
+> = OperationOptions<Environment>
 
 /**
  * @param ref - the reference to the document to set
  * @param data - the document data
  */
-async function set<Model>(ref: Ref<Model>, data: SetModel<Model>): Promise<void>
+export async function set<
+  Model,
+  Environment extends RuntimeEnvironment | undefined = undefined
+>(
+  ref: Ref<Model>,
+  data: WriteModel<Model, Environment>,
+  options?: SetOptions<Environment>
+): Promise<void>
 
 /**
  * @param collection - the collection to set document in
  * @param id - the id of the document to set
  * @param data - the document data
  */
-async function set<Model>(
+export async function set<
+  Model,
+  Environment extends RuntimeEnvironment | undefined = undefined
+>(
   collection: Collection<Model>,
   id: string,
-  data: SetModel<Model>
+  data: WriteModel<Model, Environment>,
+  options?: SetOptions<Environment>
 ): Promise<void>
 
 /**
@@ -46,29 +52,36 @@ async function set<Model>(
  * //=> { name: 'Sasha Koss' }
  * ```
  */
-async function set<Model>(
+export async function set<
+  Model,
+  Environment extends RuntimeEnvironment | undefined = undefined
+>(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  idOrData: string | SetModel<Model>,
-  maybeData?: SetModel<Model>
+  idOrData: string | WriteModel<Model, Environment>,
+  maybeDataOrOptions?: WriteModel<Model, Environment> | SetOptions<Environment>,
+  maybeOptions?: SetOptions<Environment>
 ): Promise<void> {
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
-  let data: SetModel<Model>
+  let data: WriteModel<Model, Environment>
+  let options: SetOptions<Environment> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
     id = idOrData as string
-    data = maybeData as SetModel<Model>
+    data = maybeDataOrOptions as WriteModel<Model, Environment>
+    options = maybeOptions
   } else {
     const ref = collectionOrRef as Ref<Model>
     collection = ref.collection
     id = ref.id
-    data = idOrData as SetModel<Model>
+    data = idOrData as WriteModel<Model, Environment>
+    options = maybeDataOrOptions as SetOptions<Environment> | undefined
   }
+
+  assertEnvironment(a, options?.assertEnvironment)
 
   const firestoreDoc = a.firestore.collection(collection.path).doc(id)
   await firestoreDoc.set(unwrapData(a, data))
 }
-
-export default set

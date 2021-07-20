@@ -1,3 +1,5 @@
+import type { ServerDate } from '../types'
+
 /**
  * Available value kinds.
  */
@@ -51,31 +53,46 @@ export type ValueServerDate = {
   kind: 'serverDate'
 }
 
-/**
- * The value types that have no type constraints.
- */
-export type AnyUpdateValue = ValueRemove
+type MaybeValueRemoveOr<Model, Key extends keyof Model, ValueType> = Partial<
+  Pick<Model, Key>
+> extends Pick<Model, Key>
+  ? ValueRemove | ValueType
+  : ValueType
+
+type MaybeValueRemove<Model, Key extends keyof Model> = Partial<
+  Pick<Model, Key>
+> extends Pick<Model, Key>
+  ? ValueRemove
+  : Undefined<Model[Key]> extends Model[Key]
+  ? ValueRemove
+  : never
+
+type Undefined<T> = T extends undefined ? T : never
 
 /**
  * The value types to use for update operation.
  */
-export type UpdateValue<T> = T extends number
-  ? AnyUpdateValue | ValueIncrement
-  : T extends Array<any>
-  ? AnyUpdateValue | ValueArrayUnion | ValueArrayRemove
-  : T extends Date
-  ? ValueServerDate | AnyUpdateValue
-  : AnyUpdateValue
+export type UpdateValue<Model, Key> = Key extends keyof Model
+  ? Model[Key] extends infer Type
+    ? Type extends number
+      ? MaybeValueRemoveOr<Model, Key, ValueIncrement>
+      : Type extends Array<any>
+      ? MaybeValueRemoveOr<Model, Key, ValueArrayUnion | ValueArrayRemove>
+      : Type extends Date
+      ? MaybeValueRemoveOr<Model, Key, ValueServerDate>
+      : MaybeValueRemove<Model, Key>
+    : never
+  : never
 
 /**
  * The value types to use for add operation.
  */
-export type AddValue<T> = T extends Date ? ValueServerDate : never
+export type AddValue<T> = T extends ServerDate ? ValueServerDate : never
 
 /**
  * The value types to use for set operation.
  */
-export type SetValue<T> = T extends Date ? ValueServerDate : never
+export type SetValue<Type> = Type extends ServerDate ? ValueServerDate : never
 
 /**
  * The value types to use for upset operation.
@@ -84,7 +101,7 @@ export type UpsetValue<T> = T extends number
   ? ValueIncrement
   : T extends Array<any>
   ? ValueArrayUnion | ValueArrayRemove
-  : T extends Date
+  : T extends ServerDate
   ? ValueServerDate
   : never
 

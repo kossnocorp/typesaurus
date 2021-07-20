@@ -14,7 +14,7 @@ export function unwrapData(adaptor: Adaptor, data: any): any {
     if (data.__type__ === 'ref') {
       return refToFirestoreDocument(adaptor, data as Ref<any>)
     } else if (data.__type__ === 'value') {
-      const fieldValue = data as UpdateValue<any>
+      const fieldValue = data as UpdateValue<any, any>
       switch (fieldValue.kind) {
         case 'remove':
           return adaptor.consts.FieldValue.delete()
@@ -39,7 +39,7 @@ export function unwrapData(adaptor: Adaptor, data: any): any {
       Array.isArray(data) ? [] : {},
       data
     )
-    Object.keys(unwrappedObject).forEach(key => {
+    Object.keys(unwrappedObject).forEach((key) => {
       unwrappedObject[key] = unwrapData(adaptor, unwrappedObject[key])
     })
     return unwrappedObject
@@ -67,7 +67,7 @@ export function wrapData(adaptor: Adaptor, data: unknown) {
       Array.isArray(data) ? [] : {},
       data
     )
-    Object.keys(wrappedData).forEach(key => {
+    Object.keys(wrappedData).forEach((key) => {
       wrappedData[key] = wrapData(adaptor, wrappedData[key])
     })
     return wrappedData

@@ -12,7 +12,7 @@ export interface CollectionGroup<_Model> {
 type CollectionEntity<Model> =
   | Collection<Model>
   | Subcollection<Model, any>
-  | NestedSubcollection<Model, Model, any>
+  | NestedSubcollection<Model, any, any>
 
 function group<A>(
   path: string,

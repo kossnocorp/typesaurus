@@ -7,6 +7,69 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## 8.0.0 - 2021-??-??
+
+Typesaurus v8 includes two important changes that bring the type-safety to another level:
+
+1. TODO
+
+2. TODO
+
+See below for details.
+
+### Fixes
+
+- Fixed `group` type to properly derive the collection model.
+
+### Changed
+
+- **BREAKING**: Use `lazyfire` for ESM-enabled web environments to make Firebase modules load on demand. It ensures maximum performance, but requires installation of additional dependency and change of application initialization.
+
+  So, if you're using webpack or another ESM-enabled bundler, install `lazyfire`:
+
+  ```bash
+  npm install lazyfire --save
+  # Or using Yarn:
+  yarn add lazyfire
+  ```
+
+  And then change `firebase.initializeApp` to `configureApp`:
+
+  ```diff
+  -import * as firebase from 'firebase/app'
+  -import 'firebase/firestore'
+  +import { configureApp } from 'lazyfire'
+
+  -firebase.initializeApp({
+  +configureApp({
+   // Firebase app configuration
+  })
+  ```
+
+- **BREAKING**: Make TypeScript 3.8 the minimal supported version.
+
+- **BREAKING**: `AnyUpdateValue` type was removed.
+
+- **BREAKING**: `UpdateValue` type now accepts two type arguments: object and key instead of a single type.
+
+- **BREAKING**: Disallowed using `value('remove')` on non-optional fields.
+
+- **BREAKING**: Removed `AddModel` and `SetModel` in favor of universal `WriteModel`.
+
+- **BREAKING**: `meta` argument in `doc` is again required.
+
+- **BREAKING**: Make `environment` a required meta property.
+
+- **BREAKING**: Moved `onMissing` to options in `getMany`.
+
+- **BREAKING**: All modules now export functions as named exports instead of using `default`.
+
+- **BREAKING**: `Query` type now exported from `typesaurus` or `typesaurus/types` instead of `typesaurus/query` and `typesaurus/onQuery`.
+
+- Export options types for all functions.
+
+- `TransactionWriteFunction` no longer expect to return a promise.
+
 ## 7.2.0 - 2021-05-25
 
 - Replace deprecated `@firebase/rules-testing` with `@firebase/rules-unit-testing`.

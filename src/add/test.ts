@@ -1,8 +1,9 @@
 import assert from 'assert'
-import add from '.'
+import { add } from '.'
 import { collection } from '../collection'
-import get from '../get'
+import { get } from '../get'
 import { Ref, ref } from '../ref'
+import { ServerDate } from '../types'
 import { value } from '../value'
 
 describe('add', () => {
@@ -18,7 +19,7 @@ describe('add', () => {
     const { id } = user
     assert(typeof id === 'string')
     const userFromDB = await get(users, id)
-    assert.deepEqual(userFromDB.data, data)
+    assert.deepEqual(userFromDB?.data, data)
   })
 
   it('supports references', async () => {
@@ -28,8 +29,9 @@ describe('add', () => {
       text: 'Hello!'
     })
     const postFromDB = await get(posts, post.id)
-    const userFromDB = await get(users, postFromDB.data.author.id)
-    assert.deepEqual(userFromDB.data, { name: 'Sasha' })
+    const userFromDB =
+      postFromDB && (await get(users, postFromDB.data.author.id))
+    assert.deepEqual(userFromDB?.data, { name: 'Sasha' })
   })
 
   it('supports dates', async () => {
@@ -41,25 +43,92 @@ describe('add', () => {
       date
     })
     const postFromDB = await get(posts, post.id)
-    assert(postFromDB.data.date instanceof Date)
-    assert(postFromDB.data.date.getTime() === date.getTime())
+    assert(postFromDB?.data.date instanceof Date)
+    assert(postFromDB?.data.date?.getTime() === date.getTime())
   })
 
-  it('supports server dates', async () => {
-    const userRef = ref(users, '42')
-    const postRef = await add(posts, {
-      author: userRef,
-      text: 'Hello!',
-      date: value('serverDate')
+  describe('server dates', () => {
+    const users = collection<User>('users')
+
+    interface User {
+      name: string
+      createdAt: ServerDate
+      updatedAt?: ServerDate
+      birthday: Date
+    }
+
+    it('supports server dates', async () => {
+      const userRef = ref(users, '42')
+      const postRef = await add(users, {
+        name: 'Sasha',
+        createdAt: value('serverDate'),
+        updatedAt: value('serverDate'),
+        birthday: new Date(1987, 1, 11)
+      })
+      const user = await get(postRef)
+      const now = Date.now()
+      const returnedDate = user?.data.createdAt
+      assert(returnedDate !== undefined)
+      assert(returnedDate instanceof Date)
+      assert(
+        returnedDate!.getTime() < now && returnedDate!.getTime() > now - 10000
+      )
     })
-    const post = await get(postRef)
-    const now = Date.now()
-    const returnedDate = post.data.date
-    assert(returnedDate instanceof Date)
-    assert(returnedDate.getTime() < now && returnedDate.getTime() > now - 10000)
-    const postFromDB = await get(posts, post.ref.id)
-    const dateFromDB = postFromDB.data.date
-    assert(dateFromDB instanceof Date)
-    assert(dateFromDB.getTime() < now && dateFromDB.getTime() > now - 10000)
+
+    it('allows to assert environment which allows setting dates', async () => {
+      // TODO: Find a way to make the error show on fields like when assertEnvironment: 'web'
+      await add(users, {
+        name: 'Sasha',
+        // @ts-expect-error
+        createdAt: new Date(),
+        // @ts-expect-error
+        updatedAt: new Date(),
+        birthday: new Date(1987, 1, 11)
+      })
+
+      const nodeAdd = () =>
+        add(
+          users,
+          {
+            name: 'Sasha',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { assertEnvironment: 'node' }
+        )
+
+      const webAdd = () =>
+        add(
+          users,
+          {
+            name: 'Sasha',
+            // @ts-expect-error
+            createdAt: new Date(),
+            // @ts-expect-error
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { assertEnvironment: 'web' }
+        )
+
+      if (typeof window === 'undefined') {
+        await nodeAdd()
+        try {
+          await webAdd()
+          assert.fail('It should catch!')
+        } catch (err) {
+          assert(err.message === 'Expected web environment')
+        }
+      } else {
+        await webAdd()
+        try {
+          await nodeAdd()
+          assert.fail('It should catch!')
+        } catch (err) {
+          assert(err.message === 'Expected node environment')
+        }
+      }
+    })
   })
 })

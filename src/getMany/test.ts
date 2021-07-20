@@ -1,7 +1,7 @@
+import { getMany } from '.'
 import { collection } from '../collection'
-import set from '../set'
-import getMany from '.'
-import remove from '../remove'
+import { remove } from '../remove'
+import { set } from '../set'
 
 describe('getMany', () => {
   type Fruit = { color: string }
@@ -57,24 +57,22 @@ describe('getMany', () => {
       .then(() => {
         throw new Error('The promise should be rejected')
       })
-      .catch(err => {
+      .catch((err) => {
         expect(err.message).toBe('Missing document with id nonexistant')
       }))
 
   it('allows to specify custom logic when a document is not found', async () => {
-    const list = await getMany(fruits, ['nonexistant'], id => ({
-      color: `${id} is missing but I filled it in`
-    }))
+    const list = await getMany(fruits, ['nonexistant'], {
+      onMissing: (id) => ({ color: `${id} is missing but I filled it in` })
+    })
     expect(list.length).toBe(1)
     expect(list[0].data.color).toBe('nonexistant is missing but I filled it in')
   })
 
   it('allows to ignore missing documents', async () => {
-    const list = await getMany(
-      fruits,
-      ['apple', 'nonexistant', 'banana'],
-      'ignore'
-    )
+    const list = await getMany(fruits, ['apple', 'nonexistant', 'banana'], {
+      onMissing: 'ignore'
+    })
     expect(list.length).toBe(2)
   })
 })

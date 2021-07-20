@@ -2,7 +2,7 @@ const webpack = require('webpack')
 
 process.env.CHROME_BIN = require('puppeteer').executablePath()
 
-module.exports = config => {
+module.exports = (config) => {
   config.set({
     files: ['test/karmaTests.ts'],
 

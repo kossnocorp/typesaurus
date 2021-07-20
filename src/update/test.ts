@@ -1,12 +1,12 @@
 import assert from 'assert'
-import nanoid from 'nanoid'
-import update from '.'
-import add from '../add'
+import { nanoid } from 'nanoid'
+import { update } from '.'
+import { add } from '../add'
 import { collection } from '../collection'
-import field from '../field'
-import get from '../get'
+import { field } from '../field'
+import { get } from '../get'
 import { ref, Ref, id } from '../ref'
-import set from '../set'
+import { set } from '../set'
 import { value } from '../value'
 
 describe('update', () => {
@@ -31,7 +31,7 @@ describe('update', () => {
     const { id } = user
     await update(users, id, { name: 'Sasha Koss' })
     const userFromDB = await get(users, id)
-    assert.deepEqual(userFromDB.data, {
+    assert.deepEqual(userFromDB?.data, {
       name: 'Sasha Koss',
       address: { city: 'Omsk' },
       visits: 0
@@ -50,7 +50,7 @@ describe('update', () => {
       field(['address', 'city'], 'Moscow')
     ])
     const userFromDB = await get(users, user.id)
-    assert.deepEqual(userFromDB.data, {
+    assert.deepEqual(userFromDB?.data, {
       name: 'Sasha Koss',
       address: { city: 'Moscow' },
       visits: 0
@@ -70,7 +70,7 @@ describe('update', () => {
       field('visits', value('increment', 1))
     ])
     const userFromDB = await get(users, id)
-    assert.deepEqual(userFromDB.data, {
+    assert.deepEqual(userFromDB?.data, {
       name: 'Sasha Koss',
       address: { city: 'Dimitrovgrad' },
       visits: 1
@@ -97,8 +97,9 @@ describe('update', () => {
     })
     await update(posts, postId, { author: ref(users, userId2) })
     const postFromDB = await get(posts, postId)
-    const userFromDB = await get(users, postFromDB.data.author.id)
-    assert(userFromDB.data.name === 'Tati')
+    const userFromDB =
+      postFromDB && (await get(users, postFromDB.data.author.id))
+    assert(userFromDB?.data.name === 'Tati')
   })
 
   it('allows removing values', async () => {
@@ -111,7 +112,7 @@ describe('update', () => {
     const { id } = user
     await update(users, id, { guest: value('remove') })
     const userFromDB = await get(users, id)
-    assert.deepEqual(userFromDB.data, {
+    assert.deepEqual(userFromDB?.data, {
       name: 'Sasha',
       address: { city: 'Omsk' },
       visits: 0
@@ -127,7 +128,7 @@ describe('update', () => {
     const { id } = user
     await update(users, id, { visits: value('increment', 2) })
     const userFromDB = await get(users, id)
-    assert.deepEqual(userFromDB.data, {
+    assert.deepEqual(userFromDB?.data, {
       name: 'Sasha',
       address: { city: 'Omsk' },
       visits: 2
@@ -144,7 +145,7 @@ describe('update', () => {
     const { id } = user
     await update(users, id, { birthday: new Date(1987, 1, 11) })
     const userFromDB = await get(users, id)
-    assert.deepEqual(userFromDB.data, {
+    assert.deepEqual(userFromDB?.data, {
       name: 'Sasha',
       address: { city: 'Omsk' },
       birthday: new Date(1987, 1, 11),
@@ -162,10 +163,10 @@ describe('update', () => {
     const { id } = user
     await update(users, id, { birthday: value('serverDate') })
     const userFromDB = await get(users, id)
-    const dateFromDB = userFromDB.data.birthday
+    const dateFromDB = userFromDB?.data.birthday
     const now = Date.now()
     assert(dateFromDB instanceof Date)
-    assert(dateFromDB.getTime() < now && dateFromDB.getTime() > now - 10000)
+    assert(dateFromDB!.getTime() < now && dateFromDB!.getTime() > now - 10000)
   })
 
   describe('updating arrays', () => {
@@ -193,7 +194,7 @@ describe('update', () => {
         ])
       })
       const favFromDB = await get(favorites, id)
-      assert.deepEqual(favFromDB.data, {
+      assert.deepEqual(favFromDB?.data, {
         userId,
         favorites: [
           'Sapiens',
@@ -223,7 +224,7 @@ describe('update', () => {
         ])
       })
       const favFromDB = await get(favorites, id)
-      assert.deepEqual(favFromDB.data, {
+      assert.deepEqual(favFromDB?.data, {
         userId,
         favorites: ['The Mom Test']
       })
@@ -241,7 +242,7 @@ describe('update', () => {
         likedBy: value('arrayUnion', [user2])
       })
       const movieFromDB = await get(movie)
-      assert.deepEqual(movieFromDB.data, {
+      assert.deepEqual(movieFromDB?.data, {
         title: "Harry Potter and the Sorcerer's Stone",
         likedBy: [user1, user2]
       })
@@ -259,7 +260,7 @@ describe('update', () => {
         likedBy: value('arrayRemove', [user2])
       })
       const bookFromDB = await get(movie)
-      assert.deepEqual(bookFromDB.data, {
+      assert.deepEqual(bookFromDB?.data, {
         title: 'Harry Potter and the Chamber of Secrets',
         likedBy: [user1]
       })

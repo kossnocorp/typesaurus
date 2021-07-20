@@ -1,10 +1,11 @@
 import assert from 'assert'
+import { pick } from 'js-fns'
+import { nanoid } from 'nanoid'
 import { batch } from '.'
 import { collection } from '../collection'
+import { get } from '../get'
 import { ref } from '../ref'
-import nanoid from 'nanoid'
-import get from '../get'
-import set from '../set'
+import { set } from '../set'
 
 describe('batch', () => {
   type User = { name: string; foo?: boolean }
@@ -25,9 +26,9 @@ describe('batch', () => {
       get(tatiRef),
       get(edRef)
     ])
-    assert(sasha.data.name === 'Sasha')
-    assert(tati.data.name === 'Tati')
-    assert(ed.data.name === 'Ed')
+    assert(sasha!.data.name === 'Sasha')
+    assert(tati!.data.name === 'Tati')
+    assert(ed!.data.name === 'Ed')
   })
 
   it('allows set a new document', async () => {
@@ -45,17 +46,17 @@ describe('batch', () => {
       get(tatiRef),
       get(edRef)
     ])
-    assert.deepEqual(sasha, {
+    assert.deepEqual(pick(sasha!, ['__type__', 'ref', 'data']), {
       __type__: 'doc',
       ref: { __type__: 'ref', collection: users, id: `${id}-sasha` },
       data: { name: 'Sasha' }
     })
-    assert.deepEqual(tati, {
+    assert.deepEqual(pick(tati!, ['__type__', 'ref', 'data']), {
       __type__: 'doc',
       ref: { __type__: 'ref', collection: users, id: `${id}-tati` },
       data: { name: 'Tati' }
     })
-    assert.deepEqual(ed, {
+    assert.deepEqual(pick(ed!, ['__type__', 'ref', 'data']), {
       __type__: 'doc',
       ref: { __type__: 'ref', collection: users, id: `${id}-ed` },
       data: { name: 'Ed' }
@@ -82,9 +83,9 @@ describe('batch', () => {
       get(tatiRef),
       get(edRef)
     ])
-    assert.deepEqual(sasha.data, { name: 'Sasha Koss', foo: true })
-    assert.deepEqual(tati.data, { name: 'Tati Shepeleva', foo: false })
-    assert.deepEqual(ed.data, { name: 'Ed Tsech', foo: true })
+    assert.deepEqual(sasha!.data, { name: 'Sasha Koss', foo: true })
+    assert.deepEqual(tati!.data, { name: 'Tati Shepeleva', foo: false })
+    assert.deepEqual(ed!.data, { name: 'Ed Tsech', foo: true })
   })
 
   it('allows updating', async () => {
@@ -107,9 +108,9 @@ describe('batch', () => {
       get(tatiRef),
       get(edRef)
     ])
-    assert(sasha.data.name === 'Sasha Koss')
-    assert(tati.data.name === 'Tati Shepeleva')
-    assert(ed.data.name === 'Ed Tsech')
+    assert(sasha!.data.name === 'Sasha Koss')
+    assert(tati!.data.name === 'Tati Shepeleva')
+    assert(ed!.data.name === 'Ed Tsech')
   })
 
   it('allows removing', async () => {

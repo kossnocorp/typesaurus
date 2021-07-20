@@ -1,16 +1,17 @@
 import assert from 'assert'
-import nanoid from 'nanoid'
-import get from '../get'
-import upset from '.'
+import { nanoid } from 'nanoid'
+import { upset } from '.'
 import { collection } from '../collection'
+import { get } from '../get'
 import { Ref, ref } from '../ref'
+import { set } from '../set'
+import { ServerDate } from '../types'
+import { update } from '../update'
 import { value } from '../value'
-import set from '../set'
-import update from '../update'
 
 describe('merge', () => {
   type User = { name: string; deleted?: boolean }
-  type Post = { author: Ref<User>; text: string; date?: Date }
+  type Post = { author: Ref<User>; text: string; date?: ServerDate }
 
   const users = collection<User>('users')
   const posts = collection<Post>('post')
@@ -25,7 +26,7 @@ describe('merge', () => {
     assert(initialUser === null)
     await upset(users, id, { name: 'Sasha' })
     const user = await get(users, id)
-    assert.deepEqual(user.data, { name: 'Sasha' })
+    assert.deepEqual(user?.data, { name: 'Sasha' })
   })
 
   it('merges data if the document does exits', async () => {
@@ -34,7 +35,7 @@ describe('merge', () => {
     await update(users, id, { deleted: true })
     await upset(users, id, { name: 'Sasha Koss' })
     const user = await get(users, id)
-    assert.deepEqual(user.data, {
+    assert.deepEqual(user?.data, {
       name: 'Sasha Koss',
       deleted: true
     })
@@ -45,7 +46,7 @@ describe('merge', () => {
     const userRef = ref(users, id)
     await upset(userRef, { name: 'Sasha' })
     const user = await get(users, id)
-    assert.deepEqual(user.data, { name: 'Sasha' })
+    assert.deepEqual(user?.data, { name: 'Sasha' })
   })
 
   it('supports references', async () => {
@@ -57,22 +58,30 @@ describe('merge', () => {
       text: 'Hello!'
     })
     const postFromDB = await get(posts, postId)
-    const userFromDB = await get(users, postFromDB.data.author.id)
-    assert.deepEqual(userFromDB.data, { name: 'Sasha' })
+    const userFromDB =
+      postFromDB && (await get(users, postFromDB.data.author.id))
+    assert.deepEqual(userFromDB?.data, { name: 'Sasha' })
   })
 
-  it('supports dates', async () => {
-    const date = new Date()
-    const userRef = ref(users, '42')
-    const postId = nanoid()
-    await upset(posts, postId, {
-      author: userRef,
-      text: 'Hello!',
-      date
+  if (typeof window === 'undefined') {
+    it('supports dates', async () => {
+      const date = new Date()
+      const userRef = ref(users, '42')
+      const postId = nanoid()
+      await upset(
+        posts,
+        postId,
+        {
+          author: userRef,
+          text: 'Hello!',
+          date
+        },
+        { assertEnvironment: 'node' }
+      )
+      const postFromDB = await get(posts, postId)
+      assert(postFromDB?.data.date?.getTime() === date.getTime())
     })
-    const postFromDB = await get(posts, postId)
-    assert(postFromDB.data.date.getTime() === date.getTime())
-  })
+  }
 
   it('supports server dates', async () => {
     const userRef = ref(users, '42')
@@ -84,13 +93,15 @@ describe('merge', () => {
     })
     const now = Date.now()
     const post = await get(posts, postId)
-    const returnedDate = post.data.date
+    const returnedDate = post?.data.date
     assert(returnedDate instanceof Date)
-    assert(returnedDate.getTime() < now && returnedDate.getTime() > now - 10000)
-    const postFromDB = await get(posts, post.ref.id)
-    const dateFromDB = postFromDB.data.date
+    assert(
+      returnedDate!.getTime() < now && returnedDate!.getTime() > now - 10000
+    )
+    const postFromDB = post && (await get(posts, post.ref.id))
+    const dateFromDB = postFromDB?.data.date
     assert(dateFromDB instanceof Date)
-    assert(dateFromDB.getTime() < now && dateFromDB.getTime() > now - 10000)
+    assert(dateFromDB!.getTime() < now && dateFromDB!.getTime() > now - 10000)
   })
 
   it('allows incrementing values', async () => {
@@ -101,14 +112,14 @@ describe('merge', () => {
       count: value('increment', 5)
     })
     const counter5 = await get(counters, id)
-    assert(counter5.data.count === 5)
+    assert(counter5?.data.count === 5)
     await update(counters, id, { flagged: true })
     await upset(counters, id, {
       count: value('increment', 5)
     })
     const counter10 = await get(counters, id)
-    assert(counter10.data.count === 10)
-    assert(counter10.data.flagged)
+    assert(counter10?.data.count === 10)
+    assert(counter10?.data.flagged)
   })
 
   describe('updating arrays', () => {
@@ -131,7 +142,7 @@ describe('merge', () => {
         ])
       })
       const favFromDB = await get(favorites, id)
-      assert.deepEqual(favFromDB.data, {
+      assert.deepEqual(favFromDB?.data, {
         favorites: [
           'Sapiens',
           'The 22 Immutable Laws of Marketing',
@@ -158,7 +169,7 @@ describe('merge', () => {
         ])
       })
       const favFromDB = await get(favorites, id)
-      assert.deepEqual(favFromDB.data, {
+      assert.deepEqual(favFromDB?.data, {
         favorites: ['The Mom Test']
       })
     })

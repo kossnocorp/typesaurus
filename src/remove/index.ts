@@ -6,7 +6,7 @@ import { Ref } from '../ref'
  * @param collection - The collection to remove document in
  * @param id - The id of the documented to remove
  */
-async function remove<Model>(
+export async function remove<Model>(
   collection: Collection<Model>,
   id: string
 ): Promise<void>
@@ -14,7 +14,7 @@ async function remove<Model>(
 /**
  * @param ref - The reference to the document to remove
  */
-async function remove<Model>(ref: Ref<Model>): Promise<void>
+export async function remove<Model>(ref: Ref<Model>): Promise<void>
 
 /**
  * Removes a document.
@@ -30,7 +30,7 @@ async function remove<Model>(ref: Ref<Model>): Promise<void>
  *
  * @returns A promise that resolves when the operation is complete
  */
-async function remove<Model>(
+export async function remove<Model>(
   collectionOrRef: Collection<Model> | Ref<Model>,
   maybeId?: string
 ): Promise<void> {
@@ -50,5 +50,3 @@ async function remove<Model>(
   const firebaseDoc = a.firestore.collection(collection.path).doc(id)
   await firebaseDoc.delete()
 }
-
-export default remove
