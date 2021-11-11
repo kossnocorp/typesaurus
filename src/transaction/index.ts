@@ -1,7 +1,8 @@
+import { getCommon, GetOptions } from '..';
 import adaptor from '../adaptor'
 import type { Collection } from '../collection'
 import { unwrapData, wrapData } from '../data'
-import { AnyDoc, doc } from '../doc'
+import { AnyDoc, doc, Doc } from '../doc'
 import type { Field } from '../field'
 import { Ref, ref } from '../ref'
 import type {
@@ -281,44 +282,6 @@ export async function transaction<
   assertEnvironment(a, options?.assertEnvironment)
 
   return a.firestore.runTransaction((t) => {
-    async function get<
-      Model,
-      ServerTimestamps extends ServerTimestampsStrategy
-    >(
-      collectionOrRef: Collection<Model> | Ref<Model>,
-      maybeIdOrOptions?: string | DocOptions<ServerTimestamps>,
-      maybeOptions?: DocOptions<ServerTimestamps>
-    ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps> | null> {
-      let collection: Collection<Model>
-      let id: string
-      let options: DocOptions<ServerTimestamps> | undefined
-
-      if (collectionOrRef.__type__ === 'collection') {
-        collection = collectionOrRef as Collection<Model>
-        id = maybeIdOrOptions as string
-        options = maybeOptions as DocOptions<ServerTimestamps>
-      } else {
-        const ref = collectionOrRef as Ref<Model>
-        collection = ref.collection
-        id = ref.id
-        options = maybeIdOrOptions as DocOptions<ServerTimestamps> | undefined
-      }
-
-      const firestoreDoc = a.firestore.collection(collection.path).doc(id)
-      // ^ above
-      // TODO: Refactor code above and below because is all the same as in the regular get function
-      const firestoreSnap = await t.get(firestoreDoc)
-      // v below
-      const firestoreData = a.getDocData(firestoreSnap, options)
-      const data = firestoreData && (wrapData(a, firestoreData) as Model)
-      return data
-        ? doc(ref(collection, id), data, {
-            environment: a.environment as Environment,
-            serverTimestamps: options?.serverTimestamps,
-            ...a.getDocMeta(firestoreSnap)
-          })
-        : null
-    }
 
     function set<Model>(
       collectionOrRef: Collection<Model> | Ref<Model>,
@@ -426,7 +389,9 @@ export async function transaction<
       t.delete(firebaseDoc)
     }
 
-    return readFunction({ get }).then((data) =>
+    return readFunction({
+      get: (...props) => (getCommon as any)(...props, {a, t})
+    }).then((data) =>
       writeFunction({ data, set, upset, update, remove })
     )
   })
