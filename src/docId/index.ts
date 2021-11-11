@@ -1,5 +1,5 @@
 class DocId {
-  /** Just to not let the class empty, which was causing a typescript bug. */
+  /** Just to not let the class empty, which was causing a TS bug - #103 */
   _metaDocId = 0
 }
 
