@@ -7,7 +7,7 @@
     "Firestore",
     "TypeScript"
   ],
-  "main": "lib/index.js",
+  "main": "index.js",
   "module": "esm/index.js",
   "sideEffects": false,
   "repository": "https://github.com/kossnocorp/typesaurus",
