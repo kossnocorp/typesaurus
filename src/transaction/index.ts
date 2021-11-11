@@ -393,8 +393,8 @@ export async function transaction<
     }
 
     return readFunction({
-      get: (...props) => (getCommon as any)(...props, {a, t}),
-      query: (...props) => queryCommon(...props, {a, t})
+      get: (...props) => (getCommon as any)(props[0], props[1], props[2], {a, t}),
+      query: (...props) => queryCommon(props[0], props[1], props[2], {a, t})
     }).then((data) =>
       writeFunction({ data, set, upset, update, remove })
     )
