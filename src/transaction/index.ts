@@ -1,4 +1,4 @@
-import { getCommon, GetOptions } from '..';
+import { get, getCommon, GetOptions, query, queryCommon } from '..';
 import adaptor from '../adaptor'
 import type { Collection } from '../collection'
 import { unwrapData, wrapData } from '../data'
@@ -15,6 +15,8 @@ import type {
 import type { UpdateModel } from '../update'
 import type { UpsetModel } from '../upset'
 import { assertEnvironment } from '../_lib/assertEnvironment'
+
+
 
 /**
  * The transaction read API object. It contains {@link TransactionRead.get|get}
@@ -55,6 +57,7 @@ export interface TransactionRead<Environment extends RuntimeEnvironment> {
     id: string,
     options?: DocOptions<ServerTimestamps>
   ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps> | null>
+  query: typeof query
 }
 
 /**
@@ -390,7 +393,8 @@ export async function transaction<
     }
 
     return readFunction({
-      get: (...props) => (getCommon as any)(...props, {a, t})
+      get: (...props) => (getCommon as any)(...props, {a, t}),
+      query: (...props) => queryCommon(...props, {a, t})
     }).then((data) =>
       writeFunction({ data, set, upset, update, remove })
     )

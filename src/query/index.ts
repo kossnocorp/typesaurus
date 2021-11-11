@@ -1,4 +1,4 @@
-import adaptor from '../adaptor'
+import adaptor, { Adaptor } from '../adaptor'
 import type { Collection } from '../collection'
 import type { Cursor, CursorMethod } from '../cursor'
 import { unwrapData, wrapData } from '../data'
@@ -60,8 +60,23 @@ export async function query<
   options?: QueryOptions<Environment, ServerTimestamps>
 ): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
+  return queryCommon(collection, queries, options, {a, t: undefined})
+}
 
-  assertEnvironment(a, options?.assertEnvironment)
+
+export async function queryCommon<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
+  collection: Collection<Model> | CollectionGroup<Model>,
+  queries: Query<Model, keyof Model>[],
+  options: QueryOptions<Environment, ServerTimestamps> | undefined,
+  {a, t}: {a: Adaptor, t: FirebaseFirestore.Transaction | undefined}
+): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
+
+  if (!t)
+    assertEnvironment(a, options?.assertEnvironment)
 
   const { firestoreQuery, cursors } = queries.reduce(
     (acc, q) => {
@@ -144,7 +159,7 @@ export async function query<
         }, firestoreQuery)
       : firestoreQuery
 
-  const firebaseSnap = await paginatedFirestoreQuery.get()
+  const firebaseSnap = await (t ? t.get(paginatedFirestoreQuery) : paginatedFirestoreQuery.get())
 
   return firebaseSnap.docs.map((snap) =>
     doc(
@@ -160,3 +175,4 @@ export async function query<
     )
   )
 }
+
