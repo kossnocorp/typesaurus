@@ -1,4 +1,0 @@
-{
-  "browser": "./browser/lazy",
-  "main": "./node"
-}
