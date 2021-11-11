@@ -1,0 +1,4 @@
+{
+  "module": "../esm/add/index.js",
+  "sideEffects": false
+}

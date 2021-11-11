@@ -1,0 +1,4 @@
+{
+  "module": "../esm/query/index.js",
+  "sideEffects": false
+}

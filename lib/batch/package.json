@@ -1,0 +1,4 @@
+{
+  "module": "../esm/batch/index.js",
+  "sideEffects": false
+}
