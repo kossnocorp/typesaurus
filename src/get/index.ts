@@ -1,4 +1,4 @@
-import adaptor from '../adaptor'
+import adaptor, { Adaptor } from '../adaptor'
 import type { Collection } from '../collection'
 import { wrapData } from '../data'
 import { AnyDoc, doc, Doc } from '../doc'
@@ -76,6 +76,25 @@ export async function get<
   ServerTimestamps
 > | null> {
   const a = await adaptor()
+  return getCommon(collectionOrRef, maybeIdOrOptions, maybeOptions, {a, t: undefined})
+}
+
+
+export async function getCommon<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
+  collectionOrRef: Collection<Model> | Ref<Model>,
+  maybeIdOrOptions: string | GetOptions<Environment, ServerTimestamps> | undefined,
+  maybeOptions: GetOptions<Environment, ServerTimestamps> | undefined,
+  {a, t}: {a: Adaptor, t: FirebaseFirestore.Transaction | undefined}
+): Promise<AnyDoc<
+  Model,
+  RuntimeEnvironment,
+  boolean,
+  ServerTimestamps
+> | null> {
   let collection: Collection<Model>
   let id: string
   let options: GetOptions<Environment, ServerTimestamps> | undefined
@@ -93,10 +112,11 @@ export async function get<
       | undefined
   }
 
-  assertEnvironment(a, options?.assertEnvironment)
+  if (!t)
+    assertEnvironment(a, options?.assertEnvironment)
 
   const firestoreDoc = a.firestore.collection(collection.path).doc(id)
-  const firestoreSnap = await firestoreDoc.get()
+  const firestoreSnap = await (t ? t.get(firestoreDoc) : firestoreDoc.get())
   const firestoreData = a.getDocData(firestoreSnap, options)
   const data = firestoreData && (wrapData(a, firestoreData) as Model)
   return data
