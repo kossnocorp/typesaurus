@@ -1,7 +1,4 @@
-class DocId {
-  /** Just to not let the class empty, which was causing a typescript bug. */
-  _metaDocId = 0
-}
+class DocId {}
 
 /**
  * A special sentinel to refer to the ID of a document.
