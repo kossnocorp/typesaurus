@@ -34,6 +34,10 @@ export function unwrapData(adaptor: Adaptor, data: any): any {
     } else if (data instanceof Date) {
       return adaptor.consts.Timestamp.fromDate(data)
     }
+    // Avoids changing Timestamp object. // https://github.com/kossnocorp/typesaurus/issues/105
+    else if (data instanceof adaptor.consts.Timestamp) {
+      return data;
+    }
 
     const unwrappedObject: { [key: string]: any } = Object.assign(
       Array.isArray(data) ? [] : {},
