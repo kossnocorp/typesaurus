@@ -91,7 +91,7 @@ export function subcollection<
  * type User = { name: string }
  * type Order = { item: string }
  * const users = collection<User>('users')
- * const userOrders = subcollection<Order, User>('orders')
+ * const userOrders = subcollection<Order, User>('orders', users)
  *
  * const sashasOrders = userOrders('00sHm46UWKObv2W7XK9e')
  * //=> { __type__: 'collection', path: 'users/00sHm46UWKObv2W7XK9e/orders' }
