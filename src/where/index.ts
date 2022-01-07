@@ -23,7 +23,7 @@ function where<Model, Key extends keyof Model>(
 function where<Model, Key extends keyof Model>(
   field: Key | [Key] | DocId,
   filter: 'in',
-  value: string[]
+  value: string[] | readonly string[]
 ): WhereQuery<Model>
 
 // Basic filter variation
