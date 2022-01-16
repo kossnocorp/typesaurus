@@ -18,5 +18,3 @@ export const Settings: TypesaurusSettings = {
 export function typesaurusSettings(settings: Partial<TypesaurusSettings>): void {
   Object.assign(Settings, settings);
 }
-
-typesaurusSettings({})
