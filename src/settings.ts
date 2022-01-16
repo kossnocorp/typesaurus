@@ -1,4 +1,4 @@
-type TypesaurusSettings = {
+export type TypesaurusSettings = {
   undefinedToNull: boolean;
 }
 
