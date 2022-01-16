@@ -207,6 +207,20 @@ Functions to be used with [`@firebase/rules-unit-testing`](https://firebase.goog
 - [`injectTestingAdaptor`](https://typesaurus.com/modules/_testing_index_.html#injecttestingadaptor) - Injects the testing adaptor and sets the given app to be used for Firestore operations.
 - [`injectApp`](https://typesaurus.com/modules/_testing_index_.html#setapp) - Sets the given app to be used for Firestore operations.
 
+## Settings
+
+You may change Typesaurus settings with the `typesaurusSettings(settings: Partial<TypesaurusSettings>): void` function.
+
+The settings are:
+
+#### `undefinedToNull`: boolean
+If Typesaurus shall convert any `undefined` values in write operations to `null`.
+
+If `false`, the `undefined` behavior is handled by [Firestore `ignoreUndefinedProperties` setting](https://firebase.google.com/docs/reference/js/v8/firebase.firestore.Settings#ignoreundefinedproperties). You can change it via `firebase.firestore().settings({ignoreUndefinedProperties: boolean})`, in Node env.
+
+Default: `true`
+
+
 ## Changelog
 
 See [the changelog](./CHANGELOG.md).
