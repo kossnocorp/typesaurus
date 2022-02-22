@@ -33,10 +33,10 @@ export type AdaptorConsts = {
   FieldValue: typeof admin.firestore.FieldValue
 }
 
-const adminFirestore = () => admin.firestore()
+export const adminFirestore = () => admin.firestore()
 let currentFirestore: AdaptorFirestore = adminFirestore
 
-const adminConsts = {
+export const adminConsts = {
   DocumentReference: admin.firestore.DocumentReference,
   Timestamp: admin.firestore.Timestamp,
   FieldPath: admin.firestore.FieldPath,
