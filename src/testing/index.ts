@@ -1,5 +1,5 @@
 import * as testing from '@firebase/rules-unit-testing'
-import { injectAdaptor } from '../adaptor'
+import { adminConsts, adminFirestore, injectAdaptor } from '../adaptor'
 import { getAll } from '../adaptor/utils'
 
 type App =
@@ -37,22 +37,30 @@ let currentApp: App
  */
 export function injectTestingAdaptor(app: App) {
   setApp(app)
-  injectAdaptor(
-    // TODO: Find a way to fix TS error:
-    // @ts-ignore: @firebase/rules-unit-testing and firebase-admin use different types
-    // for Firestore so I had to disable the error.
-    () => {
-      const firestore = currentApp.firestore()
-      if (!('getAll' in firestore)) return Object.assign(firestore, { getAll })
-      return firestore
-    },
-    {
-      DocumentReference: testing.firestore.DocumentReference,
-      Timestamp: testing.firestore.Timestamp,
-      FieldPath: testing.firestore.FieldPath,
-      FieldValue: testing.firestore.FieldValue
-    }
-  )
+
+  if ('instanceId' in app) {
+    // If it's an admin app (created using initializeAdminApp), inject the admin adaptor
+    injectAdaptor(adminFirestore, adminConsts)
+  } else {
+    // If it's a client app (created using initializeTestApp), inject the client adaptor
+    injectAdaptor(
+      // TODO: Find a way to fix TS error:
+      // @ts-ignore: @firebase/rules-unit-testing and firebase-admin use different types
+      // for Firestore so I had to disable the error.
+      () => {
+        const firestore = currentApp.firestore()
+        if (!('getAll' in firestore))
+          return Object.assign(firestore, { getAll })
+        return firestore
+      },
+      {
+        DocumentReference: testing.firestore.DocumentReference,
+        Timestamp: testing.firestore.Timestamp,
+        FieldPath: testing.firestore.FieldPath,
+        FieldValue: testing.firestore.FieldValue
+      }
+    )
+  }
 }
 
 /**
