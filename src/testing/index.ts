@@ -38,29 +38,25 @@ let currentApp: App
 export function injectTestingAdaptor(app: App) {
   setApp(app)
 
-  if ('instanceId' in app) {
-    // If it's an admin app (created using initializeAdminApp), inject the admin adaptor
-    injectAdaptor(adminFirestore, adminConsts)
-  } else {
-    // If it's a client app (created using initializeTestApp), inject the client adaptor
-    injectAdaptor(
-      // TODO: Find a way to fix TS error:
-      // @ts-ignore: @firebase/rules-unit-testing and firebase-admin use different types
-      // for Firestore so I had to disable the error.
-      () => {
-        const firestore = currentApp.firestore()
-        if (!('getAll' in firestore))
-          return Object.assign(firestore, { getAll })
-        return firestore
-      },
-      {
-        DocumentReference: testing.firestore.DocumentReference,
-        Timestamp: testing.firestore.Timestamp,
-        FieldPath: testing.firestore.FieldPath,
-        FieldValue: testing.firestore.FieldValue
-      }
-    )
-  }
+  injectAdaptor(
+    // TODO: Find a way to fix TS error:
+    // @ts-ignore: @firebase/rules-unit-testing and firebase-admin use different types
+    // for Firestore so I had to disable the error.
+    () => {
+      const firestore = currentApp.firestore()
+      if (!('getAll' in firestore)) return Object.assign(firestore, { getAll })
+      return firestore
+    },
+    // If the testing app was created using initializeAdminApp then use admin constants
+    'instanceId' in app
+      ? adminConsts
+      : {
+          DocumentReference: testing.firestore.DocumentReference,
+          Timestamp: testing.firestore.Timestamp,
+          FieldPath: testing.firestore.FieldPath,
+          FieldValue: testing.firestore.FieldValue
+        }
+  )
 }
 
 /**
