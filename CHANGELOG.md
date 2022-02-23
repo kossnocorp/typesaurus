@@ -66,6 +66,10 @@ See below for details.
 
 - **BREAKING**: `Query` type now exported from `typesaurus` or `typesaurus/types` instead of `typesaurus/query` and `typesaurus/onQuery`.
 
+- **BREAKING**: Unless `firestoreData: true` is specified in the meta, `doc` will convert `undefined` to `null` in the data.
+
+  The idea of the change is to match the Firestore behavior when composing a synthetic doc, which is helpful in tests or Typesaurus extensions.
+
 - Export options types for all functions.
 
 - `TransactionWriteFunction` no longer expect to return a promise.

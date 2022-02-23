@@ -313,6 +313,7 @@ export async function transaction<
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
       return data
         ? doc(ref(collection, id), data, {
+            firestoreData: true,
             environment: a.environment as Environment,
             serverTimestamps: options?.serverTimestamps,
             ...a.getDocMeta(firestoreSnap)

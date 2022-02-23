@@ -144,6 +144,7 @@ export function onGet<
       onResult(
         (data &&
           doc(ref(collection, id), data, {
+            firestoreData: true,
             environment: a.environment as Environment,
             serverTimestamps: options?.serverTimestamps,
             ...a.getDocMeta(firestoreSnap)

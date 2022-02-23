@@ -9,6 +9,7 @@ import type { ServerDate } from '../types'
 describe('Doc', () => {
   const users = collection<User>('users')
   const groups = collection<Group>('groups')
+  const libraries = collection<Library>('library')
 
   describe('doc', () => {
     it('creates doc object', () => {
@@ -27,6 +28,130 @@ describe('Doc', () => {
           ref: userRef,
           data: { name: 'Sasha', createdAt, birthday },
           environment: 'node'
+        }
+      )
+    })
+
+    it('converts all undefined to null', () => {
+      const libraryRef = ref(libraries, nanoid())
+
+      assert.deepStrictEqual(
+        doc(
+          libraryRef,
+          {
+            books: {
+              '1984': {
+                title: '1984',
+                attributes: {
+                  hopeless: true,
+                  resolution: undefined
+                }
+              },
+              'this-bright-future': undefined
+            },
+            returned: [
+              undefined,
+              {
+                title: 'Brave New World',
+                attributes: {
+                  hopeless: true,
+                  resolution: undefined
+                }
+              }
+            ]
+          },
+          { environment: 'node' }
+        ),
+        {
+          __type__: 'doc',
+          ref: libraryRef,
+          data: {
+            books: {
+              '1984': {
+                title: '1984',
+                attributes: {
+                  hopeless: true,
+                  resolution: null
+                }
+              },
+              'this-bright-future': null
+            },
+            returned: [
+              null,
+              {
+                title: 'Brave New World',
+                attributes: {
+                  hopeless: true,
+                  resolution: null
+                }
+              }
+            ]
+          },
+          environment: 'node'
+        }
+      )
+    })
+
+    it('pass data as is if it is Firestore data', () => {
+      const libraryRef = ref(libraries, nanoid())
+
+      assert.deepStrictEqual(
+        doc(
+          libraryRef,
+          {
+            books: {
+              '1984': {
+                title: '1984',
+                attributes: {
+                  hopeless: true,
+                  resolution: undefined
+                }
+              },
+              'this-bright-future': undefined
+            },
+            returned: [
+              undefined,
+              {
+                title: 'Brave New World',
+                attributes: {
+                  hopeless: true,
+                  resolution: undefined
+                }
+              }
+            ]
+          },
+          {
+            environment: 'node',
+            firestoreData: true
+          }
+        ),
+        {
+          __type__: 'doc',
+          ref: libraryRef,
+          data: {
+            books: {
+              '1984': {
+                title: '1984',
+                attributes: {
+                  hopeless: true,
+                  resolution: undefined
+                }
+              },
+              'this-bright-future': undefined
+            },
+            returned: [
+              undefined,
+              {
+                title: 'Brave New World',
+                attributes: {
+                  hopeless: true,
+                  resolution: undefined
+                }
+              }
+            ]
+          },
+          environment: 'node',
+          firestoreData: true
         }
       )
     })
@@ -311,7 +436,7 @@ describe('Doc', () => {
   })
 
   it('does not mangle types', () => {
-    const data = {} as AnyModelData<{ field?: undefined }>
+    const data = {} as AnyModelData<{ field?: undefined }, boolean>
     assertType<TypeEqual<undefined, typeof data.field>>(true)
   })
 })
@@ -328,6 +453,16 @@ interface User {
 interface Group {
   head: { president: User }
   members: User[]
+}
+
+interface Library {
+  books: Record<string, Book | undefined>
+  returned: Array<Book | undefined>
+}
+
+interface Book {
+  title: string
+  attributes: Record<string, string | boolean | undefined>
 }
 
 type ItemType<ArrayType> = ArrayType extends Array<infer Type> ? Type : never

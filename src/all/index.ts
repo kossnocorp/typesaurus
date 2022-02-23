@@ -64,6 +64,7 @@ export async function all<
         : ref(collection, snap.id),
       wrapData(a, a.getDocData(snap, options)) as Model,
       {
+        firestoreData: true,
         environment: a.environment as Environment,
         serverTimestamps: options?.serverTimestamps,
         ...a.getDocMeta(snap)
