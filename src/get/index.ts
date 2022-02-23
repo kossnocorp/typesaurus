@@ -101,6 +101,7 @@ export async function get<
   const data = firestoreData && (wrapData(a, firestoreData) as Model)
   return data
     ? doc(ref(collection, id), data, {
+        firestoreData: true,
         environment: a.environment,
         serverTimestamps: options?.serverTimestamps,
         ...a.getDocMeta(firestoreSnap)

@@ -135,16 +135,32 @@ export function doc<
   ref: Ref<Model>,
   data: Model,
   meta: {
+    firestoreData?: boolean
     environment: Environment
     fromCache?: FromCache
     hasPendingWrites?: boolean
     serverTimestamps?: ServerTimestamps
   }
 ): AnyDoc<Model, Environment, FromCache, ServerTimestamps> {
-  return ({ __type__: 'doc', ref, data, ...meta } as unknown) as AnyDoc<
-    Model,
-    Environment,
-    FromCache,
-    ServerTimestamps
-  >
+  return ({
+    __type__: 'doc',
+    ref,
+    // TODO: Unwrap if it is Firestore data? This sounds like a good idea but it
+    // requires adaptor to be presence hence asking for it in the arguments
+    // or making the function async.
+    data: meta.firestoreData ? data : nullify(data),
+    ...meta
+  } as unknown) as AnyDoc<Model, Environment, FromCache, ServerTimestamps>
+}
+
+function nullify(data: any) {
+  if (data && typeof data === 'object' && !(data instanceof Date)) {
+    const newData: typeof data = Array.isArray(data) ? [] : {}
+    for (const key in data) {
+      newData[key] = data[key] === undefined ? null : nullify(data[key])
+    }
+    return newData
+  } else {
+    return data
+  }
 }

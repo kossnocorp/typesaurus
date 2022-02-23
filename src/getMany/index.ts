@@ -84,6 +84,7 @@ export async function getMany<
             ref(collection, firestoreSnap.id),
             onMissing(firestoreSnap.id),
             {
+              firestoreData: true,
               environment: a.environment,
               serverTimestamps: options?.serverTimestamps,
               ...a.getDocMeta(firestoreSnap)
@@ -95,6 +96,7 @@ export async function getMany<
       const firestoreData = a.getDocData(firestoreSnap, options)
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
       return doc(ref(collection, firestoreSnap.id), data, {
+        firestoreData: true,
         environment: a.environment,
         serverTimestamps: options?.serverTimestamps,
         ...a.getDocMeta(firestoreSnap)

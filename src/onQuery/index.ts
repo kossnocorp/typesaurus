@@ -190,6 +190,7 @@ export function onQuery<
               : ref(collection, snap.id),
             wrapData(a, a.getDocData(snap, options)) as Model,
             {
+              firestoreData: true,
               environment: a.environment as Environment,
               serverTimestamps: options?.serverTimestamps,
               ...a.getDocMeta(snap)
@@ -214,6 +215,7 @@ export function onQuery<
                   : ref(collection, change.doc.id),
                 wrapData(a, a.getDocData(change.doc, options)) as Model,
                 {
+                  firestoreData: true,
                   environment: a.environment,
                   serverTimestamps: options?.serverTimestamps,
                   ...a.getDocMeta(change.doc)

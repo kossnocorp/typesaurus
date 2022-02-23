@@ -113,6 +113,7 @@ export function onAll<
                 : ref(collection, change.doc.id),
               wrapData(a, a.getDocData(change.doc, options)) as Model,
               {
+                firestoreData: true,
                 environment: a.environment,
                 serverTimestamps: options?.serverTimestamps,
                 ...a.getDocMeta(change.doc)
