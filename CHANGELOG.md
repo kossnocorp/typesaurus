@@ -76,6 +76,8 @@ See below for details.
 
 - Allow quering optional fields, inluding nested map fields using `where`.
 
+- Added `nullifyData` that deeply replaces `undefined` with `null` in the passed data. It used to match the Firestore behavior.
+
 ## 7.2.0 - 2021-05-25
 
 - Replace deprecated `@firebase/rules-testing` with `@firebase/rules-unit-testing`.

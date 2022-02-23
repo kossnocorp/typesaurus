@@ -8,6 +8,7 @@ import { Adaptor } from '../adaptor'
  *
  * @param adaptor - the adaptor
  * @param data - the data to convert
+ * @returns the data in Firestore format
  */
 export function unwrapData(adaptor: Adaptor, data: any): any {
   if (data && typeof data === 'object') {
@@ -56,6 +57,7 @@ export function unwrapData(adaptor: Adaptor, data: any): any {
  *
  * @param consts - the adaptor constants
  * @param data - the data to convert
+ * @returns the data in Typesaurus format
  */
 export function wrapData(adaptor: Adaptor, data: unknown) {
   if (data instanceof adaptor.consts.DocumentReference) {
@@ -71,6 +73,25 @@ export function wrapData(adaptor: Adaptor, data: unknown) {
       wrappedData[key] = wrapData(adaptor, wrappedData[key])
     })
     return wrappedData
+  } else {
+    return data
+  }
+}
+
+/**
+ * Deeply replaces all `undefined` values in the data with `null`. It emulates
+ * the Firestore behavior.
+ *
+ * @param data - the data to convert
+ * @returns the data with undefined values replaced with null
+ */
+export function nullifyData(data: any) {
+  if (data && typeof data === 'object' && !(data instanceof Date)) {
+    const newData: typeof data = Array.isArray(data) ? [] : {}
+    for (const key in data) {
+      newData[key] = data[key] === undefined ? null : nullifyData(data[key])
+    }
+    return newData
   } else {
     return data
   }
