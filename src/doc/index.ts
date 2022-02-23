@@ -41,6 +41,7 @@ export interface NodeDoc<Model> {
   fromCache?: false
   hasPendingWrites?: false
   serverTimestamps?: undefined
+  firestoreData?: boolean
 }
 
 export interface WebDoc<
@@ -59,6 +60,7 @@ export interface WebDoc<
   fromCache: FromCache
   hasPendingWrites: boolean
   serverTimestamps: ServerTimestamps
+  firestoreData?: boolean
 }
 
 export type ModelNodeData<Model> = AnyModelData<Model, false>
