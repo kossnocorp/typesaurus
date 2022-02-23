@@ -1,3 +1,4 @@
+import { nullifyData } from '../data'
 import type { Ref } from '../ref'
 import type {
   RuntimeEnvironment,
@@ -148,19 +149,7 @@ export function doc<
     // TODO: Unwrap if it is Firestore data? This sounds like a good idea but it
     // requires adaptor to be presence hence asking for it in the arguments
     // or making the function async.
-    data: meta.firestoreData ? data : nullify(data),
+    data: meta.firestoreData ? data : nullifyData(data),
     ...meta
   } as unknown) as AnyDoc<Model, Environment, FromCache, ServerTimestamps>
-}
-
-function nullify(data: any) {
-  if (data && typeof data === 'object' && !(data instanceof Date)) {
-    const newData: typeof data = Array.isArray(data) ? [] : {}
-    for (const key in data) {
-      newData[key] = data[key] === undefined ? null : nullify(data[key])
-    }
-    return newData
-  } else {
-    return data
-  }
 }
