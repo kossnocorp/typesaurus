@@ -24,6 +24,10 @@ export interface Field<_Model> {
   value: any
 }
 
+export type FieldsWithFalsyValues<Model> = Array<
+  Field<Model> | undefined | null | false
+>
+
 export function field<Model, Key extends keyof Model>(
   key: Key | [Key],
   value: Model[Key] | UpdateValue<Model, Key>
