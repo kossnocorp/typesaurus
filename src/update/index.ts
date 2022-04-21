@@ -1,7 +1,7 @@
 import adaptor from '../adaptor'
 import type { Collection } from '../collection'
 import { unwrapData } from '../data'
-import type { Field } from '../field'
+import type { Field, FieldsWithFalsyValues } from '../field'
 import type { Ref } from '../ref'
 import type { OperationOptions, RuntimeEnvironment } from '../types'
 import type { UpdateValue } from '../value'
@@ -30,7 +30,7 @@ export async function update<
 >(
   collection: Collection<Model>,
   id: string,
-  data: Field<Model>[],
+  data: FieldsWithFalsyValues<Model>,
   options?: UpdateOptions<Environment>
 ): Promise<void>
 
@@ -107,9 +107,9 @@ export async function update<
   Environment extends RuntimeEnvironment | undefined
 >(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  idOrData: string | Field<Model>[] | UpdateModel<Model>,
+  idOrData: string | FieldsWithFalsyValues<Model> | UpdateModel<Model>,
   maybeDataOrOptions?:
-    | Field<Model>[]
+    | FieldsWithFalsyValues<Model>
     | UpdateModel<Model>
     | UpdateOptions<Environment>,
   maybeOptions?: UpdateOptions<Environment>
@@ -137,7 +137,9 @@ export async function update<
 
   const firebaseDoc = a.firestore.collection(collection.path).doc(id)
   const updateData = Array.isArray(data)
-    ? data.reduce((acc, { key, value }) => {
+    ? data.reduce((acc, field) => {
+        if (!field) return
+        const { key, value } = field
         acc[Array.isArray(key) ? key.join('.') : key] = value
         return acc
       }, {} as { [key: string]: any })
