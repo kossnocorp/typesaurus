@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { nanoid } from 'nanoid'
 import { add } from '../add'
-import { all } from '../all'
+import { all } from '.'
 import { collection } from '../collection'
 import { get } from '../get'
 import { group } from '../group'
