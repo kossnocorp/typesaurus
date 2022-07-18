@@ -11,7 +11,8 @@ describe('Typesaurus core', () => {
         // Flat schema
         const db = schema(($) => ({
           users: $.collection<User>(),
-          posts: $.collection<Post>()
+          posts: $.collection<Post>(),
+          accounts: $.collection<Account>()
         }))
 
         // With subcollectios
@@ -62,6 +63,7 @@ describe('Typesaurus core', () => {
         // Quering
         const users = await db.users.query(($) => [
           $.where('name', '==', 'Sasha'),
+          // @ts-expect-error
           $.where(['contacts', 'emal'], '==', 'koss@nocorp.me'),
           $.order('name'),
           $.limit(1)
@@ -74,19 +76,21 @@ describe('Typesaurus core', () => {
         const sasha = await sashaPromise
 
         // 2. Subscribe to document
-        sashaPromise
-          .on((user, info) => {
+        const sashaUnsubscribe1 = sashaPromise
+          .on((user) => {
             // Fresh user data
             user
           })
           .catch((error) => {
             // Do something with error
           })
+
+        sashaUnsubscribe1()
 
         // Subscribe to a single document (real-time)
-        const sashaUnsubscribe = db.users
+        const sashaUnsubscribe2 = db.users
           .get('sasha')
-          .on((user, info) => {
+          .on((user) => {
             // Fresh user data
             user
           })
@@ -94,13 +98,35 @@ describe('Typesaurus core', () => {
             // Do something with error
           })
 
-        sashaUnsubscribe()
+        sashaUnsubscribe2()
+
+        db.users.getMany(['sasha', 'lesha', 'tati']).on((users) => {
+          // Fresh users data
+        })
 
         db.users
           .getMany(['sasha', 'lesha', 'tati'], { onMissing: 'ignore' })
-          .on((users) => {})
+          .on((users) => {
+            // Fresh users data
+          })
 
-        await db.users.getMany(['sasha', 'lesha', 'tati'], {
+        db.users
+          .getMany(['sasha', 'lesha', 'tati'], { onMissing: () => null })
+          .on((users) => {
+            // Fresh users data
+          })
+
+        db.users
+          .getMany(['sasha', 'lesha', 'tati'], {
+            onMissing: () => {
+              throw new Error('Oh no')
+            }
+          })
+          .on((users) => {
+            // Fresh users data
+          })
+
+        const manyUsers = await db.users.getMany(['sasha', 'lesha', 'tati'], {
           onMissing: 'ignore'
         })
 
@@ -114,6 +140,8 @@ describe('Typesaurus core', () => {
           .on((users) => {})
           .catch((error) => {})
 
+        offQuery()
+
         interface User {
           name: string
           contacts: {
@@ -124,6 +152,7 @@ describe('Typesaurus core', () => {
           createdAt: Typesaurus.ServerDate
         }
 
+        // @ts-expect-error - createdDate is a server date
         await db.users.add(($) => ({
           name: 'Sasha',
           contacts: { email: 'koss@nocorp.me' },
@@ -162,11 +191,17 @@ describe('Typesaurus core', () => {
           name: 'Alexander'
         })
 
-        // Merge, unlike update it will NOT trigger error
+        // Force update integrity
+
+        await db.accounts.update('sasha', [])
+
+        // upset, unlike update it will NOT trigger error
         // if the 'sasha` document don't exists.
-        await db.users.upset('sasha', {
-          name: 'Sasha'
-        })
+        await db.users.upset('sasha', ($) => ({
+          name: 'Sasha',
+          contacts: { email: 'koss@nocorp.me' },
+          createdAt: $.serverDate()
+        }))
 
         // Remove
         await db.users.remove('sasha')
@@ -199,11 +234,11 @@ describe('Typesaurus core', () => {
           as: 'server'
         })
 
-        // const sasha = db.users.ref('sasha')
+        const sashaRef = db.users.ref('sasha')
 
-        await sasha.remove()
+        await sashaRef.remove()
 
-        await sasha.update({ name: 'Sasha' })
+        await sashaRef.update({ name: 'Sasha' })
 
         await nestedDB.groups.likes
 
@@ -213,6 +248,7 @@ describe('Typesaurus core', () => {
           return $.execute(db.users).get('asd')
         }).then(($) => {
           $.execute(db.users).update('asd', {
+            // @ts-expect-error
             ame: 'Alexander'
           })
 
@@ -243,4 +279,12 @@ interface PostLike extends Like {
 
 interface Like {
   userId: string
+}
+
+interface Account {
+  name: string
+  contacts: {
+    email: string
+    phone?: string
+  }
 }

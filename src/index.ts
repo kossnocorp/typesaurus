@@ -250,6 +250,16 @@ export namespace Typesaurus {
   }
 
   /**
+   *
+   */
+  export type UpdateFields<Model> = UpdateField<Model>[]
+
+  /**
+   *
+   */
+  export type UpdateField<Model> = []
+
+  /**
    * The value types to use for update operation.
    */
   export type UpdateValue<Model, Key> = Key extends keyof Model
@@ -263,25 +273,6 @@ export namespace Typesaurus {
         : MaybeValueRemove<Model, Key>
       : never
     : never
-
-  /**
-   * Type of the data passed to the upset function. It extends the model
-   * allowing to set server date field value.
-   */
-  export type UpsetModel<
-    Model,
-    Environment extends RuntimeEnvironment | undefined
-  > = {
-    [Key in keyof Model]:
-      | (Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
-          ? Environment extends 'server' // Date can be used only in the node environment
-            ? Date | ServerDate
-            : ServerDate
-          : Model[Key] extends object // If it's an object, recursively pass through SetModel
-          ? UpsetModel<Model[Key], Environment>
-          : Model[Key])
-      | UpsetValue<Model[Key]>
-  }
 
   /**
    * The value types to use for upset operation.
@@ -374,7 +365,7 @@ export namespace Typesaurus {
     FirestoreWhereFilterOp,
     FirestoreOrderByDirection
   > =
-    | OrderQuery<Model, Key, FirestoreWhereFilterOp>
+    | OrderQuery<Model, Key, FirestoreOrderByDirection>
     | WhereQuery<Model, FirestoreWhereFilterOp>
     | LimitQuery
 
@@ -517,7 +508,7 @@ export namespace Typesaurus {
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: ($: WriteHelpers<Model>) => UpsetModel<Model, Environment>,
+      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -621,11 +612,11 @@ export namespace Typesaurus {
      * @param id - the id of the document to set
      * @param data - the document data
      */
-    upset(id: string, data: UpsetModel<Model, Environment>): void
+    upset(id: string, data: WriteModel<Model, Environment>): void
 
     upset(
       id: string,
-      data: ($: WriteHelpers<Model>) => UpsetModel<Model, Environment>
+      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>
     ): void
 
     /**
@@ -757,12 +748,16 @@ export namespace Typesaurus {
 
     get(id: string): PromiseWithGetSubscription<Model>
 
-    getMany(
+    getMany<OnMissing extends OnMissingMode<unknown> | undefined = undefined>(
       ids: string[],
       options?: {
-        onMissing: OnMissing<Model>
+        onMissing: OnMissing
       }
-    ): PromiseWithListSubscription<Model>
+    ): OnMissing extends 'ignore' | undefined
+      ? PromiseWithListSubscription<Model>
+      : OnMissing extends OnMissingCallback<infer OnMissingResult>
+      ? PromiseWithListSubscription<Model | OnMissingResult>
+      : never
 
     query(
       queries: (
@@ -782,12 +777,12 @@ export namespace Typesaurus {
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModel<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<PlainRef<Model>>
+    ): Promise<RichRef<Model>>
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<PlainRef<Model>>
+    ): Promise<RichRef<Model>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
@@ -803,31 +798,33 @@ export namespace Typesaurus {
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: UpdateModel<Model>,
+      data: UpdateModel<Model> | UpdateFields<Model>,
       options?: { as: Environment }
     ): Promise<void>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: ($: WriteHelpers<Model>) => UpdateModel<Model>,
+      data: (
+        $: WriteHelpers<Model>
+      ) => UpdateModel<Model> | UpdateFields<Model>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: UpdateModel<Model>,
+      data: WriteModel<Model, Environment>,
       options?: { as: Environment }
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: ($: WriteHelpers<Model>) => UpsetModel<Model, Environment>,
+      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     remove(id: string): Promise<void>
 
-    ref(id: string): PlainRef<Model>
+    ref(id: string): RichRef<Model>
 
     doc(id: string, data: Model): PlainDoc<Model>
   }
@@ -911,29 +908,24 @@ export namespace Typesaurus {
       /**
        * 1-level deep
        */
-      GroupsDB extends DB<infer Schema, unknown, unknown>
-        ? // Infer the nested (1) schema
-          Schema[keyof Schema] extends
+      GroupsDB extends DB<infer Schema, unknown, unknown> // Infer the nested (1) schema
+        ? Schema[keyof Schema] extends
             | PlainCollection<infer _>
-            | NestedPlainCollection<infer _, infer NestedSchema>
-          ? // Get the models for the given (1) level
-            ExtractDBModels<DB<NestedSchema, unknown, unknown>>
+            | NestedPlainCollection<infer _, infer NestedSchema> // Get the models for the given (1) level
+          ? ExtractDBModels<DB<NestedSchema, unknown, unknown>>
           : {}
         : {},
       /**
        * 2-levels deep
        */
-      GroupsDB extends DB<infer Schema, unknown, unknown>
-        ? // Infer the nested (1) schema
-          Schema[keyof Schema] extends
+      GroupsDB extends DB<infer Schema, unknown, unknown> // Infer the nested (1) schema
+        ? Schema[keyof Schema] extends
             | PlainCollection<infer _>
-            | NestedPlainCollection<infer _, infer NestedSchema1>
-          ? // Infer the nested (2) schema
-            NestedSchema1[keyof NestedSchema1] extends
+            | NestedPlainCollection<infer _, infer NestedSchema1> // Infer the nested (2) schema
+          ? NestedSchema1[keyof NestedSchema1] extends
               | PlainCollection<infer _>
-              | NestedPlainCollection<infer _, infer NestedSchema2>
-            ? // Get the models for the given (2) level
-              ExtractDBModels<DB<NestedSchema2, unknown, unknown>>
+              | NestedPlainCollection<infer _, infer NestedSchema2> // Get the models for the given (2) level
+            ? ExtractDBModels<DB<NestedSchema2, unknown, unknown>>
             : {}
           : {}
         : {}
@@ -994,9 +986,11 @@ export namespace Typesaurus {
     >
   }
 
-  export type OnMissing<Model> = ((id: string) => Model) | 'ignore'
+  export type OnMissingMode<Model> = OnMissingCallback<Model> | 'ignore'
+
+  export type OnMissingCallback<Model> = (id: string) => Model
 
   export interface OnMissingOptions<Model> {
-    onMissing?: OnMissing<Model>
+    onMissing?: OnMissingMode<Model>
   }
 }
