@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "8.0.0-alpha.31",
+  "version": "8.0.0-alpha.32",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
@@ -45,7 +45,7 @@
     "puppeteer": "^6.0.0",
     "sinon": "^9.2.4",
     "typedoc": "^0.15.0",
-    "typescript": "4.4.0-beta",
+    "typescript": "^4.7.4",
     "webpack": "4"
   }
 }

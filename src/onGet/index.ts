@@ -12,12 +12,14 @@ import type {
 } from '../types'
 import { environmentError } from '../_lib/assertEnvironment'
 
-export type OnGetOptions<
+export interface OnGetOptions<
   Environment extends RuntimeEnvironment | undefined,
   ServerTimestamps extends ServerTimestampsStrategy
-> = DocOptions<ServerTimestamps> &
-  OperationOptions<Environment> &
-  RealtimeOptions
+> extends DocOptions<ServerTimestamps>,
+    OperationOptions<Environment>,
+    RealtimeOptions {
+  retry?: boolean | number[]
+}
 
 type OnResult<
   Model,
@@ -153,17 +155,41 @@ export function onGet<
       )
     }
 
-    firebaseUnsub =
-      a.environment === 'web'
-        ? firestoreDoc.onSnapshot(
-            // @ts-ignore: In the web environment, the first argument might be options
-            { includeMetadataChanges: options?.includeMetadataChanges },
-            processResults,
-            // @ts-ignore
-            onError
-          )
-        : firestoreDoc.onSnapshot(processResults, onError)
+    const retryPattern =
+      options?.retry === true
+        ? defaultRetryPattern.concat([])
+        : options && Array.isArray(options.retry)
+        ? options.retry.concat([])
+        : []
+
+    function processError(error: Error) {
+      if (missingRegExp.test(error.message) && retryPattern.length) {
+        setTimeout(subscribe, retryPattern.shift())
+      } else {
+        onError?.(error)
+      }
+    }
+
+    function subscribe() {
+      unsub()
+      firebaseUnsub =
+        a.environment === 'web'
+          ? firestoreDoc.onSnapshot(
+              // @ts-ignore: In the web environment, the first argument might be options
+              { includeMetadataChanges: options?.includeMetadataChanges },
+              processResults,
+              // @ts-ignore
+              processError
+            )
+          : firestoreDoc.onSnapshot(processResults, processError)
+    }
+
+    subscribe()
   })
 
   return unsub
 }
+
+var defaultRetryPattern = [250, 500, 1000, 2000, 4000, 8000, 16000]
+
+var missingRegExp = /Missing or insufficient permissions/
