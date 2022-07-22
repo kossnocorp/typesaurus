@@ -187,13 +187,6 @@ describe('Typesaurus core', () => {
         db.posts.set('doc-id', { title: 'Hello, world!', text: 'Hello!' })
 
         // Update
-        await db.users.update('sasha', {
-          name: 'Alexander'
-        })
-
-        // Force update integrity
-
-        await db.accounts.update('sasha', [])
 
         // upset, unlike update it will NOT trigger error
         // if the 'sasha` document don't exists.
@@ -230,7 +223,7 @@ describe('Typesaurus core', () => {
           { as: 'server' }
         )
 
-        await db.users.update('sasha', ($) => ({ name: 'Sasha' }), {
+        await db.users.update('sasha', () => ({ name: 'Sasha' }), {
           as: 'server'
         })
 
@@ -286,5 +279,26 @@ interface Account {
   contacts: {
     email: string
     phone?: string
+  }
+
+  emergencyContacts?: {
+    name: string
+    phone: string
+    email?: string
+  }
+
+  nested1Required: {
+    nested12Required: {
+      hello: string
+      world?: string
+    }
+  }
+
+  nested1Optional?: {
+    required12: string
+    nested12Optional?: {
+      hello: string
+      world?: string
+    }
   }
 }

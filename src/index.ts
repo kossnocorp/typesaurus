@@ -1,4 +1,5 @@
-import { firestore } from 'firebase-admin'
+import type { firestore } from 'firebase-admin'
+import type { TypesaurusUtils } from './utils'
 
 export namespace Typesaurus {
   class DocId {}
@@ -148,10 +149,7 @@ export namespace Typesaurus {
 
   export type ModelNodeData<Model> = AnyModelData<Model, false>
 
-  // NOTE: For some reason this won't work: AnyModelData<Model, boolean>
-  export type ModelData<Model> =
-    | AnyModelData<Model, true>
-    | AnyModelData<Model, false>
+  export type ModelData<Model> = AnyModelData<Model, boolean>
 
   export type AnyModelData<Model, ServerDateNullable extends boolean> = {
     [Key in keyof Model]: ModelField<Model[Key], ServerDateNullable>
@@ -197,7 +195,7 @@ export namespace Typesaurus {
   }
 
   /**
-   * The document reference type with Typesaurus document API.
+   * The document reference type with Typesaurus document API.aaay
    */
   export interface RichRef<Model> extends PlainRef<Model>, DocAPI<Model> {
     collection: RichCollection<
@@ -250,14 +248,12 @@ export namespace Typesaurus {
   }
 
   /**
-   *
+   * The update field interface. It contains path to the property and property value.
    */
-  export type UpdateFields<Model> = UpdateField<Model>[]
-
-  /**
-   *
-   */
-  export type UpdateField<Model> = []
+  export interface UpdateField<Model> {
+    key: string | string[]
+    value: any
+  }
 
   /**
    * The value types to use for update operation.
@@ -265,23 +261,26 @@ export namespace Typesaurus {
   export type UpdateValue<Model, Key> = Key extends keyof Model
     ? Model[Key] extends infer Type
       ? Type extends number
-        ? MaybeValueRemoveOr<Model, Key, ValueIncrement>
-        : Type extends Array<any>
-        ? MaybeValueRemoveOr<Model, Key, ValueArrayUnion | ValueArrayRemove>
+        ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
+        : Type extends Array<infer ItemType>
+        ?
+            | Model[Key]
+            | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
+            | ValueArrayRemove<ItemType>
         : Type extends Date
-        ? MaybeValueRemoveOr<Model, Key, ValueServerDate>
-        : MaybeValueRemove<Model, Key>
+        ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueServerDate>
+        : Model[Key] | MaybeValueRemove<Model, Key>
       : never
     : never
 
   /**
    * The value types to use for upset operation.
    */
-  export type UpsetValue<T> = T extends number
+  export type UpsetValue<Type> = Type extends number
     ? ValueIncrement
-    : T extends Array<any>
-    ? ValueArrayUnion | ValueArrayRemove
-    : T extends ServerDate
+    : Type extends Array<infer ItemType>
+    ? ValueArrayUnion<ItemType> | ValueArrayRemove<ItemType>
+    : Type extends ServerDate
     ? ValueServerDate
     : never
 
@@ -315,19 +314,19 @@ export namespace Typesaurus {
   /**
    * The array union value type. It holds the payload to union.
    */
-  export interface ValueArrayUnion {
+  export interface ValueArrayUnion<Type> {
     __type__: 'value'
     kind: 'arrayUnion'
-    values: any[]
+    values: Type[]
   }
 
   /**
    * The array remove value type. It holds the data to remove from the target array.
    */
-  export interface ValueArrayRemove {
+  export interface ValueArrayRemove<Type> {
     __type__: 'value'
     kind: 'arrayRemove'
-    values: any[]
+    values: Type[]
   }
 
   /**
@@ -346,13 +345,10 @@ export namespace Typesaurus {
     ? ValueRemove | ValueType
     : ValueType
 
-  export type MaybeValueRemove<Model, Key extends keyof Model> = Partial<
-    Pick<Model, Key>
-  > extends Pick<Model, Key>
-    ? ValueRemove
-    : Undefined<Model[Key]> extends Model[Key]
-    ? ValueRemove
-    : never
+  export type MaybeValueRemove<
+    Model,
+    Key extends keyof Model
+  > = TypesaurusUtils.RequiredKey<Model, Key> extends true ? never : ValueRemove
 
   export type Undefined<T> = T extends undefined ? T : never
 
@@ -435,8 +431,229 @@ export namespace Typesaurus {
     limit(to: number): LimitQuery
   }
 
-  export interface WriteHelpers<Model> {
-    serverDate: () => ValueServerDate
+  export interface WriteHelpers<_Model> {
+    serverDate(): ValueServerDate
+
+    remove(): ValueRemove
+
+    increment(value: number): ValueIncrement
+
+    arrayUnion<Type>(values: Type | Type[]): ValueArrayUnion<Type>
+
+    arrayRemove<Type>(values: Type | Type[]): ValueArrayRemove<Type>
+  }
+
+  export interface UpdateHelpers<Model> extends WriteHelpers<Model> {
+    field<Key1 extends keyof Model>(
+      key: Key1,
+      value: UpdateValue<Model, Key1>
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
+    >(
+      key1: Key1,
+      key2: Key2,
+      value: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
+        ? UpdateValue<TypesaurusUtils.AllRequired<Model>[Key1], Key2>
+        : never
+    ): UpdateField<Model>
+
+    // field<
+    //   Key1 extends keyof Model,
+    //   Key2 extends keyof Model[Key1],
+    //   Key3 extends keyof Model[Key1][Key2]
+    // >(
+    //   key1: Key1,
+    //   key2: Key2,
+    //   key3: Key3,
+    //   value: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
+    //     ? UpdateValue<Model[Key1][Key2], Key3>
+    //     : never
+    // ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
+      Key3 extends keyof TypesaurusUtils.AllRequired<
+        TypesaurusUtils.AllRequired<Model>[Key1]
+      >[Key2]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      value: TypesaurusUtils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? UpdateValue<
+            TypesaurusUtils.AllRequired<
+              TypesaurusUtils.AllRequired<Model>[Key1]
+            >[Key2],
+            Key3
+          >
+        : never
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
+      Key3 extends keyof TypesaurusUtils.AllRequired<
+        TypesaurusUtils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof TypesaurusUtils.AllRequired<
+        TypesaurusUtils.AllRequired<
+          TypesaurusUtils.AllRequired<Model>[Key1]
+        >[Key2]
+      >[Key3]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4,
+      value: TypesaurusUtils.SafePath4<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4
+      > extends true
+        ? UpdateValue<
+            TypesaurusUtils.AllRequired<
+              TypesaurusUtils.AllRequired<
+                TypesaurusUtils.AllRequired<Model>[Key1]
+              >[Key2]
+            >[Key3],
+            Key4
+          >
+        : never
+    ): UpdateField<Model>
+
+    /*
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Model[Key1],
+      Key3 extends keyof Model[Key1][Key2],
+      Key4 extends keyof Model[Key1][Key2][Key3]
+    >(
+      key: readonly [Key1, Key2, Key3, Key4],
+      value:
+        | UpdateModel<Model[Key1][Key2][Key3][Key4]>
+        | UpdateValue<Model[Key1][Key2][Key3], Key4>
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Model[Key1],
+      Key3 extends keyof Model[Key1][Key2],
+      Key4 extends keyof Model[Key1][Key2][Key3],
+      Key5 extends keyof Model[Key1][Key2][Key3][Key4]
+    >(
+      key: readonly [Key1, Key2, Key3, Key4, Key5],
+      value:
+        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5]>
+        | UpdateValue<Model[Key1][Key2][Key3][Key4], Key5>
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Model[Key1],
+      Key3 extends keyof Model[Key1][Key2],
+      Key4 extends keyof Model[Key1][Key2][Key3],
+      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5]
+    >(
+      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6],
+      value:
+        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5][Key6]>
+        | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5], Key6>
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Model[Key1],
+      Key3 extends keyof Model[Key1][Key2],
+      Key4 extends keyof Model[Key1][Key2][Key3],
+      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6]
+    >(
+      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6, Key7],
+      value:
+        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]>
+        | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5][Key6], Key7>
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Model[Key1],
+      Key3 extends keyof Model[Key1][Key2],
+      Key4 extends keyof Model[Key1][Key2][Key3],
+      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
+      Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
+    >(
+      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8],
+      value:
+        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]>
+        | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7], Key8>
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Model[Key1],
+      Key3 extends keyof Model[Key1][Key2],
+      Key4 extends keyof Model[Key1][Key2][Key3],
+      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
+      Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+      Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
+    >(
+      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9],
+      value:
+        | UpdateModel<
+            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
+          >
+        | UpdateValue<
+            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+            Key9
+          >
+    ): UpdateField<Model>
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Model[Key1],
+      Key3 extends keyof Model[Key1][Key2],
+      Key4 extends keyof Model[Key1][Key2][Key3],
+      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
+      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
+      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
+      Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+      Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+      Key10 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
+    >(
+      key: readonly [
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8,
+        Key9,
+        Key10
+      ],
+      value:
+        | UpdateModel<
+            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10]
+          >
+        | UpdateValue<
+            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
+            Key10
+          >
+    ): UpdateField<Model>*/
   }
 
   export interface SchemaHelpers {
@@ -656,7 +873,7 @@ export namespace Typesaurus {
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: ($: WriteHelpers<Model>) => UpdateModel<Model>,
+      data: ($: UpdateHelpers<Model>) => UpdateModel<Model>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -798,15 +1015,15 @@ export namespace Typesaurus {
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: UpdateModel<Model> | UpdateFields<Model>,
+      data: UpdateModel<Model>,
       options?: { as: Environment }
     ): Promise<void>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
       data: (
-        $: WriteHelpers<Model>
-      ) => UpdateModel<Model> | UpdateFields<Model>,
+        $: UpdateHelpers<Model>
+      ) => UpdateModel<Model> | UpdateField<Model> | UpdateField<Model>[],
       options?: OperationOptions<Environment>
     ): Promise<void>
 
