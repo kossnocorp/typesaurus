@@ -85,6 +85,71 @@ const db = schema(($) => ({
   accounts: $.collection<Account>()
 }))
 
+async function doc() {
+  const dbUser = await db.users.get('sasha')
+  if (!dbUser) return
+
+  const manualUser = db.users.doc('sasha', {
+    name: 'Sasha',
+    contacts: {
+      email: 'koss@nocorp.me'
+    },
+    createdAt: new Date() as Typesaurus.ServerDate
+  })
+
+  // Runtime environment
+
+  if (dbUser.environment === 'server') {
+    dbUser.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    dbUser.data.createdAt.getDay()
+  }
+
+  if (manualUser.environment === 'server') {
+    manualUser.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    manualUser.data.createdAt.getDay()
+  }
+
+  // Source
+
+  if (dbUser.source === 'database') {
+    dbUser.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    dbUser.data.createdAt.getDay()
+  }
+
+  if (manualUser.source === 'database') {
+    manualUser.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    manualUser.data.createdAt.getDay()
+  }
+
+  // Server date strategy
+
+  if (dbUser.dateStrategy === 'estimate') {
+    dbUser.data.createdAt.getDay()
+  } else if (dbUser.dateStrategy === 'previous') {
+    dbUser.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    dbUser.data.createdAt.getDay()
+  }
+
+  if (manualUser.dateStrategy === 'estimate') {
+    manualUser.data.createdAt.getDay()
+  } else if (manualUser.dateStrategy === 'previous') {
+    manualUser.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    manualUser.data.createdAt.getDay()
+  }
+}
+
 async function update() {
   // Simple update
 
