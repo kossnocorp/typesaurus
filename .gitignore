@@ -5,3 +5,4 @@ lib
 docs
 firestore-debug.log
 firebase-debug.log
+.firebaserc

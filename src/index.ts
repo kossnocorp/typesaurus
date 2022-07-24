@@ -1,4 +1,3 @@
-import type { firestore } from 'firebase-admin'
 import type { TypesaurusUtils } from './utils'
 
 export namespace Typesaurus {
@@ -55,10 +54,18 @@ export namespace Typesaurus {
     readonly empty: boolean
   }
 
-  export interface DocOptions<
-    ServerTimestamps extends ServerTimestampsStrategy
+  export interface DocOptions<DateStrategy extends ServerDateStrategy> {
+    serverTimestamps?: DateStrategy
+  }
+
+  export interface DataProperties<
+    Environment extends RuntimeEnvironment,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy
   > {
-    serverTimestamps?: ServerTimestamps
+    environment: Environment
+    source: Source
+    dateStrategy: DateStrategy
   }
 
   /**
@@ -67,74 +74,78 @@ export namespace Typesaurus {
   export type PlainDoc<Model> = AnyPlainDoc<
     Model,
     RuntimeEnvironment,
-    boolean,
-    ServerTimestampsStrategy
+    DataSource,
+    ServerDateStrategy
   >
 
   export type AnyPlainDoc<
     Model,
-    Environment extends RuntimeEnvironment | undefined,
-    FromCache extends boolean,
-    ServerTimestamps extends ServerTimestampsStrategy
+    Environment extends RuntimeEnvironment,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy
   > = Environment extends 'server'
     ? PlainServerDoc<Model>
-    : FromCache extends false
-    ? PlainClientDoc<Model, false, ServerTimestamps>
-    : ServerTimestamps extends 'estimate'
-    ? PlainClientDoc<Model, false, 'estimate'>
-    : PlainClientDoc<Model, FromCache, ServerTimestamps>
-  // NOTE: For some reason, FromCache and ServerTimestamps are not properly inferred:
-  // Environment extends 'server'
-  //   ? NodeDoc<Model>
-  //   : WebDoc<Model, FromCache, ServerTimestamps>
+    : Source extends 'database'
+    ? PlainClientDoc<Model, 'database', DateStrategy>
+    : DateStrategy extends 'estimate'
+    ? PlainClientDoc<Model, 'database', 'estimate'>
+    : DateStrategy extends 'previous'
+    ? PlainClientDoc<Model, 'database', 'previous'>
+    : PlainClientDoc<Model, Source, DateStrategy>
 
   export interface PlainServerDoc<Model> {
     type: 'doc'
     ref: PlainRef<Model>
     data: ModelNodeData<Model>
     environment: 'server'
-    fromCache?: false
-    hasPendingWrites?: false
-    serverTimestamps?: undefined
-    firestoreData?: boolean
+    source?: undefined
+    dateStrategy?: undefined
+    pendingWrites?: undefined
   }
 
   export interface PlainClientDoc<
     Model,
-    FromCache extends boolean,
-    ServerTimestamps extends ServerTimestampsStrategy
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy
   > {
     type: 'doc'
     ref: PlainRef<Model>
-    data: FromCache extends false
-      ? AnyModelData<Model, false>
-      : ServerTimestamps extends 'estimate'
-      ? AnyModelData<Model, false>
-      : AnyModelData<Model, true>
+    data: Source extends 'database'
+      ? AnyModelData<Model, 'present'>
+      : DateStrategy extends 'estimate'
+      ? AnyModelData<Model, 'present'>
+      : AnyModelData<Model, 'nullable'>
     environment: 'web'
-    fromCache: FromCache
-    hasPendingWrites: boolean
-    serverTimestamps: ServerTimestamps
-    firestoreData?: boolean
+    source: Source
+    dateStrategy: DateStrategy
+    pendingWrites: boolean
   }
 
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
+
   export type RichDoc<Model> = AnyRichDoc<
     Model,
     RuntimeEnvironment,
-    boolean,
-    ServerTimestampsStrategy
+    DataSource,
+    ServerDateStrategy
   >
 
   export type AnyRichDoc<
     Model,
-    Environment extends RuntimeEnvironment | undefined,
-    FromCache extends boolean,
-    ServerTimestamps extends ServerTimestampsStrategy
-  > = AnyPlainDoc<Model, Environment, FromCache, ServerTimestamps> &
-    DocAPI<Model>
+    Environment extends RuntimeEnvironment,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy
+  > = Environment extends 'server'
+    ? RichServerDoc<Model>
+    : Source extends 'database'
+    ? RichClientDoc<Model, 'database', DateStrategy>
+    : DateStrategy extends 'estimate'
+    ? RichClientDoc<Model, 'database', 'estimate'>
+    : DateStrategy extends 'previous'
+    ? RichClientDoc<Model, 'database', 'previous'>
+    : RichClientDoc<Model, Source, DateStrategy>
 
   export interface RichServerDoc<Model>
     extends PlainServerDoc<Model>,
@@ -142,72 +153,86 @@ export namespace Typesaurus {
 
   export interface RichClientDoc<
     Model,
-    FromCache extends boolean,
-    ServerTimestamps extends ServerTimestampsStrategy
-  > extends PlainClientDoc<Model, FromCache, ServerTimestamps>,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy
+  > extends PlainClientDoc<Model, Source, DateStrategy>,
       DocAPI<Model> {}
 
-  export type ModelNodeData<Model> = AnyModelData<Model, false>
+  export type ModelNodeData<Model> = AnyModelData<Model, 'present'>
 
-  export type ModelData<Model> = AnyModelData<Model, boolean>
+  export type ModelData<Model> = AnyModelData<Model, ServerDateNullable>
 
-  export type AnyModelData<Model, ServerDateNullable extends boolean> = {
-    [Key in keyof Model]: ModelField<Model[Key], ServerDateNullable>
+  export type AnyModelData<Model, DateNullable extends ServerDateNullable> = {
+    [Key in keyof Model]: ModelField<Model[Key], DateNullable>
   }
 
   type ModelField<
     Field,
-    ServerDateNullable extends boolean
+    DateNullable extends ServerDateNullable
   > = Field extends ServerDate // Process server dates
-    ? ServerDateNullable extends true
+    ? DateNullable extends 'nullable'
       ? Date | null
       : Date
     : Field extends Date // Stop dates from being processed as an object
     ? Field
     : Field extends object // If it's an object, recursively pass through ModelData
-    ? AnyModelData<Field, ServerDateNullable>
+    ? AnyModelData<Field, DateNullable>
     : Field
 
   export type ResolvedServerDate<
     Environment extends RuntimeEnvironment | undefined,
     FromCache extends boolean,
-    ServerTimestamps extends ServerTimestampsStrategy
+    DateStrategy extends ServerDateStrategy
   > = Environment extends 'server' // In node environment server dates are always defined
     ? Date
-    : ResolvedWebServerDate<FromCache, ServerTimestamps>
+    : ResolvedWebServerDate<FromCache, DateStrategy>
 
   export type ResolvedWebServerDate<
     FromCache extends boolean,
-    ServerTimestamps extends ServerTimestampsStrategy
+    DateStrategy extends ServerDateStrategy
   > = FromCache extends false | undefined // Server date is always defined when not from cache
     ? Date
-    : ServerTimestamps extends 'estimate' // Or when the estimate strategy were used
+    : DateStrategy extends 'estimate' | 'previous' // Or when the estimate or previous strategy were used
     ? Date
     : Date | null
 
   /**
-   * The document reference type.
+   * The document reference type of any type.
+   */
+  export type Ref<Model> = PlainRef<Model> | RichRef<Model>
+
+  /**
+   * The document reference type. Plain version that can be serialized to JSON.
    */
   export interface PlainRef<Model> {
-    __type__: 'ref'
+    type: 'ref'
     collection: PlainCollection<Model>
     id: string
   }
 
   /**
-   * The document reference type with Typesaurus document API.aaay
+   * The document reference type with Typesaurus document API.
    */
-  export interface RichRef<Model> extends PlainRef<Model>, DocAPI<Model> {
+  export interface RichRef<
+    Model,
+    FirestoreWhereFilterOp,
+    FirestoreOrderByDirection
+  > extends PlainRef<Model>,
+      DocAPI<Model> {
     collection: RichCollection<
       Model,
-      firestore.WhereFilterOp,
-      firestore.OrderByDirection
+      FirestoreWhereFilterOp,
+      FirestoreOrderByDirection
     >
   }
 
-  export type ServerTimestampsStrategy = 'estimate' | 'previous' | 'none'
+  export type ServerDateNullable = 'nullable' | 'present'
+
+  export type ServerDateStrategy = 'estimate' | 'previous' | 'none'
 
   export type RuntimeEnvironment = 'server' | 'client'
+
+  export type DataSource = 'cache' | 'database'
 
   export interface ServerDate extends Date {
     __dontUseWillBeUndefined__: true
@@ -684,18 +709,30 @@ export namespace Typesaurus {
     (result: PlainDoc<Model> | null /*, info: SnapshotInfo<Model> */): void
   }
 
-  export interface PromiseWithGetSubscription<Model>
-    extends Promise<PlainDoc<Model> | null> {
-    on(callback: GetSubscriptionCallback<Model>): OffSubscriptionWithCatch
+  export interface SubscriptionPromise<Result> extends Promise<Result> {
+    on(callback: SubscriptionPromiseCallback<Result>): OffSubscriptionWithCatch
   }
+
+  export type SubscriptionPromiseCallback<Result> = (result: Result) => void
+
+  export type PromiseWithGetSubscription<
+    Model,
+    Environment extends RuntimeEnvironment,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy
+  > = SubscriptionPromise<AnyRichDoc<
+    Model,
+    Environment,
+    Source,
+    DateStrategy
+  > | null>
+
+  export type PromiseWithListSubscription<Model> = SubscriptionPromise<
+    RichDoc<Model>[]
+  >
 
   export type ListSubscriptionCallback<Model> = {
     (result: PlainDoc<Model>[]): void
-  }
-
-  export interface PromiseWithListSubscription<Model>
-    extends Promise<PlainDoc<Model>[]> {
-    on(callback: ListSubscriptionCallback<Model>): OffSubscriptionWithCatch
   }
 
   export interface DocAPI<Model> {
@@ -734,7 +771,7 @@ export namespace Typesaurus {
 
   export interface TransactionReadAPI<
     Model,
-    Environment extends RuntimeEnvironment | undefined
+    Environment extends RuntimeEnvironment
   > {
     /**
      * Retrieves a document from a collection.
@@ -757,15 +794,10 @@ export namespace Typesaurus {
      *
      * @param ref - The reference to the document
      */
-    get<ServerTimestamps extends ServerTimestampsStrategy>(
+    get<DateStrategy extends ServerDateStrategy>(
       id: string,
-      options?: DocOptions<ServerTimestamps>
-    ): Promise<AnyPlainDoc<
-      Model,
-      Environment,
-      boolean,
-      ServerTimestamps
-    > | null>
+      options?: DocOptions<DateStrategy>
+    ): Promise<AnyPlainDoc<Model, Environment, 'database', DateStrategy> | null>
   }
 
   /**
@@ -963,7 +995,14 @@ export namespace Typesaurus {
 
     all(): PromiseWithListSubscription<Model>
 
-    get(id: string): PromiseWithGetSubscription<Model>
+    get<
+      Environment extends RuntimeEnvironment,
+      Source extends DataSource,
+      DateStrategy extends ServerDateStrategy
+    >(
+      id: string,
+      options?: { as: Environment }
+    ): PromiseWithGetSubscription<Model, Environment, Source, DateStrategy>
 
     getMany<OnMissing extends OnMissingMode<unknown> | undefined = undefined>(
       ids: string[],
@@ -1043,7 +1082,7 @@ export namespace Typesaurus {
 
     ref(id: string): RichRef<Model>
 
-    doc(id: string, data: Model): PlainDoc<Model>
+    doc(id: string, data: Model): RichDoc<Model>
   }
 
   export interface NestedRichCollection<
