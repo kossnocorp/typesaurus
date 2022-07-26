@@ -1,6 +1,20 @@
 import type { TypesaurusUtils } from './utils'
 
 export namespace Typesaurus {
+  export type OrderDirection = 'desc' | 'asc'
+
+  export type WhereFilter =
+    | '<'
+    | '<='
+    | '=='
+    | '!='
+    | '>='
+    | '>'
+    | 'array-contains'
+    | 'in'
+    | 'not-in'
+    | 'array-contains-any'
+
   class DocId {}
 
   /**
@@ -18,7 +32,7 @@ export namespace Typesaurus {
     readonly type: DocChangeType
 
     /** The document affected by this change. */
-    readonly doc: PlainDoc<Model>
+    readonly doc: Doc<Model>
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -59,7 +73,7 @@ export namespace Typesaurus {
   }
 
   export interface DataProperties<
-    Environment extends RuntimeEnvironment,
+    Environment extends RuntimeEnvironment | undefined = undefined,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy
   > {
@@ -71,31 +85,31 @@ export namespace Typesaurus {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type PlainDoc<Model> = AnyPlainDoc<
+  export type Doc<Model> = AnyDoc<
     Model,
     RuntimeEnvironment,
     DataSource,
     ServerDateStrategy
   >
 
-  export type AnyPlainDoc<
+  export type AnyDoc<
     Model,
-    Environment extends RuntimeEnvironment,
+    Environment extends RuntimeEnvironment | undefined = undefined,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy
   > = Environment extends 'server'
-    ? PlainServerDoc<Model>
+    ? ServerDoc<Model>
     : Source extends 'database'
-    ? PlainClientDoc<Model, 'database', DateStrategy>
+    ? ClientDoc<Model, 'database', DateStrategy>
     : DateStrategy extends 'estimate'
-    ? PlainClientDoc<Model, 'database', 'estimate'>
+    ? ClientDoc<Model, 'database', 'estimate'>
     : DateStrategy extends 'previous'
-    ? PlainClientDoc<Model, 'database', 'previous'>
-    : PlainClientDoc<Model, Source, DateStrategy>
+    ? ClientDoc<Model, 'database', 'previous'>
+    : ClientDoc<Model, Source, DateStrategy>
 
-  export interface PlainServerDoc<Model> {
+  export interface ServerDoc<Model> extends DocAPI<Model> {
     type: 'doc'
-    ref: PlainRef<Model>
+    ref: Ref<Model>
     data: ModelNodeData<Model>
     environment: 'server'
     source?: undefined
@@ -103,13 +117,13 @@ export namespace Typesaurus {
     pendingWrites?: undefined
   }
 
-  export interface PlainClientDoc<
+  export interface ClientDoc<
     Model,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy
-  > {
+  > extends DocAPI<Model> {
     type: 'doc'
-    ref: PlainRef<Model>
+    ref: Ref<Model>
     data: Source extends 'database'
       ? AnyModelData<Model, 'present'>
       : DateStrategy extends 'estimate'
@@ -120,43 +134,6 @@ export namespace Typesaurus {
     dateStrategy: DateStrategy
     pendingWrites: boolean
   }
-
-  /**
-   * The document type. It contains the reference in the DB and the model data.
-   */
-
-  export type RichDoc<Model> = AnyRichDoc<
-    Model,
-    RuntimeEnvironment,
-    DataSource,
-    ServerDateStrategy
-  >
-
-  export type AnyRichDoc<
-    Model,
-    Environment extends RuntimeEnvironment,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy
-  > = Environment extends 'server'
-    ? RichServerDoc<Model>
-    : Source extends 'database'
-    ? RichClientDoc<Model, 'database', DateStrategy>
-    : DateStrategy extends 'estimate'
-    ? RichClientDoc<Model, 'database', 'estimate'>
-    : DateStrategy extends 'previous'
-    ? RichClientDoc<Model, 'database', 'previous'>
-    : RichClientDoc<Model, Source, DateStrategy>
-
-  export interface RichServerDoc<Model>
-    extends PlainServerDoc<Model>,
-      DocAPI<Model> {}
-
-  export interface RichClientDoc<
-    Model,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy
-  > extends PlainClientDoc<Model, Source, DateStrategy>,
-      DocAPI<Model> {}
 
   export type ModelNodeData<Model> = AnyModelData<Model, 'present'>
 
@@ -169,7 +146,9 @@ export namespace Typesaurus {
   type ModelField<
     Field,
     DateNullable extends ServerDateNullable
-  > = Field extends ServerDate // Process server dates
+  > = Field extends Ref<unknown>
+    ? Field
+    : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
       ? Date | null
       : Date
@@ -180,7 +159,7 @@ export namespace Typesaurus {
     : Field
 
   export type ResolvedServerDate<
-    Environment extends RuntimeEnvironment | undefined,
+    Environment extends RuntimeEnvironment | undefined = undefined | undefined,
     FromCache extends boolean,
     DateStrategy extends ServerDateStrategy
   > = Environment extends 'server' // In node environment server dates are always defined
@@ -197,33 +176,14 @@ export namespace Typesaurus {
     : Date | null
 
   /**
-   * The document reference type of any type.
+   * The document reference type.
    */
-  export type Ref<Model> = PlainRef<Model> | RichRef<Model>
-
-  /**
-   * The document reference type. Plain version that can be serialized to JSON.
-   */
-  export interface PlainRef<Model> {
+  export interface Ref<Model> extends DocAPI<Model> {
     type: 'ref'
-    collection: PlainCollection<Model>
+    collection: RichCollection<Model>
     id: string
-  }
 
-  /**
-   * The document reference type with Typesaurus document API.
-   */
-  export interface RichRef<
-    Model,
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > extends PlainRef<Model>,
-      DocAPI<Model> {
-    collection: RichCollection<
-      Model,
-      FirestoreWhereFilterOp,
-      FirestoreOrderByDirection
-    >
+    get(): Promise<Doc<Model> | null>
   }
 
   export type ServerDateNullable = 'nullable' | 'present'
@@ -238,46 +198,33 @@ export namespace Typesaurus {
     __dontUseWillBeUndefined__: true
   }
 
+  export type WriteModelArg<
+    Model,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = WriteModel<Model, Environment> | WriteModelGetter<Model, Environment>
+
   /**
-   * Type of the data passed to add and set functions. It extends the model
-   * allowing to set server date field value.
+   * Type of the data passed to write functions. It extends the model allowing
+   * to set special values, sucha as server date, increment, etc.
    */
   export type WriteModel<
     Model,
-    Environment extends RuntimeEnvironment | undefined
+    Environment extends RuntimeEnvironment | undefined = undefined
   > = {
-    [Key in keyof Model]:
-      | (Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
-          ? Environment extends 'server' // Date can be used only in the server environment
-            ? Date | ValueServerDate
-            : ValueServerDate
-          : Model[Key] extends object // If it's an object, recursively pass through SetModel
-          ? WriteModel<Model[Key], Environment>
-          : Model[Key])
-      | WriteValue<Model[Key]>
-  }
-
-  /**
-   * The value types to use for set operation.
-   */
-  export type WriteValue<Type> = Type extends ServerDate
-    ? ValueServerDate
-    : never
-
-  /**
-   * Type of the data passed to the update function. It extends the model
-   * making values optional and allow to set value object.
-   */
-  export type UpdateModel<Model> = {
-    [Key in keyof Model]?: UpdateModel<Model[Key]> | UpdateValue<Model, Key>
-  }
-
-  /**
-   * The update field interface. It contains path to the property and property value.
-   */
-  export interface UpdateField<Model> {
-    key: string | string[]
-    value: any
+    [Key in keyof Model]: Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
+      ? Environment extends 'server' // Date can be used only in the server environment
+        ? Date | ValueServerDate
+        : ValueServerDate
+      : Model[Key] extends Array<infer ItemType>
+      ?
+          | Model[Key]
+          | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
+          | ValueArrayRemove<ItemType>
+      : Model[Key] extends object // If it's an object, recursively pass through SetModel
+      ? WriteModel<Model[Key], Environment>
+      : Model[Key] extends number
+      ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
+      : Model[Key]
   }
 
   /**
@@ -299,15 +246,73 @@ export namespace Typesaurus {
     : never
 
   /**
-   * The value types to use for upset operation.
+   * Write model getter, accepts helper functions with special value generators
+   * and returns {@link WriteModel}.
    */
-  export type UpsetValue<Type> = Type extends number
-    ? ValueIncrement
-    : Type extends Array<infer ItemType>
-    ? ValueArrayUnion<ItemType> | ValueArrayRemove<ItemType>
-    : Type extends ServerDate
-    ? ValueServerDate
-    : never
+  export type WriteModelGetter<
+    Model,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = ($: WriteHelpers<Model>) => WriteModel<Model, Environment>
+
+  export type UpdateModelArg<
+    Model,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = WriteModel<Model, Environment> | UpdateModelGetter<Model, Environment>
+
+  export type UpdateModelGetter<
+    Model,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = (
+    $: UpdateHelpers<Model>
+  ) =>
+    | WriteModel<Model, Environment>
+    | UpdateField<Model>
+    | UpdateField<Model>[]
+
+  /**
+   * The update field interface. It contains path to the property and property value.
+   */
+  export interface UpdateField<_Model> {
+    key: string | string[]
+    value: any
+  }
+
+  // /**
+  //  * Type of the data passed to the update function. It extends the model
+  //  * making values optional and allow to set value object.
+  //  */
+  // export type UpdateModel<Model> = {
+  //   [Key in keyof Model]?: UpdateModel<Model[Key]> | UpdateValue<Model, Key>
+  // }
+
+  // /**
+  //  * The value types to use for update operation.
+  //  */
+  // export type UpdateValue<Model, Key> = Key extends keyof Model
+  //   ? Model[Key] extends infer Type
+  //     ? Type extends number
+  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
+  //       : Type extends Array<infer ItemType>
+  //       ?
+  //           | Model[Key]
+  //           | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
+  //           | ValueArrayRemove<ItemType>
+  //       : Type extends Date
+  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueServerDate>
+  //       : Model[Key] | MaybeValueRemove<Model, Key>
+  //     : never
+  //   : never
+
+  // /**
+  //  * The value types to use for upset operation.
+  //  */
+  // export type UpsetValue<Type> = Type extends number
+  //   ? ValueIncrement
+  //   : Type extends Array<infer ItemType>
+  //   ? ValueArrayUnion<ItemType> | ValueArrayRemove<ItemType>
+  //   : Type extends ServerDate
+  //   ? ValueServerDate
+  //   : never
 
   /**
    * Available value kinds.
@@ -323,7 +328,7 @@ export namespace Typesaurus {
    * The remove value type.
    */
   export interface ValueRemove {
-    __type__: 'value'
+    type: 'value'
     kind: 'remove'
   }
 
@@ -331,7 +336,7 @@ export namespace Typesaurus {
    * The increment value type. It holds the increment value.
    */
   export interface ValueIncrement {
-    __type__: 'value'
+    type: 'value'
     kind: 'increment'
     number: number
   }
@@ -340,7 +345,7 @@ export namespace Typesaurus {
    * The array union value type. It holds the payload to union.
    */
   export interface ValueArrayUnion<Type> {
-    __type__: 'value'
+    type: 'value'
     kind: 'arrayUnion'
     values: Type[]
   }
@@ -349,7 +354,7 @@ export namespace Typesaurus {
    * The array remove value type. It holds the data to remove from the target array.
    */
   export interface ValueArrayRemove<Type> {
-    __type__: 'value'
+    type: 'value'
     kind: 'arrayRemove'
     values: Type[]
   }
@@ -358,7 +363,7 @@ export namespace Typesaurus {
    * The server date value type.
    */
   export interface ValueServerDate {
-    __type__: 'value'
+    type: 'value'
     kind: 'serverDate'
   }
 
@@ -380,34 +385,25 @@ export namespace Typesaurus {
   /**
    * The query type.
    */
-  export type Query<
-    Model,
-    Key extends keyof Model,
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > =
-    | OrderQuery<Model, Key, FirestoreOrderByDirection>
-    | WhereQuery<Model, FirestoreWhereFilterOp>
+  export type Query<Model, Key extends keyof Model> =
+    | OrderQuery<Model, Key>
+    | WhereQuery<Model>
     | LimitQuery
 
   /**
    * The order query type. Used to build query.
    */
-  export interface OrderQuery<
-    Model,
-    Key extends keyof Model,
-    FirestoreOrderByDirection
-  > {
+  export interface OrderQuery<Model, Key extends keyof Model> {
     type: 'order'
     field: Key | DocId
-    method: FirestoreOrderByDirection
+    method: OrderDirection
     cursors: Cursor<Model, Key>[] | undefined
   }
 
-  export interface WhereQuery<_Model, FirestoreWhereFilterOp> {
+  export interface WhereQuery<_Model> {
     type: 'where'
     field: string | string[] | DocId
-    filter: FirestoreWhereFilterOp
+    filter: WhereFilter
     value: any
   }
 
@@ -429,29 +425,23 @@ export namespace Typesaurus {
    */
   export interface Cursor<Model, Key extends keyof Model> {
     method: CursorMethod
-    value: Model[Key] | PlainDoc<Model> | DocId | undefined
+    value: Model[Key] | Doc<Model> | DocId | undefined
   }
 
-  export interface QueryHelpers<
-    Model,
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > {
+  export interface QueryHelpers<Model> {
     where<Key extends keyof Model>(
       key: Key,
-      filter: FirestoreWhereFilterOp,
+      filter: WhereFilter,
       value: Model[Key]
-    ): WhereQuery<Model[Key], FirestoreWhereFilterOp>
+    ): WhereQuery<Model[Key]>
 
     where<Key1 extends keyof Model, Key2 extends keyof Model[Key1]>(
       field: [Key1, Key2],
-      filter: FirestoreWhereFilterOp,
+      filter: WhereFilter,
       value: Model[Key1][Key2]
-    ): WhereQuery<Model[Key1], FirestoreWhereFilterOp>
+    ): WhereQuery<Model[Key1]>
 
-    order<Key extends keyof Model>(
-      key: Key
-    ): OrderQuery<Model, Key, FirestoreOrderByDirection>
+    order<Key extends keyof Model>(key: Key): OrderQuery<Model, Key>
 
     limit(to: number): LimitQuery
   }
@@ -687,11 +677,11 @@ export namespace Typesaurus {
       schema: Schema
     ): NestedPlainCollection<Model, Schema>
 
-    collection<Model>(): Typesaurus.PlainCollection<Model>
+    collection<Model>(): PlainCollection<Model>
   }
 
   export interface OperationOptions<
-    Environment extends RuntimeEnvironment | undefined
+    Environment extends RuntimeEnvironment | undefined = undefined
   > {
     as?: Environment
   }
@@ -706,7 +696,7 @@ export namespace Typesaurus {
   }
 
   export type GetSubscriptionCallback<Model> = {
-    (result: PlainDoc<Model> | null /*, info: SnapshotInfo<Model> */): void
+    (result: Doc<Model> | null /*, info: SnapshotInfo<Model> */): void
   }
 
   export interface SubscriptionPromise<Result> extends Promise<Result> {
@@ -717,10 +707,10 @@ export namespace Typesaurus {
 
   export type PromiseWithGetSubscription<
     Model,
-    Environment extends RuntimeEnvironment,
     Source extends DataSource,
-    DateStrategy extends ServerDateStrategy
-  > = SubscriptionPromise<AnyRichDoc<
+    DateStrategy extends ServerDateStrategy,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = SubscriptionPromise<AnyDoc<
     Model,
     Environment,
     Source,
@@ -728,41 +718,26 @@ export namespace Typesaurus {
   > | null>
 
   export type PromiseWithListSubscription<Model> = SubscriptionPromise<
-    RichDoc<Model>[]
+    Doc<Model>[]
   >
 
   export type ListSubscriptionCallback<Model> = {
-    (result: PlainDoc<Model>[]): void
+    (result: Doc<Model>[]): void
   }
 
   export interface DocAPI<Model> {
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModel<Model, Environment>,
-      options?: OperationOptions<Environment>
-    ): Promise<void>
-
-    set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: UpdateModel<Model>,
-      options?: OperationOptions<Environment>
-    ): Promise<void>
-
-    update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: ($: WriteHelpers<Model>) => UpdateModel<Model>,
+      data: UpdateModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: UpdateModel<Model>,
-      options?: OperationOptions<Environment>
-    ): Promise<void>
-
-    upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -771,7 +746,7 @@ export namespace Typesaurus {
 
   export interface TransactionReadAPI<
     Model,
-    Environment extends RuntimeEnvironment
+    Environment extends RuntimeEnvironment | undefined = undefined
   > {
     /**
      * Retrieves a document from a collection.
@@ -797,7 +772,7 @@ export namespace Typesaurus {
     get<DateStrategy extends ServerDateStrategy>(
       id: string,
       options?: DocOptions<DateStrategy>
-    ): Promise<AnyPlainDoc<Model, Environment, 'database', DateStrategy> | null>
+    ): Promise<AnyDoc<Model, Environment, 'database', DateStrategy> | null>
   }
 
   /**
@@ -805,16 +780,16 @@ export namespace Typesaurus {
    * the function that allows reading documents from the database.
    */
   export interface TransactionReadHelpers<
-    Environment extends RuntimeEnvironment
+    Environment extends RuntimeEnvironment | undefined = undefined
   > {
     execute<Model>(
-      collection: AnyRichCollection<Model, unknown>
+      collection: AnyRichCollection<Model>
     ): TransactionReadAPI<Model, Environment>
   }
 
   export interface TransactionWriteAPI<
     Model,
-    Environment extends RuntimeEnvironment | undefined
+    Environment extends RuntimeEnvironment | undefined = undefined
   > {
     /**
      * Sets a document to the given data.
@@ -835,12 +810,7 @@ export namespace Typesaurus {
      * @param id - the id of the document to set
      * @param data - the document data
      */
-    set<Model>(id: string, data: WriteModel<Model, Environment>): void
-
-    set<Model>(
-      id: string,
-      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>
-    ): void
+    set<Model>(id: string, data: WriteModelArg<Model, Environment>): void
 
     /**
      * Sets or updates a document with the given data.
@@ -861,12 +831,7 @@ export namespace Typesaurus {
      * @param id - the id of the document to set
      * @param data - the document data
      */
-    upset(id: string, data: WriteModel<Model, Environment>): void
-
-    upset(
-      id: string,
-      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>
-    ): void
+    upset(id: string, data: WriteModelArg<Model, Environment>): void
 
     /**
      * Updates a document.
@@ -899,13 +864,7 @@ export namespace Typesaurus {
      */
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: UpdateModel<Model>,
-      options?: OperationOptions<Environment>
-    ): Promise<void>
-
-    update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: string,
-      data: ($: UpdateHelpers<Model>) => UpdateModel<Model>,
+      data: UpdateModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -946,8 +905,8 @@ export namespace Typesaurus {
    * the state of data received with {@link TransactionReadHelpers.get|get} would change.
    */
   export interface TransactionWriteHelpers<
-    Environment extends RuntimeEnvironment,
-    ReadResult
+    ReadResult,
+    Environment extends RuntimeEnvironment | undefined = undefined
   > {
     /**
      * The result of the read function.
@@ -955,7 +914,7 @@ export namespace Typesaurus {
     data: ReadResult
 
     execute<Model>(
-      collection: RichCollection<Model, unknown, unknown>
+      collection: RichCollection<Model>
     ): TransactionWriteAPI<Model, Environment>
   }
 
@@ -963,46 +922,45 @@ export namespace Typesaurus {
    * The transaction body function type.
    */
   export type TransactionReadFunction<
-    Environment extends RuntimeEnvironment,
-    ReadResult
+    ReadResult,
+    Environment extends RuntimeEnvironment | undefined = undefined
   > = ($: TransactionReadHelpers<Environment>) => Promise<ReadResult>
 
   /**
    * The transaction body function type.
    */
   export type TransactionWriteFunction<
-    Environment extends RuntimeEnvironment,
     ReadResult,
-    WriteResult
-  > = ($: TransactionWriteHelpers<Environment, ReadResult>) => WriteResult
+    WriteResult,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = ($: TransactionWriteHelpers<ReadResult, Environment>) => WriteResult
 
   export interface Transaction {
-    <ReadResult, Environment extends RuntimeEnvironment>(
+    <
+      ReadResult,
+      Environment extends RuntimeEnvironment | undefined = undefined
+    >(
       callback: ($: TransactionReadHelpers<Environment>) => Promise<ReadResult>
-    ): Promise<TransactionWriteHelpers<Environment, ReadResult>>
+    ): Promise<TransactionWriteHelpers<ReadResult, Environment>>
   }
 
   /**
    *
    */
-  export interface RichCollection<
-    Model,
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > extends PlainCollection<Model> {
+  export interface RichCollection<Model> extends PlainCollection<Model> {
     /** The Firestore path */
     path: string
 
     all(): PromiseWithListSubscription<Model>
 
     get<
-      Environment extends RuntimeEnvironment,
       Source extends DataSource,
-      DateStrategy extends ServerDateStrategy
+      DateStrategy extends ServerDateStrategy,
+      Environment extends RuntimeEnvironment | undefined = undefined
     >(
       id: string,
-      options?: { as: Environment }
-    ): PromiseWithGetSubscription<Model, Environment, Source, DateStrategy>
+      options?: OperationOptions<Environment>
+    ): PromiseWithGetSubscription<Model, Source, DateStrategy, Environment>
 
     getMany<OnMissing extends OnMissingMode<unknown> | undefined = undefined>(
       ids: string[],
@@ -1016,29 +974,13 @@ export namespace Typesaurus {
       : never
 
     query(
-      queries: (
-        $: QueryHelpers<
-          Model,
-          FirestoreWhereFilterOp,
-          FirestoreOrderByDirection
-        >
-      ) => Query<
-        Model,
-        keyof Model,
-        FirestoreWhereFilterOp,
-        FirestoreOrderByDirection
-      >[]
+      queries: ($: QueryHelpers<Model>) => Query<Model, keyof Model>[]
     ): PromiseWithListSubscription<Model>
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModel<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<RichRef<Model>>
-
-    add<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
-      options?: OperationOptions<Environment>
-    ): Promise<RichRef<Model>>
+    ): Promise<Ref<Model>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
@@ -1046,76 +988,37 @@ export namespace Typesaurus {
       options?: OperationOptions<Environment>
     ): Promise<void>
 
-    set<Environment extends RuntimeEnvironment | undefined = undefined>(
+    upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: UpdateModel<Model>,
-      options?: { as: Environment }
-    ): Promise<void>
-
-    update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: string,
-      data: (
-        $: UpdateHelpers<Model>
-      ) => UpdateModel<Model> | UpdateField<Model> | UpdateField<Model>[],
-      options?: OperationOptions<Environment>
-    ): Promise<void>
-
-    upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: string,
-      data: WriteModel<Model, Environment>,
-      options?: { as: Environment }
-    ): Promise<void>
-
-    upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: string,
-      data: ($: WriteHelpers<Model>) => WriteModel<Model, Environment>,
+      data: UpdateModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     remove(id: string): Promise<void>
 
-    ref(id: string): RichRef<Model>
+    ref(id: string): Ref<Model>
 
-    doc(id: string, data: Model): RichDoc<Model>
+    doc(id: string, data: Model): Doc<Model>
   }
 
-  export interface NestedRichCollection<
-    Model,
-    Schema extends RichSchema<
-      FirestoreWhereFilterOp,
-      FirestoreOrderByDirection
-    >,
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > extends RichCollection<
-      Model,
-      FirestoreWhereFilterOp,
-      FirestoreOrderByDirection
-    > {
+  export interface NestedRichCollection<Model, Schema extends RichSchema>
+    extends RichCollection<Model> {
     (id: string): Schema
   }
 
-  export type AnyRichCollection<
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > =
-    | RichCollection<unknown, FirestoreWhereFilterOp, FirestoreOrderByDirection>
-    | NestedRichCollection<
-        unknown,
-        RichSchema<FirestoreWhereFilterOp, FirestoreOrderByDirection>,
-        FirestoreWhereFilterOp,
-        FirestoreOrderByDirection
-      >
+  export type AnyRichCollection<Model = unknown> =
+    | RichCollection<Model>
+    | NestedRichCollection<Model, RichSchema>
 
   export interface PlainCollection<_Model> {
     /** The collection type */
-    __type__: 'collection'
+    type: 'collection'
   }
 
   export interface Group<_Model> {
@@ -1132,14 +1035,8 @@ export namespace Typesaurus {
     | PlainCollection<unknown>
     | NestedPlainCollection<unknown, PlainSchema>
 
-  export interface RichSchema<
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > {
-    [CollectionPath: string]: AnyRichCollection<
-      FirestoreWhereFilterOp,
-      FirestoreOrderByDirection
-    >
+  export interface RichSchema {
+    [CollectionPath: string]: AnyRichCollection
   }
 
   export interface PlainSchema {
@@ -1150,7 +1047,7 @@ export namespace Typesaurus {
    * The type flattens the schema and generates groups from nested and
    * root collections.
    */
-  export type Groups<GroupsDB extends DB<unknown, unknown, unknown>> =
+  export type Groups<GroupsDB extends DB<unknown>> =
     /**
      * {@link ConstructGroups} here plays a role of merger, each level of nesting
      * returns respective collections and the type creates an object from those,
@@ -1164,24 +1061,24 @@ export namespace Typesaurus {
       /**
        * 1-level deep
        */
-      GroupsDB extends DB<infer Schema, unknown, unknown> // Infer the nested (1) schema
+      GroupsDB extends DB<infer Schema> // Infer the nested (1) schema
         ? Schema[keyof Schema] extends
             | PlainCollection<infer _>
             | NestedPlainCollection<infer _, infer NestedSchema> // Get the models for the given (1) level
-          ? ExtractDBModels<DB<NestedSchema, unknown, unknown>>
+          ? ExtractDBModels<DB<NestedSchema>>
           : {}
         : {},
       /**
        * 2-levels deep
        */
-      GroupsDB extends DB<infer Schema, unknown, unknown> // Infer the nested (1) schema
+      GroupsDB extends DB<infer Schema> // Infer the nested (1) schema
         ? Schema[keyof Schema] extends
             | PlainCollection<infer _>
             | NestedPlainCollection<infer _, infer NestedSchema1> // Infer the nested (2) schema
           ? NestedSchema1[keyof NestedSchema1] extends
               | PlainCollection<infer _>
               | NestedPlainCollection<infer _, infer NestedSchema2> // Get the models for the given (2) level
-            ? ExtractDBModels<DB<NestedSchema2, unknown, unknown>>
+            ? ExtractDBModels<DB<NestedSchema2>>
             : {}
           : {}
         : {}
@@ -1207,39 +1104,24 @@ export namespace Typesaurus {
      * NOTE: {@link NestedRichCollection} extends {@link RichCollection},
      * so no need to list it here.
      */
-    [Path in keyof DB]: DB[Path] extends RichCollection<
-      infer Model,
-      unknown,
-      unknown
-    >
+    [Path in keyof DB]: DB[Path] extends RichCollection<infer Model>
       ? Model
       : never
   }
 
-  export type DB<Schema, FirestoreWhereFilterOp, FirestoreOrderByDirection> = {
+  export type DB<Schema> = {
     [Path in keyof Schema]: Schema[Path] extends NestedPlainCollection<
       infer Model,
       infer Schema
     >
-      ? NestedRichCollection<
-          Model,
-          DB<Schema, FirestoreWhereFilterOp, FirestoreOrderByDirection>,
-          FirestoreWhereFilterOp,
-          FirestoreOrderByDirection
-        >
+      ? NestedRichCollection<Model, DB<Schema>>
       : Schema[Path] extends PlainCollection<infer Model>
-      ? RichCollection<Model, FirestoreWhereFilterOp, FirestoreOrderByDirection>
+      ? RichCollection<Model>
       : never
   }
 
-  export type RootDB<
-    Schema,
-    FirestoreWhereFilterOp,
-    FirestoreOrderByDirection
-  > = DB<Schema, FirestoreWhereFilterOp, FirestoreOrderByDirection> & {
-    groups: Groups<
-      DB<Schema, FirestoreWhereFilterOp, FirestoreOrderByDirection>
-    >
+  export type RootDB<Schema> = DB<Schema> & {
+    groups: Groups<DB<Schema>>
   }
 
   export type OnMissingMode<Model> = OnMissingCallback<Model> | 'ignore'

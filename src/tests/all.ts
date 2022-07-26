@@ -37,21 +37,21 @@ describe('all', () => {
     ])
   })
 
-  it('expands references', async () => {
-    await Promise.all([
-      db.orders.set('order1', { book: db.books.ref('sapiens'), quantity: 1 }),
-      db.orders.set('order2', { book: db.books.ref('22laws'), quantity: 1 })
-    ])
-    const docs = await db.orders.all()
-    expect(docs[0]?.data.book.type).toBe('ref')
-    const orderedBooks = await Promise.all(
-      docs.map((doc) => get(books, doc.data.book.id))
-    )
-    expect(orderedBooks.map((doc) => doc?.data.title).sort()).toEqual([
-      'Sapiens',
-      'The 22 Immutable Laws of Marketing'
-    ])
-  })
+  // it('expands references', async () => {
+  //   await Promise.all([
+  //     db.orders.set('order1', { book: db.books.ref('sapiens'), quantity: 1 }),
+  //     db.orders.set('order2', { book: db.books.ref('22laws'), quantity: 1 })
+  //   ])
+  //   const docs = await db.orders.all()
+  //   expect(docs[0]?.data.book.type).toBe('ref')
+  //   const orderedBooks = await Promise.all(
+  //     docs.map((doc) => get(books, doc.data.book.id))
+  //   )
+  //   expect(orderedBooks.map((doc) => doc?.data.title).sort()).toEqual([
+  //     'Sapiens',
+  //     'The 22 Immutable Laws of Marketing'
+  //   ])
+  // })
 
   // it('expands dates', async () => {
   //   const date = new Date(1987, 1, 11)

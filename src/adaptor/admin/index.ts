@@ -1,17 +1,14 @@
-import { Typesaurus } from '../..'
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
+import { Typesaurus } from '../..'
+import { TypesaurusUtils } from '../../utils'
 
 export function schema<Schema extends Typesaurus.PlainSchema>(
   getSchema: ($: Typesaurus.SchemaHelpers) => Schema
-): Typesaurus.RootDB<
-  Schema,
-  firestore.WhereFilterOp,
-  firestore.OrderByDirection
-> {
+): Typesaurus.RootDB<Schema> {
   const schemaHelpers: Typesaurus.SchemaHelpers = {
     collection() {
-      return { __type__: 'collection' }
+      return { type: 'collection' }
     },
 
     sub(collection, schema) {
@@ -21,260 +18,163 @@ export function schema<Schema extends Typesaurus.PlainSchema>(
 
   const db = getSchema(schemaHelpers)
 
-  const richdb: Typesaurus.RichSchema<
-    firestore.WhereFilterOp,
-    firestore.OrderByDirection
-  > = {}
+  const richdb: Typesaurus.RichSchema = {}
 
   Object.entries(db).forEach(([collectionPath, collection]) => {
-    const firebaseCollection = () =>
-      admin.firestore().collection(collectionPath)
-    const firebaseDoc = (id: string) => firebaseCollection().doc(id)
-
-    const typesaurusDoc: (
-      id: string,
-      data: unknown
-    ) => Typesaurus.RichDoc<unknown> = (id, data) => ({
-      type: 'doc',
-      ref: {
-        collection: collectionPath,
-        id
-      },
-      data,
-      environment: 'web',
-      fromCache: false,
-      hasPendingWrites: false,
-      serverTimestamps: 'estimate',
-      firestoreData: false
-    })
-
-    richdb[collectionPath] = {
-      ...collection,
-
-      get(id) {
-        const doc = admin.firestore().doc(`${collectionPath}/${id}`)
-
-        function createResult(
-          snapshot: firestore.DocumentSnapshot
-        ): Typesaurus.RichDoc<unknown> | null {
-          const data = snapshot.data()
-          if (data) return { data } as Typesaurus.RichDoc<unknown>
-          return null
-        }
-
-        const promise: Typesaurus.PromiseWithGetSubscription<unknown> = {
-          on(resultCallback) {
-            let errorCallback: Typesaurus.SubscriptionErrorCallback = () => {}
-
-            const off = doc.onSnapshot(
-              (snapshot) => resultCallback(createResult(snapshot)),
-              (error) => errorCallback(error)
-            ) as Typesaurus.OffSubscriptionWithCatch
-
-            off.catch = (cb) => {
-              errorCallback = cb
-              return off
-            }
-
-            return off as Typesaurus.OffSubscriptionWithCatch
-          },
-
-          async then(resultCallback) {
-            return resultCallback?.(createResult(await doc.get()))
-          },
-
-          async catch(cb) {
-            return this.then().catch(cb)
-          }
-        }
-
-        return promise
-      },
-
-      getMany() {},
-
-      async all() {
-        const firebaseSnap = await firebaseCollection().get()
-        return firebaseSnap.docs.map((doc) =>
-          typesaurusDoc(doc.id, wrapData(doc.data()))
-        )
-      },
-
-      async set(id, data) {
-        await firebaseDoc(id).set(unwrapData(data))
-      },
-
-      async remove(id) {
-        await firebaseDoc(id).delete()
-      },
-
-      ref(id) {
-        return typesaurusRef(id)
-      }
-    }
+    richdb[collectionPath] = new RichCollection(collectionPath)
   })
 
-  return richdb as unknown as Typesaurus.RootDB<
-    Schema,
-    firestore.WhereFilterOp,
-    firestore.OrderByDirection
-  >
+  return richdb as unknown as Typesaurus.RootDB<Schema>
 }
 
-type SubscriptionPromiseGet<Result> = () => Promise<Result>
-
-type SubscriptionPromiseSubscribe<Result> = (
-  resultCallback: (result: Result) => void
-) => Typesaurus.OffSubscription
-
-interface SubscriptionPromiseProps<Result> {
-  get: SubscriptionPromiseGet<Result>
-  subscribe: SubscriptionPromiseSubscribe<Result>
-}
-
-class SubscriptionPromise<Result>
-  implements Typesaurus.SubscriptionPromise<Result>
-{
-  private result: Result | undefined
-
-  private get: SubscriptionPromiseGet<Result>
-
-  private subscribe: SubscriptionPromiseSubscribe<Result>
-
-  constructor({ get, subscribe }: SubscriptionPromiseProps<Result>) {
-    this.get = get
-    this.subscribe = subscribe
-  }
-
-  get [Symbol.toStringTag]() {
-    return '[object SubscriptionPromise]'
-  }
-
-  async then<FullfillResult = Result, RejectResult = never>(
-    onFulfilled?:
-      | ((value: Result) => FullfillResult | PromiseLike<FullfillResult>)
-      | undefined
-      | null,
-    onRejected?:
-      | ((reason: any) => RejectResult | PromiseLike<RejectResult>)
-      | undefined
-      | null
-  ): Promise<FullfillResult | RejectResult> {
-    return this.get()
-      .then((result) => {
-        this.result = result
-        if (onFulfilled) return onFulfilled(result)
-        return result
-      })
-      .catch(onRejected)
-  }
-
-  catch<CatchResult = never>(
-    onrejected?:
-      | ((reason: any) => CatchResult | PromiseLike<CatchResult>)
-      | undefined
-      | null
-  ): Promise<Result | CatchResult> {
-    return {} as unknown as Promise<Result>
-  }
-
-  finally(onFinally?: (() => void) | null | undefined): Promise<Result> {
-    return {} as unknown as Promise<Result>
-  }
-
-  on(
-    callback: Typesaurus.SubscriptionPromiseCallback<Result>
-  ): Typesaurus.OffSubscriptionWithCatch {
-    // this.subscribe((result) => callback(result))
-    return {} as unknown as Typesaurus.OffSubscriptionWithCatch
-  }
-}
-
-class RichCollection<Model>
-  implements
-    Typesaurus.RichCollection<
-      Model,
-      firestore.WhereFilterOp,
-      firestore.OrderByDirection
-    >
-{
+class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   path: string
 
   constructor(path: string) {
     this.path = path
   }
 
+  ref(id: string) {
+    return new Ref<Model>(this, id)
+  }
+
+  doc(id: string, data: Model) {
+    return new Doc<Model>(this, id, data)
+  }
+
+  async add<Environment extends Typesaurus.RuntimeEnvironment>(
+    getData: Typesaurus.WriteModelArg<Model, Environment>
+  ) {
+    const data =
+      typeof getData === 'function' ? getData(this.writeHelpers()) : getData
+    const firebaseRef = await this.firebaseCollection().add(unwrapData(data))
+    return this.ref(firebaseRef.id)
+  }
+
   all(): Typesaurus.PromiseWithListSubscription<Model> {
     const firebaseCollection = admin.firestore().collection(this.path)
-    const collection = this
 
-    return new SubscriptionPromise<Typesaurus.RichDoc<Model>[]>({
-      get() {},
+    return new TypesaurusUtils.SubscriptionPromise<Typesaurus.Doc<Model>[]>({
+      get: async () => {
+        const snapshot = await this.firebaseCollection().get()
+        return snapshot.docs.map(
+          (doc) => new Doc<Model>(this, doc.id, wrapData(doc.data()))
+        )
+      },
 
-      subscribe: (callback) => {
+      subscribe: (onResult, onError) =>
         firebaseCollection.onSnapshot((snapshot) => {
-          callback(
+          onResult(
             snapshot.docs.map(
-              (doc) =>
-                new RichDoc<Model>(collection, doc.id, wrapData(doc.data()))
+              (doc) => new Doc<Model>(this, doc.id, wrapData(doc.data()))
             )
           )
-        })
-      }
+        }, onError)
     })
     // return firebaseSnap.docs.map(
     //   (doc) => new RichDoc(this, doc.id, wrapData(doc.data()))
     // )
   }
 
-  get() {}
+  get(id: string) {
+    return new TypesaurusUtils.SubscriptionPromise({
+      get: async () => {
+        const firebaseSnap = await this.firebaseDoc(id).get()
+        const data = firebaseSnap.data()
+        if (data) return this.doc(id, wrapData(firebaseSnap.data()))
+        return null
+      },
+
+      subscribe() {}
+    })
+  }
 
   getMany() {}
 
   query() {}
 
-  add() {}
+  set<Environment extends Typesaurus.RuntimeEnvironment>(
+    id: string,
+    data: Typesaurus.WriteModel<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
+  ): Promise<void>
+
+  set<Environment extends Typesaurus.RuntimeEnvironment>(
+    id: string,
+    data: (
+      $: Typesaurus.WriteHelpers<Model>
+    ) => Typesaurus.WriteModel<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
+  ): Promise<void>
+
+  async set<Environment extends Typesaurus.RuntimeEnvironment>(
+    id: string,
+    data:
+      | Typesaurus.WriteModel<Model, Environment>
+      | ((
+          $: Typesaurus.WriteHelpers<Model>
+        ) => Typesaurus.WriteModel<Model, Environment>)
+  ) {
+    await this.firebaseDoc(id).set(unwrapData(data))
+  }
 
   async remove(id: string) {
     await this.firebaseDoc(id).delete()
+  }
+
+  private writeHelpers(): Typesaurus.WriteHelpers<Model> {
+    return {
+      serverDate: () => ({ type: 'value', kind: 'serverDate' }),
+
+      remove: () => ({ type: 'value', kind: 'remove' }),
+
+      increment: (number) => ({
+        type: 'value',
+        kind: 'increment',
+        number
+      }),
+
+      arrayUnion: (values) => ({
+        type: 'value',
+        kind: 'arrayUnion',
+        values: [].concat(values)
+      }),
+
+      arrayRemove: (values) => ({
+        type: 'value',
+        kind: 'arrayRemove',
+        values: [].concat(values)
+      })
+    }
+  }
+
+  private firebaseCollection() {
+    return admin.firestore().collection(this.path)
   }
 
   private firebaseDoc(id: string) {
     return admin.firestore().doc(`${this.path}/${id}`)
   }
 }
-class RichRef<Model>
-  implements
-    Typesaurus.RichRef<
-      Model,
-      firestore.WhereFilterOp,
-      firestore.OrderByDirection
-    >
-{
+
+class Ref<Model> implements Typesaurus.Ref<Model> {
   type: 'ref'
 
-  collection: Typesaurus.RichCollection<
-    Model,
-    firestore.WhereFilterOp,
-    firestore.OrderByDirection
-  >
+  collection: Typesaurus.RichCollection<Model>
 
   id: string
 
-  constructor(
-    collection: Typesaurus.RichCollection<
-      Model,
-      firestore.WhereFilterOp,
-      firestore.OrderByDirection
-    >,
-    id: string
-  ) {
+  constructor(collection: Typesaurus.RichCollection<Model>, id: string) {
     this.type = 'ref'
     this.collection = collection
     this.id = id
   }
 
   set() {}
+
+  get() {
+    return this.collection.get(this.id)
+  }
 
   update() {}
 
@@ -289,43 +189,31 @@ class RichRef<Model>
   }
 }
 
-class RichDoc<Model> implements Typesaurus.RichServerDoc<Model> {
+class Doc<Model> implements Typesaurus.ServerDoc<Model> {
   type: 'doc'
 
-  ref: Typesaurus.RichRef<
-    Model,
-    firestore.WhereFilterOp,
-    firestore.OrderByDirection
-  >
+  ref: Typesaurus.Ref<Model>
 
-  collection: Typesaurus.RichCollection<
-    Model,
-    firestore.WhereFilterOp,
-    firestore.OrderByDirection
-  >
+  collection: Typesaurus.RichCollection<Model>
 
   data: Typesaurus.ModelNodeData<Model>
 
   environment: 'server'
 
   constructor(
-    collection: Typesaurus.RichCollection<
-      Model,
-      firestore.WhereFilterOp,
-      firestore.OrderByDirection
-    >,
+    collection: Typesaurus.RichCollection<Model>,
     id: string,
     data: Model
   ) {
     this.type = 'doc'
     this.collection = collection
-    this.ref = new RichRef<Model>(collection, id)
+    this.ref = new Ref<Model>(collection, id)
     this.data = data
     this.environment = 'server'
   }
 
   update(update) {
-    this.ref.update(update)
+    return this.ref.update(update)
   }
 
   upset() {}
@@ -335,37 +223,13 @@ class RichDoc<Model> implements Typesaurus.RichServerDoc<Model> {
   }
 }
 
-// /**
-//  *
-//  * @param api - the doc API
-//  * @param collection
-//  * @param id
-//  * @returns
-//  */
-// function ref<Model>(
-//   api: Typesaurus.DocAPI<Model>,
-//   collection: Typesaurus.RichCollection<
-//     Model,
-//     firestore.WhereFilterOp,
-//     firestore.OrderByDirection
-//   >,
-//   id: string
-// ): Typesaurus.RichRef<Model> {
-//   return {
-//     type: 'ref',
-//     collection,
-//     id,
-//     ...api
-//   }
-// }
-
 /**
  * Generates Firestore path from a reference.
  *
  * @param ref - The reference to a document
  * @returns Firestore path
  */
-export function getRefPath(ref: Typesaurus.PlainRef<unknown>) {
+export function getRefPath<Model>(ref: Typesaurus.Ref<Model>) {
   return [ref.collection.path].concat(ref.id).join('/')
 }
 
@@ -375,7 +239,7 @@ export function getRefPath(ref: Typesaurus.PlainRef<unknown>) {
  * @param ref - The reference to create Firestore document from
  * @returns Firestore document
  */
-export function refToFirestoreDocument<Model>(ref: Typesaurus.PlainRef<Model>) {
+export function refToFirestoreDocument<Model>(ref: Typesaurus.Ref<Model>) {
   return admin.firestore().doc(getRefPath(ref))
 }
 
@@ -385,15 +249,11 @@ export function refToFirestoreDocument<Model>(ref: Typesaurus.PlainRef<Model>) {
  * @param path - The Firestore path
  * @returns Reference to a document
  */
-export function pathToRef<Model>(path: string): Typesaurus.PlainRef<Model> {
+export function pathToRef<Model>(path: string): Typesaurus.Ref<Model> {
   const captures = path.match(/^(.+)\/(.+)$/)
   if (!captures) throw new Error(`Can't parse path ${path}`)
   const [, collectionPath, id] = captures
-  return {
-    type: 'ref',
-    collection: { __type__: 'collection', path: collectionPath },
-    id
-  }
+  return new Ref<Model>(new RichCollection<Model>(collectionPath), id)
 }
 
 /**
@@ -406,8 +266,8 @@ export function pathToRef<Model>(path: string): Typesaurus.PlainRef<Model> {
 export function unwrapData(data: any): any {
   if (data && typeof data === 'object') {
     if (data.type === 'ref') {
-      return refToFirestoreDocument(data as Typesaurus.PlainRef<unknown>)
-    } else if (data.__type__ === 'value') {
+      return refToFirestoreDocument(data as Typesaurus.Ref<unknown>)
+    } else if (data.type === 'value') {
       const fieldValue = data as Typesaurus.UpdateValue<any, any>
       switch (fieldValue.kind) {
         case 'remove':

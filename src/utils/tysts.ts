@@ -1,4 +1,4 @@
-import type { TypesaurusUtils } from './utils'
+import type { TypesaurusUtils } from '.'
 
 namespace AllRequired {
   type Result1 = Assert<
