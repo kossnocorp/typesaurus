@@ -1,5 +1,5 @@
 import { Typesaurus } from '..'
-import { schema } from '../adaptor/admin'
+import { schema } from '../adaptor'
 
 describe('all', () => {
   interface Book {
@@ -36,32 +36,40 @@ describe('all', () => {
     ])
   })
 
-  // it('expands references', async () => {
-  //   await Promise.all([
-  //     db.orders.set('order1', { book: db.books.ref('sapiens'), quantity: 1 }),
-  //     db.orders.set('order2', { book: db.books.ref('22laws'), quantity: 1 })
-  //   ])
-  //   const docs = await db.orders.all()
-  //   expect(docs[0]?.data.book.type).toBe('ref')
-  //   const orderedBooks = await Promise.all(
-  //     docs.map((doc) => get(books, doc.data.book.id))
-  //   )
-  //   expect(orderedBooks.map((doc) => doc?.data.title).sort()).toEqual([
-  //     'Sapiens',
-  //     'The 22 Immutable Laws of Marketing'
-  //   ])
-  // })
+  it('expands references', async () => {
+    await Promise.all([
+      db.orders.set('order1', { book: db.books.ref('sapiens'), quantity: 1 }),
+      db.orders.set('order2', { book: db.books.ref('22laws'), quantity: 1 })
+    ])
+    const docs = await db.orders.all()
+    expect(docs[0]?.data.book.type).toBe('ref')
+    const orderedBooks = await Promise.all(
+      docs.map((doc) => doc.data.book.get())
+    )
+    expect(orderedBooks.map((doc) => doc?.data.title).sort()).toEqual([
+      'Sapiens',
+      'The 22 Immutable Laws of Marketing'
+    ])
+  })
 
-  // it('expands dates', async () => {
-  //   const date = new Date(1987, 1, 11)
-  //   await Promise.all([
-  //     set(orders, 'order1', { book: ref(books, 'sapiens'), quantity: 1, date }),
-  //     set(orders, 'order2', { book: ref(books, '22laws'), quantity: 1, date })
-  //   ])
-  //   const docs = await all(orders)
-  //   assert(docs[0]?.data.date?.getTime() === date.getTime())
-  //   assert(docs[1]?.data.date?.getTime() === date.getTime())
-  // })
+  it('expands dates', async () => {
+    const date = new Date(1987, 1, 11)
+    await Promise.all([
+      db.orders.set('order1', {
+        book: db.books.ref('sapiens'),
+        quantity: 1,
+        date
+      }),
+      db.orders.set('order2', {
+        book: db.books.ref('22laws'),
+        quantity: 1,
+        date
+      })
+    ])
+    const docs = await db.orders.all()
+    expect(docs[0]?.data.date?.getTime()).toBe(date.getTime())
+    expect(docs[1]?.data.date?.getTime()).toBe(date.getTime())
+  })
 
   // it('allows to get all data from collection groups', async () => {
   //   const commentsGroupName = `comments-${nanoid()}`
