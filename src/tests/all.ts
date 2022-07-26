@@ -1,4 +1,3 @@
-import { describe, beforeEach, expect, it } from 'vitest'
 import { Typesaurus } from '..'
 import { schema } from '../adaptor/admin'
 
