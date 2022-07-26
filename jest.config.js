@@ -7,9 +7,5 @@ module.exports = {
   //     ? '<rootDir>/test/setupJestLocal.ts'
   //     : '<rootDir>/test/setupJestSystem.ts'
   // ],
-  setupFilesAfterEnv: [
-    process.env.FIRESTORE_EMULATOR_HOST
-      ? '<rootDir>/test/setupJestAfterEnvEmulator.ts'
-      : '<rootDir>/test/setupJestAfterEnvSystem.ts'
-  ]
+  setupFilesAfterEnv: ['<rootDir>/test/setupAdmin.ts']
 }

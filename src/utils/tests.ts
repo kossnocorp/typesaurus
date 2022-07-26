@@ -1,5 +1,5 @@
 import { TypesaurusUtils } from '.'
-import { describe, expect, it, vi } from 'vitest'
+import sinon from 'sinon'
 
 describe('TypesaurusUtils', () => {
   describe('SubscriptionPromise', () => {
@@ -15,7 +15,7 @@ describe('TypesaurusUtils', () => {
       })
 
       it('calls get function just once', async () => {
-        const get = vi.fn(() => Promise.resolve('It works!'))
+        const get = sinon.spy(() => Promise.resolve('It works!'))
         const promise = new TypesaurusUtils.SubscriptionPromise({
           get,
           subscribe: () => () => {}
@@ -25,7 +25,7 @@ describe('TypesaurusUtils', () => {
         promise.then()
 
         expect(await promise).toBe('It works!')
-        expect(get).toBeCalledTimes(1)
+        expect(get.calledOnce).toBe(true)
       })
 
       it('returns then result', async () => {
@@ -46,10 +46,10 @@ describe('TypesaurusUtils', () => {
           subscribe: () => () => {}
         })
 
-        const onRejected = vi.fn()
+        const onRejected = sinon.spy()
         await promise.then(() => {}, onRejected)
 
-        expect(onRejected).toBeCalledWith(new Error('It fails!'))
+        expect(calledWithError(onRejected, 'It fails!')).toBe(true)
       })
 
       it("returns then's catch result", async () => {
@@ -76,10 +76,10 @@ describe('TypesaurusUtils', () => {
           subscribe: () => () => {}
         })
 
-        const onRejected = vi.fn()
+        const onRejected = sinon.spy()
         await promise.catch(onRejected)
 
-        expect(onRejected).toBeCalledWith(new Error('It fails!'))
+        expect(calledWithError(onRejected, 'It fails!')).toBe(true)
       })
 
       it('returns catch result', async () => {
@@ -101,10 +101,10 @@ describe('TypesaurusUtils', () => {
           subscribe: () => () => {}
         })
 
-        const onFinally = vi.fn()
+        const onFinally = sinon.spy()
         await promise.finally(onFinally)
 
-        expect(onFinally).toBeCalledWith()
+        expect(onFinally.calledWith()).toBe(true)
       })
 
       it('bypass the result', async () => {
@@ -142,15 +142,15 @@ describe('TypesaurusUtils', () => {
           }
         })
 
-        const onResult = vi.fn()
+        const onResult = sinon.spy()
         promise.on(onResult)
 
-        expect(onResult).toBeCalledWith('It works!')
-        expect(onResult).toBeCalledTimes(1)
+        expect(onResult.calledWith('It works!')).toBe(true)
+        expect(onResult.calledOnce).toBe(true)
       })
 
       it('allows to subscribe multiple times', () => {
-        const subscribe = vi.fn((onResult) => {
+        const subscribe = sinon.spy((onResult) => {
           onResult('It works, indeed!')
           return () => {}
         })
@@ -160,23 +160,23 @@ describe('TypesaurusUtils', () => {
           subscribe
         })
 
-        const onResult1 = vi.fn()
+        const onResult1 = sinon.spy()
         promise.on(onResult1)
 
-        const onResult2 = vi.fn()
+        const onResult2 = sinon.spy()
         promise.on(onResult2)
 
-        expect(onResult1).toBeCalledWith('It works, indeed!')
-        expect(onResult1).toBeCalledTimes(1)
+        expect(onResult1.calledWith('It works, indeed!')).toBe(true)
+        expect(onResult1.calledOnce).toBe(true)
 
-        expect(onResult2).toBeCalledWith('It works, indeed!')
-        expect(onResult2).toBeCalledTimes(1)
+        expect(onResult2.calledWith('It works, indeed!')).toBe(true)
+        expect(onResult2.calledOnce).toBe(true)
 
-        expect(subscribe).toBeCalledTimes(1)
+        expect(subscribe.calledOnce).toBe(true)
       })
 
       it('allows to catch error', () => {
-        const subscribe = vi.fn((_, onError) => {
+        const subscribe = sinon.spy((_, onError) => {
           onError(new Error('It fails!'))
           return () => {}
         })
@@ -186,16 +186,16 @@ describe('TypesaurusUtils', () => {
           subscribe
         })
 
-        const onResult = vi.fn()
-        const onError = vi.fn()
+        const onResult = sinon.spy()
+        const onError = sinon.spy()
         promise.on(onResult).catch(onError)
 
-        expect(onResult).not.toBeCalled()
-        expect(onError).toBeCalledWith(new Error('It fails!'))
+        expect(onResult.called).toBe(false)
+        expect(calledWithError(onError, 'It fails!')).toBe(true)
       })
 
       it('allows to catch multiple times', () => {
-        const subscribe = vi.fn((_, onError) => {
+        const subscribe = sinon.spy((_, onError) => {
           onError(new Error('It fails!'))
           return () => {}
         })
@@ -205,26 +205,26 @@ describe('TypesaurusUtils', () => {
           subscribe
         })
 
-        const onResult1 = vi.fn()
-        const onError1 = vi.fn()
+        const onResult1 = sinon.spy()
+        const onError1 = sinon.spy()
         promise.on(onResult1).catch(onError1)
 
-        const onResult2 = vi.fn()
-        const onError2 = vi.fn()
+        const onResult2 = sinon.spy()
+        const onError2 = sinon.spy()
         promise.on(onResult2).catch(onError2)
 
-        expect(onError1).toBeCalledWith(new Error('It fails!'))
-        expect(onError1).toBeCalledTimes(1)
+        expect(calledWithError(onError1, 'It fails!')).toBe(true)
+        expect(onError1.calledOnce).toBe(true)
 
-        expect(onError2).toBeCalledWith(new Error('It fails!'))
-        expect(onError2).toBeCalledTimes(1)
+        expect(calledWithError(onError2, 'It fails!')).toBe(true)
+        expect(onError2.calledOnce).toBe(true)
 
-        expect(subscribe).toBeCalledTimes(1)
+        expect(subscribe.calledOnce).toBe(true)
       })
 
       it('unsubscribes when calling off function', () =>
         new Promise((resolve) => {
-          const subscribe = vi.fn((onResult) => {
+          const subscribe = sinon.spy((onResult) => {
             onResult('It works, indeed!')
             return () => resolve(void 0)
           })
@@ -239,7 +239,7 @@ describe('TypesaurusUtils', () => {
 
       it('unsubscribes when calling off function after catch', () =>
         new Promise((resolve) => {
-          const subscribe = vi.fn((onResult) => {
+          const subscribe = sinon.spy((onResult) => {
             onResult('It works, indeed!')
             return () => resolve(void 0)
           })
@@ -254,20 +254,22 @@ describe('TypesaurusUtils', () => {
 
       it('unsubscribes given listener when calling its off function', () =>
         new Promise((resolve, reject) => {
-          const onResult1 = vi.fn()
-          const onResult2 = vi.fn()
+          const onResult1 = sinon.spy()
+          const onResult2 = sinon.spy()
 
-          const subscribe = vi.fn((onResult) => {
+          const subscribe = sinon.spy((onResult) => {
             onResult('It works, indeed!')
 
             setTimeout(() => {
               onResult('It works like charm!')
 
-              expect(onResult1).toBeCalledWith('It works, indeed!')
-              expect(onResult1).not.toBeCalledWith('It works like charm!')
+              expect(onResult1.calledWith('It works, indeed!')).toBe(true)
+              expect(onResult1.calledWith('It works like charm!')).not.toBe(
+                true
+              )
 
-              expect(onResult2).toBeCalledWith('It works, indeed!')
-              expect(onResult2).toBeCalledWith('It works like charm!')
+              expect(onResult2.calledWith('It works, indeed!')).toBe(true)
+              expect(onResult2.calledWith('It works like charm!')).toBe(true)
 
               resolve(void 0)
             }, 1)
@@ -288,20 +290,20 @@ describe('TypesaurusUtils', () => {
 
       it('unsubscribes when calling all of the listener off functions', () =>
         new Promise((resolve, reject) => {
-          const onResult1 = vi.fn()
-          const onResult2 = vi.fn()
+          const onResult1 = sinon.spy()
+          const onResult2 = sinon.spy()
 
-          const subscribe = vi.fn((onResult) => {
+          const subscribe = sinon.spy((onResult) => {
             onResult('It works, indeed!')
 
             setTimeout(() => {
               onResult('It works like charm!')
 
-              expect(onResult1).toBeCalledWith('It works, indeed!')
-              expect(onResult1).not.toBeCalledWith('It works like charm!')
+              expect(onResult1.calledWith('It works, indeed!')).toBe(true)
+              expect(onResult1.calledWith('It works like charm!')).toBe(false)
 
-              expect(onResult2).toBeCalledWith('It works, indeed!')
-              expect(onResult2).not.toBeCalledWith('It works like charm!')
+              expect(onResult2.calledWith('It works, indeed!')).toBe(true)
+              expect(onResult2.calledWith('It works like charm!')).toBe(false)
             }, 1)
 
             return () => resolve(void 0)
@@ -334,3 +336,9 @@ describe('TypesaurusUtils', () => {
     })
   })
 })
+
+function calledWithError(spy: sinon.SinonSpy, message: string) {
+  return spy.calledWith(
+    sinon.match.instanceOf(Error).and(sinon.match.has('message', message))
+  )
+}
