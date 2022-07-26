@@ -1,5 +1,5 @@
 import { Typesaurus } from '..'
-import { schema } from '../adaptor/admin'
+import { schema } from '../adaptor'
 
 describe('get', () => {
   interface User {
@@ -25,34 +25,33 @@ describe('get', () => {
     expect(nothing).toBe(null)
   })
 
-  // it('allows to get via ref', async () => {
-  //   const user = await db.users.add({ name: 'Sasha' })
-  //   const userFromDB = await user.get(user)
-  //   expect(userFromDB?.data).toEqual({ name: 'Sasha' })
-  // })
+  it('allows to get via ref', async () => {
+    const userRef = await db.users.add({ name: 'Sasha' })
+    const userFromDB = await userRef.get()
+    expect(userFromDB?.data).toEqual({ name: 'Sasha' })
+  })
 
-  // it('expands references', async () => {
-  //   const user = await add(users, { name: 'Sasha' })
-  //   const post = await add(posts, {
-  //     author: user,
-  //     text: 'Hello!'
-  //   })
-  //   const postFromDB = await get(posts, post.id)
-  //   assert(postFromDB?.data.author.__type__ === 'ref')
-  //   const userFromDB =
-  //     postFromDB && (await get(users, postFromDB.data.author.id))
-  //   assert.deepEqual(userFromDB?.data, { name: 'Sasha' })
-  // })
+  it('expands references', async () => {
+    const userRef = await db.users.add({ name: 'Sasha' })
+    const postRef = await db.posts.add({
+      author: userRef,
+      text: 'Hello!'
+    })
+    const postFromDB = await postRef.get()
+    expect(postFromDB?.data.author.type).toBe('ref')
+    const userFromDB = postFromDB && (await postFromDB.data.author.get())
+    expect(userFromDB?.data).toEqual({ name: 'Sasha' })
+  })
 
-  // it('expands dates', async () => {
-  //   const date = new Date()
-  //   const userRef = ref(users, '42')
-  //   const post = await add(posts, {
-  //     author: userRef,
-  //     text: 'Hello!',
-  //     date
-  //   })
-  //   const postFromDB = await get(posts, post.id)
-  //   assert(postFromDB?.data.date?.getTime() === date.getTime())
-  // })
+  it('expands dates', async () => {
+    const date = new Date()
+    const userRef = db.users.ref('42')
+    const post = await db.posts.add({
+      author: userRef,
+      text: 'Hello!',
+      date
+    })
+    const postFromDB = await post.get()
+    expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
+  })
 })

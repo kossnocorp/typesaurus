@@ -212,6 +212,10 @@ class Doc<Model> implements Typesaurus.ServerDoc<Model> {
     this.environment = 'server'
   }
 
+  get() {
+    return this.ref.get()
+  }
+
   update(update) {
     return this.ref.update(update)
   }

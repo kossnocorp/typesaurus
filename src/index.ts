@@ -182,8 +182,6 @@ export namespace Typesaurus {
     type: 'ref'
     collection: RichCollection<Model>
     id: string
-
-    get(): Promise<Doc<Model> | null>
   }
 
   export type ServerDateNullable = 'nullable' | 'present'
@@ -726,6 +724,8 @@ export namespace Typesaurus {
   }
 
   export interface DocAPI<Model> {
+    get(): Promise<Doc<Model> | null>
+
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
