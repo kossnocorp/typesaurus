@@ -944,6 +944,13 @@ export namespace Typesaurus {
     ): Promise<TransactionWriteHelpers<ReadResult, Environment>>
   }
 
+  export interface GetManyOptions<
+    Model,
+    OnMissing extends OnMissingMode<Model> | undefined = undefined
+  > {
+    onMissing: OnMissing
+  }
+
   /**
    *
    */
@@ -962,11 +969,9 @@ export namespace Typesaurus {
       options?: OperationOptions<Environment>
     ): PromiseWithGetSubscription<Model, Source, DateStrategy, Environment>
 
-    getMany<OnMissing extends OnMissingMode<unknown> | undefined = undefined>(
+    getMany<OnMissing extends OnMissingMode<Model> | undefined = undefined>(
       ids: string[],
-      options?: {
-        onMissing: OnMissing
-      }
+      options?: GetManyOptions<Model, OnMissing>
     ): OnMissing extends 'ignore' | undefined
       ? PromiseWithListSubscription<Model>
       : OnMissing extends OnMissingCallback<infer OnMissingResult>
