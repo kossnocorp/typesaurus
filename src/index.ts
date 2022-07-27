@@ -395,7 +395,7 @@ export namespace Typesaurus {
     type: 'order'
     field: Key | DocId
     method: OrderDirection
-    cursors: Cursor<Model, Key>[] | undefined
+    cursors: OrderCursors<Model, Key>
   }
 
   export interface WhereQuery<_Model> {
@@ -413,22 +413,30 @@ export namespace Typesaurus {
     number: number
   }
 
-  /**
-   * Available cursor methods.
-   */
-  export type CursorMethod = 'startAfter' | 'startAt' | 'endBefore' | 'endAt'
+  export type OrderCursors<Model, Key extends keyof Model> = (
+    | { startAt: OrderCursorValue<Model, Key> }
+    | { startAfter: OrderCursorValue<Model, Key> }
+    | {}
+  ) &
+    (
+      | { endAt: OrderCursorValue<Model, Key> }
+      | { endAfter: OrderCursorValue<Model, Key> }
+      | {}
+    )
 
-  /**
-   * The cursor interface, holds the method and the value for pagination.
-   */
-  export interface Cursor<Model, Key extends keyof Model> {
-    method: CursorMethod
-    value: Model[Key] | Doc<Model> | DocId | undefined
-  }
+  export type OrderCursorValue<Model, Key extends keyof Model> =
+    | Model[Key]
+    | Doc<Model>
+  // | typeofDocId
+  // | undefined
+
+  export type QueryGetter<Model> = (
+    $: QueryHelpers<Model>
+  ) => Query<Model, keyof Model>[]
 
   export interface QueryHelpers<Model> {
     where<Key extends keyof Model>(
-      key: Key,
+      field: Key,
       filter: WhereFilter,
       value: Model[Key]
     ): WhereQuery<Model[Key]>
@@ -440,6 +448,17 @@ export namespace Typesaurus {
     ): WhereQuery<Model[Key1]>
 
     order<Key extends keyof Model>(key: Key): OrderQuery<Model, Key>
+
+    order<Key extends keyof Model>(
+      key: Key,
+      cursors: OrderCursors<Model, Key>
+    ): OrderQuery<Model, Key>
+
+    order<Key extends keyof Model>(
+      key: Key,
+      method: OrderDirection,
+      cursors?: OrderCursors<Model, Key>
+    ): OrderQuery<Model, Key>
 
     limit(to: number): LimitQuery
   }
@@ -978,9 +997,7 @@ export namespace Typesaurus {
       ? PromiseWithListSubscription<Model | OnMissingResult>
       : never
 
-    query(
-      queries: ($: QueryHelpers<Model>) => Query<Model, keyof Model>[]
-    ): PromiseWithListSubscription<Model>
+    query(queries: QueryGetter<Model>): PromiseWithListSubscription<Model>
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
