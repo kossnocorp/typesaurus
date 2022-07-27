@@ -3,6 +3,10 @@ import * as admin from 'firebase-admin'
 import { Typesaurus } from '../..'
 import { TypesaurusUtils } from '../../utils'
 
+export const defaultOnMissing: Typesaurus.OnMissingCallback<unknown> = (id) => {
+  throw new Error(`Missing document with id ${id}`)
+}
+
 export function schema<Schema extends Typesaurus.PlainSchema>(
   getSchema: ($: Typesaurus.SchemaHelpers) => Schema
 ): Typesaurus.RootDB<Schema> {
@@ -89,7 +93,62 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     })
   }
 
-  getMany() {}
+  getMany<
+    OnMissing extends Typesaurus.OnMissingMode<unknown> | undefined = undefined
+  >(
+    ids: string[],
+    options?: Typesaurus.GetManyOptions<OnMissing>
+  ) /* : OnMissing extends 'ignore' | undefined
+    ? Typesaurus.PromiseWithListSubscription<Model>
+    : OnMissing extends Typesaurus.OnMissingCallback<infer OnMissingResult>
+    ? Typesaurus.PromiseWithListSubscription<Model | OnMissingResult>
+    : never*/ {
+    return new TypesaurusUtils.SubscriptionPromise({
+      get: async () => {
+        // Firestore#getAll doesn't like empty lists
+        if (ids.length === 0) return Promise.resolve([])
+
+        const firestoreSnaps = await admin
+          .firestore()
+          .getAll(...ids.map((id) => this.firebaseDoc(id)))
+
+        return firestoreSnaps
+          .map((firestoreSnap) => {
+            if (!firestoreSnap.exists) {
+              if (options?.onMissing === 'ignore') {
+                return null
+              } else {
+                return this.doc(
+                  firestoreSnap.id,
+                  (options?.onMissing || defaultOnMissing)(firestoreSnap.id)
+                  // {
+                  //   firestoreData: true,
+                  //   environment: a.environment,
+                  //   serverTimestamps: options?.serverTimestamps,
+                  //   ...a.getDocMeta(firestoreSnap)
+                  // }
+                )
+              }
+            }
+
+            const firestoreData = firestoreSnap.data()
+            const data = firestoreData && (wrapData(firestoreData) as Model)
+            return this.doc(
+              firestoreSnap.id,
+              data /*, {
+              firestoreData: true,
+              environment: a.environment,
+              serverTimestamps: options?.serverTimestamps,
+              ...a.getDocMeta(firestoreSnap)
+            } */
+            )
+          })
+          .filter((doc) => doc != null)
+      },
+
+      subscribe() {}
+    })
+  }
 
   query() {}
 
