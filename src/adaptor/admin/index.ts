@@ -31,6 +31,10 @@ export function schema<Schema extends Typesaurus.PlainSchema>(
   return richdb as unknown as Typesaurus.RootDB<Schema>
 }
 
+export async function id() {
+  return admin.firestore().collection('nope').doc().id
+}
+
 class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   path: string
 
