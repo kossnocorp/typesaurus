@@ -1,7 +1,35 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 import { Typesaurus } from '../..'
+import { WhereQuery } from '../../../legacy'
 import { TypesaurusUtils } from '../../utils'
+
+class DocId {}
+
+/**
+ * A special sentinel to refer to the ID of a document.
+ * It can be used in queries to sort or filter by the document ID.
+ *
+ * ```ts
+ * import { docId, query, collection, where } from 'typesaurus'
+ *
+ * type Word = { definition: string }
+ * const dictionary = collection<Word>('words')
+ *
+ * query(dictionary, [
+ *   where(docId, '>=', 'micro'),
+ *   where(docId, '<', 'micrp'),
+ *   limit(2)
+ * ]).then(startsWithMicro => {
+ *   // possibly returns a word list start with 'micro'.
+ * })
+ * ```
+ */
+const docId = new DocId()
+
+type typeofDocId = string // just for documenting.
+
+export { DocId, docId, typeofDocId }
 
 export const defaultOnMissing: Typesaurus.OnMissingCallback<unknown> = (id) => {
   throw new Error(`Missing document with id ${id}`)
@@ -154,35 +182,151 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     })
   }
 
-  query() {}
+  async query(getQueries: Typesaurus.QueryGetter<Model>) {
+    const queries = getQueries(this.queryHelpers())
 
-  set<Environment extends Typesaurus.RuntimeEnvironment>(
-    id: string,
-    data: Typesaurus.WriteModel<Model, Environment>,
-    options?: Typesaurus.OperationOptions<Environment>
-  ): Promise<void>
+    const { firestoreQuery, cursors } = queries.reduce(
+      (acc, q) => {
+        switch (q.type) {
+          case 'order': {
+            const { field, method, cursors } = q
+            acc.firestoreQuery = acc.firestoreQuery.orderBy(
+              field instanceof DocId
+                ? admin.firestore.FieldPath.documentId()
+                : field.toString(),
+              method
+            )
+            if (cursors)
+              acc.cursors = acc.cursors.concat(
+                cursors.map(({ method, value }) => ({
+                  method,
+                  value:
+                    typeof value === 'object' &&
+                    value !== null &&
+                    'type' in value &&
+                    value.type == 'doc'
+                      ? field instanceof DocId
+                        ? value.ref.id
+                        : value.data[field]
+                      : value
+                }))
+              )
+            break
+          }
 
-  set<Environment extends Typesaurus.RuntimeEnvironment>(
-    id: string,
-    data: (
-      $: Typesaurus.WriteHelpers<Model>
-    ) => Typesaurus.WriteModel<Model, Environment>,
-    options?: Typesaurus.OperationOptions<Environment>
-  ): Promise<void>
+          case 'where': {
+            const { field, filter, value } = q
+            const fieldName = Array.isArray(field) ? field.join('.') : field
+            acc.firestoreQuery = acc.firestoreQuery.where(
+              fieldName instanceof DocId
+                ? admin.firestore.FieldPath.documentId()
+                : fieldName,
+              filter,
+              unwrapData(value)
+            )
+            break
+          }
+
+          case 'limit': {
+            const { number } = q
+            acc.firestoreQuery = acc.firestoreQuery.limit(number)
+            break
+          }
+        }
+
+        return acc
+      },
+      {
+        firestoreQuery: this.firebaseCollection(),
+        // firestoreQuery:
+        //   collection.__type__ === 'collectionGroup'
+        //     ? a.firestore.collectionGroup(collection.path)
+        //     : a.firestore.collection(collection.path),
+        cursors: []
+      } as {
+        firestoreQuery: admin.firestore.Query
+        cursors: Typesaurus.OrderCursors<Model, keyof Model>[]
+      }
+    )
+
+    const groupedCursors = cursors.reduce((acc, cursor) => {
+      let methodValues = acc.find(([method]) => method === cursor.method)
+      if (!methodValues) {
+        methodValues = [cursor.method, []]
+        acc.push(methodValues)
+      }
+      methodValues[1].push(unwrapData(a, cursor.value))
+      return acc
+    }, [] as [CursorMethod, any[]][])
+
+    const paginatedFirestoreQuery =
+      cursors.length && cursors.every((cursor) => cursor.value !== undefined)
+        ? groupedCursors.reduce((acc, [method, values]) => {
+            return acc[method](...values)
+          }, firestoreQuery)
+        : firestoreQuery
+
+    return new TypesaurusUtils.SubscriptionPromise<
+      Typesaurus.PromiseWithListSubscription<Model>
+    >({
+      get: async () => {
+        const firebaseSnap = await paginatedFirestoreQuery.get()
+        return firebaseSnap.docs.map((firebaseSnap) =>
+          this.doc(
+            firebaseSnap.id,
+            // collection.__type__ === 'collectionGroup'
+            //   ? pathToRef(firebaseSnap.ref.path)
+            //   : ref(collection, firebaseSnap.id),
+            // wrapData(a.getDocData(firebaseSnap, options)) as Model,
+            wrapData(firebaseSnap.data()) as Model
+            // {
+            //   firestoreData: true,
+            //   environment: a.environment as Environment,
+            //   serverTimestamps: options?.serverTimestamps,
+            //   ...a.getDocMeta(firebaseSnap)
+            // }
+          )
+        )
+      },
+
+      subscribe() {}
+    })
+  }
 
   async set<Environment extends Typesaurus.RuntimeEnvironment>(
     id: string,
-    data:
-      | Typesaurus.WriteModel<Model, Environment>
-      | ((
-          $: Typesaurus.WriteHelpers<Model>
-        ) => Typesaurus.WriteModel<Model, Environment>)
+    data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
     await this.firebaseDoc(id).set(unwrapData(data))
   }
 
   async remove(id: string) {
     await this.firebaseDoc(id).delete()
+  }
+
+  private queryHelpers(): Typesaurus.QueryHelpers<Model> {
+    return {
+      where: (field, filter, value) => ({
+        type: 'where',
+        field,
+        filter,
+        value
+      }),
+
+      order: (field, maybeMethod, maybeCursors) => ({
+        type: 'order',
+        field,
+        method: typeof maybeMethod === 'string' ? maybeMethod : 'asc',
+        cursors:
+          maybeCursors ||
+          (typeof maybeMethod === 'object' ? maybeMethod : undefined)
+      }),
+
+      limit: (number) => ({
+        type: 'limit',
+        number
+      })
+    }
   }
 
   private writeHelpers(): Typesaurus.WriteHelpers<Model> {
