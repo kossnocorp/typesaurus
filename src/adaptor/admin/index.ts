@@ -1,7 +1,6 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 import { Typesaurus } from '../..'
-import { WhereQuery } from '../../../legacy'
 import { TypesaurusUtils } from '../../utils'
 
 class DocId {}
@@ -184,93 +183,86 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
 
   async query(getQueries: Typesaurus.QueryGetter<Model>) {
     const queries = getQueries(this.queryHelpers())
+    // Query accumulator, will contain final Firestore query with all the
+    // filters and limits.
+    let firestoreQuery: admin.firestore.Query = this.firebaseCollection()
 
-    const { firestoreQuery, cursors } = queries.reduce(
-      (acc, q) => {
-        switch (q.type) {
-          case 'order': {
-            const { field, method, cursors } = q
-            acc.firestoreQuery = acc.firestoreQuery.orderBy(
-              field instanceof DocId
-                ? admin.firestore.FieldPath.documentId()
-                : field.toString(),
-              method
+    let cursors: Typesaurus.OrderCursor<any, any, any>[] = []
+
+    queries.forEach((query) => {
+      switch (query.type) {
+        case 'order': {
+          const { field, method, cursors: queryCursors } = query
+          firestoreQuery = firestoreQuery.orderBy(
+            field instanceof DocId
+              ? admin.firestore.FieldPath.documentId()
+              : field.toString(),
+            method
+          )
+
+          if (queryCursors)
+            cursors = cursors.concat(
+              queryCursors.map(({ type, position, value }) => ({
+                type,
+                position,
+                value:
+                  typeof value === 'object' &&
+                  value !== null &&
+                  'type' in value &&
+                  value.type == 'doc'
+                    ? field instanceof DocId
+                      ? value.ref.id
+                      : value.data[field]
+                    : value
+              }))
             )
-            if (cursors)
-              acc.cursors = acc.cursors.concat(
-                cursors.map(({ method, value }) => ({
-                  method,
-                  value:
-                    typeof value === 'object' &&
-                    value !== null &&
-                    'type' in value &&
-                    value.type == 'doc'
-                      ? field instanceof DocId
-                        ? value.ref.id
-                        : value.data[field]
-                      : value
-                }))
-              )
-            break
-          }
-
-          case 'where': {
-            const { field, filter, value } = q
-            const fieldName = Array.isArray(field) ? field.join('.') : field
-            acc.firestoreQuery = acc.firestoreQuery.where(
-              fieldName instanceof DocId
-                ? admin.firestore.FieldPath.documentId()
-                : fieldName,
-              filter,
-              unwrapData(value)
-            )
-            break
-          }
-
-          case 'limit': {
-            const { number } = q
-            acc.firestoreQuery = acc.firestoreQuery.limit(number)
-            break
-          }
+          break
         }
 
-        return acc
-      },
-      {
-        firestoreQuery: this.firebaseCollection(),
-        // firestoreQuery:
-        //   collection.__type__ === 'collectionGroup'
-        //     ? a.firestore.collectionGroup(collection.path)
-        //     : a.firestore.collection(collection.path),
-        cursors: []
-      } as {
-        firestoreQuery: admin.firestore.Query
-        cursors: Typesaurus.OrderCursors<Model, keyof Model>[]
-      }
-    )
+        case 'where': {
+          const { field, filter, value } = query
+          const fieldName = Array.isArray(field) ? field.join('.') : field
+          firestoreQuery = firestoreQuery.where(
+            fieldName instanceof DocId
+              ? admin.firestore.FieldPath.documentId()
+              : fieldName,
+            filter,
+            unwrapData(value)
+          )
+          break
+        }
 
-    const groupedCursors = cursors.reduce((acc, cursor) => {
-      let methodValues = acc.find(([method]) => method === cursor.method)
+        case 'limit': {
+          const { number } = query
+          firestoreQuery = firestoreQuery.limit(number)
+          break
+        }
+      }
+    })
+
+    let groupedCursors: [Typesaurus.OrderCursorPosition, any[]][] = []
+
+    cursors.forEach((cursor) => {
+      let methodValues = groupedCursors.find(
+        ([position]) => position === cursor.position
+      )
       if (!methodValues) {
-        methodValues = [cursor.method, []]
-        acc.push(methodValues)
+        methodValues = [cursor.position, []]
+        groupedCursors.push(methodValues)
       }
-      methodValues[1].push(unwrapData(a, cursor.value))
-      return acc
-    }, [] as [CursorMethod, any[]][])
+      methodValues[1].push(unwrapData(cursor.value))
+    })
 
-    const paginatedFirestoreQuery =
-      cursors.length && cursors.every((cursor) => cursor.value !== undefined)
-        ? groupedCursors.reduce((acc, [method, values]) => {
-            return acc[method](...values)
-          }, firestoreQuery)
-        : firestoreQuery
+    if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
+      groupedCursors.forEach(([method, values]) => {
+        firestoreQuery = firestoreQuery[method](...values)
+      })
 
     return new TypesaurusUtils.SubscriptionPromise<
       Typesaurus.PromiseWithListSubscription<Model>
     >({
       get: async () => {
-        const firebaseSnap = await paginatedFirestoreQuery.get()
+        const firebaseSnap = await firestoreQuery.get()
         return firebaseSnap.docs.map((firebaseSnap) =>
           this.doc(
             firebaseSnap.id,
@@ -313,18 +305,45 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         value
       }),
 
-      order: (field, maybeMethod, maybeCursors) => ({
+      order: (field, ...args) => ({
         type: 'order',
         field,
-        method: typeof maybeMethod === 'string' ? maybeMethod : 'asc',
+        method: typeof args[0] === 'string' ? args[0] : 'asc',
         cursors:
-          maybeCursors ||
-          (typeof maybeMethod === 'object' ? maybeMethod : undefined)
+          args.length > 1
+            ? args.slice(1)
+            : typeof args[0] === 'object'
+            ? args
+            : undefined
       }),
 
       limit: (number) => ({
         type: 'limit',
         number
+      }),
+
+      startAt: (value) => ({
+        type: 'cursor',
+        position: 'startAt',
+        value
+      }),
+
+      startAfter: (value) => ({
+        type: 'cursor',
+        position: 'startAfter',
+        value
+      }),
+
+      endAt: (value) => ({
+        type: 'cursor',
+        position: 'endAt',
+        value
+      }),
+
+      endBefore: (value) => ({
+        type: 'cursor',
+        position: 'endBefore',
+        value
       })
     }
   }

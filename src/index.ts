@@ -72,16 +72,6 @@ export namespace Typesaurus {
     serverTimestamps?: DateStrategy
   }
 
-  export interface DataProperties<
-    Environment extends RuntimeEnvironment | undefined = undefined,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy
-  > {
-    environment: Environment
-    source: Source
-    dateStrategy: DateStrategy
-  }
-
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
@@ -413,28 +403,64 @@ export namespace Typesaurus {
     number: number
   }
 
-  export type OrderCursors<Model, Key extends keyof Model> = (
-    | { startAt: OrderCursorValue<Model, Key> }
-    | { startAfter: OrderCursorValue<Model, Key> }
-    | {}
-  ) &
-    (
-      | { endAt: OrderCursorValue<Model, Key> }
-      | { endAfter: OrderCursorValue<Model, Key> }
-      | {}
-    )
+  export type OrderCursors<Model, Key extends keyof Model> =
+    | [OrderCursorStart<Model, Key>]
+    | [OrderCursorEnd<Model, Key>]
+    | [OrderCursorStart<Model, Key>, OrderCursorEnd<Model, Key>]
+
+  export type OrderCursorPosition =
+    | 'startAt'
+    | 'startAfter'
+    | 'endBefore'
+    | 'endAt'
+
+  export type OrderCursorStart<Model, Key extends keyof Model> =
+    | OrderCursorStartAt<Model, Key>
+    | OrderCursorStartAfter<Model, Key>
+
+  export interface OrderCursorStartAt<Model, Key extends keyof Model>
+    extends OrderCursor<'startAt', Model, Key> {}
+
+  export interface OrderCursorStartAfter<Model, Key extends keyof Model>
+    extends OrderCursor<'startAfter', Model, Key> {}
+
+  export type OrderCursorEnd<Model, Key extends keyof Model> =
+    | OrderCursorEndAt<Model, Key>
+    | OrderCursorEndBefore<Model, Key>
+
+  export interface OrderCursorEndAt<Model, Key extends keyof Model>
+    extends OrderCursor<'endAt', Model, Key> {}
+
+  export interface OrderCursorEndBefore<Model, Key extends keyof Model>
+    extends OrderCursor<'endBefore', Model, Key> {}
+
+  export interface OrderCursor<
+    Position extends OrderCursorPosition,
+    Model,
+    Key extends keyof Model
+  > {
+    type: 'cursor'
+    position: Position
+    value: OrderCursorValue<Model, Key>
+  }
 
   export type OrderCursorValue<Model, Key extends keyof Model> =
     | Model[Key]
     | Doc<Model>
-  // | typeofDocId
-  // | undefined
+    // | typeofDocId
+    | undefined
 
   export type QueryGetter<Model> = (
     $: QueryHelpers<Model>
   ) => Query<Model, keyof Model>[]
 
   export interface QueryHelpers<Model> {
+    where<Key extends keyof Model>(
+      field: DocId,
+      filter: WhereFilter,
+      value: string
+    ): WhereQuery<DocId>
+
     where<Key extends keyof Model>(
       field: Key,
       filter: WhereFilter,
@@ -447,20 +473,49 @@ export namespace Typesaurus {
       value: Model[Key1][Key2]
     ): WhereQuery<Model[Key1]>
 
+    order<Key extends keyof Model>(key: DocId): OrderQuery<Model, Key>
+
     order<Key extends keyof Model>(key: Key): OrderQuery<Model, Key>
 
     order<Key extends keyof Model>(
       key: Key,
-      cursors: OrderCursors<Model, Key>
+      ...cursors: OrderCursors<Model, Key> | []
+    ): OrderQuery<Model, Key>
+
+    order<Key extends keyof Model>(
+      key: DocId,
+      ...cursors: OrderCursors<Model, Key> | []
     ): OrderQuery<Model, Key>
 
     order<Key extends keyof Model>(
       key: Key,
       method: OrderDirection,
-      cursors?: OrderCursors<Model, Key>
+      ...cursors: OrderCursors<Model, Key> | []
+    ): OrderQuery<Model, Key>
+
+    order<Key extends keyof Model>(
+      key: DocId,
+      method: 'asc',
+      ...cursors: OrderCursors<Model, Key> | []
     ): OrderQuery<Model, Key>
 
     limit(to: number): LimitQuery
+
+    startAt<Model, Key extends keyof Model>(
+      value: OrderCursorValue<Model, Key>
+    ): OrderCursorStartAt<Model, Key>
+
+    startAfter<Model, Key extends keyof Model>(
+      value: OrderCursorValue<Model, Key>
+    ): OrderCursorStartAfter<Model, Key>
+
+    endAt<Model, Key extends keyof Model>(
+      value: OrderCursorValue<Model, Key>
+    ): OrderCursorEndAt<Model, Key>
+
+    endBefore<Model, Key extends keyof Model>(
+      value: OrderCursorValue<Model, Key>
+    ): OrderCursorEndBefore<Model, Key>
   }
 
   export interface WriteHelpers<_Model> {
