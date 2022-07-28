@@ -1,179 +1,204 @@
-it.todo('TODO')
+import { nanoid } from 'nanoid'
+import { Typesaurus } from '..'
+import { schema } from '../adaptor'
 
-// import assert from 'assert'
-// import { nanoid } from 'nanoid'
-// import { upset } from '.'
-// import { collection } from '../collection'
-// import { get } from '../get'
-// import { Ref, ref } from '../ref'
-// import { set } from '../set'
-// import { ServerDate } from '../types'
-// import { update } from '../update'
-// import { value } from '../value'
+describe('upset', () => {
+  interface User {
+    name: string
+    deleted?: boolean
+  }
 
-// describe('merge', () => {
-//   type User = { name: string; deleted?: boolean }
-//   type Post = { author: Ref<User>; text: string; date?: ServerDate }
+  interface Post {
+    author: Typesaurus.Ref<User>
+    text: string
+    date?: Typesaurus.ServerDate
+  }
 
-//   const users = collection<User>('users')
-//   const posts = collection<Post>('post')
+  const db = schema(($) => ({
+    users: $.collection<User>(),
+    posts: $.collection<Post>()
+  }))
 
-//   const defaultUser: User = {
-//     name: 'Sasha'
-//   }
+  const defaultUser: User = {
+    name: 'Sasha'
+  }
 
-//   it('creates a document if it does not exist', async () => {
-//     const id = nanoid()
-//     const initialUser = await get(users, id)
-//     assert(initialUser === null)
-//     await upset(users, id, { name: 'Sasha' })
-//     const user = await get(users, id)
-//     assert.deepEqual(user?.data, { name: 'Sasha' })
-//   })
+  it('creates a document if it does not exist', async () => {
+    const id = nanoid()
+    const initialUser = await db.users.get(id)
+    expect(initialUser).toBeNull()
+    await db.users.upset(id, { name: 'Sasha' })
+    const user = await db.users.get(id)
+    expect(user?.data).toEqual({ name: 'Sasha' })
+  })
 
-//   it('merges data if the document does exits', async () => {
-//     const id = nanoid()
-//     await set(users, id, defaultUser)
-//     await update(users, id, { deleted: true })
-//     await upset(users, id, { name: 'Sasha Koss' })
-//     const user = await get(users, id)
-//     assert.deepEqual(user?.data, {
-//       name: 'Sasha Koss',
-//       deleted: true
-//     })
-//   })
+  it('merges data if the document does exits', async () => {
+    const id = nanoid()
+    await db.users.set(id, defaultUser)
+    await db.users.update(id, { deleted: true })
+    await db.users.upset(id, { name: 'Sasha Koss' })
+    const user = await db.users.get(id)
+    expect(user?.data).toEqual({
+      name: 'Sasha Koss',
+      deleted: true
+    })
+  })
 
-//   it('allows setting to refs', async () => {
-//     const id = nanoid()
-//     const userRef = ref(users, id)
-//     await upset(userRef, { name: 'Sasha' })
-//     const user = await get(users, id)
-//     assert.deepEqual(user?.data, { name: 'Sasha' })
-//   })
+  it('allows setting to refs', async () => {
+    const id = nanoid()
+    const userRef = db.users.ref(id)
+    await userRef.upset({ name: 'Sasha' })
+    const user = await db.users.get(id)
+    expect(user?.data).toEqual({ name: 'Sasha' })
+  })
 
-//   it('supports references', async () => {
-//     const userId = nanoid()
-//     const postId = nanoid()
-//     await upset(users, userId, { name: 'Sasha' })
-//     await upset(posts, postId, {
-//       author: ref(users, userId),
-//       text: 'Hello!'
-//     })
-//     const postFromDB = await get(posts, postId)
-//     const userFromDB =
-//       postFromDB && (await get(users, postFromDB.data.author.id))
-//     assert.deepEqual(userFromDB?.data, { name: 'Sasha' })
-//   })
+  it('allows setting to doc', async () => {
+    const id = nanoid()
+    await db.users.set(id, defaultUser)
+    const user = await db.users.get(id)
+    if (!user) throw new Error('Document is not found')
+    await user.upset({ name: 'Sasha Koss' })
+    const updatedUser = await user.get()
+    expect(updatedUser?.data).toEqual({
+      name: 'Sasha Koss'
+    })
+  })
 
-//   if (typeof window === 'undefined') {
-//     it('supports dates', async () => {
-//       const date = new Date()
-//       const userRef = ref(users, '42')
-//       const postId = nanoid()
-//       await upset(
-//         posts,
-//         postId,
-//         {
-//           author: userRef,
-//           text: 'Hello!',
-//           date
-//         },
-//         { assertEnvironment: 'node' }
-//       )
-//       const postFromDB = await get(posts, postId)
-//       assert(postFromDB?.data.date?.getTime() === date.getTime())
-//     })
-//   }
+  it('supports references', async () => {
+    const userId = nanoid()
+    const postId = nanoid()
+    await db.users.upset(userId, { name: 'Sasha' })
+    await db.posts.upset(postId, {
+      author: db.users.ref(userId),
+      text: 'Hello!'
+    })
+    const postFromDB = await db.posts.get(postId)
+    const userFromDB = postFromDB && (await postFromDB.data.author.get())
+    expect(userFromDB?.data).toEqual({ name: 'Sasha' })
+  })
 
-//   it('supports server dates', async () => {
-//     const userRef = ref(users, '42')
-//     const postId = nanoid()
-//     await upset(posts, postId, {
-//       author: userRef,
-//       text: 'Hello!',
-//       date: value('serverDate')
-//     })
-//     const now = Date.now()
-//     const post = await get(posts, postId)
-//     const returnedDate = post?.data.date
-//     assert(returnedDate instanceof Date)
-//     assert(
-//       returnedDate!.getTime() < now && returnedDate!.getTime() > now - 10000
-//     )
-//     const postFromDB = post && (await get(posts, post.ref.id))
-//     const dateFromDB = postFromDB?.data.date
-//     assert(dateFromDB instanceof Date)
-//     assert(dateFromDB!.getTime() < now && dateFromDB!.getTime() > now - 10000)
-//   })
+  if (typeof window === 'undefined') {
+    it('supports dates', async () => {
+      const date = new Date()
+      const userRef = db.users.ref('42')
+      const postId = nanoid()
+      await db.posts.upset(
+        postId,
+        {
+          author: userRef,
+          text: 'Hello!',
+          date
+        },
+        { as: 'server' }
+      )
+      const postFromDB = await db.posts.get(postId)
+      expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
+    })
+  }
 
-//   it('allows incrementing values', async () => {
-//     type Counter = { count: number; flagged?: boolean }
-//     const counters = collection<Counter>('conters')
-//     const id = nanoid()
-//     await upset(counters, id, {
-//       count: value('increment', 5)
-//     })
-//     const counter5 = await get(counters, id)
-//     assert(counter5?.data.count === 5)
-//     await update(counters, id, { flagged: true })
-//     await upset(counters, id, {
-//       count: value('increment', 5)
-//     })
-//     const counter10 = await get(counters, id)
-//     assert(counter10?.data.count === 10)
-//     assert(counter10?.data.flagged)
-//   })
+  it('supports server dates', async () => {
+    const userRef = db.users.ref('42')
+    const postId = nanoid()
+    await db.posts.upset(postId, ($) => ({
+      author: userRef,
+      text: 'Hello!',
+      date: $.serverDate()
+    }))
+    const now = Date.now()
+    const post = await db.posts.get(postId)
+    const returnedDate = post?.data.date
+    expect(returnedDate).toBeInstanceOf(Date)
+    expect(
+      returnedDate!.getTime() < now && returnedDate!.getTime() > now - 10000
+    ).toBe(true)
+    const postFromDB = post && (await post.ref.get())
+    const dateFromDB = postFromDB?.data.date
+    expect(dateFromDB).toBeInstanceOf(Date)
+    expect(
+      dateFromDB!.getTime() < now && dateFromDB!.getTime() > now - 10000
+    ).toBe(true)
+  })
 
-//   describe('updating arrays', () => {
-//     type Favorite = { favorites: string[] }
-//     const favorites = collection<Favorite>('favorites')
+  it('allows incrementing values', async () => {
+    interface Counter {
+      count: number
+      flagged?: boolean
+    }
 
-//     it('union update', async () => {
-//       const id = nanoid()
-//       await upset(favorites, id, {
-//         favorites: [
-//           'Sapiens',
-//           'The 22 Immutable Laws of Marketing',
-//           'The Mom Test'
-//         ]
-//       })
-//       await upset(favorites, id, {
-//         favorites: value('arrayUnion', [
-//           "Harry Potter and the Sorcerer's Stone",
-//           'Harry Potter and the Chamber of Secrets'
-//         ])
-//       })
-//       const favFromDB = await get(favorites, id)
-//       assert.deepEqual(favFromDB?.data, {
-//         favorites: [
-//           'Sapiens',
-//           'The 22 Immutable Laws of Marketing',
-//           'The Mom Test',
-//           "Harry Potter and the Sorcerer's Stone",
-//           'Harry Potter and the Chamber of Secrets'
-//         ]
-//       })
-//     })
+    const db = schema(($) => ({
+      counters: $.collection<Counter>()
+    }))
 
-//     it('remove update', async () => {
-//       const id = nanoid()
-//       await upset(favorites, id, {
-//         favorites: [
-//           'Sapiens',
-//           'The 22 Immutable Laws of Marketing',
-//           'The Mom Test'
-//         ]
-//       })
-//       await upset(favorites, id, {
-//         favorites: value('arrayRemove', [
-//           'The 22 Immutable Laws of Marketing',
-//           'Sapiens'
-//         ])
-//       })
-//       const favFromDB = await get(favorites, id)
-//       assert.deepEqual(favFromDB?.data, {
-//         favorites: ['The Mom Test']
-//       })
-//     })
-//   })
-// })
+    const id = nanoid()
+    await db.counters.upset(id, ($) => ({
+      count: $.increment(5)
+    }))
+    const counter5 = await db.counters.get(id)
+    expect(counter5?.data.count).toBe(5)
+    await db.counters.update(id, { flagged: true })
+    await db.counters.upset(id, ($) => ({
+      count: $.increment(5)
+    }))
+    const counter10 = await db.counters.get(id)
+    expect(counter10?.data.count).toBe(10)
+    expect(counter10?.data.flagged).toBe(true)
+  })
+
+  describe('updating arrays', () => {
+    interface Favorite {
+      favorites: string[]
+    }
+
+    const db = schema(($) => ({
+      favorites: $.collection<Favorite>()
+    }))
+
+    it('union update', async () => {
+      const id = nanoid()
+      await db.favorites.upset(id, {
+        favorites: [
+          'Sapiens',
+          'The 22 Immutable Laws of Marketing',
+          'The Mom Test'
+        ]
+      })
+      await db.favorites.upset(id, ($) => ({
+        favorites: $.arrayUnion([
+          "Harry Potter and the Sorcerer's Stone",
+          'Harry Potter and the Chamber of Secrets'
+        ])
+      }))
+      const favFromDB = await db.favorites.get(id)
+      expect(favFromDB?.data).toEqual({
+        favorites: [
+          'Sapiens',
+          'The 22 Immutable Laws of Marketing',
+          'The Mom Test',
+          "Harry Potter and the Sorcerer's Stone",
+          'Harry Potter and the Chamber of Secrets'
+        ]
+      })
+    })
+
+    it('remove update', async () => {
+      const id = nanoid()
+      await db.favorites.upset(id, {
+        favorites: [
+          'Sapiens',
+          'The 22 Immutable Laws of Marketing',
+          'The Mom Test'
+        ]
+      })
+      await db.favorites.upset(id, ($) => ({
+        favorites: $.arrayRemove([
+          'The 22 Immutable Laws of Marketing',
+          'Sapiens'
+        ])
+      }))
+      const favFromDB = await db.favorites.get(id)
+      expect(favFromDB?.data).toEqual({
+        favorites: ['The Mom Test']
+      })
+    })
+  })
+})

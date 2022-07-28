@@ -186,66 +186,72 @@ export namespace Typesaurus {
     __dontUseWillBeUndefined__: true
   }
 
-  export type WriteModelArg<
+  export type SetModelArg<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = WriteModel<Model, Environment> | WriteModelGetter<Model, Environment>
+  > = SetModel<Model, Environment> | SetModelGetter<Model, Environment>
+
+  /**
+   * Write model getter, accepts helper functions with special value generators
+   * and returns {@link SetModel}.
+   */
+  export type SetModelGetter<
+    Model,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = ($: WriteHelpers<Model>) => SetModel<Model, Environment>
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
-  export type WriteModel<
+  export type SetModel<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = {
-    [Key in keyof Model]: Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
-      ? Environment extends 'server' // Date can be used only in the server environment
-        ? Date | ValueServerDate
-        : ValueServerDate
-      : Model[Key] extends Array<infer ItemType>
-      ?
-          | Model[Key]
-          | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
-          | ValueArrayRemove<ItemType>
-      : Model[Key] extends object // If it's an object, recursively pass through SetModel
-      ? WriteModel<Model[Key], Environment>
-      : Model[Key] extends number
-      ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
-      : Model[Key]
+    [Key in keyof Model]: WriteValue<Model, Key, Environment>
   }
 
-  /**
-   * The value types to use for update operation.
-   */
-  export type UpdateValue<Model, Key> = Key extends keyof Model
-    ? Model[Key] extends infer Type
-      ? Type extends number
-        ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
-        : Type extends Array<infer ItemType>
-        ?
-            | Model[Key]
-            | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
-            | ValueArrayRemove<ItemType>
-        : Type extends Date
-        ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueServerDate>
-        : Model[Key] | MaybeValueRemove<Model, Key>
-      : never
-    : never
-
-  /**
-   * Write model getter, accepts helper functions with special value generators
-   * and returns {@link WriteModel}.
-   */
-  export type WriteModelGetter<
+  export type WriteValue<
     Model,
+    Key extends keyof Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = ($: WriteHelpers<Model>) => WriteModel<Model, Environment>
+  > = Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
+    ? Environment extends 'server' // Date can be used only in the server environment
+      ? Date | ValueServerDate
+      : ValueServerDate
+    : Model[Key] extends Array<infer ItemType>
+    ?
+        | Model[Key]
+        | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
+        | ValueArrayRemove<ItemType>
+    : Model[Key] extends object // If it's an object, recursively pass through SetModel
+    ? SetModel<Model[Key], Environment>
+    : Model[Key] extends number
+    ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
+    : Model[Key]
+
+  // /**
+  //  * The value types to use for update operation.
+  //  */
+  // export type UpdateValue<Model, Key> = Key extends keyof Model
+  //   ? Model[Key] extends infer Type
+  //     ? Type extends number
+  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
+  //       : Type extends Array<infer ItemType>
+  //       ?
+  //           | Model[Key]
+  //           | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
+  //           | ValueArrayRemove<ItemType>
+  //       : Type extends Date
+  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueServerDate>
+  //       : Model[Key] | MaybeValueRemove<Model, Key>
+  //     : never
+  //   : never
 
   export type UpdateModelArg<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = WriteModel<Model, Environment> | UpdateModelGetter<Model, Environment>
+  > = UpdateModel<Model, Environment> | UpdateModelGetter<Model, Environment>
 
   export type UpdateModelGetter<
     Model,
@@ -253,9 +259,20 @@ export namespace Typesaurus {
   > = (
     $: UpdateHelpers<Model>
   ) =>
-    | WriteModel<Model, Environment>
+    | UpdateModel<Model, Environment>
     | UpdateField<Model>
     | UpdateField<Model>[]
+
+  /**
+   * Type of the data passed to write functions. It extends the model allowing
+   * to set special values, sucha as server date, increment, etc.
+   */
+  export type UpdateModel<
+    Model,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = {
+    [Key in keyof Model]?: WriteValue<Model, Key, Environment>
+  }
 
   /**
    * The update field interface. It contains path to the property and property value.
@@ -301,6 +318,13 @@ export namespace Typesaurus {
   //   : Type extends ServerDate
   //   ? ValueServerDate
   //   : never
+
+  export type Value<Type> =
+    | ValueRemove
+    | ValueIncrement
+    | ValueArrayUnion<Type>
+    | ValueArrayRemove<Type>
+    | ValueServerDate
 
   /**
    * Available value kinds.
@@ -801,7 +825,7 @@ export namespace Typesaurus {
     get(): Promise<Doc<Model> | null>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModelArg<Model, Environment>,
+      data: SetModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -811,7 +835,7 @@ export namespace Typesaurus {
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModelArg<Model, Environment>,
+      data: SetModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -884,7 +908,7 @@ export namespace Typesaurus {
      * @param id - the id of the document to set
      * @param data - the document data
      */
-    set<Model>(id: string, data: WriteModelArg<Model, Environment>): void
+    set<Model>(id: string, data: SetModelArg<Model, Environment>): void
 
     /**
      * Sets or updates a document with the given data.
@@ -905,7 +929,7 @@ export namespace Typesaurus {
      * @param id - the id of the document to set
      * @param data - the document data
      */
-    upset(id: string, data: WriteModelArg<Model, Environment>): void
+    upset(id: string, data: SetModelArg<Model, Environment>): void
 
     /**
      * Updates a document.
@@ -1055,19 +1079,19 @@ export namespace Typesaurus {
     query(queries: QueryGetter<Model>): PromiseWithListSubscription<Model>
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModelArg<Model, Environment>,
+      data: SetModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Model>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: WriteModel<Model, Environment>,
+      data: SetModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: WriteModelArg<Model, Environment>,
+      data: SetModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
