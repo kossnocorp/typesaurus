@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { Typesaurus } from '..'
-import { docId, schema } from '../adaptor'
+import { schema } from '../adaptor'
 
 describe('query', () => {
   describe('promise', () => {
@@ -621,8 +621,8 @@ describe('query', () => {
           db.shardedCounters.set(`suspended-1`, { n: 0 })
         ])
         const docs = await db.shardedCounters.query(($) => [
-          $.where(docId, '>=', 'published'),
-          $.where(docId, '<', 'publishee')
+          $.where($.docId(), '>=', 'published'),
+          $.where($.docId(), '<', 'publishee')
         ])
         expect(docs.map((doc) => doc.ref.id)).toEqual([
           'published-0',
@@ -644,9 +644,9 @@ describe('query', () => {
         // expect(descend[1]?.ref.id).toBe(`published-0`)
 
         const ascend = await db.shardedCounters.query(($) => [
-          $.where(docId, '>=', 'published'),
-          $.where(docId, '<', 'publishee'),
-          $.order(docId)
+          $.where($.docId(), '>=', 'published'),
+          $.where($.docId(), '<', 'publishee'),
+          $.order($.docId())
         ])
         expect(ascend.length).toBe(2)
         expect(ascend[0]?.ref.id).toBe(`published-0`)
@@ -655,7 +655,12 @@ describe('query', () => {
 
       it('allows cursors to use documentId', async () => {
         const docs = await db.shardedCounters.query(($) => [
-          $.order(docId, 'asc', $.startAt('draft-1'), $.endAt('published-1'))
+          $.order(
+            $.docId(),
+            'asc',
+            $.startAt('draft-1'),
+            $.endAt('published-1')
+          )
         ])
         expect(docs.length).toBe(3)
         expect(docs[0]?.ref.id).toBe(`draft-1`)
