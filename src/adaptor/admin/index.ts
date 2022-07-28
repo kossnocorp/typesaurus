@@ -369,7 +369,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         type: 'cursor',
         position: 'endBefore',
         value
-      })
+      }),
+
+      docId: () => docId
     }
   }
 

@@ -484,6 +484,8 @@ export namespace Typesaurus {
     endBefore<Model, Key extends keyof Model>(
       value: OrderCursorValue<Model, Key>
     ): OrderCursorEndBefore<Model, Key>
+
+    docId(): DocId
   }
 
   export interface WriteHelpers<_Model> {
