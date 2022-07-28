@@ -90,7 +90,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     id: string,
     data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
-    await this.firebaseDoc(id).set(unwrapData(data))
+    const dataToSet =
+      typeof data === 'function' ? data(this.writeHelpers()) : data
+    await this.firebaseDoc(id).set(unwrapData(dataToSet))
   }
 
   async upset<Environment extends Typesaurus.RuntimeEnvironment>(
