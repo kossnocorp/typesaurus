@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { Typesaurus } from '..'
-import { schema } from '../adaptor'
+import { docId, schema } from '../adaptor'
 
 describe('query', () => {
   describe('promise', () => {
@@ -81,34 +81,47 @@ describe('query', () => {
       ])
     })
 
-    // it('allows to query by value in maps', async () => {
-    //   type Location = { mapId: string; name: string; address: { city: string } }
-    //   const locations = collection<Location>('locations')
-    //   const mapId = nanoid()
-    //   await add(locations, {
-    //     mapId,
-    //     name: 'Pizza City',
-    //     address: { city: 'New York' }
-    //   })
-    //   await add(locations, {
-    //     mapId,
-    //     name: 'Bagels Tower',
-    //     address: { city: 'New York' }
-    //   })
-    //   await add(locations, {
-    //     mapId,
-    //     name: 'Tacos Cave',
-    //     address: { city: 'Houston' }
-    //   })
-    //   const docs = await query(locations, [
-    //     where('mapId', '==', mapId),
-    //     where(['address', 'city'], '==', 'New York')
-    //   ])
-    //   assert.deepEqual(docs.map(({ data: { name } }) => name).sort(), [
-    //     'Bagels Tower',
-    //     'Pizza City'
-    //   ])
-    // })
+    it('allows to query by value in maps', async () => {
+      interface Location {
+        mapId: string
+        name: string
+        address: { city: string }
+      }
+
+      const db = schema(($) => ({
+        locations: $.collection<Location>()
+      }))
+
+      const mapId = nanoid()
+
+      await Promise.all([
+        db.locations.add({
+          mapId,
+          name: 'Pizza City',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Bagels Tower',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Tacos Cave',
+          address: { city: 'Houston' }
+        })
+      ])
+
+      const docs = await db.locations.query(($) => [
+        $.where('mapId', '==', mapId),
+        $.where(['address', 'city'], '==', 'New York')
+      ])
+
+      expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
+        'Bagels Tower',
+        'Pizza City'
+      ])
+    })
 
     // it('type checks the fields', async () => {
     //   type Location = { mapId: string; name: string; address?: { city: string } }
@@ -123,146 +136,173 @@ describe('query', () => {
     //   ])
     // })
 
-    // it('allows to query using array-contains filter', async () => {
-    //   type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
-    //   type Post = { blogId: string; title: string; tags: Tag[] }
-    //   const posts = collection<Post>('posts')
-    //   const blogId = nanoid()
-    //   await Promise.all([
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about cats',
-    //       tags: ['pets', 'cats']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about dogs',
-    //       tags: ['pets', 'dogs']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about hotdogs',
-    //       tags: ['food', 'hotdogs']
-    //     })
-    //   ])
-    //   const docs = await query(posts, [
-    //     where('blogId', '==', blogId),
-    //     where('tags', 'array-contains', 'pets')
-    //   ])
-    //   assert.deepEqual(docs.map(({ data: { title } }) => title).sort(), [
-    //     'Post about cats',
-    //     'Post about dogs'
-    //   ])
-    // })
+    it('allows to query using array-contains filter', async () => {
+      type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
 
-    // it('allows to query using in filter', async () => {
-    //   type Pet = {
-    //     ownerId: string
-    //     name: string
-    //     type: 'dog' | 'cat' | 'parrot' | 'snake'
-    //   }
-    //   const pets = collection<Pet>('pets')
-    //   const ownerId = nanoid()
-    //   await Promise.all([
-    //     add(pets, {
-    //       ownerId,
-    //       name: 'Persik',
-    //       type: 'dog'
-    //     }),
-    //     add(pets, {
-    //       ownerId,
-    //       name: 'Kimchi',
-    //       type: 'cat'
-    //     }),
-    //     add(pets, {
-    //       ownerId,
-    //       name: 'Snako',
-    //       type: 'snake'
-    //     })
-    //   ])
-    //   const docs = await query(pets, [
-    //     where('ownerId', '==', ownerId),
-    //     where('type', 'in', ['cat', 'dog'])
-    //   ])
-    //   assert.deepEqual(docs.map(({ data: { name } }) => name).sort(), [
-    //     'Kimchi',
-    //     'Persik'
-    //   ])
-    // })
+      interface Post {
+        blogId: string
+        title: string
+        tags: Tag[]
+      }
 
-    // it('allows to query using array-contains-any filter', async () => {
-    //   type Tag = 'pets' | 'cats' | 'dogs' | 'wildlife' | 'food' | 'hotdogs'
-    //   type Post = {
-    //     blogId: string
-    //     title: string
-    //     tags: Tag[]
-    //   }
-    //   const posts = collection<Post>('posts')
-    //   const blogId = nanoid()
-    //   await Promise.all([
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about cats',
-    //       tags: ['pets', 'cats']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about dogs',
-    //       tags: ['pets', 'dogs']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about hotdogs',
-    //       tags: ['food', 'hotdogs']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about kangaroos',
-    //       tags: ['wildlife']
-    //     })
-    //   ])
-    //   const docs = await query(posts, [
-    //     where('blogId', '==', blogId),
-    //     where('tags', 'array-contains-any', ['pets', 'wildlife'])
-    //   ])
-    //   assert.deepEqual(docs.map(({ data: { title } }) => title).sort(), [
-    //     'Post about cats',
-    //     'Post about dogs',
-    //     'Post about kangaroos'
-    //   ])
-    // })
+      const db = schema(($) => ({
+        posts: $.collection<Post>()
+      }))
 
-    // it('expands references', async () => {
-    //   const docs = await query(messages, [
-    //     where('ownerId', '==', ownerId),
-    //     where('text', '==', '+1')
-    //   ])
-    //   assert(docs[0].data.author.__type__ === 'ref')
-    //   const authors = await Promise.all(
-    //     docs.map((doc) => get(contacts, doc.data.author.id))
-    //   )
-    //   assert.deepEqual(authors.map((doc) => doc?.data.name).sort(), [
-    //     'Lesha',
-    //     'Sasha'
-    //   ])
-    // })
+      const blogId = nanoid()
 
-    // it('allows to query by reference', async () => {
-    //   const docs = await query(messages, [
-    //     where('ownerId', '==', ownerId),
-    //     where('author', '==', ref(contacts, sashaId))
-    //   ])
-    //   assert.deepEqual(docs.map((doc) => doc.data.text).sort(), ['+1', 'lul'])
-    // })
+      await Promise.all([
+        db.posts.add({
+          blogId,
+          title: 'Post about cats',
+          tags: ['pets', 'cats']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about dogs',
+          tags: ['pets', 'dogs']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about hotdogs',
+          tags: ['food', 'hotdogs']
+        })
+      ])
 
-    // it('allows to query by date', async () => {
-    //   const docs = await query(contacts, [
-    //     where('ownerId', '==', ownerId),
-    //     where('birthday', '==', new Date(1987, 1, 11))
-    //   ])
-    //   assert(docs.length === 1)
-    //   assert(docs[0].data.name === 'Sasha')
-    // })
+      const docs = await db.posts.query(($) => [
+        $.where('blogId', '==', blogId),
+        $.where('tags', 'array-contains', 'pets')
+      ])
+
+      expect(docs.map(({ data: { title } }) => title).sort()).toEqual([
+        'Post about cats',
+        'Post about dogs'
+      ])
+    })
+
+    it('allows to query using in filter', async () => {
+      interface Pet {
+        ownerId: string
+        name: string
+        type: 'dog' | 'cat' | 'parrot' | 'snake'
+      }
+
+      const db = schema(($) => ({
+        pets: $.collection<Pet>()
+      }))
+
+      const ownerId = nanoid()
+
+      await Promise.all([
+        db.pets.add({
+          ownerId,
+          name: 'Persik',
+          type: 'dog'
+        }),
+        db.pets.add({
+          ownerId,
+          name: 'Kimchi',
+          type: 'cat'
+        }),
+        db.pets.add({
+          ownerId,
+          name: 'Snako',
+          type: 'snake'
+        })
+      ])
+
+      const docs = await db.pets.query(($) => [
+        $.where('ownerId', '==', ownerId),
+        $.where('type', 'in', ['cat', 'dog'])
+      ])
+
+      expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
+        'Kimchi',
+        'Persik'
+      ])
+    })
+
+    it('allows to query using array-contains-any filter', async () => {
+      type Tag = 'pets' | 'cats' | 'dogs' | 'wildlife' | 'food' | 'hotdogs'
+
+      interface Post {
+        blogId: string
+        title: string
+        tags: Tag[]
+      }
+
+      const db = schema(($) => ({
+        posts: $.collection<Post>()
+      }))
+
+      const blogId = nanoid()
+
+      await Promise.all([
+        db.posts.add({
+          blogId,
+          title: 'Post about cats',
+          tags: ['pets', 'cats']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about dogs',
+          tags: ['pets', 'dogs']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about hotdogs',
+          tags: ['food', 'hotdogs']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about kangaroos',
+          tags: ['wildlife']
+        })
+      ])
+
+      const docs = await db.posts.query(($) => [
+        $.where('blogId', '==', blogId),
+        $.where('tags', 'array-contains-any', ['pets', 'wildlife'])
+      ])
+
+      expect(docs.map(({ data: { title } }) => title).sort()).toEqual([
+        'Post about cats',
+        'Post about dogs',
+        'Post about kangaroos'
+      ])
+    })
+
+    it('expands references', async () => {
+      const docs = await db.messages.query(($) => [
+        $.where('ownerId', '==', ownerId),
+        $.where('text', '==', '+1')
+      ])
+
+      const authors = await Promise.all(
+        docs.map((doc) => doc.data.author.get())
+      )
+      expect(authors.map((doc) => doc?.data.name).sort()).toEqual([
+        'Lesha',
+        'Sasha'
+      ])
+    })
+
+    it('allows to query by reference', async () => {
+      const docs = await db.messages.query(($) => [
+        $.where('ownerId', '==', ownerId),
+        $.where('author', '==', db.contacts.ref(sashaId))
+      ])
+      expect(docs.map((doc) => doc.data.text).sort()).toEqual(['+1', 'lul'])
+    })
+
+    it('allows to query by date', async () => {
+      const docs = await db.contacts.query(($) => [
+        $.where('ownerId', '==', ownerId),
+        $.where('birthday', '==', new Date(1987, 1, 11))
+      ])
+      expect(docs.length).toBe(1)
+      expect(docs[0]?.data.name).toBe('Sasha')
+    })
 
     // it('allows querying collection groups', async () => {
     //   const ownerId = nanoid()
@@ -335,285 +375,294 @@ describe('query', () => {
     //   ])
     // })
 
-    // describe('ordering', () => {
-    //   it('allows ordering', async () => {
-    //     const docs = await query(contacts, [
-    //       where('ownerId', '==', ownerId),
-    //       order('year', 'asc')
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name } }) => name),
-    //       ['Sasha', 'Tati', 'Lesha']
-    //     )
-    //   })
+    describe('ordering', () => {
+      it('allows ordering', async () => {
+        const docs = await db.contacts.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('year', 'asc')
+        ])
+        expect(docs.map(({ data: { name } }) => name)).toEqual([
+          'Sasha',
+          'Tati',
+          'Lesha'
+        ])
+      })
 
-    //   it('allows ordering by desc', async () => {
-    //     const docs = await query(contacts, [
-    //       where('ownerId', '==', ownerId),
-    //       order('year', 'desc')
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name } }) => name),
-    //       ['Lesha', 'Tati', 'Sasha']
-    //     )
-    //   })
+      it('allows ordering by desc', async () => {
+        const docs = await db.contacts.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('year', 'desc')
+        ])
+        expect(docs.map(({ data: { name } }) => name)).toEqual([
+          'Lesha',
+          'Tati',
+          'Sasha'
+        ])
+      })
 
-    //   it('allows ordering by references', async () => {
-    //     const docs = await query(messages, [
-    //       where('ownerId', '==', ownerId),
-    //       order('author', 'desc'),
-    //       order('text')
-    //     ])
-    //     const messagesLog = await Promise.all(
-    //       docs.map((doc) =>
-    //         get(contacts, doc.data.author.id).then(
-    //           (contact) => `${contact?.data.name}: ${doc.data.text}`
-    //         )
-    //       )
-    //     )
-    //     assert.deepEqual(messagesLog, [
-    //       'Tati: wut',
-    //       'Sasha: +1',
-    //       'Sasha: lul',
-    //       'Lesha: +1'
-    //     ])
-    //   })
+      it('allows ordering by references', async () => {
+        const docs = await db.messages.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('author', 'desc'),
+          $.order('text')
+        ])
+        const messagesLog = await Promise.all(
+          docs.map((doc) =>
+            doc.data.author
+              .get()
+              .then((contact) => `${contact?.data.name}: ${doc.data.text}`)
+          )
+        )
+        expect(messagesLog).toEqual([
+          'Tati: wut',
+          'Sasha: +1',
+          'Sasha: lul',
+          'Lesha: +1'
+        ])
+      })
 
-    //   it('allows ordering by date', async () => {
-    //     const docs = await query(contacts, [
-    //       where('ownerId', '==', ownerId),
-    //       order('birthday', 'asc')
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name } }) => name),
-    //       ['Sasha', 'Tati', 'Lesha']
-    //     )
-    //   })
-    // })
+      it('allows ordering by date', async () => {
+        const docs = await db.contacts.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('birthday', 'asc')
+        ])
+        expect(docs.map(({ data: { name } }) => name)).toEqual([
+          'Sasha',
+          'Tati',
+          'Lesha'
+        ])
+      })
+    })
 
-    // describe('limiting', () => {
-    //   it('allows to limit response length', async () => {
-    //     const docs = await query(contacts, [
-    //       where('ownerId', '==', ownerId),
-    //       order('year', 'asc'),
-    //       limit(2)
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name } }) => name),
-    //       ['Sasha', 'Tati']
-    //     )
-    //   })
-    // })
+    describe('limiting', () => {
+      it('allows to limit response length', async () => {
+        const docs = await db.contacts.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('year', 'asc'),
+          $.limit(2)
+        ])
+        expect(docs.map(({ data: { name } }) => name)).toEqual([
+          'Sasha',
+          'Tati'
+        ])
+      })
+    })
 
-    // describe('paginating', () => {
-    //   describe('startAfter', () => {
-    //     it('allows to paginate', async () => {
-    //       const page1Docs = await query(contacts, [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [startAfter(undefined)]),
-    //         limit(2)
-    //       ])
-    //       assert.deepEqual(
-    //         page1Docs.map(({ data: { name } }) => name),
-    //         ['Sasha', 'Tati']
-    //       )
-    //       const page2Docs = await query(contacts, [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [startAfter(page1Docs[1].data.year)]),
-    //         limit(2)
-    //       ])
-    //       assert.deepEqual(
-    //         page2Docs.map(({ data: { name } }) => name),
-    //         ['Lesha']
-    //       )
-    //     })
-    //   })
+    describe('paginating', () => {
+      describe('startAfter', () => {
+        it('allows to paginate', async () => {
+          const page1Docs = await db.contacts.query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.order('year', 'asc', $.startAfter(undefined)),
+            $.limit(2)
+          ])
+          expect(page1Docs.map(({ data: { name } }) => name)).toEqual([
+            'Sasha',
+            'Tati'
+          ])
+          const page2Docs = await db.contacts.query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.order('year', 'asc', $.startAfter(page1Docs[1]!.data.year)),
+            $.limit(2)
+          ])
+          expect(page2Docs.map(({ data: { name } }) => name)).toEqual(['Lesha'])
+        })
+      })
 
-    //   describe('startAt', () => {
-    //     it('allows to paginate', async () => {
-    //       const docs = await query(contacts, [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [startAt(1989)]),
-    //         limit(2)
-    //       ])
-    //       assert.deepEqual(
-    //         docs.map(({ data: { name } }) => name),
-    //         ['Tati', 'Lesha']
-    //       )
-    //     })
-    //   })
+      describe('startAt', () => {
+        it('allows to paginate', async () => {
+          const docs = await db.contacts.query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.order('year', 'asc', $.startAt(1989)),
+            $.limit(2)
+          ])
+          expect(docs.map(({ data: { name } }) => name)).toEqual([
+            'Tati',
+            'Lesha'
+          ])
+        })
+      })
 
-    //   describe('endBefore', () => {
-    //     it('allows to paginate', async () => {
-    //       const docs = await query(contacts, [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [endBefore(1989)]),
-    //         limit(2)
-    //       ])
-    //       assert.deepEqual(
-    //         docs.map(({ data: { name } }) => name),
-    //         ['Sasha']
-    //       )
-    //     })
-    //   })
+      describe('endBefore', () => {
+        it('allows to paginate', async () => {
+          const docs = await db.contacts.query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.order('year', 'asc', $.endBefore(1989)),
+            $.limit(2)
+          ])
+          expect(docs.map(({ data: { name } }) => name)).toEqual(['Sasha'])
+        })
+      })
 
-    //   describe('endAt', () => {
-    //     it('allows to paginate', async () => {
-    //       const docs = await query(contacts, [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [endAt(1989)]),
-    //         limit(2)
-    //       ])
-    //       assert.deepEqual(
-    //         docs.map(({ data: { name } }) => name),
-    //         ['Sasha', 'Tati']
-    //       )
-    //     })
-    //   })
+      describe('endAt', () => {
+        it('allows to paginate', async () => {
+          const docs = await db.contacts.query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.order('year', 'asc', $.endAt(1989)),
+            $.limit(2)
+          ])
+          expect(docs.map(({ data: { name } }) => name)).toEqual([
+            'Sasha',
+            'Tati'
+          ])
+        })
+      })
 
-    //   it('uses asc ordering method by default', async () => {
-    //     const docs = await query(contacts, [
-    //       where('ownerId', '==', ownerId),
-    //       order('year', [startAt(1989)]),
-    //       limit(2)
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name } }) => name),
-    //       ['Tati', 'Lesha']
-    //     )
-    //   })
+      it('uses asc ordering method by default', async () => {
+        const docs = await db.contacts.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('year', $.startAt(1989)),
+          $.limit(2)
+        ])
+        expect(docs.map(({ data: { name } }) => name)).toEqual([
+          'Tati',
+          'Lesha'
+        ])
+      })
 
-    //   it('allows specify multiple cursor conditions', async () => {
-    //     type City = { mapId: string; name: string; state: string }
-    //     const cities = collection<City>('cities')
-    //     const mapId = nanoid()
-    //     await Promise.all([
-    //       add(cities, {
-    //         mapId,
-    //         name: 'Springfield',
-    //         state: 'Massachusetts'
-    //       }),
-    //       add(cities, {
-    //         mapId,
-    //         name: 'Springfield',
-    //         state: 'Missouri'
-    //       }),
-    //       add(cities, {
-    //         mapId,
-    //         name: 'Springfield',
-    //         state: 'Wisconsin'
-    //       })
-    //     ])
-    //     const docs = await query(cities, [
-    //       where('mapId', '==', mapId),
-    //       order('name', 'asc', [startAt('Springfield')]),
-    //       order('state', 'asc', [startAt('Missouri')]),
-    //       limit(2)
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name, state } }) => `${name}, ${state}`),
-    //       ['Springfield, Missouri', 'Springfield, Wisconsin']
-    //     )
-    //   })
+      it('allows specify multiple cursor conditions', async () => {
+        interface City {
+          mapId: string
+          name: string
+          state: string
+        }
 
-    //   it('allows to combine cursors', async () => {
-    //     const docs = await query(contacts, [
-    //       where('ownerId', '==', ownerId),
-    //       order('year', 'asc', [startAt(1989), endAt(1989)]),
-    //       limit(2)
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name } }) => name),
-    //       ['Tati']
-    //     )
-    //   })
+        const db = schema(($) => ({
+          cities: $.collection<City>()
+        }))
 
-    //   it('allows to pass docs as cursors', async () => {
-    //     const tati = await get(contacts, tatiId)
-    //     const docs =
-    //       tati &&
-    //       (await query(contacts, [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [startAt(tati)]),
-    //         limit(2)
-    //       ]))
-    //     assert.deepEqual(
-    //       docs?.map(({ data: { name } }) => name),
-    //       ['Tati', 'Lesha']
-    //     )
-    //   })
+        const mapId = nanoid()
 
-    //   it('allows using dates as cursors', async () => {
-    //     const docs = await query(contacts, [
-    //       where('ownerId', '==', ownerId),
-    //       order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-    //       limit(2)
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map(({ data: { name } }) => name),
-    //       ['Tati', 'Lesha']
-    //     )
-    //   })
-    // })
+        await Promise.all([
+          db.cities.add({
+            mapId,
+            name: 'Springfield',
+            state: 'Massachusetts'
+          }),
 
-    // describe('docId', () => {
-    //   type Counter = { n: number }
-    //   const shardedCounters = collection<Counter>('shardedCounters')
+          db.cities.add({
+            mapId,
+            name: 'Springfield',
+            state: 'Missouri'
+          }),
 
-    //   it('allows to query by documentId', async () => {
-    //     await Promise.all([
-    //       set(shardedCounters, `draft-0`, { n: 0 }),
-    //       set(shardedCounters, `draft-1`, { n: 0 }),
-    //       set(shardedCounters, `published-0`, { n: 0 }),
-    //       set(shardedCounters, `published-1`, { n: 0 }),
-    //       set(shardedCounters, `suspended-0`, { n: 0 }),
-    //       set(shardedCounters, `suspended-1`, { n: 0 })
-    //     ])
-    //     const docs = await query(shardedCounters, [
-    //       where(docId, '>=', 'published'),
-    //       where(docId, '<', 'publishee')
-    //     ])
-    //     assert.deepEqual(
-    //       docs.map((doc) => doc.ref.id),
-    //       ['published-0', 'published-1']
-    //     )
-    //   })
+          db.cities.add({
+            mapId,
+            name: 'Springfield',
+            state: 'Wisconsin'
+          })
+        ])
 
-    //   // NOTE: For some reason, my Firestore instance fails to add a composite
-    //   // index for that, so I have do disable this in the system tests.
-    //   // @kossnocorp
-    //   if (process.env.FIRESTORE_EMULATOR_HOST) {
-    //     it('allows ordering by documentId', async () => {
-    //       const descend = await query(shardedCounters, [
-    //         where(docId, '>=', 'published'),
-    //         where(docId, '<', 'publishee'),
-    //         order(docId, 'desc')
-    //       ])
-    //       assert(descend.length === 2)
-    //       assert(descend[0].ref.id === `published-1`)
-    //       assert(descend[1].ref.id === `published-0`)
+        const docs = await db.cities.query(($) => [
+          $.where('mapId', '==', mapId),
+          $.order('name', 'asc', $.startAt('Springfield')),
+          $.order('state', 'asc', $.startAt('Missouri')),
+          $.limit(2)
+        ])
 
-    //       const ascend = await query(shardedCounters, [
-    //         where(docId, '>=', 'published'),
-    //         where(docId, '<', 'publishee'),
-    //         order(docId, 'asc')
-    //       ])
-    //       assert(ascend.length === 2)
-    //       assert(ascend[0].ref.id === `published-0`)
-    //       assert(ascend[1].ref.id === `published-1`)
-    //     })
-    //   }
+        expect(
+          docs.map(({ data: { name, state } }) => `${name}, ${state}`)
+        ).toEqual(['Springfield, Missouri', 'Springfield, Wisconsin'])
+      })
 
-    //   it('allows cursors to use documentId', async () => {
-    //     const docs = await query(shardedCounters, [
-    //       order(docId, 'asc', [startAt('draft-1'), endAt('published-1')])
-    //     ])
-    //     assert(docs.length === 3)
-    //     assert(docs[0].ref.id === `draft-1`)
-    //     assert(docs[1].ref.id === `published-0`)
-    //     assert(docs[2].ref.id === `published-1`)
-    //   })
-    // })
+      it('allows to combine cursors', async () => {
+        const docs = await db.contacts.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('year', 'asc', $.startAt(1989), $.endAt(1989)),
+          $.limit(2)
+        ])
+        expect(docs.map(({ data: { name } }) => name)).toEqual(['Tati'])
+      })
+
+      it('allows to pass docs as cursors', async () => {
+        const tati = await db.contacts.get(tatiId)
+        const docs =
+          tati &&
+          (await db.contacts.query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.order('year', 'asc', $.startAt(tati)),
+            $.limit(2)
+          ]))
+        expect(docs?.map(({ data: { name } }) => name)).toEqual([
+          'Tati',
+          'Lesha'
+        ])
+      })
+
+      it('allows using dates as cursors', async () => {
+        const docs = await db.contacts.query(($) => [
+          $.where('ownerId', '==', ownerId),
+          $.order('birthday', 'asc', $.startAt(new Date(1989, 6, 10))),
+          $.limit(2)
+        ])
+        expect(docs.map(({ data: { name } }) => name)).toEqual([
+          'Tati',
+          'Lesha'
+        ])
+      })
+    })
+
+    describe('docId', () => {
+      interface Counter {
+        n: number
+      }
+
+      const db = schema(($) => ({
+        shardedCounters: $.collection<Counter>()
+      }))
+
+      it('allows to query by documentId', async () => {
+        await Promise.all([
+          db.shardedCounters.set(`draft-0`, { n: 0 }),
+          db.shardedCounters.set(`draft-1`, { n: 0 }),
+          db.shardedCounters.set(`published-0`, { n: 0 }),
+          db.shardedCounters.set(`published-1`, { n: 0 }),
+          db.shardedCounters.set(`suspended-0`, { n: 0 }),
+          db.shardedCounters.set(`suspended-1`, { n: 0 })
+        ])
+        const docs = await db.shardedCounters.query(($) => [
+          $.where(docId, '>=', 'published'),
+          $.where(docId, '<', 'publishee')
+        ])
+        expect(docs.map((doc) => doc.ref.id)).toEqual([
+          'published-0',
+          'published-1'
+        ])
+      })
+
+      it('allows ordering by documentId', async () => {
+        // NOTE: At the moment descending order is not supported:
+        // https://stackoverflow.com/a/52119324
+        //
+        // const descend = await db.shardedCounters.query(($) => [
+        //   $.where(docId, '>=', 'published'),
+        //   $.where(docId, '<', 'publishee'),
+        //   $.order(docId, 'desc')
+        // ])
+        // expect(descend.length).toBe(2)
+        // expect(descend[0]?.ref.id).toBe(`published-1`)
+        // expect(descend[1]?.ref.id).toBe(`published-0`)
+
+        const ascend = await db.shardedCounters.query(($) => [
+          $.where(docId, '>=', 'published'),
+          $.where(docId, '<', 'publishee'),
+          $.order(docId)
+        ])
+        expect(ascend.length).toBe(2)
+        expect(ascend[0]?.ref.id).toBe(`published-0`)
+        expect(ascend[1]?.ref.id).toBe(`published-1`)
+      })
+
+      it('allows cursors to use documentId', async () => {
+        const docs = await db.shardedCounters.query(($) => [
+          $.order(docId, 'asc', $.startAt('draft-1'), $.endAt('published-1'))
+        ])
+        expect(docs.length).toBe(3)
+        expect(docs[0]?.ref.id).toBe(`draft-1`)
+        expect(docs[1]?.ref.id).toBe(`published-0`)
+        expect(docs[2]?.ref.id).toBe(`published-1`)
+      })
+    })
   })
 
   describe('subscription', () => {
