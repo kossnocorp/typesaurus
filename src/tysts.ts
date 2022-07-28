@@ -190,6 +190,7 @@ async function update() {
 
   await db.users.update('sasha', ($) => ({
     contacts: {
+      email: 'koss@nocorp.me',
       phone: $.remove()
     }
   }))

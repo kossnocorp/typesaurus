@@ -78,7 +78,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   }
 
   async add<Environment extends Typesaurus.RuntimeEnvironment>(
-    getData: Typesaurus.SetModelArg<Model, Environment>
+    getData: Typesaurus.WriteModelArg<Model, Environment>
   ) {
     const data =
       typeof getData === 'function' ? getData(this.writeHelpers()) : getData
@@ -88,14 +88,14 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
 
   async set<Environment extends Typesaurus.RuntimeEnvironment>(
     id: string,
-    data: Typesaurus.SetModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
     await this.firebaseDoc(id).set(unwrapData(data))
   }
 
   async upset<Environment extends Typesaurus.RuntimeEnvironment>(
     id: string,
-    data: Typesaurus.SetModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
     const dataToUpset =
       typeof data === 'function' ? data(this.writeHelpers()) : data
@@ -426,13 +426,13 @@ class Ref<Model> implements Typesaurus.Ref<Model> {
   }
 
   set<Environment extends Typesaurus.RuntimeEnvironment>(
-    data: Typesaurus.SetModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
     return this.collection.set(this.id, data)
   }
 
   upset<Environment extends Typesaurus.RuntimeEnvironment>(
-    data: Typesaurus.SetModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
     return this.collection.upset(this.id, data)
   }
