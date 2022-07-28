@@ -78,12 +78,47 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   }
 
   async add<Environment extends Typesaurus.RuntimeEnvironment>(
-    getData: Typesaurus.WriteModelArg<Model, Environment>
+    getData: Typesaurus.SetModelArg<Model, Environment>
   ) {
     const data =
       typeof getData === 'function' ? getData(this.writeHelpers()) : getData
     const firebaseRef = await this.firebaseCollection().add(unwrapData(data))
     return this.ref(firebaseRef.id)
+  }
+
+  async set<Environment extends Typesaurus.RuntimeEnvironment>(
+    id: string,
+    data: Typesaurus.SetModelArg<Model, Environment>
+  ) {
+    await this.firebaseDoc(id).set(unwrapData(data))
+  }
+
+  async upset<Environment extends Typesaurus.RuntimeEnvironment>(
+    id: string,
+    data: Typesaurus.SetModelArg<Model, Environment>
+  ) {
+    const dataToUpset =
+      typeof data === 'function' ? data(this.writeHelpers()) : data
+    await this.firebaseDoc(id).set(unwrapData(dataToUpset), { merge: true })
+  }
+
+  async update<Environment extends Typesaurus.RuntimeEnvironment>(
+    id: string,
+    data: Typesaurus.UpdateModelArg<Model, Environment>
+  ) {
+    const updateData =
+      typeof data === 'function' ? data(this.updateHelpers()) : data
+
+    const update = Array.isArray(updateData)
+      ? updateData.reduce((acc, field) => {
+          if (!field) return
+          const { key, value } = field
+          acc[Array.isArray(key) ? key.join('.') : key] = value
+          return acc
+        }, {} as { [key: string]: any })
+      : updateData
+
+    await this.firebaseDoc(id).update(unwrapData(update))
   }
 
   all(): Typesaurus.PromiseWithListSubscription<Model> {
@@ -106,9 +141,6 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
           )
         }, onError)
     })
-    // return firebaseSnap.docs.map(
-    //   (doc) => new RichDoc(this, doc.id, wrapData(doc.data()))
-    // )
   }
 
   get(id: string) {
@@ -285,13 +317,6 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     })
   }
 
-  async set<Environment extends Typesaurus.RuntimeEnvironment>(
-    id: string,
-    data: Typesaurus.WriteModelArg<Model, Environment>
-  ) {
-    await this.firebaseDoc(id).set(unwrapData(data))
-  }
-
   async remove(id: string) {
     await this.firebaseDoc(id).delete()
   }
@@ -396,15 +421,27 @@ class Ref<Model> implements Typesaurus.Ref<Model> {
     this.id = id
   }
 
-  set() {}
-
   get() {
     return this.collection.get(this.id)
   }
 
-  update() {}
+  set<Environment extends Typesaurus.RuntimeEnvironment>(
+    data: Typesaurus.SetModelArg<Model, Environment>
+  ) {
+    return this.collection.set(this.id, data)
+  }
 
-  upset() {}
+  upset<Environment extends Typesaurus.RuntimeEnvironment>(
+    data: Typesaurus.SetModelArg<Model, Environment>
+  ) {
+    return this.collection.upset(this.id, data)
+  }
+
+  update<Environment extends Typesaurus.RuntimeEnvironment>(
+    data: Typesaurus.UpdateModelArg<Model, Environment>
+  ) {
+    return this.collection.update(this.id, data)
+  }
 
   async remove() {
     await this.collection.remove(this.id)
@@ -446,7 +483,9 @@ class Doc<Model> implements Typesaurus.ServerDoc<Model> {
     return this.ref.update(update)
   }
 
-  upset() {}
+  upset(data) {
+    return this.ref.upset(data)
+  }
 
   async remove() {
     await this.ref.remove()
@@ -498,7 +537,7 @@ export function unwrapData(data: any): any {
     if (data.type === 'ref') {
       return refToFirestoreDocument(data as Typesaurus.Ref<unknown>)
     } else if (data.type === 'value') {
-      const fieldValue = data as Typesaurus.UpdateValue<any, any>
+      const fieldValue = data as Typesaurus.Value<any>
       switch (fieldValue.kind) {
         case 'remove':
           return firestore.FieldValue.delete()
