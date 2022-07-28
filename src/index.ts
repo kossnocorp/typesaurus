@@ -77,16 +77,16 @@ export namespace Typesaurus {
    */
   export type Doc<Model> = AnyDoc<
     Model,
-    RuntimeEnvironment,
     DataSource,
-    ServerDateStrategy
+    ServerDateStrategy,
+    RuntimeEnvironment
   >
 
   export type AnyDoc<
     Model,
-    Environment extends RuntimeEnvironment | undefined = undefined,
     Source extends DataSource,
-    DateStrategy extends ServerDateStrategy
+    DateStrategy extends ServerDateStrategy,
+    Environment extends RuntimeEnvironment | undefined = undefined
   > = Environment extends 'server'
     ? ServerDoc<Model>
     : Source extends 'database'
@@ -148,14 +148,6 @@ export namespace Typesaurus {
     ? AnyModelData<Field, DateNullable>
     : Field
 
-  export type ResolvedServerDate<
-    Environment extends RuntimeEnvironment | undefined = undefined | undefined,
-    FromCache extends boolean,
-    DateStrategy extends ServerDateStrategy
-  > = Environment extends 'server' // In node environment server dates are always defined
-    ? Date
-    : ResolvedWebServerDate<FromCache, DateStrategy>
-
   export type ResolvedWebServerDate<
     FromCache extends boolean,
     DateStrategy extends ServerDateStrategy
@@ -186,25 +178,25 @@ export namespace Typesaurus {
     __dontUseWillBeUndefined__: true
   }
 
-  export type SetModelArg<
+  export type WriteModelArg<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = SetModel<Model, Environment> | SetModelGetter<Model, Environment>
+  > = WriteModel<Model, Environment> | WriteModelGetter<Model, Environment>
 
   /**
    * Write model getter, accepts helper functions with special value generators
-   * and returns {@link SetModel}.
+   * and returns {@link WriteModel}.
    */
-  export type SetModelGetter<
+  export type WriteModelGetter<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = ($: WriteHelpers<Model>) => SetModel<Model, Environment>
+  > = ($: WriteHelpers<Model>) => WriteModel<Model, Environment>
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
-  export type SetModel<
+  export type WriteModel<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = {
@@ -216,37 +208,26 @@ export namespace Typesaurus {
     Key extends keyof Model,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
-    ? Environment extends 'server' // Date can be used only in the server environment
-      ? Date | ValueServerDate
-      : ValueServerDate
-    : Model[Key] extends Array<infer ItemType>
+    ? WriteValueServerDate<Model, Key, Environment>
+    : Exclude<Model[Key], undefined> extends Array<infer ItemType>
     ?
         | Model[Key]
-        | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
+        | ValueArrayUnion<ItemType>
         | ValueArrayRemove<ItemType>
+        | MaybeValueRemove<Model, Key>
     : Model[Key] extends object // If it's an object, recursively pass through SetModel
-    ? SetModel<Model[Key], Environment>
-    : Model[Key] extends number
-    ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
-    : Model[Key]
+    ? WriteModel<Model[Key], Environment>
+    : Exclude<Model[Key], undefined> extends number
+    ? Model[Key] | ValueIncrement | MaybeValueRemove<Model, Key>
+    : Model[Key] | MaybeValueRemove<Model, Key>
 
-  // /**
-  //  * The value types to use for update operation.
-  //  */
-  // export type UpdateValue<Model, Key> = Key extends keyof Model
-  //   ? Model[Key] extends infer Type
-  //     ? Type extends number
-  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
-  //       : Type extends Array<infer ItemType>
-  //       ?
-  //           | Model[Key]
-  //           | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
-  //           | ValueArrayRemove<ItemType>
-  //       : Type extends Date
-  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueServerDate>
-  //       : Model[Key] | MaybeValueRemove<Model, Key>
-  //     : never
-  //   : never
+  export type WriteValueServerDate<
+    Model,
+    Key extends keyof Model,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > = Environment extends 'server' // Date can be used only in the server environment
+    ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
+    : ValueServerDate | MaybeValueRemove<Model, Key>
 
   export type UpdateModelArg<
     Model,
@@ -281,43 +262,6 @@ export namespace Typesaurus {
     key: string | string[]
     value: any
   }
-
-  // /**
-  //  * Type of the data passed to the update function. It extends the model
-  //  * making values optional and allow to set value object.
-  //  */
-  // export type UpdateModel<Model> = {
-  //   [Key in keyof Model]?: UpdateModel<Model[Key]> | UpdateValue<Model, Key>
-  // }
-
-  // /**
-  //  * The value types to use for update operation.
-  //  */
-  // export type UpdateValue<Model, Key> = Key extends keyof Model
-  //   ? Model[Key] extends infer Type
-  //     ? Type extends number
-  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueIncrement>
-  //       : Type extends Array<infer ItemType>
-  //       ?
-  //           | Model[Key]
-  //           | MaybeValueRemoveOr<Model, Key, ValueArrayUnion<ItemType>>
-  //           | ValueArrayRemove<ItemType>
-  //       : Type extends Date
-  //       ? Model[Key] | MaybeValueRemoveOr<Model, Key, ValueServerDate>
-  //       : Model[Key] | MaybeValueRemove<Model, Key>
-  //     : never
-  //   : never
-
-  // /**
-  //  * The value types to use for upset operation.
-  //  */
-  // export type UpsetValue<Type> = Type extends number
-  //   ? ValueIncrement
-  //   : Type extends Array<infer ItemType>
-  //   ? ValueArrayUnion<ItemType> | ValueArrayRemove<ItemType>
-  //   : Type extends ServerDate
-  //   ? ValueServerDate
-  //   : never
 
   export type Value<Type> =
     | ValueRemove
@@ -479,11 +423,11 @@ export namespace Typesaurus {
   ) => Query<Model, keyof Model>[]
 
   export interface QueryHelpers<Model> {
-    where<Key extends keyof Model>(
-      field: DocId,
-      filter: WhereFilter,
-      value: string
-    ): WhereQuery<DocId>
+    // where<Key extends keyof Model>(
+    //   field: DocId,
+    //   filter: WhereFilter,
+    //   value: string
+    // ): WhereQuery<DocId>
 
     where<Key extends keyof Model>(
       field: Key,
@@ -557,7 +501,7 @@ export namespace Typesaurus {
   export interface UpdateHelpers<Model> extends WriteHelpers<Model> {
     field<Key1 extends keyof Model>(
       key: Key1,
-      value: UpdateValue<Model, Key1>
+      value: WriteValue<Model, Key1>
     ): UpdateField<Model>
 
     field<
@@ -567,7 +511,7 @@ export namespace Typesaurus {
       key1: Key1,
       key2: Key2,
       value: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
-        ? UpdateValue<TypesaurusUtils.AllRequired<Model>[Key1], Key2>
+        ? WriteValue<TypesaurusUtils.AllRequired<Model>[Key1], Key2>
         : never
     ): UpdateField<Model>
 
@@ -595,7 +539,7 @@ export namespace Typesaurus {
       key2: Key2,
       key3: Key3,
       value: TypesaurusUtils.SafePath3<Model, Key1, Key2, Key3> extends true
-        ? UpdateValue<
+        ? WriteValue<
             TypesaurusUtils.AllRequired<
               TypesaurusUtils.AllRequired<Model>[Key1]
             >[Key2],
@@ -627,7 +571,7 @@ export namespace Typesaurus {
         Key3,
         Key4
       > extends true
-        ? UpdateValue<
+        ? WriteValue<
             TypesaurusUtils.AllRequired<
               TypesaurusUtils.AllRequired<
                 TypesaurusUtils.AllRequired<Model>[Key1]
@@ -808,9 +752,9 @@ export namespace Typesaurus {
     Environment extends RuntimeEnvironment | undefined = undefined
   > = SubscriptionPromise<AnyDoc<
     Model,
-    Environment,
     Source,
-    DateStrategy
+    DateStrategy,
+    Environment
   > | null>
 
   export type PromiseWithListSubscription<Model> = SubscriptionPromise<
@@ -825,7 +769,7 @@ export namespace Typesaurus {
     get(): Promise<Doc<Model> | null>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -835,7 +779,7 @@ export namespace Typesaurus {
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -870,7 +814,7 @@ export namespace Typesaurus {
     get<DateStrategy extends ServerDateStrategy>(
       id: string,
       options?: DocOptions<DateStrategy>
-    ): Promise<AnyDoc<Model, Environment, 'database', DateStrategy> | null>
+    ): Promise<AnyDoc<Model, 'database', DateStrategy, Environment> | null>
   }
 
   /**
@@ -908,7 +852,7 @@ export namespace Typesaurus {
      * @param id - the id of the document to set
      * @param data - the document data
      */
-    set<Model>(id: string, data: SetModelArg<Model, Environment>): void
+    set<Model>(id: string, data: WriteModelArg<Model, Environment>): void
 
     /**
      * Sets or updates a document with the given data.
@@ -929,7 +873,7 @@ export namespace Typesaurus {
      * @param id - the id of the document to set
      * @param data - the document data
      */
-    upset(id: string, data: SetModelArg<Model, Environment>): void
+    upset(id: string, data: WriteModelArg<Model, Environment>): void
 
     /**
      * Updates a document.
@@ -1061,7 +1005,7 @@ export namespace Typesaurus {
     get<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment | undefined = undefined
+      Environment extends RuntimeEnvironment
     >(
       id: string,
       options?: OperationOptions<Environment>
@@ -1079,19 +1023,19 @@ export namespace Typesaurus {
     query(queries: QueryGetter<Model>): PromiseWithListSubscription<Model>
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Model>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: SetModelArg<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
-      data: SetModelArg<Model, Environment>,
+      data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<void>
 
@@ -1124,7 +1068,7 @@ export namespace Typesaurus {
 
   export interface Group<_Model> {
     /** The group type */
-    __type__: 'group'
+    type: 'group'
   }
 
   export interface NestedPlainCollection<Model, Schema extends PlainSchema>
