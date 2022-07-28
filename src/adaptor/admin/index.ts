@@ -115,7 +115,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
           const { key, value } = field
           acc[Array.isArray(key) ? key.join('.') : key] = value
           return acc
-        }, {} as { [key: string]: any })
+        }, {} as Record<string, any>)
       : updateData
 
     await this.firebaseDoc(id).update(unwrapData(update))
@@ -397,6 +397,17 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         type: 'value',
         kind: 'arrayRemove',
         values: [].concat(values)
+      })
+    }
+  }
+
+  private updateHelpers(): Typesaurus.UpdateHelpers<Model> {
+    return {
+      ...this.writeHelpers(),
+
+      field: (...args) => ({
+        key: args.slice(0, args.length - 1),
+        value: args[args.length - 1]
       })
     }
   }
