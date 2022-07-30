@@ -78,11 +78,14 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   }
 
   async add<Environment extends Typesaurus.RuntimeEnvironment>(
-    getData: Typesaurus.WriteModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
-    const data =
-      typeof getData === 'function' ? getData(this.writeHelpers()) : getData
-    const firebaseRef = await this.firebaseCollection().add(unwrapData(data))
+    const dataToAdd =
+      typeof data === 'function' ? data(this.writeHelpers()) : data
+    const firebaseRef = await this.firebaseCollection().add(
+      unwrapData(dataToAdd)
+    )
+
     return this.ref(firebaseRef.id)
   }
 
@@ -123,6 +126,10 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     await this.firebaseDoc(id).update(unwrapData(update))
   }
 
+  async remove(id: string) {
+    await this.firebaseDoc(id).delete()
+  }
+
   all(): Typesaurus.PromiseWithListSubscription<Model> {
     const firebaseCollection = admin.firestore().collection(this.path)
 
@@ -146,15 +153,22 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   }
 
   get(id: string) {
+    const doc = this.firebaseDoc(id)
+
     return new TypesaurusUtils.SubscriptionPromise({
       get: async () => {
-        const firebaseSnap = await this.firebaseDoc(id).get()
+        const firebaseSnap = await doc.get()
         const data = firebaseSnap.data()
-        if (data) return this.doc(id, wrapData(firebaseSnap.data()))
+        if (data) return this.doc(id, wrapData(data))
         return null
       },
 
-      subscribe() {}
+      subscribe: (onResult, onError) =>
+        doc.onSnapshot((firebaseSnap) => {
+          const data = firebaseSnap.data()
+          if (data) onResult(this.doc(id, wrapData(data)))
+          else onResult(null)
+        }, onError)
     })
   }
 
@@ -211,7 +225,28 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
           .filter((doc) => doc != null)
       },
 
-      subscribe() {}
+      subscribe: (onResult, onError) => {
+        // Firestore#getAll doesn't like empty lists
+        if (ids.length === 0) {
+          onResult([])
+          return () => {}
+        }
+
+        let waiting = ids.length
+        const result = new Array(ids.length)
+
+        const offs = ids.map((id, idIndex) =>
+          this.get(id)
+            .on((doc) => {
+              result[idIndex] = doc
+              if (waiting) waiting--
+              if (waiting === 0) onResult(result)
+            })
+            .catch(onError)
+        )
+
+        return () => offs.map((off) => off())
+      }
     })
   }
 
@@ -317,10 +352,6 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
 
       subscribe() {}
     })
-  }
-
-  async remove(id: string) {
-    await this.firebaseDoc(id).delete()
   }
 
   private queryHelpers(): Typesaurus.QueryHelpers<Model> {

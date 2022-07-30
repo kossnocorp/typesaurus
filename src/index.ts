@@ -768,7 +768,13 @@ export namespace Typesaurus {
   }
 
   export interface DocAPI<Model> {
-    get(): Promise<Doc<Model> | null>
+    get<
+      Source extends DataSource,
+      DateStrategy extends ServerDateStrategy,
+      Environment extends RuntimeEnvironment
+    >(
+      options?: OperationOptions<Environment>
+    ): PromiseWithGetSubscription<Model, Source, DateStrategy, Environment>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
