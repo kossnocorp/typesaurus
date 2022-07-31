@@ -28,14 +28,18 @@ describe('query', () => {
   const sashaId = `sasha-${ownerId}`
   const tatiId = `tati-${ownerId}`
 
+  function setLesha() {
+    return db.contacts.set(leshaId, {
+      ownerId,
+      name: 'Lesha',
+      year: 1995,
+      birthday: new Date(1995, 6, 2)
+    })
+  }
+
   beforeAll(() =>
     Promise.all([
-      db.contacts.set(leshaId, {
-        ownerId,
-        name: 'Lesha',
-        year: 1995,
-        birthday: new Date(1995, 6, 2)
-      }),
+      setLesha(),
       db.contacts.set(sashaId, {
         ownerId,
         name: 'Sasha',
@@ -1428,32 +1432,34 @@ describe('query', () => {
         }))
     })
 
-    // describe('empty', () => {
-    //   it('should notify with values all indicate empty', () =>
-    //     new Promise((resolve) => {
-    //       interface Penguin {
-    //         ability: string[]
-    //       }
+    describe('empty', () => {
+      it('should notify with values all indicate empty', () =>
+        new Promise((resolve) => {
+          interface Penguin {
+            ability: string[]
+          }
 
-    //       const db = schema(($) => ({
-    //         penguins: $.collection<Penguin>()
-    //       }))
+          const db = schema(($) => ({
+            penguins: $.collection<Penguin>()
+          }))
 
-    //       off = db.penguin
-    //         .query(($) => [$.where('ability', 'array-contains', 'fly')])
-    //         .on((docs, { changes, empty }) => {
-    //           expect(empty).toBeTruthy()
-    //           expect(docs.length).toBe(0)
-    //           expect(changes().length).toBe(0)
-    //           resolve(void 0)
-    //         })
-    //     }))
-    // })
+          off = db.penguins
+            .query(($) => [$.where('ability', 'array-contains', 'fly')])
+            .on((docs, { changes, empty }) => {
+              expect(empty).toBeTruthy()
+              expect(docs.length).toBe(0)
+              expect(changes().length).toBe(0)
+              resolve(void 0)
+            })
+        }))
+    })
 
     describe('real-time', () => {
       const theoId = `theo-${ownerId}`
       const harryId = `harry-${ownerId}`
       const ronId = `ron-${ownerId}`
+
+      beforeEach(() => setLesha())
 
       afterEach(() =>
         Promise.all([
@@ -1463,58 +1469,59 @@ describe('query', () => {
         ])
       )
 
-      // it('subscribes to updates', () =>
-      //   new Promise((resolve) => {
-      //     let c = 0
-      //     off = db.contacts
-      //       .query(($) => [
-      //         $.where('ownerId', '==', ownerId),
-      //         // TODO: Figure out why when a timestamp is used, the order is incorrect
-      //         // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-      //         $.order('year', 'asc', $.startAt(1989)),
-      //         $.limit(3)
-      //       ])
-      //       .on(async (docs, { changes }) => {
-      //         const names = docs.map(({ data: { name } }) => name).sort()
-      //         const docChanges = changes()
-      //           .map(
-      //             ({
-      //               type,
-      //               doc: {
-      //                 data: { name }
-      //               }
-      //             }) => ({ type, name })
-      //           )
-      //           .sort((a, b) => a.name.localeCompare(b.name))
-      //         switch (++c) {
-      //           case 1:
-      //             expect(names).toEqual(['Lesha', 'Tati'])
-      //             expect(docChanges).toEqual([
-      //               { type: 'added', name: 'Lesha' },
-      //               { type: 'added', name: 'Tati' }
-      //             ])
-      //             await db.contacts.set(theoId, {
-      //               ownerId,
-      //               name: 'Theodor',
-      //               year: 2019,
-      //               birthday: new Date(2019, 5, 4)
-      //             })
-      //             return
-      //           case 2:
-      //             expect(names).toEqual(['Lesha', 'Tati', 'Theodor'])
-      //             expect(docChanges).toEqual([
-      //               { type: 'added', name: 'Theodor' }
-      //             ])
-      //             await db.contacts.remove(leshaId)
-      //             return
-      //           case 3:
-      //             expect(docChanges).toEqual([
-      //               { type: 'removed', name: 'Theodor' }
-      //             ])
-      //             resolve(void 0)
-      //         }
-      //       })
-      //   }))
+      it('subscribes to updates', () =>
+        new Promise((resolve) => {
+          let c = 0
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              // TODO: Figure out why when a timestamp is used, the order is incorrect
+              // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
+              $.order('year', 'asc', $.startAt(1989)),
+              $.limit(3)
+            ])
+            .on(async (docs, { changes }) => {
+              const names = docs.map(({ data: { name } }) => name).sort()
+              const docChanges = changes()
+                .map(
+                  ({
+                    type,
+                    doc: {
+                      data: { name }
+                    }
+                  }) => ({ type, name })
+                )
+                .sort((a, b) => a.name.localeCompare(b.name))
+
+              switch (++c) {
+                case 1:
+                  expect(names).toEqual(['Lesha', 'Tati'])
+                  expect(docChanges).toEqual([
+                    { type: 'added', name: 'Lesha' },
+                    { type: 'added', name: 'Tati' }
+                  ])
+                  await db.contacts.set(theoId, {
+                    ownerId,
+                    name: 'Theodor',
+                    year: 2019,
+                    birthday: new Date(2019, 5, 4)
+                  })
+                  return
+                case 2:
+                  expect(names).toEqual(['Lesha', 'Tati', 'Theodor'])
+                  expect(docChanges).toEqual([
+                    { type: 'added', name: 'Theodor' }
+                  ])
+                  await db.contacts.remove(leshaId)
+                  return
+                case 3:
+                  expect(docChanges).toEqual([
+                    { type: 'removed', name: 'Theodor' }
+                  ])
+                  resolve(void 0)
+              }
+            })
+        }))
 
       //   // TODO: WTF browser Firebase returns elements gradually unlike Node.js version.
       //   if (typeof window === 'undefined') {

@@ -27,12 +27,21 @@ export namespace Typesaurus {
     hasPendingWrites: boolean
   }
 
-  export interface DocChange<Model> {
+  /**
+   * Doc change information. It contains the type of change, the doc after
+   * the change, and the position change.
+   */
+  export interface DocChange<
+    Model,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > {
     /** The type of change. */
     readonly type: DocChangeType
 
     /** The document affected by this change. */
-    readonly doc: Doc<Model>
+    readonly doc: AnyDoc<Model, Source, DateStrategy, Environment>
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -51,15 +60,21 @@ export namespace Typesaurus {
   }
 
   /**
-   * An options object that configures the snapshot contents of `onAll()` and `onQuery()`.
+   * An options object that configures the snapshot contents of `all` and
+   * `query`.
    */
-  export interface SnapshotInfo<Model> {
+  export interface SubscriptionListMeta<
+    Model,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > {
     /**
      * Returns an array of the documents changes since the last snapshot. If
      * this is the first snapshot, all documents will be in the list as added
      * changes.
      */
-    changes: () => DocChange<Model>[]
+    changes: () => DocChange<Model, Source, DateStrategy, Environment>[]
 
     /** The number of documents in the QuerySnapshot. */
     readonly size: number
@@ -741,11 +756,19 @@ export namespace Typesaurus {
     (result: Doc<Model> | null /*, info: SnapshotInfo<Model> */): void
   }
 
-  export interface SubscriptionPromise<Result> extends Promise<Result> {
-    on(callback: SubscriptionPromiseCallback<Result>): OffSubscriptionWithCatch
+  export interface SubscriptionPromise<Result, SubscriptionMeta = undefined>
+    extends Promise<Result> {
+    on(
+      callback: SubscriptionPromiseCallback<Result, SubscriptionMeta>
+    ): OffSubscriptionWithCatch
   }
 
-  export type SubscriptionPromiseCallback<Result> = (result: Result) => void
+  export type SubscriptionPromiseCallback<
+    Result,
+    SubscriptionMeta = undefined
+  > = SubscriptionMeta extends undefined
+    ? (result: Result) => void
+    : (result: Result, meta: SubscriptionMeta) => void
 
   export type ListSubscriptionCallback<Model> = {
     (result: Doc<Model>[]): void
@@ -997,7 +1020,14 @@ export namespace Typesaurus {
     /** The Firestore path */
     path: string
 
-    all(): SubscriptionPromise<Doc<Model>[]>
+    all<
+      Source extends DataSource,
+      DateStrategy extends ServerDateStrategy,
+      Environment extends RuntimeEnvironment
+    >(): SubscriptionPromise<
+      Doc<Model>[],
+      SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+    >
 
     get<
       Source extends DataSource,
@@ -1022,7 +1052,16 @@ export namespace Typesaurus {
       ? SubscriptionPromise<Array<Doc<Model> | OnMissingResult>>
       : never
 
-    query(queries: QueryGetter<Model>): SubscriptionPromise<Doc<Model>[]>
+    query<
+      Source extends DataSource,
+      DateStrategy extends ServerDateStrategy,
+      Environment extends RuntimeEnvironment
+    >(
+      queries: QueryGetter<Model>
+    ): SubscriptionPromise<
+      Doc<Model>[],
+      SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+    >
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,

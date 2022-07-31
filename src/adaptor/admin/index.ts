@@ -133,10 +133,17 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     await this.firebaseDoc(id).delete()
   }
 
-  all(): Typesaurus.PromiseWithListSubscription<Model> {
+  all<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(): Typesaurus.SubscriptionPromise<
+    Doc<Model>[],
+    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+  > {
     const firebaseCollection = admin.firestore().collection(this.path)
 
-    return new TypesaurusUtils.SubscriptionPromise<Typesaurus.Doc<Model>[]>({
+    return new TypesaurusUtils.SubscriptionPromise({
       get: async () => {
         const snapshot = await this.firebaseCollection().get()
         return snapshot.docs.map(
@@ -145,12 +152,44 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
       },
 
       subscribe: (onResult, onError) =>
-        firebaseCollection.onSnapshot((snapshot) => {
-          onResult(
-            snapshot.docs.map(
-              (doc) => new Doc<Model>(this, doc.id, wrapData(doc.data()))
-            )
+        firebaseCollection.onSnapshot((firebaseSnap) => {
+          const docs = firebaseSnap.docs.map(
+            (doc) => new Doc<Model>(this, doc.id, wrapData(doc.data()))
           )
+
+          const changes = () =>
+            firebaseSnap.docChanges().map((change) => ({
+              type: change.type,
+              oldIndex: change.oldIndex,
+              newIndex: change.newIndex,
+              doc:
+                docs[
+                  change.type === 'removed' ? change.oldIndex : change.newIndex
+                ] ||
+                // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
+                // contain the removed document. In that case, we'll restore it from `change.doc`:
+                this.doc(
+                  change.doc.id,
+                  // collection.__type__ === 'collectionGroup'
+                  //   ? pathToRef(change.doc.ref.path)
+                  //   : ref(collection, change.doc.id),
+                  wrapData(change.doc.data())
+                  // {
+                  //   firestoreData: true,
+                  //   environment: a.environment,
+                  //   serverTimestamps: options?.serverTimestamps,
+                  //   ...a.getDocMeta(change.doc)
+                  // }
+                )
+            }))
+
+          const meta = {
+            changes,
+            size: firebaseSnap.size,
+            empty: firebaseSnap.empty
+          }
+
+          onResult(docs, meta)
         }, onError)
     })
   }
@@ -190,19 +229,19 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         // Firestore#getAll doesn't like empty lists
         if (ids.length === 0) return Promise.resolve([])
 
-        const firestoreSnaps = await admin
+        const firebaseSnap = await admin
           .firestore()
           .getAll(...ids.map((id) => this.firebaseDoc(id)))
 
-        return firestoreSnaps
-          .map((firestoreSnap) => {
-            if (!firestoreSnap.exists) {
+        return firebaseSnap
+          .map((firebaseSnap) => {
+            if (!firebaseSnap.exists) {
               if (options?.onMissing === 'ignore') {
                 return null
               } else {
                 return this.doc(
-                  firestoreSnap.id,
-                  (options?.onMissing || defaultOnMissing)(firestoreSnap.id)
+                  firebaseSnap.id,
+                  (options?.onMissing || defaultOnMissing)(firebaseSnap.id)
                   // {
                   //   firestoreData: true,
                   //   environment: a.environment,
@@ -213,10 +252,10 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
               }
             }
 
-            const firestoreData = firestoreSnap.data()
+            const firestoreData = firebaseSnap.data()
             const data = firestoreData && (wrapData(firestoreData) as Model)
             return this.doc(
-              firestoreSnap.id,
+              firebaseSnap.id,
               data /*, {
               firestoreData: true,
               environment: a.environment,
@@ -253,9 +292,16 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     })
   }
 
-  query(
+  query<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(
     getQueries: Typesaurus.QueryGetter<Model>
-  ): Typesaurus.SubscriptionPromise<Doc<Model>[]> {
+  ): Typesaurus.SubscriptionPromise<
+    Doc<Model>[],
+    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+  > {
     const queries = getQueries(this.queryHelpers())
     // Query accumulator, will contain final Firestore query with all the
     // filters and limits.
@@ -332,7 +378,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         firestoreQuery = firestoreQuery[method](...values)
       })
 
-    return new TypesaurusUtils.SubscriptionPromise<Doc<Model>[]>({
+    return new TypesaurusUtils.SubscriptionPromise({
       get: async () => {
         const firebaseSnap = await firestoreQuery.get()
         return firebaseSnap.docs.map((firebaseSnap) =>
@@ -371,7 +417,40 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
               // }
             )
           )
-          onResult(docs)
+
+          const changes = () =>
+            firebaseSnap.docChanges().map((change) => ({
+              type: change.type,
+              oldIndex: change.oldIndex,
+              newIndex: change.newIndex,
+              doc:
+                docs[
+                  change.type === 'removed' ? change.oldIndex : change.newIndex
+                ] ||
+                // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
+                // contain the removed document. In that case, we'll restore it from `change.doc`:
+                this.doc(
+                  change.doc.id,
+                  // collection.__type__ === 'collectionGroup'
+                  //   ? pathToRef(change.doc.ref.path)
+                  //   : ref(collection, change.doc.id),
+                  wrapData(change.doc.data())
+                  // {
+                  //   firestoreData: true,
+                  //   environment: a.environment,
+                  //   serverTimestamps: options?.serverTimestamps,
+                  //   ...a.getDocMeta(change.doc)
+                  // }
+                )
+            }))
+
+          const meta = {
+            changes,
+            size: firebaseSnap.size,
+            empty: firebaseSnap.empty
+          }
+
+          onResult(docs, meta)
         }, onError)
     })
   }

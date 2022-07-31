@@ -1,5 +1,6 @@
 import { TypesaurusUtils } from '.'
 import sinon from 'sinon'
+import { stringify } from 'querystring'
 
 describe('TypesaurusUtils', () => {
   describe('SubscriptionPromise', () => {
@@ -147,6 +148,25 @@ describe('TypesaurusUtils', () => {
 
         expect(onResult.calledWith('It works!')).toBe(true)
         expect(onResult.calledOnce).toBe(true)
+      })
+
+      it('allows to get pass meta information', () => {
+        const promise = new TypesaurusUtils.SubscriptionPromise<
+          string,
+          { meta: string }
+        >({
+          get: () => Promise.resolve('It works!'),
+
+          subscribe: (onResult, onError) => {
+            onResult('It works!', { meta: 'data' })
+            return () => {}
+          }
+        })
+
+        const onResult = sinon.spy()
+        promise.on(onResult)
+
+        expect(onResult.calledWith('It works!', { meta: 'data' })).toBe(true)
       })
 
       it('allows to subscribe multiple times', () => {
