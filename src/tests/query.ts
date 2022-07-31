@@ -898,139 +898,112 @@ describe('query', () => {
       })
     })
 
-    describe('', () => {
-      // beforeEach(async () => {
-      //   await Promise.all([
-      //     db.messages.add({
-      //       ownerId,
-      //       author: db.contacts.ref(sashaId),
-      //       text: '+1'
-      //     }),
-      //     db.messages.add({
-      //       ownerId,
-      //       author: db.contacts.ref(leshaId),
-      //       text: '+1'
-      //     }),
-      //     db.messages.add({
-      //       ownerId,
-      //       author: db.contacts.ref(tatiId),
-      //       text: 'wut'
-      //     }),
-      //     db.messages.add({
-      //       ownerId,
-      //       author: db.contacts.ref(sashaId),
-      //       text: 'lul'
-      //     })
-      //   ])
-      // })
+    it('expands references', () =>
+      new Promise((resolve) => {
+        const spy = sinon.spy()
+        off = db.messages
+          .query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.where('text', '==', '+1')
+          ])
+          .on(async (docs) => {
+            const authors = await Promise.all(
+              docs.map((doc) => doc.data.author.get())
+            )
+            spy(
+              sweep(authors)
+                .map(({ data: { name } }) => name)
+                .sort()
+            )
+            if (spy.calledWithMatch(['Lesha', 'Sasha'])) resolve(void 0)
+          })
+      }))
 
-      it('expands references', () =>
-        new Promise((resolve) => {
-          const spy = sinon.spy()
-          off = db.messages
-            .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.where('text', '==', '+1')
-            ])
-            .on(async (docs) => {
-              const authors = await Promise.all(
-                docs.map((doc) => doc.data.author.get())
-              )
-              spy(
-                sweep(authors)
-                  .map(({ data: { name } }) => name)
-                  .sort()
-              )
-              if (spy.calledWithMatch(['Lesha', 'Sasha'])) resolve(void 0)
-            })
-        }))
+    it('allows to query by reference', () =>
+      new Promise((resolve) => {
+        const spy = sinon.spy()
+        off = db.messages
+          .query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.where('author', '==', db.contacts.ref(sashaId))
+          ])
+          .on((docs) => {
+            spy(docs.map((doc) => doc.data.text).sort())
+            if (spy.calledWithMatch(['+1', 'lul'])) resolve(void 0)
+          })
+      }))
 
-      it('allows to query by reference', () =>
-        new Promise((resolve) => {
-          const spy = sinon.spy()
-          off = db.messages
-            .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.where('author', '==', db.contacts.ref(sashaId))
-            ])
-            .on((docs) => {
-              spy(docs.map((doc) => doc.data.text).sort())
-              if (spy.calledWithMatch(['+1', 'lul'])) resolve(void 0)
-            })
-        }))
-
-      //   it('allows querying collection groups', async () => {
-      //     const ownerId = nanoid()
-      //     const contactMessages = subcollection<Message, Contact>(
-      //       'contactMessages',
-      //       contacts
-      //     )
-      //     const sashaRef = ref(contacts, `${ownerId}-sasha`)
-      //     const sashasContactMessages = contactMessages(sashaRef)
-      //     add(sashasContactMessages, {
-      //       ownerId,
-      //       author: sashaRef,
-      //       text: 'Hello from Sasha!'
-      //     })
-      //     const tatiRef = ref(contacts, `${ownerId}-tati`)
-      //     const tatisContactMessages = contactMessages(tatiRef)
-      //     await Promise.all([
-      //       add(tatisContactMessages, {
-      //         ownerId,
-      //         author: tatiRef,
-      //         text: 'Hello from Tati!'
-      //       }),
-      //       add(tatisContactMessages, {
-      //         ownerId,
-      //         author: tatiRef,
-      //         text: 'Hello, again!'
-      //       })
-      //     ])
-      //     const allContactMessages = group('contactMessages', [contactMessages])
-      //     const spy = sinon.spy()
-      //     return new Promise((resolve) => {
-      //       off = onQuery(
-      //         allContactMessages,
-      //         [where('ownerId', '==', ownerId)],
-      //         async (messages) => {
-      //           spy(messages.map((m) => m.data.text).sort())
-      //           if (messages.length === 3) {
-      //             await Promise.all([
-      //               add(sashasContactMessages, {
-      //                 ownerId,
-      //                 author: sashaRef,
-      //                 text: '1'
-      //               }),
-      //               add(tatisContactMessages, {
-      //                 ownerId,
-      //                 author: tatiRef,
-      //                 text: '2'
-      //               })
-      //             ])
-      //           } else if (messages.length === 5) {
-      //             assert(
-      //               spy.calledWithMatch([
-      //                 'Hello from Sasha!',
-      //                 'Hello from Tati!',
-      //                 'Hello, again!'
-      //               ])
-      //             )
-      //             assert(
-      //               spy.calledWithMatch([
-      //                 '1',
-      //                 '2',
-      //                 'Hello from Sasha!',
-      //                 'Hello from Tati!',
-      //                 'Hello, again!'
-      //               ])
-      //             )
-      //             resolve(void 0)
-      //           }
-      //         }
-      //       )
-      //     })
-      //   })
-    })
+    //   it('allows querying collection groups', async () => {
+    //     const ownerId = nanoid()
+    //     const contactMessages = subcollection<Message, Contact>(
+    //       'contactMessages',
+    //       contacts
+    //     )
+    //     const sashaRef = ref(contacts, `${ownerId}-sasha`)
+    //     const sashasContactMessages = contactMessages(sashaRef)
+    //     add(sashasContactMessages, {
+    //       ownerId,
+    //       author: sashaRef,
+    //       text: 'Hello from Sasha!'
+    //     })
+    //     const tatiRef = ref(contacts, `${ownerId}-tati`)
+    //     const tatisContactMessages = contactMessages(tatiRef)
+    //     await Promise.all([
+    //       add(tatisContactMessages, {
+    //         ownerId,
+    //         author: tatiRef,
+    //         text: 'Hello from Tati!'
+    //       }),
+    //       add(tatisContactMessages, {
+    //         ownerId,
+    //         author: tatiRef,
+    //         text: 'Hello, again!'
+    //       })
+    //     ])
+    //     const allContactMessages = group('contactMessages', [contactMessages])
+    //     const spy = sinon.spy()
+    //     return new Promise((resolve) => {
+    //       off = onQuery(
+    //         allContactMessages,
+    //         [where('ownerId', '==', ownerId)],
+    //         async (messages) => {
+    //           spy(messages.map((m) => m.data.text).sort())
+    //           if (messages.length === 3) {
+    //             await Promise.all([
+    //               add(sashasContactMessages, {
+    //                 ownerId,
+    //                 author: sashaRef,
+    //                 text: '1'
+    //               }),
+    //               add(tatisContactMessages, {
+    //                 ownerId,
+    //                 author: tatiRef,
+    //                 text: '2'
+    //               })
+    //             ])
+    //           } else if (messages.length === 5) {
+    //             assert(
+    //               spy.calledWithMatch([
+    //                 'Hello from Sasha!',
+    //                 'Hello from Tati!',
+    //                 'Hello, again!'
+    //               ])
+    //             )
+    //             assert(
+    //               spy.calledWithMatch([
+    //                 '1',
+    //                 '2',
+    //                 'Hello from Sasha!',
+    //                 'Hello from Tati!',
+    //                 'Hello, again!'
+    //               ])
+    //             )
+    //             resolve(void 0)
+    //           }
+    //         }
+    //       )
+    //     })
+    //   })
 
     it('allows to query by date', () =>
       new Promise((resolve) => {
@@ -1073,31 +1046,6 @@ describe('query', () => {
             if (spy.calledWithMatch(['Lesha', 'Tati', 'Sasha'])) done()
           })
       })
-
-      //     beforeEach(() =>
-      //       Promise.all([
-      //         add(messages, {
-      //           ownerId,
-      //           author: ref(contacts, sashaId),
-      //           text: '+1'
-      //         }),
-      //         add(messages, {
-      //           ownerId,
-      //           author: ref(contacts, leshaId),
-      //           text: '+1'
-      //         }),
-      //         add(messages, {
-      //           ownerId,
-      //           author: ref(contacts, tatiId),
-      //           text: 'wut'
-      //         }),
-      //         add(messages, {
-      //           ownerId,
-      //           author: ref(contacts, sashaId),
-      //           text: 'lul'
-      //         })
-      //       ])
-      //     )
 
       it('allows ordering by references', () =>
         new Promise((resolve) => {
@@ -1164,408 +1112,485 @@ describe('query', () => {
         }))
     })
 
-    // describe('paginating', () => {
-    //   describe('startAfter', () => {
-    //     let page1Off: () => void
-    //     let page2Off: () => void
-    //     afterEach(() => {
-    //       page1Off && page1Off()
-    //       page2Off && page2Off()
-    //     })
-    //     it('allows to paginate', (done) => {
-    //       const spyPage1 = sinon.spy()
-    //       const spyPage2 = sinon.spy()
-    //       page1Off = onQuery(
-    //         contacts,
-    //         [
-    //           where('ownerId', '==', ownerId),
-    //           order('year', 'asc', [startAfter(undefined)]),
-    //           limit(2)
-    //         ],
-    //         (page1Docs) => {
-    //           spyPage1(page1Docs.map(({ data: { name } }) => name))
-    //           if (spyPage1.calledWithMatch(['Sasha', 'Tati'])) {
-    //             page1Off()
-    //             page2Off = onQuery(
-    //               contacts,
-    //               [
-    //                 where('ownerId', '==', ownerId),
-    //                 order('year', 'asc', [startAfter(page1Docs[1].data.year)]),
-    //                 limit(2)
-    //               ],
-    //               (page2Docs) => {
-    //                 spyPage2(page2Docs.map(({ data: { name } }) => name))
-    //                 if (spyPage2.calledWithMatch(['Lesha'])) done()
-    //               }
-    //             )
-    //           }
-    //         }
-    //       )
-    //     })
-    //   })
-    //   describe('startAt', () => {
-    //     it('allows to paginate', (done) => {
-    //       const spy = sinon.spy()
-    //       off = onQuery(
-    //         contacts,
-    //         [
-    //           where('ownerId', '==', ownerId),
-    //           order('year', 'asc', [startAt(1989)]),
-    //           limit(2)
-    //         ],
-    //         (docs) => {
-    //           spy(docs.map(({ data: { name } }) => name))
-    //           if (spy.calledWithMatch(['Tati', 'Lesha'])) done()
-    //         }
-    //       )
-    //     })
-    //   })
-    //   describe('endBefore', () => {
-    //     it('allows to paginate', (done) => {
-    //       const spy = sinon.spy()
-    //       off = onQuery(
-    //         contacts,
-    //         [
-    //           where('ownerId', '==', ownerId),
-    //           order('year', 'asc', [endBefore(1989)]),
-    //           limit(2)
-    //         ],
-    //         (docs) => {
-    //           spy(docs.map(({ data: { name } }) => name))
-    //           if (spy.calledWithMatch(['Sasha'])) done()
-    //         }
-    //       )
-    //     })
-    //   })
-    //   describe('endAt', () => {
-    //     it('allows to paginate', (done) => {
-    //       const spy = sinon.spy()
-    //       off = onQuery(
-    //         contacts,
-    //         [
-    //           where('ownerId', '==', ownerId),
-    //           order('year', 'asc', [endAt(1989)]),
-    //           limit(2)
-    //         ],
-    //         (docs) => {
-    //           spy(docs.map(({ data: { name } }) => name))
-    //           if (spy.calledWithMatch(['Sasha', 'Tati'])) done()
-    //         }
-    //       )
-    //     })
-    //   })
-    //   it('uses asc ordering method by default', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       contacts,
-    //       [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', [startAt(1989)]),
-    //         limit(2)
-    //       ],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name))
-    //         if (spy.calledWithMatch(['Tati', 'Lesha'])) done()
-    //       }
-    //     )
-    //   })
-    //   it('allows specify multiple cursor conditions', async () => {
-    //     const spy = sinon.spy()
-    //     type City = { mapId: string; name: string; state: string }
-    //     const cities = collection<City>('cities')
-    //     const mapId = nanoid()
-    //     await Promise.all([
-    //       add(cities, {
-    //         mapId,
-    //         name: 'Springfield',
-    //         state: 'Massachusetts'
-    //       }),
-    //       add(cities, {
-    //         mapId,
-    //         name: 'Springfield',
-    //         state: 'Missouri'
-    //       }),
-    //       add(cities, {
-    //         mapId,
-    //         name: 'Springfield',
-    //         state: 'Wisconsin'
-    //       })
-    //     ])
-    //     return new Promise(async (resolve) => {
-    //       off = await onQuery(
-    //         cities,
-    //         [
-    //           where('mapId', '==', mapId),
-    //           order('name', 'asc', [startAt('Springfield')]),
-    //           order('state', 'asc', [startAt('Missouri')]),
-    //           limit(2)
-    //         ],
-    //         (docs) => {
-    //           spy(docs.map(({ data: { name, state } }) => `${name}, ${state}`))
-    //           if (
-    //             spy.calledWithMatch([
-    //               'Springfield, Missouri',
-    //               'Springfield, Wisconsin'
-    //             ])
-    //           )
-    //             resolve(void 0)
-    //         }
-    //       )
-    //     })
-    //   })
-    //   it('allows to combine cursors', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       contacts,
-    //       [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [startAt(1989), endAt(1989)]),
-    //         limit(2)
-    //       ],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name))
-    //         if (spy.calledWithMatch(['Tati'])) done()
-    //       }
-    //     )
-    //   })
-    //   it('allows to pass docs as cursors', async (done) => {
-    //     const tati = await get(contacts, tatiId)
-    //     off = onQuery(
-    //       contacts,
-    //       [
-    //         where('ownerId', '==', ownerId),
-    //         order('year', 'asc', [startAt(tati!)]),
-    //         limit(2)
-    //       ],
-    //       (docs) => {
-    //         off?.()
-    //         assert.deepEqual(
-    //           docs.map(({ data: { name } }) => name),
-    //           ['Tati', 'Lesha']
-    //         )
-    //         done()
-    //       }
-    //     )
-    //   })
-    //   it('allows using dates as cursors', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       contacts,
-    //       [
-    //         where('ownerId', '==', ownerId),
-    //         order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-    //         limit(2)
-    //       ],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name))
-    //         if (spy.calledWithMatch(['Tati', 'Lesha'])) done()
-    //       }
-    //     )
-    //   })
-    // })
-    // describe('docId', () => {
-    //   type Counter = { n: number }
-    //   const shardedCounters = collection<Counter>('shardedCounters')
-    //   it('allows to query by documentId', async (done) => {
-    //     await Promise.all([
-    //       set(shardedCounters, `draft-0`, { n: 0 }),
-    //       set(shardedCounters, `draft-1`, { n: 0 }),
-    //       set(shardedCounters, `published-0`, { n: 0 }),
-    //       set(shardedCounters, `published-1`, { n: 0 }),
-    //       set(shardedCounters, `suspended-0`, { n: 0 }),
-    //       set(shardedCounters, `suspended-1`, { n: 0 })
-    //     ])
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       shardedCounters,
-    //       [where(docId, '>=', 'published'), where(docId, '<', 'publishee')],
-    //       (docs) => {
-    //         spy(docs.map((doc) => doc.ref.id))
-    //         if (spy.calledWithMatch(['published-0', 'published-1'])) done()
-    //       }
-    //     )
-    //   })
-    //   // NOTE: For some reason, my Firestore instance fails to add a composite
-    //   // index for that, so I have do disable this in the system tests.
-    //   // @kossnocorp
-    //   if (process.env.FIRESTORE_EMULATOR_HOST) {
-    //     it('allows ordering by documentId', () => {
-    //       const offs: Array<() => void> = []
-    //       return Promise.all([
-    //         new Promise((resolve) => {
-    //           const spy = sinon.spy()
-    //           offs.push(
-    //             onQuery(
-    //               shardedCounters,
-    //               [
-    //                 where(docId, '>=', 'published'),
-    //                 where(docId, '<', 'publishee'),
-    //                 order(docId, 'desc')
-    //               ],
-    //               (descend) => {
-    //                 spy(descend.map((doc) => doc.ref.id))
-    //                 if (spy.calledWithMatch(['published-1', 'published-0']))
-    //                   resolve(void 0)
-    //               }
-    //             )
-    //           )
-    //         }),
-    //         new Promise((resolve) => {
-    //           const spy = sinon.spy()
-    //           offs.push(
-    //             onQuery(
-    //               shardedCounters,
-    //               [
-    //                 where(docId, '>=', 'published'),
-    //                 where(docId, '<', 'publishee'),
-    //                 order(docId, 'asc')
-    //               ],
-    //               (ascend) => {
-    //                 spy(ascend.map((doc) => doc.ref.id))
-    //                 if (spy.calledWithMatch(['published-0', 'published-1']))
-    //                   resolve(void 0)
-    //               }
-    //             )
-    //           )
-    //         })
-    //       ])
-    //     })
-    //   }
-    //   it('allows cursors to use documentId', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       shardedCounters,
-    //       [order(docId, 'asc', [startAt('draft-1'), endAt('published-1')])],
-    //       (docs) => {
-    //         spy(docs.map((doc) => doc.ref.id))
-    //         if (spy.calledWithMatch(['draft-1', 'published-0', 'published-1']))
-    //           done()
-    //       }
-    //     )
-    //   })
-    // })
+    describe('paginating', () => {
+      describe('startAfter', () => {
+        let page1Off: () => void
+        let page2Off: () => void
+
+        afterEach(() => {
+          page1Off && page1Off()
+          page2Off && page2Off()
+        })
+
+        it('allows to paginate', () =>
+          new Promise((resolve) => {
+            const spyPage1 = sinon.spy()
+            const spyPage2 = sinon.spy()
+            page1Off = db.contacts
+              .query(($) => [
+                $.where('ownerId', '==', ownerId),
+                $.order('year', 'asc', $.startAfter(undefined)),
+                $.limit(2)
+              ])
+              .on((page1Docs) => {
+                spyPage1(page1Docs.map(({ data: { name } }) => name))
+                if (spyPage1.calledWithMatch(['Sasha', 'Tati'])) {
+                  page1Off()
+                  page2Off = db.contacts
+                    .query(($) => [
+                      $.where('ownerId', '==', ownerId),
+                      $.order(
+                        'year',
+                        'asc',
+                        $.startAfter(page1Docs[1]?.data.year)
+                      ),
+                      $.limit(2)
+                    ])
+                    .on((page2Docs) => {
+                      spyPage2(page2Docs.map(({ data: { name } }) => name))
+                      if (spyPage2.calledWithMatch(['Lesha'])) resolve(void 0)
+                    })
+                }
+              })
+          }))
+      })
+
+      describe('startAt', () => {
+        it('allows to paginate', () =>
+          new Promise((resolve) => {
+            const spy = sinon.spy()
+            off = db.contacts
+              .query(($) => [
+                $.where('ownerId', '==', ownerId),
+                $.order('year', 'asc', $.startAt(1989)),
+                $.limit(2)
+              ])
+              .on((docs) => {
+                spy(docs.map(({ data: { name } }) => name))
+                if (spy.calledWithMatch(['Tati', 'Lesha'])) resolve(void 0)
+              })
+          }))
+      })
+
+      describe('endBefore', () => {
+        it('allows to paginate', () =>
+          new Promise((resolve) => {
+            const spy = sinon.spy()
+            off = db.contacts
+              .query(($) => [
+                $.where('ownerId', '==', ownerId),
+                $.order('year', 'asc', $.endBefore(1989)),
+                $.limit(2)
+              ])
+              .on((docs) => {
+                spy(docs.map(({ data: { name } }) => name))
+                if (spy.calledWithMatch(['Sasha'])) resolve(void 0)
+              })
+          }))
+      })
+
+      describe('endAt', () => {
+        it('allows to paginate', () =>
+          new Promise((resolve) => {
+            const spy = sinon.spy()
+            off = db.contacts
+              .query(($) => [
+                $.where('ownerId', '==', ownerId),
+                $.order('year', 'asc', $.endAt(1989)),
+                $.limit(2)
+              ])
+              .on((docs) => {
+                spy(docs.map(({ data: { name } }) => name))
+                if (spy.calledWithMatch(['Sasha', 'Tati'])) resolve(void 0)
+              })
+          }))
+      })
+
+      it('uses asc ordering method by default', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('year', $.startAt(1989)),
+              $.limit(2)
+            ])
+            .on((docs) => {
+              spy(docs.map(({ data: { name } }) => name))
+              if (spy.calledWithMatch(['Tati', 'Lesha'])) resolve(void 0)
+            })
+        }))
+
+      it('allows specify multiple cursor conditions', async () => {
+        interface City {
+          mapId: string
+          name: string
+          state: string
+        }
+
+        const db = schema(($) => ({
+          cities: $.collection<City>()
+        }))
+
+        const mapId = nanoid()
+        const spy = sinon.spy()
+
+        await Promise.all([
+          db.cities.add({
+            mapId,
+            name: 'Springfield',
+            state: 'Massachusetts'
+          }),
+          db.cities.add({
+            mapId,
+            name: 'Springfield',
+            state: 'Missouri'
+          }),
+          db.cities.add({
+            mapId,
+            name: 'Springfield',
+            state: 'Wisconsin'
+          })
+        ])
+
+        return new Promise(async (resolve) => {
+          off = await db.cities
+            .query(($) => [
+              $.where('mapId', '==', mapId),
+              $.order('name', 'asc', $.startAt('Springfield')),
+              $.order('state', 'asc', $.startAt('Missouri')),
+              $.limit(2)
+            ])
+            .on((docs) => {
+              spy(docs.map(({ data: { name, state } }) => `${name}, ${state}`))
+              if (
+                spy.calledWithMatch([
+                  'Springfield, Missouri',
+                  'Springfield, Wisconsin'
+                ])
+              )
+                resolve(void 0)
+            })
+        })
+      })
+
+      it('allows to combine cursors', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('year', 'asc', $.startAt(1989), $.endAt(1989)),
+              $.limit(2)
+            ])
+            .on((docs) => {
+              spy(docs.map(({ data: { name } }) => name))
+              if (spy.calledWithMatch(['Tati'])) resolve(void 0)
+            })
+        }))
+
+      it('allows to pass docs as cursors', () =>
+        new Promise(async (resolve) => {
+          const tati = await db.contacts.get(tatiId)
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('year', 'asc', $.startAt(tati!)),
+              $.limit(2)
+            ])
+            .on((docs) => {
+              off?.()
+              expect(docs.map(({ data: { name } }) => name)).toEqual([
+                'Tati',
+                'Lesha'
+              ])
+              resolve(void 0)
+            })
+        }))
+
+      it('allows using dates as cursors', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('birthday', 'asc', $.startAt(new Date(1989, 6, 10))),
+              $.limit(2)
+            ])
+            .on((docs) => {
+              spy(docs.map(({ data: { name } }) => name))
+              if (spy.calledWithMatch(['Tati', 'Lesha'])) resolve(void 0)
+            })
+        }))
+    })
+
+    describe('docId', () => {
+      interface Counter {
+        n: number
+      }
+
+      const db = schema(($) => ({
+        shardedCounters: $.collection<Counter>()
+      }))
+
+      it('allows to query by documentId', () =>
+        new Promise(async (resolve) => {
+          await Promise.all([
+            db.shardedCounters.set(`draft-0`, { n: 0 }),
+            db.shardedCounters.set(`draft-1`, { n: 0 }),
+            db.shardedCounters.set(`published-0`, { n: 0 }),
+            db.shardedCounters.set(`published-1`, { n: 0 }),
+            db.shardedCounters.set(`suspended-0`, { n: 0 }),
+            db.shardedCounters.set(`suspended-1`, { n: 0 })
+          ])
+
+          const spy = sinon.spy()
+
+          off = db.shardedCounters
+            .query(($) => [
+              $.where($.docId(), '>=', 'published'),
+              $.where($.docId(), '<', 'publishee')
+            ])
+            .on((docs) => {
+              spy(docs.map((doc) => doc.ref.id))
+              if (spy.calledWithMatch(['published-0', 'published-1']))
+                resolve(void 0)
+            })
+        }))
+
+      // NOTE: For some reason, my Firestore instance fails to add a composite
+      // index for that, so I have do disable this in the system tests.
+      // @kossnocorp
+      //   if (process.env.FIRESTORE_EMULATOR_HOST) {
+      it('allows ordering by documentId', () => {
+        const offs: Array<() => void> = []
+
+        return Promise.all([
+          // NOTE: At the moment descending order is not supported:
+          // https://stackoverflow.com/a/52119324
+          // new Promise((resolve) => {
+          //   const spy = sinon.spy()
+          //   offs.push(
+          //     db.shardedCounters
+          //       .query(($) => [
+          //         $.where($.docId(), '>=', 'published'),
+          //         $.where($.docId(), '<', 'publishee'),
+          //         $.order($.docId(), 'desc')
+          //       ])
+          //       .on((descend) => {
+          //         spy(descend.map((doc) => doc.ref.id))
+          //         if (spy.calledWithMatch(['published-1', 'published-0']))
+          //           resolve(void 0)
+          //       })
+          //   )
+          // }),
+
+          new Promise((resolve) => {
+            const spy = sinon.spy()
+            offs.push(
+              db.shardedCounters
+                .query(($) => [
+                  $.where($.docId(), '>=', 'published'),
+                  $.where($.docId(), '<', 'publishee'),
+                  $.order($.docId(), 'asc')
+                ])
+                .on((ascend) => {
+                  spy(ascend.map((doc) => doc.ref.id))
+                  if (spy.calledWithMatch(['published-0', 'published-1']))
+                    resolve(void 0)
+                })
+            )
+          })
+        ])
+      })
+      //   }
+
+      it('allows cursors to use documentId', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.shardedCounters
+            .query(($) => [
+              $.order(
+                $.docId(),
+                'asc',
+                $.startAt('draft-1'),
+                $.endAt('published-1')
+              )
+            ])
+            .on((docs) => {
+              spy(docs.map((doc) => doc.ref.id))
+              if (
+                spy.calledWithMatch(['draft-1', 'published-0', 'published-1'])
+              )
+                resolve(void 0)
+            })
+        }))
+    })
+
     // describe('empty', () => {
-    //   it('should notify with values all indicate empty', (done) => {
-    //     off = onQuery(
-    //       collection<{ ability: string[] }>('penguin'),
-    //       [where('ability', 'array-contains', 'fly')],
-    //       (docs, { changes, empty }) => {
-    //         expect(empty).toBeTruthy()
-    //         assert(docs.length === 0)
-    //         expect(changes().length === 0)
-    //         done()
+    //   it('should notify with values all indicate empty', () =>
+    //     new Promise((resolve) => {
+    //       interface Penguin {
+    //         ability: string[]
     //       }
-    //     )
-    //   })
+
+    //       const db = schema(($) => ({
+    //         penguins: $.collection<Penguin>()
+    //       }))
+
+    //       off = db.penguin
+    //         .query(($) => [$.where('ability', 'array-contains', 'fly')])
+    //         .on((docs, { changes, empty }) => {
+    //           expect(empty).toBeTruthy()
+    //           expect(docs.length).toBe(0)
+    //           expect(changes().length).toBe(0)
+    //           resolve(void 0)
+    //         })
+    //     }))
     // })
-    // describe('real-time', () => {
-    //   const theoId = `theo-${ownerId}`
-    //   afterEach(async () => {
-    //     await remove(contacts, theoId)
-    //   })
-    //   it('subscribes to updates', (done) => {
-    //     let c = 0
-    //     off = onQuery(
-    //       contacts,
-    //       [
-    //         where('ownerId', '==', ownerId),
-    //         // TODO: Figure out why when a timestamp is used, the order is incorrect
-    //         // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-    //         order('year', 'asc', [startAt(1989)]),
-    //         limit(3)
-    //       ],
-    //       async (docs, { changes }) => {
-    //         const names = docs.map(({ data: { name } }) => name).sort()
-    //         const docChanges = changes()
-    //           .map(({ type, doc: { data: { name } } }) => ({ type, name }))
-    //           .sort((a, b) => a.name.localeCompare(b.name))
-    //         switch (++c) {
-    //           case 1:
-    //             expect(names).toEqual(['Lesha', 'Tati'])
-    //             expect(docChanges).toEqual([
-    //               { type: 'added', name: 'Lesha' },
-    //               { type: 'added', name: 'Tati' }
-    //             ])
-    //             await set(contacts, theoId, {
-    //               ownerId,
-    //               name: 'Theodor',
-    //               year: 2019,
-    //               birthday: new Date(2019, 5, 4)
-    //             })
-    //             return
-    //           case 2:
-    //             expect(names).toEqual(['Lesha', 'Tati', 'Theodor'])
-    //             expect(docChanges).toEqual([{ type: 'added', name: 'Theodor' }])
-    //             await remove(contacts, leshaId)
-    //             return
-    //           case 3:
-    //             expect(docChanges).toEqual([{ type: 'removed', name: 'Theodor' }])
-    //             done()
-    //         }
-    //       }
-    //     )
-    //   })
-    //   // TODO: WTF browser Firebase returns elements gradually unlike Node.js version.
-    //   // TODO: For whatever reason this test fails within the emulator environment
-    //   if (typeof window === 'undefined' && !process.env.FIRESTORE_EMULATOR_HOST) {
-    //     it('returns function that unsubscribes from the updates', () => {
-    //       return new Promise(async (resolve) => {
-    //         const spy = sinon.spy()
-    //         const on = () => {
-    //           off = onQuery(
-    //             contacts,
-    //             [
-    //               where('ownerId', '==', ownerId),
-    //               // TODO: Figure out why when a timestamp is used, the order is incorrect
-    //               // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-    //               order('year', 'asc', [startAt(1989)]),
-    //               limit(3)
-    //             ],
-    //             async (docs) => {
-    //               const names = docs.map(({ data: { name } }) => name)
-    //               spy(names)
-    //               if (
-    //                 spy.calledWithMatch(['Tati', 'Theodor']) &&
-    //                 spy.neverCalledWithMatch(['Tati', 'Lesha', 'Theodor'])
-    //               )
-    //                 resolve(void 0)
-    //             }
-    //           )
-    //         }
-    //         on()
-    //         off?.()
-    //         await remove(contacts, leshaId)
-    //         on()
-    //       })
-    //     })
-    //   }
-    //   // TODO: For whatever reason this test fails within the emulator environment
-    //   if (!process.env.FIRESTORE_EMULATOR_HOST) {
-    //     it('calls onError when query is invalid', (done) => {
-    //       const onResult = sinon.spy()
-    //       off = onQuery(
-    //         contacts,
-    //         [
-    //           where('ownerId', '==', ownerId),
-    //           where('year', '>', 1989),
-    //           where('birthday', '>', new Date(1989, 6, 10))
-    //         ],
-    //         onResult,
-    //         (err) => {
-    //           assert(!onResult.called)
-    //           assert(
-    //             // Node.js:
-    //             err.message.match(
-    //               /Cannot have inequality filters on multiple properties: birthday/
-    //             ) ||
-    //               // Browser:
-    //               err.message.match(/Invalid query/)
-    //           )
-    //           done()
-    //         }
-    //       )
-    //     })
-    //   }
-    // })
+
+    describe('real-time', () => {
+      const theoId = `theo-${ownerId}`
+      const harryId = `harry-${ownerId}`
+      const ronId = `ron-${ownerId}`
+
+      afterEach(() =>
+        Promise.all([
+          db.contacts.remove(theoId),
+          db.contacts.remove(harryId),
+          db.contacts.remove(ronId)
+        ])
+      )
+
+      // it('subscribes to updates', () =>
+      //   new Promise((resolve) => {
+      //     let c = 0
+      //     off = db.contacts
+      //       .query(($) => [
+      //         $.where('ownerId', '==', ownerId),
+      //         // TODO: Figure out why when a timestamp is used, the order is incorrect
+      //         // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
+      //         $.order('year', 'asc', $.startAt(1989)),
+      //         $.limit(3)
+      //       ])
+      //       .on(async (docs, { changes }) => {
+      //         const names = docs.map(({ data: { name } }) => name).sort()
+      //         const docChanges = changes()
+      //           .map(
+      //             ({
+      //               type,
+      //               doc: {
+      //                 data: { name }
+      //               }
+      //             }) => ({ type, name })
+      //           )
+      //           .sort((a, b) => a.name.localeCompare(b.name))
+      //         switch (++c) {
+      //           case 1:
+      //             expect(names).toEqual(['Lesha', 'Tati'])
+      //             expect(docChanges).toEqual([
+      //               { type: 'added', name: 'Lesha' },
+      //               { type: 'added', name: 'Tati' }
+      //             ])
+      //             await db.contacts.set(theoId, {
+      //               ownerId,
+      //               name: 'Theodor',
+      //               year: 2019,
+      //               birthday: new Date(2019, 5, 4)
+      //             })
+      //             return
+      //           case 2:
+      //             expect(names).toEqual(['Lesha', 'Tati', 'Theodor'])
+      //             expect(docChanges).toEqual([
+      //               { type: 'added', name: 'Theodor' }
+      //             ])
+      //             await db.contacts.remove(leshaId)
+      //             return
+      //           case 3:
+      //             expect(docChanges).toEqual([
+      //               { type: 'removed', name: 'Theodor' }
+      //             ])
+      //             resolve(void 0)
+      //         }
+      //       })
+      //   }))
+
+      //   // TODO: WTF browser Firebase returns elements gradually unlike Node.js version.
+      //   if (typeof window === 'undefined') {
+      it('returns function that unsubscribes from the updates', async () => {
+        const spy = sinon.spy()
+
+        const equal = (a: string[], b: string[]) =>
+          a.length === b.length && a.every((v, i) => v === b[i])
+
+        const on = (condition: (names: string[]) => boolean) =>
+          new Promise((resolveCondition) => {
+            off = db.contacts
+              .query(($) => [
+                $.where('ownerId', '==', ownerId),
+                // TODO: Figure out why when a timestamp is used, the order is incorrect
+                // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
+                $.order('year', 'asc', $.startAt(1989)),
+                $.limit(3)
+              ])
+              .on(async (docs) => {
+                const names = docs.map(({ data: { name } }) => name)
+                spy(names)
+                if (condition(names)) resolveCondition(void 0)
+              })
+          })
+
+        await on((names) => equal(names, ['Tati', 'Lesha']))
+        off?.()
+        const harry = await db.contacts.set(harryId, {
+          ownerId,
+          name: 'Harry',
+          year: 1996,
+          birthday: new Date(1995, 6, 2)
+        })
+        await harry.remove()
+
+        setTimeout(async () => {
+          await db.contacts.set(ronId, {
+            ownerId,
+            name: 'Ron',
+            year: 1997,
+            birthday: new Date(1997, 6, 2)
+          })
+        })
+
+        await on((names) => equal(names, ['Tati', 'Lesha', 'Ron']))
+
+        expect(spy.neverCalledWithMatch(['Tati', 'Lesha', 'Harry'])).toBe(true)
+      })
+      //   }
+
+      it('calls onError when query is invalid', () =>
+        new Promise((resolve) => {
+          const onResult = sinon.spy()
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.where('year', '>', 1989),
+              $.where('birthday', '>', new Date(1989, 6, 10))
+            ])
+            .on(onResult)
+            .catch((error) => {
+              expect(!onResult.called).toBe(true)
+
+              if (!(error instanceof Error)) throw new Error('Unexpected error')
+
+              expect(
+                // Node.js|browser
+                /(Cannot have inequality filters on multiple properties|Invalid query)/.test(
+                  error.message
+                )
+              ).toBe(true)
+
+              resolve(void 0)
+            })
+        }))
+    })
   })
 })
