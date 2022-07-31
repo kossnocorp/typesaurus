@@ -234,74 +234,74 @@ describe('all', () => {
     //   })
     // })
 
-    // describe('empty', () => {
-    //   it('should notify with values all indicate empty', () =>
-    //     new Promise((resolve) => {
-    //       const db = schema(($) => ({ void: $.collection() }))
+    describe('empty', () => {
+      it('should notify with values all indicate empty', () =>
+        new Promise((resolve) => {
+          const db = schema(($) => ({ void: $.collection() }))
 
-    //       off = db.void.all().on((docs, { changes, empty }) => {
-    //         expect(empty).toBeTruthy()
-    //         expect(docs.length).toBe(0)
-    //         expect(changes().length).toBe(0)
-    //         resolve(void 0)
-    //       })
-    //     }))
-    // })
+          off = db.void.all().on((docs, { changes, empty }) => {
+            expect(empty).toBeTruthy()
+            expect(docs.length).toBe(0)
+            expect(changes().length).toBe(0)
+            resolve(void 0)
+          })
+        }))
+    })
 
     describe('real-time', () => {
-      // it('subscribes to updates', () =>
-      //   new Promise((resolve) => {
-      //     let c = 0
-      //     off = db.books.all().on(async (docs, { changes }) => {
-      //       const titles = docs.map(({ data: { title } }) => title).sort()
-      //       const docChanges = changes()
-      //         .map(
-      //           ({
-      //             type,
-      //             doc: {
-      //               data: { title }
-      //             }
-      //           }) => ({ type, title })
-      //         )
-      //         .sort((a, b) => a.title.localeCompare(b.title))
+      it('subscribes to updates', () =>
+        new Promise((resolve) => {
+          let c = 0
+          off = db.books.all().on(async (docs, { changes }) => {
+            const titles = docs.map(({ data: { title } }) => title).sort()
+            const docChanges = changes()
+              .map(
+                ({
+                  type,
+                  doc: {
+                    data: { title }
+                  }
+                }) => ({ type, title })
+              )
+              .sort((a, b) => a.title.localeCompare(b.title))
 
-      //       switch (++c) {
-      //         case 1:
-      //           expect(titles).toEqual([
-      //             'Sapiens',
-      //             'The 22 Immutable Laws of Marketing',
-      //             'The Mom Test'
-      //           ])
-      //           expect(docChanges).toEqual([
-      //             { type: 'added', title: 'Sapiens' },
-      //             {
-      //               type: 'added',
-      //               title: 'The 22 Immutable Laws of Marketing'
-      //             },
-      //             { type: 'added', title: 'The Mom Test' }
-      //           ])
-      //           await db.books.set('hp1', {
-      //             title: "Harry Potter and the Sorcerer's Stone"
-      //           })
-      //           return
+            switch (++c) {
+              case 1:
+                expect(titles).toEqual([
+                  'Sapiens',
+                  'The 22 Immutable Laws of Marketing',
+                  'The Mom Test'
+                ])
+                expect(docChanges).toEqual([
+                  { type: 'added', title: 'Sapiens' },
+                  {
+                    type: 'added',
+                    title: 'The 22 Immutable Laws of Marketing'
+                  },
+                  { type: 'added', title: 'The Mom Test' }
+                ])
+                await db.books.set('hp1', {
+                  title: "Harry Potter and the Sorcerer's Stone"
+                })
+                return
 
-      //         case 2:
-      //           expect(titles).toEqual([
-      //             "Harry Potter and the Sorcerer's Stone",
-      //             'Sapiens',
-      //             'The 22 Immutable Laws of Marketing',
-      //             'The Mom Test'
-      //           ])
-      //           expect(docChanges).toEqual([
-      //             {
-      //               type: 'added',
-      //               title: "Harry Potter and the Sorcerer's Stone"
-      //             }
-      //           ])
-      //           resolve(void 0)
-      //       }
-      //     })
-      //   }))
+              case 2:
+                expect(titles).toEqual([
+                  "Harry Potter and the Sorcerer's Stone",
+                  'Sapiens',
+                  'The 22 Immutable Laws of Marketing',
+                  'The Mom Test'
+                ])
+                expect(docChanges).toEqual([
+                  {
+                    type: 'added',
+                    title: "Harry Potter and the Sorcerer's Stone"
+                  }
+                ])
+                resolve(void 0)
+            }
+          })
+        }))
 
       // TODO: WTF browser Firebase returns elements gradually unlike Node.js version.
       // if (typeof window === undefined) {

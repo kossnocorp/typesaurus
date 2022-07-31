@@ -161,45 +161,54 @@ export namespace TypesaurusUtils {
 
   export type SubscriptionPromiseGet<Result> = () => Promise<Result>
 
-  export type SubscriptionPromiseResultCallback<Result> = (
-    result: Result
-  ) => void
+  export type SubscriptionPromiseResultCallback<Result, SubscriptionMeta> =
+    SubscriptionMeta extends undefined
+      ? (result: Result) => void
+      : (result: Result, meta: SubscriptionMeta) => void
 
   export type SubscriptionPromiseErrorCallback = (error: Error) => void
 
-  export type SubscriptionPromiseSubscribe<Result> = (
-    resultCallback: SubscriptionPromiseResultCallback<Result>,
+  export type SubscriptionPromiseSubscribe<Result, SubscriptionMeta> = (
+    resultCallback: SubscriptionPromiseResultCallback<Result, SubscriptionMeta>,
     errorCallback: SubscriptionPromiseErrorCallback
   ) => Typesaurus.OffSubscription
 
-  export interface SubscriptionPromiseProps<Result> {
+  export interface SubscriptionPromiseProps<Result, SubscriptionMeta> {
     get: SubscriptionPromiseGet<Result>
-    subscribe: SubscriptionPromiseSubscribe<Result>
+    subscribe: SubscriptionPromiseSubscribe<Result, SubscriptionMeta>
   }
 
-  export interface SubscriptionPromiseSubscriptions<Result> {
-    result: SubscriptionPromiseResultCallback<Result>[]
+  export interface SubscriptionPromiseSubscriptions<Result, SubscriptionMeta> {
+    result: SubscriptionPromiseResultCallback<Result, SubscriptionMeta>[]
     error: SubscriptionPromiseErrorCallback[]
   }
 
-  export class SubscriptionPromise<Result>
+  export class SubscriptionPromise<Result, SubscriptionMeta = undefined>
     implements Typesaurus.SubscriptionPromise<Result>
   {
     private result: Result | undefined
+
+    private subscriptionMeta: SubscriptionMeta | undefined
 
     private error: unknown
 
     private get: SubscriptionPromiseGet<Result>
 
-    private subscribe: SubscriptionPromiseSubscribe<Result>
+    private subscribe: SubscriptionPromiseSubscribe<Result, SubscriptionMeta>
 
     private promise: Promise<Result> | undefined
 
     private off: (() => void) | undefined
 
-    private subscriptions: SubscriptionPromiseSubscriptions<Result>
+    private subscriptions: SubscriptionPromiseSubscriptions<
+      Result,
+      SubscriptionMeta
+    >
 
-    constructor({ get, subscribe }: SubscriptionPromiseProps<Result>) {
+    constructor({
+      get,
+      subscribe
+    }: SubscriptionPromiseProps<Result, SubscriptionMeta>) {
       this.get = get
       this.subscribe = subscribe
       this.subscriptions = { result: [], error: [] }
@@ -236,19 +245,22 @@ export namespace TypesaurusUtils {
     }
 
     on(
-      callback: Typesaurus.SubscriptionPromiseCallback<Result>
+      callback: Typesaurus.SubscriptionPromiseCallback<Result, SubscriptionMeta>
     ): Typesaurus.OffSubscriptionWithCatch {
       if (this.promise) throw new Error("Can't subscribe after awaiting")
 
       this.subscriptions.result.push(callback)
 
       if (this.off) {
-        if (this.result) callback(this.result)
+        if (this.result) callback(this.result, this.subscriptionMeta)
       } else {
         this.off = this.subscribe(
-          (result) => {
+          (result, meta) => {
             this.result = result
-            this.subscriptions.result.forEach((callback) => callback(result))
+            this.subscriptionMeta = meta
+            this.subscriptions.result.forEach((callback) =>
+              callback(result, meta)
+            )
           },
           (error) => {
             this.error = error
