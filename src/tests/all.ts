@@ -116,7 +116,7 @@ describe('all', () => {
     })
 
     it('returns all documents in a collection', () =>
-      new Promise((done) => {
+      new Promise((resolve) => {
         const spy = sinon.spy()
         off = db.books.all().on((docs) => {
           spy(docs.map(({ data: { title } }) => title).sort())
@@ -127,7 +127,7 @@ describe('all', () => {
               'The Mom Test'
             ])
           )
-            done(void 0)
+            resolve(void 0)
         })
       }))
 
@@ -236,21 +236,21 @@ describe('all', () => {
 
     // describe('empty', () => {
     //   it('should notify with values all indicate empty', () =>
-    //     new Promise((done) => {
+    //     new Promise((resolve) => {
     //       const db = schema(($) => ({ void: $.collection() }))
 
     //       off = db.void.all().on((docs, { changes, empty }) => {
     //         expect(empty).toBeTruthy()
     //         expect(docs.length).toBe(0)
     //         expect(changes().length).toBe(0)
-    //         done(void 0)
+    //         resolve(void 0)
     //       })
     //     }))
     // })
 
     describe('real-time', () => {
       // it('subscribes to updates', () =>
-      //   new Promise((done) => {
+      //   new Promise((resolve) => {
       //     let c = 0
       //     off = db.books.all().on(async (docs, { changes }) => {
       //       const titles = docs.map(({ data: { title } }) => title).sort()
@@ -298,7 +298,7 @@ describe('all', () => {
       //               title: "Harry Potter and the Sorcerer's Stone"
       //             }
       //           ])
-      //           done(void 0)
+      //           resolve(void 0)
       //       }
       //     })
       //   }))

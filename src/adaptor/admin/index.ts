@@ -250,7 +250,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     })
   }
 
-  async query(getQueries: Typesaurus.QueryGetter<Model>) {
+  query(
+    getQueries: Typesaurus.QueryGetter<Model>
+  ): Typesaurus.SubscriptionPromise<Doc<Model>[]> {
     const queries = getQueries(this.queryHelpers())
     // Query accumulator, will contain final Firestore query with all the
     // filters and limits.
@@ -327,9 +329,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         firestoreQuery = firestoreQuery[method](...values)
       })
 
-    return new TypesaurusUtils.SubscriptionPromise<
-      Typesaurus.PromiseWithListSubscription<Model>
-    >({
+    return new TypesaurusUtils.SubscriptionPromise<Doc<Model>[]>({
       get: async () => {
         const firebaseSnap = await firestoreQuery.get()
         return firebaseSnap.docs.map((firebaseSnap) =>
@@ -350,7 +350,26 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         )
       },
 
-      subscribe() {}
+      subscribe: (onResult, onError) =>
+        firestoreQuery.onSnapshot((firebaseSnap) => {
+          const docs = firebaseSnap.docs.map((firebaseSnap) =>
+            this.doc(
+              firebaseSnap.id,
+              // collection.__type__ === 'collectionGroup'
+              //   ? pathToRef(firebaseSnap.ref.path)
+              //   : ref(collection, firebaseSnap.id),
+              // wrapData(a.getDocData(firebaseSnap, options)) as Model,
+              wrapData(firebaseSnap.data()) as Model
+              // {
+              //   firestoreData: true,
+              //   environment: a.environment as Environment,
+              //   serverTimestamps: options?.serverTimestamps,
+              //   ...a.getDocMeta(firebaseSnap)
+              // }
+            )
+          )
+          onResult(docs)
+        }, onError)
     })
   }
 

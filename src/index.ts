@@ -747,22 +747,6 @@ export namespace Typesaurus {
 
   export type SubscriptionPromiseCallback<Result> = (result: Result) => void
 
-  export type PromiseWithGetSubscription<
-    Model,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > = SubscriptionPromise<AnyDoc<
-    Model,
-    Source,
-    DateStrategy,
-    Environment
-  > | null>
-
-  export type PromiseWithListSubscription<Model> = SubscriptionPromise<
-    Doc<Model>[]
-  >
-
   export type ListSubscriptionCallback<Model> = {
     (result: Doc<Model>[]): void
   }
@@ -774,7 +758,12 @@ export namespace Typesaurus {
       Environment extends RuntimeEnvironment
     >(
       options?: OperationOptions<Environment>
-    ): PromiseWithGetSubscription<Model, Source, DateStrategy, Environment>
+    ): SubscriptionPromise<AnyDoc<
+      Model,
+      Source,
+      DateStrategy,
+      Environment
+    > | null>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
@@ -1008,7 +997,7 @@ export namespace Typesaurus {
     /** The Firestore path */
     path: string
 
-    all(): PromiseWithListSubscription<Model>
+    all(): SubscriptionPromise<Doc<Model>[]>
 
     get<
       Source extends DataSource,
@@ -1017,18 +1006,23 @@ export namespace Typesaurus {
     >(
       id: string,
       options?: OperationOptions<Environment>
-    ): PromiseWithGetSubscription<Model, Source, DateStrategy, Environment>
+    ): SubscriptionPromise<AnyDoc<
+      Model,
+      Source,
+      DateStrategy,
+      Environment
+    > | null>
 
     getMany<OnMissing extends OnMissingMode<Model> | undefined = undefined>(
       ids: string[],
       options?: GetManyOptions<Model, OnMissing>
     ): OnMissing extends 'ignore' | undefined
-      ? PromiseWithListSubscription<Model>
+      ? SubscriptionPromise<Doc<Model>[]>
       : OnMissing extends OnMissingCallback<infer OnMissingResult>
-      ? PromiseWithListSubscription<Model | OnMissingResult>
+      ? SubscriptionPromise<Array<Doc<Model> | OnMissingResult>>
       : never
 
-    query(queries: QueryGetter<Model>): PromiseWithListSubscription<Model>
+    query(queries: QueryGetter<Model>): SubscriptionPromise<Doc<Model>[]>
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,

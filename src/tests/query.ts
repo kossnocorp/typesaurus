@@ -1,75 +1,77 @@
+import { sweep } from 'js-fns'
 import { nanoid } from 'nanoid'
+import sinon from 'sinon'
 import { Typesaurus } from '..'
 import { schema } from '../adaptor'
 
 describe('query', () => {
+  interface Contact {
+    ownerId: string
+    name: string
+    year: number
+    birthday: Date
+  }
+
+  interface Message {
+    ownerId: string
+    author: Typesaurus.Ref<Contact>
+    text: string
+  }
+
+  const db = schema(($) => ({
+    contacts: $.collection<Contact>(),
+    messages: $.collection<Message>()
+  }))
+
+  const ownerId = nanoid()
+  const leshaId = `lesha-${ownerId}`
+  const sashaId = `sasha-${ownerId}`
+  const tatiId = `tati-${ownerId}`
+
+  beforeAll(() =>
+    Promise.all([
+      db.contacts.set(leshaId, {
+        ownerId,
+        name: 'Lesha',
+        year: 1995,
+        birthday: new Date(1995, 6, 2)
+      }),
+      db.contacts.set(sashaId, {
+        ownerId,
+        name: 'Sasha',
+        year: 1987,
+        birthday: new Date(1987, 1, 11)
+      }),
+      db.contacts.set(tatiId, {
+        ownerId,
+        name: 'Tati',
+        year: 1989,
+        birthday: new Date(1989, 6, 10)
+      }),
+      db.messages.add({
+        ownerId,
+        author: db.contacts.ref(sashaId),
+        text: '+1'
+      }),
+      db.messages.add({
+        ownerId,
+        author: db.contacts.ref(leshaId),
+        text: '+1'
+      }),
+      db.messages.add({
+        ownerId,
+        author: db.contacts.ref(tatiId),
+        text: 'wut'
+      }),
+      db.messages.add({
+        ownerId,
+        author: db.contacts.ref(sashaId),
+        text: 'lul'
+      })
+    ])
+  )
+
   describe('promise', () => {
-    interface Contact {
-      ownerId: string
-      name: string
-      year: number
-      birthday: Date
-    }
-
-    interface Message {
-      ownerId: string
-      author: Typesaurus.Ref<Contact>
-      text: string
-    }
-
-    const db = schema(($) => ({
-      contacts: $.collection<Contact>(),
-      messages: $.collection<Message>()
-    }))
-
-    const ownerId = nanoid()
-    const leshaId = `lesha-${ownerId}`
-    const sashaId = `sasha-${ownerId}`
-    const tatiId = `tati-${ownerId}`
-
-    beforeAll(() =>
-      Promise.all([
-        db.contacts.set(leshaId, {
-          ownerId,
-          name: 'Lesha',
-          year: 1995,
-          birthday: new Date(1995, 6, 2)
-        }),
-        db.contacts.set(sashaId, {
-          ownerId,
-          name: 'Sasha',
-          year: 1987,
-          birthday: new Date(1987, 1, 11)
-        }),
-        db.contacts.set(tatiId, {
-          ownerId,
-          name: 'Tati',
-          year: 1989,
-          birthday: new Date(1989, 6, 10)
-        }),
-        db.messages.add({
-          ownerId,
-          author: db.contacts.ref(sashaId),
-          text: '+1'
-        }),
-        db.messages.add({
-          ownerId,
-          author: db.contacts.ref(leshaId),
-          text: '+1'
-        }),
-        db.messages.add({
-          ownerId,
-          author: db.contacts.ref(tatiId),
-          text: 'wut'
-        }),
-        db.messages.add({
-          ownerId,
-          author: db.contacts.ref(sashaId),
-          text: 'lul'
-        })
-      ])
-    )
-
     it('queries documents', async () => {
       const docs = await db.contacts.query(($) => [
         $.where('ownerId', '==', ownerId)
@@ -671,445 +673,497 @@ describe('query', () => {
   })
 
   describe('subscription', () => {
-    // type Contact = { ownerId: string; name: string; year: number; birthday: Date }
-    // type Message = { ownerId: string; author: Ref<Contact>; text: string }
-    // const contacts = collection<Contact>('contacts')
-    // const messages = collection<Message>('messages')
-    // let ownerId: string
-    // let leshaId: string
-    // let sashaId: string
-    // let tatiId: string
-    // let off: (() => void) | undefined
-    // function setLesha() {
-    //   return set(contacts, leshaId, {
-    //     ownerId,
-    //     name: 'Lesha',
-    //     year: 1995,
-    //     birthday: new Date(1995, 6, 2)
-    //   })
-    // }
-    // beforeEach(async () => {
-    //   ownerId = nanoid()
-    //   leshaId = `lesha-${ownerId}`
-    //   sashaId = `sasha-${ownerId}`
-    //   tatiId = `tati-${ownerId}`
-    //   return Promise.all([
-    //     setLesha(),
-    //     set(contacts, sashaId, {
-    //       ownerId,
-    //       name: 'Sasha',
-    //       year: 1987,
-    //       birthday: new Date(1987, 1, 11)
-    //     }),
-    //     set(contacts, tatiId, {
-    //       ownerId,
-    //       name: 'Tati',
-    //       year: 1989,
-    //       birthday: new Date(1989, 6, 10)
-    //     })
-    //   ])
-    // })
-    // afterEach(() => {
-    //   off && off()
-    //   off = undefined
-    // })
-    // it('queries documents', (done) => {
-    //   const spy = sinon.spy()
-    //   off = onQuery(contacts, [where('ownerId', '==', ownerId)], (docs) => {
-    //     spy(docs.map(({ data: { name } }) => name).sort())
-    //     if (spy.calledWithMatch(['Lesha', 'Sasha', 'Tati'])) done()
-    //   })
-    // })
-    // it('allows to query by value in maps', async () => {
-    //   const spy = sinon.spy()
-    //   type Location = { mapId: string; name: string; address: { city: string } }
-    //   const locations = collection<Location>('locations')
-    //   const mapId = nanoid()
-    //   await Promise.all([
-    //     add(locations, {
-    //       mapId,
-    //       name: 'Pizza City',
-    //       address: { city: 'New York' }
-    //     }),
-    //     add(locations, {
-    //       mapId,
-    //       name: 'Bagels Tower',
-    //       address: { city: 'New York' }
-    //     }),
-    //     add(locations, {
-    //       mapId,
-    //       name: 'Tacos Cave',
-    //       address: { city: 'Houston' }
-    //     })
-    //   ])
-    //   return new Promise((resolve) => {
-    //     off = onQuery(
-    //       locations,
-    //       [
-    //         where('mapId', '==', mapId),
-    //         where(['address', 'city'], '==', 'New York')
-    //       ],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name).sort())
-    //         if (spy.calledWithMatch(['Bagels Tower', 'Pizza City']))
-    //           resolve(void 0)
-    //       }
-    //     )
-    //   })
-    // })
-    // it('allows to query using array-contains filter', async () => {
-    //   const spy = sinon.spy()
-    //   type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
-    //   type Post = { blogId: string; title: string; tags: Tag[] }
-    //   const posts = collection<Post>('posts')
-    //   const blogId = nanoid()
-    //   await Promise.all([
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about cats',
-    //       tags: ['pets', 'cats']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about dogs',
-    //       tags: ['pets', 'dogs']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about hotdogs',
-    //       tags: ['food', 'hotdogs']
-    //     })
-    //   ])
-    //   return new Promise((resolve) => {
-    //     off = onQuery(
-    //       posts,
-    //       [
-    //         where('blogId', '==', blogId),
-    //         where('tags', 'array-contains', 'pets')
-    //       ],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { title } }) => title).sort())
-    //         if (spy.calledWithMatch(['Post about cats', 'Post about dogs']))
-    //           resolve(void 0)
-    //       }
-    //     )
-    //   })
-    // })
-    // it('allows to query using in filter', async () => {
-    //   const spy = sinon.spy()
-    //   type Pet = {
-    //     ownerId: string
-    //     name: string
-    //     type: 'dog' | 'cat' | 'parrot' | 'snake'
-    //   }
-    //   const pets = collection<Pet>('pets')
-    //   const ownerId = nanoid()
-    //   await Promise.all([
-    //     add(pets, {
-    //       ownerId,
-    //       name: 'Persik',
-    //       type: 'dog'
-    //     }),
-    //     add(pets, {
-    //       ownerId,
-    //       name: 'Kimchi',
-    //       type: 'cat'
-    //     }),
-    //     add(pets, {
-    //       ownerId,
-    //       name: 'Snako',
-    //       type: 'snake'
-    //     })
-    //   ])
-    //   return new Promise((resolve) => {
-    //     off = onQuery(
-    //       pets,
-    //       [where('ownerId', '==', ownerId), where('type', 'in', ['cat', 'dog'])],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name).sort())
-    //         if (spy.calledWithMatch(['Kimchi', 'Persik'])) resolve(void 0)
-    //       }
-    //     )
-    //   })
-    // })
-    // it('allows to query using array-contains-any filter', async () => {
-    //   const spy = sinon.spy()
-    //   type Tag = 'pets' | 'cats' | 'dogs' | 'wildlife' | 'food' | 'hotdogs'
-    //   type Post = { blogId: string; title: string; tags: Tag[] }
-    //   const posts = collection<Post>('posts')
-    //   const blogId = nanoid()
-    //   await Promise.all([
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about cats',
-    //       tags: ['pets', 'cats']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about dogs',
-    //       tags: ['pets', 'dogs']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about hotdogs',
-    //       tags: ['food', 'hotdogs']
-    //     }),
-    //     add(posts, {
-    //       blogId,
-    //       title: 'Post about kangaroos',
-    //       tags: ['wildlife']
-    //     })
-    //   ])
-    //   return new Promise((resolve) => {
-    //     off = onQuery(
-    //       posts,
-    //       [
-    //         where('blogId', '==', blogId),
-    //         where('tags', 'array-contains-any', ['pets', 'wildlife'])
-    //       ],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { title } }) => title).sort())
-    //         if (
-    //           spy.calledWithMatch([
-    //             'Post about cats',
-    //             'Post about dogs',
-    //             'Post about kangaroos'
-    //           ])
-    //         )
-    //           resolve(void 0)
-    //       }
-    //     )
-    //   })
-    // })
-    // describe('with messages', () => {
-    //   beforeEach(async () => {
-    //     await Promise.all([
-    //       add(messages, { ownerId, author: ref(contacts, sashaId), text: '+1' }),
-    //       add(messages, { ownerId, author: ref(contacts, leshaId), text: '+1' }),
-    //       add(messages, { ownerId, author: ref(contacts, tatiId), text: 'wut' }),
-    //       add(messages, { ownerId, author: ref(contacts, sashaId), text: 'lul' })
-    //     ])
-    //   })
-    //   it('expands references', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       messages,
-    //       [where('ownerId', '==', ownerId), where('text', '==', '+1')],
-    //       async (docs) => {
-    //         const authors = await Promise.all(
-    //           docs.map((doc) => get(contacts, doc.data.author.id))
-    //         )
-    //         spy(
-    //           sweep(authors)
-    //             .map(({ data: { name } }) => name)
-    //             .sort()
-    //         )
-    //         if (spy.calledWithMatch(['Lesha', 'Sasha'])) done()
-    //       }
-    //     )
-    //   })
-    //   it('allows to query by reference', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       messages,
-    //       [
-    //         where('ownerId', '==', ownerId),
-    //         where('author', '==', ref(contacts, sashaId))
-    //       ],
-    //       (docs) => {
-    //         spy(docs.map((doc) => doc.data.text).sort())
-    //         if (spy.calledWithMatch(['+1', 'lul'])) done()
-    //       }
-    //     )
-    //   })
-    //   it('allows querying collection groups', async () => {
-    //     const ownerId = nanoid()
-    //     const contactMessages = subcollection<Message, Contact>(
-    //       'contactMessages',
-    //       contacts
-    //     )
-    //     const sashaRef = ref(contacts, `${ownerId}-sasha`)
-    //     const sashasContactMessages = contactMessages(sashaRef)
-    //     add(sashasContactMessages, {
-    //       ownerId,
-    //       author: sashaRef,
-    //       text: 'Hello from Sasha!'
-    //     })
-    //     const tatiRef = ref(contacts, `${ownerId}-tati`)
-    //     const tatisContactMessages = contactMessages(tatiRef)
-    //     await Promise.all([
-    //       add(tatisContactMessages, {
-    //         ownerId,
-    //         author: tatiRef,
-    //         text: 'Hello from Tati!'
-    //       }),
-    //       add(tatisContactMessages, {
-    //         ownerId,
-    //         author: tatiRef,
-    //         text: 'Hello, again!'
-    //       })
-    //     ])
-    //     const allContactMessages = group('contactMessages', [contactMessages])
-    //     const spy = sinon.spy()
-    //     return new Promise((resolve) => {
-    //       off = onQuery(
-    //         allContactMessages,
-    //         [where('ownerId', '==', ownerId)],
-    //         async (messages) => {
-    //           spy(messages.map((m) => m.data.text).sort())
-    //           if (messages.length === 3) {
-    //             await Promise.all([
-    //               add(sashasContactMessages, {
-    //                 ownerId,
-    //                 author: sashaRef,
-    //                 text: '1'
-    //               }),
-    //               add(tatisContactMessages, {
-    //                 ownerId,
-    //                 author: tatiRef,
-    //                 text: '2'
-    //               })
-    //             ])
-    //           } else if (messages.length === 5) {
-    //             assert(
-    //               spy.calledWithMatch([
-    //                 'Hello from Sasha!',
-    //                 'Hello from Tati!',
-    //                 'Hello, again!'
-    //               ])
-    //             )
-    //             assert(
-    //               spy.calledWithMatch([
-    //                 '1',
-    //                 '2',
-    //                 'Hello from Sasha!',
-    //                 'Hello from Tati!',
-    //                 'Hello, again!'
-    //               ])
-    //             )
-    //             resolve(void 0)
-    //           }
-    //         }
-    //       )
-    //     })
-    //   })
-    // })
-    // it('allows to query by date', (done) => {
-    //   off = onQuery(
-    //     contacts,
-    //     [
-    //       where('ownerId', '==', ownerId),
-    //       where('birthday', '==', new Date(1987, 1, 11))
-    //     ],
-    //     (docs) => {
-    //       if (docs.length === 1 && docs[0].data.name === 'Sasha') done()
-    //     }
-    //   )
-    // })
-    // describe('ordering', () => {
-    //   it('allows ordering', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       contacts,
-    //       [where('ownerId', '==', ownerId), order('year', 'asc')],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name))
-    //         if (spy.calledWithMatch(['Sasha', 'Tati', 'Lesha'])) done()
-    //       }
-    //     )
-    //   })
-    //   it('allows ordering by desc', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       contacts,
-    //       [where('ownerId', '==', ownerId), order('year', 'desc')],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name))
-    //         if (spy.calledWithMatch(['Lesha', 'Tati', 'Sasha'])) done()
-    //       }
-    //     )
-    //   })
-    //   describe('with messages', () => {
-    //     beforeEach(() =>
-    //       Promise.all([
-    //         add(messages, {
-    //           ownerId,
-    //           author: ref(contacts, sashaId),
-    //           text: '+1'
-    //         }),
-    //         add(messages, {
-    //           ownerId,
-    //           author: ref(contacts, leshaId),
-    //           text: '+1'
-    //         }),
-    //         add(messages, {
-    //           ownerId,
-    //           author: ref(contacts, tatiId),
-    //           text: 'wut'
-    //         }),
-    //         add(messages, {
-    //           ownerId,
-    //           author: ref(contacts, sashaId),
-    //           text: 'lul'
-    //         })
-    //       ])
-    //     )
-    //     it('allows ordering by references', (done) => {
-    //       const spy = sinon.spy()
-    //       off = onQuery(
-    //         messages,
-    //         [
-    //           where('ownerId', '==', ownerId),
-    //           order('author', 'desc'),
-    //           order('text')
-    //         ],
-    //         async (docs) => {
-    //           const messagesLog = await Promise.all(
-    //             docs.map((doc) =>
-    //               get(contacts, doc.data.author.id).then(
-    //                 (contact) => `${contact!.data.name}: ${doc.data.text}`
-    //               )
-    //             )
-    //           )
-    //           spy(messagesLog)
-    //           if (
-    //             spy.calledWithMatch([
-    //               'Tati: wut',
-    //               'Sasha: +1',
-    //               'Sasha: lul',
-    //               'Lesha: +1'
-    //             ])
-    //           )
-    //             done()
-    //         }
-    //       )
-    //     })
-    //   })
-    //   it('allows ordering by date', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       contacts,
-    //       [where('ownerId', '==', ownerId), order('birthday', 'asc')],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name))
-    //         if (spy.calledWithMatch(['Sasha', 'Tati', 'Lesha'])) done()
-    //       }
-    //     )
-    //   })
-    // })
-    // describe('limiting', () => {
-    //   it('allows to limit response length', (done) => {
-    //     const spy = sinon.spy()
-    //     off = onQuery(
-    //       contacts,
-    //       [where('ownerId', '==', ownerId), order('year', 'asc'), limit(2)],
-    //       (docs) => {
-    //         spy(docs.map(({ data: { name } }) => name))
-    //         if (spy.calledWithMatch(['Sasha', 'Tati'])) done()
-    //       }
-    //     )
-    //   })
-    // })
+    let off: (() => void) | undefined
+
+    function setLesha() {
+      return db.contacts.set(leshaId, {
+        ownerId,
+        name: 'Lesha',
+        year: 1995,
+        birthday: new Date(1995, 6, 2)
+      })
+    }
+
+    afterEach(() => {
+      off && off()
+      off = undefined
+    })
+
+    it('queries documents', (done) => {
+      const spy = sinon.spy()
+      off = db.contacts
+        .query(($) => [$.where('ownerId', '==', ownerId)])
+        .on((docs) => {
+          spy(docs.map(({ data: { name } }) => name).sort())
+          if (spy.calledWithMatch(['Lesha', 'Sasha', 'Tati'])) done()
+        })
+    })
+
+    it('allows to query by value in maps', async () => {
+      interface Location {
+        mapId: string
+        name: string
+        address: { city: string }
+      }
+
+      const db = schema(($) => ({
+        locations: $.collection<Location>()
+      }))
+
+      const spy = sinon.spy()
+
+      const mapId = nanoid()
+
+      await Promise.all([
+        db.locations.add({
+          mapId,
+          name: 'Pizza City',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Bagels Tower',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Tacos Cave',
+          address: { city: 'Houston' }
+        })
+      ])
+
+      return new Promise((resolve) => {
+        off = db.locations
+          .query(($) => [
+            $.where('mapId', '==', mapId),
+            $.where(['address', 'city'], '==', 'New York')
+          ])
+          .on((docs) => {
+            spy(docs.map(({ data: { name } }) => name).sort())
+            if (spy.calledWithMatch(['Bagels Tower', 'Pizza City']))
+              resolve(void 0)
+          })
+      })
+    })
+
+    it('allows to query using array-contains filter', async () => {
+      type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
+
+      interface Post {
+        blogId: string
+        title: string
+        tags: Tag[]
+      }
+
+      const db = schema(($) => ({
+        posts: $.collection<Post>()
+      }))
+
+      const spy = sinon.spy()
+      const blogId = nanoid()
+
+      await Promise.all([
+        db.posts.add({
+          blogId,
+          title: 'Post about cats',
+          tags: ['pets', 'cats']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about dogs',
+          tags: ['pets', 'dogs']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about hotdogs',
+          tags: ['food', 'hotdogs']
+        })
+      ])
+
+      return new Promise((resolve) => {
+        off = db.posts
+          .query(($) => [
+            $.where('blogId', '==', blogId),
+            $.where('tags', 'array-contains', 'pets')
+          ])
+          .on((docs) => {
+            spy(docs.map(({ data: { title } }) => title).sort())
+            if (spy.calledWithMatch(['Post about cats', 'Post about dogs']))
+              resolve(void 0)
+          })
+      })
+    })
+
+    it('allows to query using in filter', async () => {
+      interface Pet {
+        ownerId: string
+        name: string
+        type: 'dog' | 'cat' | 'parrot' | 'snake'
+      }
+
+      const db = schema(($) => ({
+        pets: $.collection<Pet>()
+      }))
+
+      const ownerId = nanoid()
+      const spy = sinon.spy()
+
+      await Promise.all([
+        db.pets.add({
+          ownerId,
+          name: 'Persik',
+          type: 'dog'
+        }),
+        db.pets.add({
+          ownerId,
+          name: 'Kimchi',
+          type: 'cat'
+        }),
+        db.pets.add({
+          ownerId,
+          name: 'Snako',
+          type: 'snake'
+        })
+      ])
+
+      return new Promise((resolve) => {
+        off = db.pets
+          .query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.where('type', 'in', ['cat', 'dog'])
+          ])
+          .on((docs) => {
+            spy(docs.map(({ data: { name } }) => name).sort())
+            if (spy.calledWithMatch(['Kimchi', 'Persik'])) resolve(void 0)
+          })
+      })
+    })
+
+    it('allows to query using array-contains-any filter', async () => {
+      type Tag = 'pets' | 'cats' | 'dogs' | 'wildlife' | 'food' | 'hotdogs'
+
+      interface Post {
+        blogId: string
+        title: string
+        tags: Tag[]
+      }
+
+      const db = schema(($) => ({
+        posts: $.collection<Post>()
+      }))
+
+      const blogId = nanoid()
+      const spy = sinon.spy()
+
+      await Promise.all([
+        db.posts.add({
+          blogId,
+          title: 'Post about cats',
+          tags: ['pets', 'cats']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about dogs',
+          tags: ['pets', 'dogs']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about hotdogs',
+          tags: ['food', 'hotdogs']
+        }),
+        db.posts.add({
+          blogId,
+          title: 'Post about kangaroos',
+          tags: ['wildlife']
+        })
+      ])
+
+      return new Promise((resolve) => {
+        off = db.posts
+          .query(($) => [
+            $.where('blogId', '==', blogId),
+            $.where('tags', 'array-contains-any', ['pets', 'wildlife'])
+          ])
+          .on((docs) => {
+            spy(docs.map(({ data: { title } }) => title).sort())
+            if (
+              spy.calledWithMatch([
+                'Post about cats',
+                'Post about dogs',
+                'Post about kangaroos'
+              ])
+            )
+              resolve(void 0)
+          })
+      })
+    })
+
+    describe('', () => {
+      // beforeEach(async () => {
+      //   await Promise.all([
+      //     db.messages.add({
+      //       ownerId,
+      //       author: db.contacts.ref(sashaId),
+      //       text: '+1'
+      //     }),
+      //     db.messages.add({
+      //       ownerId,
+      //       author: db.contacts.ref(leshaId),
+      //       text: '+1'
+      //     }),
+      //     db.messages.add({
+      //       ownerId,
+      //       author: db.contacts.ref(tatiId),
+      //       text: 'wut'
+      //     }),
+      //     db.messages.add({
+      //       ownerId,
+      //       author: db.contacts.ref(sashaId),
+      //       text: 'lul'
+      //     })
+      //   ])
+      // })
+
+      it('expands references', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.messages
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.where('text', '==', '+1')
+            ])
+            .on(async (docs) => {
+              const authors = await Promise.all(
+                docs.map((doc) => doc.data.author.get())
+              )
+              spy(
+                sweep(authors)
+                  .map(({ data: { name } }) => name)
+                  .sort()
+              )
+              if (spy.calledWithMatch(['Lesha', 'Sasha'])) resolve(void 0)
+            })
+        }))
+
+      it('allows to query by reference', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.messages
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.where('author', '==', db.contacts.ref(sashaId))
+            ])
+            .on((docs) => {
+              spy(docs.map((doc) => doc.data.text).sort())
+              if (spy.calledWithMatch(['+1', 'lul'])) resolve(void 0)
+            })
+        }))
+
+      //   it('allows querying collection groups', async () => {
+      //     const ownerId = nanoid()
+      //     const contactMessages = subcollection<Message, Contact>(
+      //       'contactMessages',
+      //       contacts
+      //     )
+      //     const sashaRef = ref(contacts, `${ownerId}-sasha`)
+      //     const sashasContactMessages = contactMessages(sashaRef)
+      //     add(sashasContactMessages, {
+      //       ownerId,
+      //       author: sashaRef,
+      //       text: 'Hello from Sasha!'
+      //     })
+      //     const tatiRef = ref(contacts, `${ownerId}-tati`)
+      //     const tatisContactMessages = contactMessages(tatiRef)
+      //     await Promise.all([
+      //       add(tatisContactMessages, {
+      //         ownerId,
+      //         author: tatiRef,
+      //         text: 'Hello from Tati!'
+      //       }),
+      //       add(tatisContactMessages, {
+      //         ownerId,
+      //         author: tatiRef,
+      //         text: 'Hello, again!'
+      //       })
+      //     ])
+      //     const allContactMessages = group('contactMessages', [contactMessages])
+      //     const spy = sinon.spy()
+      //     return new Promise((resolve) => {
+      //       off = onQuery(
+      //         allContactMessages,
+      //         [where('ownerId', '==', ownerId)],
+      //         async (messages) => {
+      //           spy(messages.map((m) => m.data.text).sort())
+      //           if (messages.length === 3) {
+      //             await Promise.all([
+      //               add(sashasContactMessages, {
+      //                 ownerId,
+      //                 author: sashaRef,
+      //                 text: '1'
+      //               }),
+      //               add(tatisContactMessages, {
+      //                 ownerId,
+      //                 author: tatiRef,
+      //                 text: '2'
+      //               })
+      //             ])
+      //           } else if (messages.length === 5) {
+      //             assert(
+      //               spy.calledWithMatch([
+      //                 'Hello from Sasha!',
+      //                 'Hello from Tati!',
+      //                 'Hello, again!'
+      //               ])
+      //             )
+      //             assert(
+      //               spy.calledWithMatch([
+      //                 '1',
+      //                 '2',
+      //                 'Hello from Sasha!',
+      //                 'Hello from Tati!',
+      //                 'Hello, again!'
+      //               ])
+      //             )
+      //             resolve(void 0)
+      //           }
+      //         }
+      //       )
+      //     })
+      //   })
+    })
+
+    it('allows to query by date', () =>
+      new Promise((resolve) => {
+        off = db.contacts
+          .query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.where('birthday', '==', new Date(1987, 1, 11))
+          ])
+          .on((docs) => {
+            if (docs.length === 1 && docs[0]?.data.name === 'Sasha')
+              resolve(void 0)
+          })
+      }))
+
+    describe('ordering', () => {
+      it('allows ordering', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('year', 'asc')
+            ])
+            .on((docs) => {
+              spy(docs.map(({ data: { name } }) => name))
+              if (spy.calledWithMatch(['Sasha', 'Tati', 'Lesha']))
+                resolve(void 0)
+            })
+        }))
+
+      it('allows ordering by desc', (done) => {
+        const spy = sinon.spy()
+        off = db.contacts
+          .query(($) => [
+            $.where('ownerId', '==', ownerId),
+            $.order('year', 'desc')
+          ])
+          .on((docs) => {
+            spy(docs.map(({ data: { name } }) => name))
+            if (spy.calledWithMatch(['Lesha', 'Tati', 'Sasha'])) done()
+          })
+      })
+
+      //     beforeEach(() =>
+      //       Promise.all([
+      //         add(messages, {
+      //           ownerId,
+      //           author: ref(contacts, sashaId),
+      //           text: '+1'
+      //         }),
+      //         add(messages, {
+      //           ownerId,
+      //           author: ref(contacts, leshaId),
+      //           text: '+1'
+      //         }),
+      //         add(messages, {
+      //           ownerId,
+      //           author: ref(contacts, tatiId),
+      //           text: 'wut'
+      //         }),
+      //         add(messages, {
+      //           ownerId,
+      //           author: ref(contacts, sashaId),
+      //           text: 'lul'
+      //         })
+      //       ])
+      //     )
+
+      it('allows ordering by references', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.messages
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('author', 'desc'),
+              $.order('text')
+            ])
+            .on(async (docs) => {
+              const messagesLog = await Promise.all(
+                docs.map((doc) =>
+                  doc.data.author
+                    .get()
+                    .then(
+                      (contact) => `${contact!.data.name}: ${doc.data.text}`
+                    )
+                )
+              )
+              spy(messagesLog)
+              if (
+                spy.calledWithMatch([
+                  'Tati: wut',
+                  'Sasha: +1',
+                  'Sasha: lul',
+                  'Lesha: +1'
+                ])
+              )
+                resolve(void 0)
+            })
+        }))
+
+      it('allows ordering by date', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('birthday', 'asc')
+            ])
+            .on((docs) => {
+              spy(docs.map(({ data: { name } }) => name))
+              if (spy.calledWithMatch(['Sasha', 'Tati', 'Lesha']))
+                resolve(void 0)
+            })
+        }))
+    })
+
+    describe('limiting', () => {
+      it('allows to limit response length', () =>
+        new Promise((resolve) => {
+          const spy = sinon.spy()
+          off = db.contacts
+            .query(($) => [
+              $.where('ownerId', '==', ownerId),
+              $.order('year', 'asc'),
+              $.limit(2)
+            ])
+            .on((docs) => {
+              spy(docs.map(({ data: { name } }) => name))
+              if (spy.calledWithMatch(['Sasha', 'Tati'])) resolve(void 0)
+            })
+        }))
+    })
+
     // describe('paginating', () => {
     //   describe('startAfter', () => {
     //     let page1Off: () => void
