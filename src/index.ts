@@ -1033,21 +1033,21 @@ export namespace Typesaurus {
       id: string,
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<void>
+    ): Promise<Ref<Model>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<void>
+    ): Promise<Ref<Model>>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: string,
       data: UpdateModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<void>
+    ): Promise<Ref<Model>>
 
-    remove(id: string): Promise<void>
+    remove(id: string): Promise<Ref<Model>>
 
     ref(id: string): Ref<Model>
 

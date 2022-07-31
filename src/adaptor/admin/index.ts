@@ -96,6 +96,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     const dataToSet =
       typeof data === 'function' ? data(this.writeHelpers()) : data
     await this.firebaseDoc(id).set(unwrapData(dataToSet))
+    return this.ref(id)
   }
 
   async upset<Environment extends Typesaurus.RuntimeEnvironment>(
@@ -105,6 +106,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     const dataToUpset =
       typeof data === 'function' ? data(this.writeHelpers()) : data
     await this.firebaseDoc(id).set(unwrapData(dataToUpset), { merge: true })
+    return this.ref(id)
   }
 
   async update<Environment extends Typesaurus.RuntimeEnvironment>(
@@ -124,6 +126,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
       : updateData
 
     await this.firebaseDoc(id).update(unwrapData(update))
+    return this.ref(id)
   }
 
   async remove(id: string) {
