@@ -66,10 +66,10 @@ describe('get', () => {
     })
 
     it('returns nothing if document is not present', () =>
-      new Promise((done) => {
+      new Promise((resolve) => {
         off = db.nope.get('nah').on((nothing) => {
           expect(nothing).toBeNull()
-          done(void 0)
+          resolve(void 0)
         })
       }))
 
