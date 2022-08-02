@@ -2,6 +2,11 @@ import type { Typesaurus } from '..'
 
 export namespace TypesaurusUtils {
   /**
+   * Resolves union keys.
+   */
+  export type UnionKeys<Type> = Type extends Type ? keyof Type : never
+
+  /**
    * Returns a type with all fields required and all values exclude undefined.
    * It allows to extract key paths from nested objects with optional keys
    * and values.

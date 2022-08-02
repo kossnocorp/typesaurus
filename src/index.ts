@@ -1013,13 +1013,7 @@ export namespace Typesaurus {
     onMissing: OnMissing
   }
 
-  /**
-   *
-   */
-  export interface RichCollection<Model> extends PlainCollection<Model> {
-    /** The Firestore path */
-    path: string
-
+  export interface CollectionAPI<Model> {
     all<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -1028,6 +1022,27 @@ export namespace Typesaurus {
       Doc<Model>[],
       SubscriptionListMeta<Model, Source, DateStrategy, Environment>
     >
+
+    query<
+      Source extends DataSource,
+      DateStrategy extends ServerDateStrategy,
+      Environment extends RuntimeEnvironment
+    >(
+      queries: QueryGetter<Model>
+    ): SubscriptionPromise<
+      Doc<Model>[],
+      SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+    >
+  }
+
+  /**
+   *
+   */
+  export interface RichCollection<Model>
+    extends PlainCollection<Model>,
+      CollectionAPI<Model> {
+    /** The Firestore path */
+    path: string
 
     get<
       Source extends DataSource,
@@ -1051,17 +1066,6 @@ export namespace Typesaurus {
       : OnMissing extends OnMissingCallback<infer OnMissingResult>
       ? SubscriptionPromise<Array<Doc<Model> | OnMissingResult>>
       : never
-
-    query<
-      Source extends DataSource,
-      DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment
-    >(
-      queries: QueryGetter<Model>
-    ): SubscriptionPromise<
-      Doc<Model>[],
-      SubscriptionListMeta<Model, Source, DateStrategy, Environment>
-    >
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
@@ -1107,7 +1111,7 @@ export namespace Typesaurus {
     type: 'collection'
   }
 
-  export interface Group<_Model> {
+  export interface Group<Model> extends CollectionAPI<Model> {
     /** The group type */
     type: 'group'
   }
@@ -1133,67 +1137,85 @@ export namespace Typesaurus {
    * The type flattens the schema and generates groups from nested and
    * root collections.
    */
-  export type Groups<GroupsDB extends DB<unknown>> =
+  export type Groups<Schema> =
     /**
      * {@link ConstructGroups} here plays a role of merger, each level of nesting
      * returns respective collections and the type creates an object from those,
      * inferring the Model (`PostComment | UpdateComment`).
      */
     ConstructGroups<
-      /**
-       * Extract root-level collections
-       */
-      ExtractDBModels<GroupsDB>, // Get the models for the given (0) level
-      /**
-       * 1-level deep
-       */
-      GroupsDB extends DB<infer Schema> // Infer the nested (1) schema
-        ? Schema[keyof Schema] extends
-            | PlainCollection<infer _>
-            | NestedPlainCollection<infer _, infer NestedSchema> // Get the models for the given (1) level
-          ? ExtractDBModels<DB<NestedSchema>>
-          : {}
-        : {},
-      /**
-       * 2-levels deep
-       */
-      GroupsDB extends DB<infer Schema> // Infer the nested (1) schema
-        ? Schema[keyof Schema] extends
-            | PlainCollection<infer _>
-            | NestedPlainCollection<infer _, infer NestedSchema1> // Infer the nested (2) schema
-          ? NestedSchema1[keyof NestedSchema1] extends
-              | PlainCollection<infer _>
-              | NestedPlainCollection<infer _, infer NestedSchema2> // Get the models for the given (2) level
-            ? ExtractDBModels<DB<NestedSchema2>>
-            : {}
-          : {}
-        : {}
+      GroupsLevel1<Schema>,
+      GroupsLevel2<Schema>,
+      GroupsLevel3<Schema>
     > // TODO: Do we need more!?
 
   /**
    * The type merges extracted collections into groups.
    */
-  type ConstructGroups<Schema1, Schema2, Schema3> = {
-    [CollectionPath in keyof Schema1 | keyof Schema2 | keyof Schema3]: Group<
-      // If collection exists in a schema, extract its model, otherwise skip
-      | (CollectionPath extends keyof Schema1 ? Schema1[CollectionPath] : never)
-      | (CollectionPath extends keyof Schema2 ? Schema2[CollectionPath] : never)
-      | (CollectionPath extends keyof Schema3 ? Schema3[CollectionPath] : never)
-    >
-  }
+  export type ConstructGroups<Schema1, Schema2, Schema3> =
+    | Schema1
+    | Schema2
+    | Schema3 extends infer Schema
+    ? {
+        [Key in TypesaurusUtils.UnionKeys<Schema>]: Group<
+          Schema extends Record<Key, infer Value> ? Value : never
+        >
+      }
+    : never
 
   /**
-   * The type extracts DB models from a collection for {@link Groups}.
+   * The type extracts schema models from a collections for {@link Groups}.
    */
-  type ExtractDBModels<DB> = {
-    /**
-     * NOTE: {@link NestedRichCollection} extends {@link RichCollection},
-     * so no need to list it here.
-     */
-    [Path in keyof DB]: DB[Path] extends RichCollection<infer Model>
+  export type ExtractGroupModels<Schema> = {
+    [Path in keyof Schema]: Schema[Path] extends
+      | PlainCollection<infer Model>
+      | NestedPlainCollection<infer Model, any>
       ? Model
       : never
   }
+
+  export type GroupsLevel1<Schema> =
+    // Get the models for the given (0) level
+    ExtractGroupModels<Schema>
+
+  export type GroupsLevel2<Schema> =
+    // Infer the nested (1) schema
+    Schema extends Record<any, infer Collections>
+      ? Collections extends NestedPlainCollection<any, any>
+        ? {
+            [Key in TypesaurusUtils.UnionKeys<
+              Collections['schema']
+            >]: Collections['schema'] extends Record<
+              Key,
+              | PlainCollection<infer Model>
+              | NestedPlainCollection<infer Model, any>
+            >
+              ? Model
+              : {}
+          }
+        : {}
+      : {}
+
+  export type GroupsLevel3<Schema> =
+    // Infer the nested (2) schema
+    Schema extends Record<any, infer Collections>
+      ? Collections extends NestedPlainCollection<any, any>
+        ? Collections['schema'] extends Record<any, infer Collections>
+          ? Collections extends NestedPlainCollection<any, any>
+            ? {
+                [Key in TypesaurusUtils.UnionKeys<
+                  Collections['schema']
+                >]: Collections['schema'] extends Record<
+                  Key,
+                  PlainCollection<infer Model>
+                >
+                  ? Model
+                  : {}
+              }
+            : {}
+          : {}
+        : {}
+      : {}
 
   export type DB<Schema> = {
     [Path in keyof Schema]: Schema[Path] extends NestedPlainCollection<
@@ -1207,7 +1229,7 @@ export namespace Typesaurus {
   }
 
   export type RootDB<Schema> = DB<Schema> & {
-    groups: Groups<DB<Schema>>
+    groups: Groups<Schema>
   }
 
   export type OnMissingMode<Model> = OnMissingCallback<Model> | 'ignore'
