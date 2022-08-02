@@ -41,7 +41,7 @@ export namespace Typesaurus {
     readonly type: DocChangeType
 
     /** The document affected by this change. */
-    readonly doc: AnyDoc<Model, Source, DateStrategy, Environment>
+    readonly doc: EnvironmentDoc<Model, Source, DateStrategy, Environment>
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -90,14 +90,14 @@ export namespace Typesaurus {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type Doc<Model> = AnyDoc<
+  export type Doc<Model> = EnvironmentDoc<
     Model,
     DataSource,
     ServerDateStrategy,
     RuntimeEnvironment
   >
 
-  export type AnyDoc<
+  export type EnvironmentDoc<
     Model,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
@@ -781,7 +781,7 @@ export namespace Typesaurus {
       Environment extends RuntimeEnvironment
     >(
       options?: OperationOptions<Environment>
-    ): SubscriptionPromise<AnyDoc<
+    ): SubscriptionPromise<EnvironmentDoc<
       Model,
       Source,
       DateStrategy,
@@ -834,7 +834,12 @@ export namespace Typesaurus {
     get<DateStrategy extends ServerDateStrategy>(
       id: string,
       options?: DocOptions<DateStrategy>
-    ): Promise<AnyDoc<Model, 'database', DateStrategy, Environment> | null>
+    ): Promise<EnvironmentDoc<
+      Model,
+      'database',
+      DateStrategy,
+      Environment
+    > | null>
   }
 
   /**
@@ -1019,7 +1024,7 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(): SubscriptionPromise<
-      Doc<Model>[],
+      EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<Model, Source, DateStrategy, Environment>
     >
 
@@ -1030,7 +1035,7 @@ export namespace Typesaurus {
     >(
       queries: QueryGetter<Model>
     ): SubscriptionPromise<
-      Doc<Model>[],
+      EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<Model, Source, DateStrategy, Environment>
     >
   }
@@ -1051,7 +1056,7 @@ export namespace Typesaurus {
     >(
       id: string,
       options?: OperationOptions<Environment>
-    ): SubscriptionPromise<AnyDoc<
+    ): SubscriptionPromise<EnvironmentDoc<
       Model,
       Source,
       DateStrategy,
@@ -1114,6 +1119,9 @@ export namespace Typesaurus {
   export interface Group<Model> extends CollectionAPI<Model> {
     /** The group type */
     type: 'group'
+
+    /** The group name */
+    name: string
   }
 
   export interface NestedPlainCollection<Model, Schema extends PlainSchema>
