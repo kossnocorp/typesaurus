@@ -1,5 +1,11 @@
 import type { TypesaurusUtils } from '.'
 
+namespace UnionKeys {
+  type Example = { books: true } | { comics: true }
+
+  type Result = Assert<'books' | 'comics', TypesaurusUtils.UnionKeys<Example>>
+}
+
 namespace AllRequired {
   type Result1 = Assert<
     {
