@@ -1,5 +1,6 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
+import { collection } from 'firebase/firestore'
 import { Typesaurus } from '../..'
 import { TypesaurusUtils } from '../../utils'
 
@@ -62,6 +63,53 @@ export async function id() {
   return admin.firestore().collection('nope').doc().id
 }
 
+class Group<Model> implements Typesaurus.Group<Model> {
+  name: string
+
+  constructor(name: string) {
+    this.name = name
+  }
+
+  all<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(): Typesaurus.SubscriptionPromise<
+    Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
+    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+  > {
+    return all(this.adapter())
+  }
+
+  query<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(
+    queries: Typesaurus.QueryGetter<Model>
+  ): Typesaurus.SubscriptionPromise<
+    Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
+    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+  > {
+    return query(this.adapter(), queries)
+  }
+
+  private adapter<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(): CollectionAdapter<Model, Source, DateStrategy, Environment> {
+    return {
+      collection: () => this.firebaseCollection(),
+      doc: (snapshot) => pathToDoc<Model>(snapshot.ref.path)
+    }
+  }
+
+  private firebaseCollection() {
+    return admin.firestore().collectionGroup(this.name)
+  }
+}
+
 class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   path: string
 
@@ -69,11 +117,18 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     this.path = path
   }
 
-  ref(id: string) {
+  ref(id: string): Typesaurus.Ref<Model> {
     return new Ref<Model>(this, id)
   }
 
-  doc(id: string, data: Model) {
+  doc<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(
+    id: string,
+    data: Model
+  ): Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment> {
     return new Doc<Model>(this, id, data)
   }
 
@@ -131,6 +186,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
 
   async remove(id: string) {
     await this.firebaseDoc(id).delete()
+    return this.ref(id)
   }
 
   all<
@@ -138,77 +194,55 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
   >(): Typesaurus.SubscriptionPromise<
-    Doc<Model>[],
+    Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
     Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
   > {
-    const firebaseCollection = admin.firestore().collection(this.path)
-
-    return new TypesaurusUtils.SubscriptionPromise({
-      get: async () => {
-        const snapshot = await this.firebaseCollection().get()
-        return snapshot.docs.map(
-          (doc) => new Doc<Model>(this, doc.id, wrapData(doc.data()))
-        )
-      },
-
-      subscribe: (onResult, onError) =>
-        firebaseCollection.onSnapshot((firebaseSnap) => {
-          const docs = firebaseSnap.docs.map(
-            (doc) => new Doc<Model>(this, doc.id, wrapData(doc.data()))
-          )
-
-          const changes = () =>
-            firebaseSnap.docChanges().map((change) => ({
-              type: change.type,
-              oldIndex: change.oldIndex,
-              newIndex: change.newIndex,
-              doc:
-                docs[
-                  change.type === 'removed' ? change.oldIndex : change.newIndex
-                ] ||
-                // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
-                // contain the removed document. In that case, we'll restore it from `change.doc`:
-                this.doc(
-                  change.doc.id,
-                  // collection.__type__ === 'collectionGroup'
-                  //   ? pathToRef(change.doc.ref.path)
-                  //   : ref(collection, change.doc.id),
-                  wrapData(change.doc.data())
-                  // {
-                  //   firestoreData: true,
-                  //   environment: a.environment,
-                  //   serverTimestamps: options?.serverTimestamps,
-                  //   ...a.getDocMeta(change.doc)
-                  // }
-                )
-            }))
-
-          const meta = {
-            changes,
-            size: firebaseSnap.size,
-            empty: firebaseSnap.empty
-          }
-
-          onResult(docs, meta)
-        }, onError)
-    })
+    return all(this.adapter())
   }
 
-  get(id: string) {
+  query<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(
+    queries: Typesaurus.QueryGetter<Model>
+  ): Typesaurus.SubscriptionPromise<
+    Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
+    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+  > {
+    return query(this.adapter(), queries)
+  }
+
+  get<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(
+    id: string
+  ): TypesaurusUtils.SubscriptionPromise<Typesaurus.EnvironmentDoc<
+    Model,
+    Source,
+    DateStrategy,
+    Environment
+  > | null> {
     const doc = this.firebaseDoc(id)
 
     return new TypesaurusUtils.SubscriptionPromise({
       get: async () => {
         const firebaseSnap = await doc.get()
         const data = firebaseSnap.data()
-        if (data) return this.doc(id, wrapData(data))
+        if (data)
+          return this.doc<Source, DateStrategy, Environment>(id, wrapData(data))
         return null
       },
 
       subscribe: (onResult, onError) =>
         doc.onSnapshot((firebaseSnap) => {
           const data = firebaseSnap.data()
-          if (data) onResult(this.doc(id, wrapData(data)))
+          if (data)
+            onResult(
+              this.doc<Source, DateStrategy, Environment>(id, wrapData(data))
+            )
           else onResult(null)
         }, onError)
     })
@@ -292,223 +326,6 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     })
   }
 
-  query<
-    Source extends Typesaurus.DataSource,
-    DateStrategy extends Typesaurus.ServerDateStrategy,
-    Environment extends Typesaurus.RuntimeEnvironment
-  >(
-    getQueries: Typesaurus.QueryGetter<Model>
-  ): Typesaurus.SubscriptionPromise<
-    Doc<Model>[],
-    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
-  > {
-    const queries = getQueries(this.queryHelpers())
-    // Query accumulator, will contain final Firestore query with all the
-    // filters and limits.
-    let firestoreQuery: admin.firestore.Query = this.firebaseCollection()
-
-    let cursors: Typesaurus.OrderCursor<any, any, any>[] = []
-
-    queries.forEach((query) => {
-      switch (query.type) {
-        case 'order': {
-          const { field, method, cursors: queryCursors } = query
-          firestoreQuery = firestoreQuery.orderBy(
-            field instanceof DocId
-              ? admin.firestore.FieldPath.documentId()
-              : field.toString(),
-            method
-          )
-
-          if (queryCursors)
-            cursors = cursors.concat(
-              queryCursors.map(({ type, position, value }) => ({
-                type,
-                position,
-                value:
-                  typeof value === 'object' &&
-                  value !== null &&
-                  'type' in value &&
-                  value.type == 'doc'
-                    ? field instanceof DocId
-                      ? value.ref.id
-                      : value.data[field]
-                    : value
-              }))
-            )
-          break
-        }
-
-        case 'where': {
-          const { field, filter, value } = query
-          const fieldName = Array.isArray(field) ? field.join('.') : field
-          firestoreQuery = firestoreQuery.where(
-            fieldName instanceof DocId
-              ? admin.firestore.FieldPath.documentId()
-              : fieldName,
-            filter,
-            unwrapData(value)
-          )
-          break
-        }
-
-        case 'limit': {
-          const { number } = query
-          firestoreQuery = firestoreQuery.limit(number)
-          break
-        }
-      }
-    })
-
-    let groupedCursors: [Typesaurus.OrderCursorPosition, any[]][] = []
-
-    cursors.forEach((cursor) => {
-      let methodValues = groupedCursors.find(
-        ([position]) => position === cursor.position
-      )
-      if (!methodValues) {
-        methodValues = [cursor.position, []]
-        groupedCursors.push(methodValues)
-      }
-      methodValues[1].push(unwrapData(cursor.value))
-    })
-
-    if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
-      groupedCursors.forEach(([method, values]) => {
-        firestoreQuery = firestoreQuery[method](...values)
-      })
-
-    return new TypesaurusUtils.SubscriptionPromise({
-      get: async () => {
-        const firebaseSnap = await firestoreQuery.get()
-        return firebaseSnap.docs.map((firebaseSnap) =>
-          this.doc(
-            firebaseSnap.id,
-            // collection.__type__ === 'collectionGroup'
-            //   ? pathToRef(firebaseSnap.ref.path)
-            //   : ref(collection, firebaseSnap.id),
-            // wrapData(a.getDocData(firebaseSnap, options)) as Model,
-            wrapData(firebaseSnap.data()) as Model
-            // {
-            //   firestoreData: true,
-            //   environment: a.environment as Environment,
-            //   serverTimestamps: options?.serverTimestamps,
-            //   ...a.getDocMeta(firebaseSnap)
-            // }
-          )
-        )
-      },
-
-      subscribe: (onResult, onError) =>
-        firestoreQuery.onSnapshot((firebaseSnap) => {
-          const docs = firebaseSnap.docs.map((firebaseSnap) =>
-            this.doc(
-              firebaseSnap.id,
-              // collection.__type__ === 'collectionGroup'
-              //   ? pathToRef(firebaseSnap.ref.path)
-              //   : ref(collection, firebaseSnap.id),
-              // wrapData(a.getDocData(firebaseSnap, options)) as Model,
-              wrapData(firebaseSnap.data()) as Model
-              // {
-              //   firestoreData: true,
-              //   environment: a.environment as Environment,
-              //   serverTimestamps: options?.serverTimestamps,
-              //   ...a.getDocMeta(firebaseSnap)
-              // }
-            )
-          )
-
-          const changes = () =>
-            firebaseSnap.docChanges().map((change) => ({
-              type: change.type,
-              oldIndex: change.oldIndex,
-              newIndex: change.newIndex,
-              doc:
-                docs[
-                  change.type === 'removed' ? change.oldIndex : change.newIndex
-                ] ||
-                // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
-                // contain the removed document. In that case, we'll restore it from `change.doc`:
-                this.doc(
-                  change.doc.id,
-                  // collection.__type__ === 'collectionGroup'
-                  //   ? pathToRef(change.doc.ref.path)
-                  //   : ref(collection, change.doc.id),
-                  wrapData(change.doc.data())
-                  // {
-                  //   firestoreData: true,
-                  //   environment: a.environment,
-                  //   serverTimestamps: options?.serverTimestamps,
-                  //   ...a.getDocMeta(change.doc)
-                  // }
-                )
-            }))
-
-          const meta = {
-            changes,
-            size: firebaseSnap.size,
-            empty: firebaseSnap.empty
-          }
-
-          onResult(docs, meta)
-        }, onError)
-    })
-  }
-
-  private queryHelpers(): Typesaurus.QueryHelpers<Model> {
-    return {
-      where: (field, filter, value) => ({
-        type: 'where',
-        field,
-        filter,
-        value
-      }),
-
-      order: (field, ...args) => ({
-        type: 'order',
-        field,
-        method: typeof args[0] === 'string' ? args[0] : 'asc',
-        cursors:
-          args.length > 1
-            ? args.slice(1)
-            : typeof args[0] === 'object'
-            ? args
-            : undefined
-      }),
-
-      limit: (number) => ({
-        type: 'limit',
-        number
-      }),
-
-      startAt: (value) => ({
-        type: 'cursor',
-        position: 'startAt',
-        value
-      }),
-
-      startAfter: (value) => ({
-        type: 'cursor',
-        position: 'startAfter',
-        value
-      }),
-
-      endAt: (value) => ({
-        type: 'cursor',
-        position: 'endAt',
-        value
-      }),
-
-      endBefore: (value) => ({
-        type: 'cursor',
-        position: 'endBefore',
-        value
-      }),
-
-      docId: () => docId
-    }
-  }
-
   private writeHelpers(): Typesaurus.WriteHelpers<Model> {
     return {
       serverDate: () => ({ type: 'value', kind: 'serverDate' }),
@@ -543,6 +360,17 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         key: args.slice(0, args.length - 1),
         value: args[args.length - 1]
       })
+    }
+  }
+
+  private adapter<
+    Source extends Typesaurus.DataSource,
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(): CollectionAdapter<Model, Source, DateStrategy, Environment> {
+    return {
+      collection: () => this.firebaseCollection(),
+      doc: (snapshot) => this.doc(snapshot.id, wrapData(snapshot.data()))
     }
   }
 
@@ -639,6 +467,298 @@ class Doc<Model> implements Typesaurus.ServerDoc<Model> {
   }
 }
 
+interface CollectionAdapter<
+  Model,
+  Source extends Typesaurus.DataSource,
+  DateStrategy extends Typesaurus.ServerDateStrategy,
+  Environment extends Typesaurus.RuntimeEnvironment
+> {
+  collection: () => admin.firestore.Query
+  doc: (
+    snapshot: firestore.QueryDocumentSnapshot
+  ) => Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>
+}
+
+function all<
+  Model,
+  Source extends Typesaurus.DataSource,
+  DateStrategy extends Typesaurus.ServerDateStrategy,
+  Environment extends Typesaurus.RuntimeEnvironment
+>(
+  adapter: CollectionAdapter<Model, Source, DateStrategy, Environment>
+): Typesaurus.SubscriptionPromise<
+  Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
+  Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+> {
+  const firebaseCollection = adapter.collection()
+
+  return new TypesaurusUtils.SubscriptionPromise({
+    get: async () => {
+      const snapshot = await firebaseCollection.get()
+      return snapshot.docs.map((doc) =>
+        adapter.doc(doc.id, wrapData(doc.data()))
+      )
+    },
+
+    subscribe: (onResult, onError) =>
+      firebaseCollection.onSnapshot((firebaseSnap) => {
+        const docs = firebaseSnap.docs.map((doc) =>
+          adapter.doc(doc.id, wrapData(doc.data()))
+        )
+
+        const changes = () =>
+          firebaseSnap.docChanges().map((change) => ({
+            type: change.type,
+            oldIndex: change.oldIndex,
+            newIndex: change.newIndex,
+            doc:
+              docs[
+                change.type === 'removed' ? change.oldIndex : change.newIndex
+              ] ||
+              // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
+              // contain the removed document. In that case, we'll restore it from `change.doc`:
+              adapter.doc(
+                change.doc
+
+                // {
+                //   firestoreData: true,
+                //   environment: a.environment,
+                //   serverTimestamps: options?.serverTimestamps,
+                //   ...a.getDocMeta(change.doc)
+                // }
+              )
+          }))
+
+        const meta = {
+          changes,
+          size: firebaseSnap.size,
+          empty: firebaseSnap.empty
+        }
+
+        onResult(docs, meta)
+      }, onError)
+  })
+}
+
+function query<
+  Model,
+  Source extends Typesaurus.DataSource,
+  DateStrategy extends Typesaurus.ServerDateStrategy,
+  Environment extends Typesaurus.RuntimeEnvironment
+>(
+  adapter: CollectionAdapter<Model, Source, DateStrategy, Environment>,
+  queries: Typesaurus.QueryGetter<Model>
+): Typesaurus.SubscriptionPromise<
+  Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
+  Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+> {
+  const resolvedQueries = queries(queryHelpers())
+  // Query accumulator, will contain final Firestore query with all the
+  // filters and limits.
+  let firestoreQuery: admin.firestore.Query = adapter.collection()
+
+  let cursors: Typesaurus.OrderCursor<any, any, any>[] = []
+
+  resolvedQueries.forEach((query) => {
+    switch (query.type) {
+      case 'order': {
+        const { field, method, cursors: queryCursors } = query
+        firestoreQuery = firestoreQuery.orderBy(
+          field instanceof DocId
+            ? admin.firestore.FieldPath.documentId()
+            : field.toString(),
+          method
+        )
+
+        if (queryCursors)
+          cursors = cursors.concat(
+            queryCursors.map(({ type, position, value }) => ({
+              type,
+              position,
+              value:
+                typeof value === 'object' &&
+                value !== null &&
+                'type' in value &&
+                value.type == 'doc'
+                  ? field instanceof DocId
+                    ? value.ref.id
+                    : value.data[field]
+                  : value
+            }))
+          )
+        break
+      }
+
+      case 'where': {
+        const { field, filter, value } = query
+        const fieldName = Array.isArray(field) ? field.join('.') : field
+        firestoreQuery = firestoreQuery.where(
+          fieldName instanceof DocId
+            ? admin.firestore.FieldPath.documentId()
+            : fieldName,
+          filter,
+          unwrapData(value)
+        )
+        break
+      }
+
+      case 'limit': {
+        const { number } = query
+        firestoreQuery = firestoreQuery.limit(number)
+        break
+      }
+    }
+  })
+
+  let groupedCursors: [Typesaurus.OrderCursorPosition, any[]][] = []
+
+  cursors.forEach((cursor) => {
+    let methodValues = groupedCursors.find(
+      ([position]) => position === cursor.position
+    )
+    if (!methodValues) {
+      methodValues = [cursor.position, []]
+      groupedCursors.push(methodValues)
+    }
+    methodValues[1].push(unwrapData(cursor.value))
+  })
+
+  if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
+    groupedCursors.forEach(([method, values]) => {
+      firestoreQuery = firestoreQuery[method](...values)
+    })
+
+  return new TypesaurusUtils.SubscriptionPromise({
+    get: async () => {
+      const firebaseSnap = await firestoreQuery.get()
+      return firebaseSnap.docs.map((firebaseSnap) =>
+        adapter.doc(
+          firebaseSnap.id,
+          // collection.__type__ === 'collectionGroup'
+          //   ? pathToRef(firebaseSnap.ref.path)
+          //   : ref(collection, firebaseSnap.id),
+          // wrapData(a.getDocData(firebaseSnap, options)) as Model,
+          wrapData(firebaseSnap.data())
+          // {
+          //   firestoreData: true,
+          //   environment: a.environment as Environment,
+          //   serverTimestamps: options?.serverTimestamps,
+          //   ...a.getDocMeta(firebaseSnap)
+          // }
+        )
+      )
+    },
+
+    subscribe: (onResult, onError) =>
+      firestoreQuery.onSnapshot((firebaseSnap) => {
+        const docs = firebaseSnap.docs.map((firebaseSnap) =>
+          adapter.doc(
+            firebaseSnap.id,
+            // collection.__type__ === 'collectionGroup'
+            //   ? pathToRef(firebaseSnap.ref.path)
+            //   : ref(collection, firebaseSnap.id),
+            // wrapData(a.getDocData(firebaseSnap, options)) as Model,
+            wrapData(firebaseSnap.data()) as Model
+            // {
+            //   firestoreData: true,
+            //   environment: a.environment as Environment,
+            //   serverTimestamps: options?.serverTimestamps,
+            //   ...a.getDocMeta(firebaseSnap)
+            // }
+          )
+        )
+
+        const changes = () =>
+          firebaseSnap.docChanges().map((change) => ({
+            type: change.type,
+            oldIndex: change.oldIndex,
+            newIndex: change.newIndex,
+            doc:
+              docs[
+                change.type === 'removed' ? change.oldIndex : change.newIndex
+              ] ||
+              // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
+              // contain the removed document. In that case, we'll restore it from `change.doc`:
+              adapter.doc(
+                change.doc.id,
+                // collection.__type__ === 'collectionGroup'
+                //   ? pathToRef(change.doc.ref.path)
+                //   : ref(collection, change.doc.id),
+                wrapData(change.doc.data())
+                // {
+                //   firestoreData: true,
+                //   environment: a.environment,
+                //   serverTimestamps: options?.serverTimestamps,
+                //   ...a.getDocMeta(change.doc)
+                // }
+              )
+          }))
+
+        const meta = {
+          changes,
+          size: firebaseSnap.size,
+          empty: firebaseSnap.empty
+        }
+
+        onResult(docs, meta)
+      }, onError)
+  })
+}
+
+function queryHelpers<Model>(): Typesaurus.QueryHelpers<Model> {
+  return {
+    where: (field, filter, value) => ({
+      type: 'where',
+      field,
+      filter,
+      value
+    }),
+
+    order: (field, ...args) => ({
+      type: 'order',
+      field,
+      method: typeof args[0] === 'string' ? args[0] : 'asc',
+      cursors:
+        args.length > 1
+          ? args.slice(1)
+          : typeof args[0] === 'object'
+          ? args
+          : undefined
+    }),
+
+    limit: (number) => ({
+      type: 'limit',
+      number
+    }),
+
+    startAt: (value) => ({
+      type: 'cursor',
+      position: 'startAt',
+      value
+    }),
+
+    startAfter: (value) => ({
+      type: 'cursor',
+      position: 'startAfter',
+      value
+    }),
+
+    endAt: (value) => ({
+      type: 'cursor',
+      position: 'endAt',
+      value
+    }),
+
+    endBefore: (value) => ({
+      type: 'cursor',
+      position: 'endBefore',
+      value
+    }),
+
+    docId: () => docId
+  }
+}
+
 /**
  * Generates Firestore path from a reference.
  *
@@ -670,6 +790,13 @@ export function pathToRef<Model>(path: string): Typesaurus.Ref<Model> {
   if (!captures) throw new Error(`Can't parse path ${path}`)
   const [, collectionPath, id] = captures
   return new Ref<Model>(new RichCollection<Model>(collectionPath), id)
+}
+
+export function pathToDoc<Model>(path: string): Typesaurus.Doc<Model> {
+  const captures = path.match(/^(.+)\/(.+)$/)
+  if (!captures) throw new Error(`Can't parse path ${path}`)
+  const [, collectionPath, id] = captures
+  return new Doc<Model>(new RichCollection<Model>(collectionPath), id)
 }
 
 /**

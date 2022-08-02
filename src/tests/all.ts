@@ -73,38 +73,49 @@ describe('all', () => {
       expect(docs[1]?.data.date?.getTime()).toBe(date.getTime())
     })
 
-    // it('allows to get all data from collection groups', async () => {
-    //   const commentsGroupName = `comments-${nanoid()}`
-    //   type Comment = { text: string }
+    describe('groups', () => {
+      interface Comment {
+        text: string
+      }
 
-    //   const bookComments = subcollection<Comment, Book>(commentsGroupName, books)
-    //   const orderComments = subcollection<Comment, Order>(
-    //     commentsGroupName,
-    //     orders
-    //   )
+      const db = schema(($) => ({
+        books: $.sub($.collection<Book>(), {
+          comments: $.collection<Comment>()
+        }),
 
-    //   await Promise.all([
-    //     add(bookComments('qwe'), {
-    //       text: 'hello'
-    //     }),
+        orders: $.sub($.collection<Order>(), {
+          comments: $.collection<Comment>()
+        })
+      }))
 
-    //     add(bookComments('asd'), {
-    //       text: 'cruel'
-    //     }),
+      afterEach(() =>
+        db.groups.comments.all().then((docs) => docs.map((doc) => doc.remove()))
+      )
 
-    //     add(orderComments('zxc'), {
-    //       text: 'world'
-    //     })
-    //   ])
+      it('allows to get all data from collection groups', async () => {
+        await Promise.all([
+          db.books('qwe').comments.add({
+            text: 'hello'
+          }),
 
-    //   const allComments = group(commentsGroupName, [bookComments, orderComments])
-    //   const comments = await all(allComments)
-    //   assert.deepEqual(comments.map((c) => c.data.text).sort(), [
-    //     'cruel',
-    //     'hello',
-    //     'world'
-    //   ])
-    // })
+          db.books('asd').comments.add({
+            text: 'cruel'
+          }),
+
+          db.books('zxc').comments.add({
+            text: 'world'
+          })
+        ])
+
+        const comments = await db.groups.comments.all()
+
+        expect(comments.map((c) => c.data.text).sort()).toEqual([
+          'cruel',
+          'hello',
+          'world'
+        ])
+      })
+    })
   })
 
   describe('subscription', () => {
