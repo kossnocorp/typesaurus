@@ -129,19 +129,6 @@ describe('query', () => {
       ])
     })
 
-    // it('type checks the fields', async () => {
-    //   type Location = { mapId: string; name: string; address?: { city: string } }
-    //   const locations = collection<Location>('locations')
-
-    //   await Promise.all([
-    //     // TODO: It doesn't work properly because of DocId, check what's the problem
-    //     // @ts-expect-error
-    //     query(locations, [where(['adddddress', 'city'], '==', 'New York')]),
-    //     // No errors, even though the address is optional
-    //     query(locations, [where(['address', 'city'], '==', 'New York')])
-    //   ])
-    // })
-
     it('allows to query using array-contains filter', async () => {
       type Tag = 'pets' | 'cats' | 'dogs' | 'food' | 'hotdogs'
 
@@ -310,76 +297,87 @@ describe('query', () => {
       expect(docs[0]?.data.name).toBe('Sasha')
     })
 
-    // it('allows querying collection groups', async () => {
-    //   const ownerId = nanoid()
-    //   const contactMessages = subcollection<Message, Contact>(
-    //     'contactMessages',
-    //     contacts
-    //   )
-    //   const sashaRef = ref(contacts, `${ownerId}-sasha`)
-    //   const sashasContactMessages = contactMessages(sashaRef)
-    //   add(sashasContactMessages, {
-    //     ownerId,
-    //     author: sashaRef,
-    //     text: 'Hello from Sasha!'
-    //   })
-    //   const tatiRef = ref(contacts, `${ownerId}-tati`)
-    //   const tatisContactMessages = contactMessages(tatiRef)
-    //   await Promise.all([
-    //     add(tatisContactMessages, {
-    //       ownerId,
-    //       author: tatiRef,
-    //       text: 'Hello from Tati!'
-    //     }),
-    //     add(tatisContactMessages, {
-    //       ownerId,
-    //       author: tatiRef,
-    //       text: 'Hello, again!'
-    //     })
-    //   ])
-    //   const allContactMessages = group('contactMessages', [contactMessages])
-    //   const messages = await query(allContactMessages, [
-    //     where('ownerId', '==', ownerId)
-    //   ])
-    //   assert.deepEqual(messages.map((m) => m.data.text).sort(), [
-    //     'Hello from Sasha!',
-    //     'Hello from Tati!',
-    //     'Hello, again!'
-    //   ])
-    // })
+    describe('groups', () => {
+      interface Post {
+        ownerId: string
+        title: string
+      }
 
-    // it('allows querying nested subcollection groups', async () => {
-    //   const contactMessages = subcollection<Message, Contact>(
-    //     'contactMessages',
-    //     contacts
-    //   )
-    //   type Post = {
-    //     ownerId: string
-    //     title: string
-    //   }
-    //   const nestedPost = subcollection<Post, Message, Contact>(
-    //     'posts',
-    //     contactMessages
-    //   )
+      const db = schema(($) => ({
+        contacts: $.sub($.collection<Contact>(), {
+          contactMessages: $.sub($.collection<Message>(), {
+            messagePosts: $.collection<Post>()
+          })
+        })
+      }))
 
-    //   const ownerId = nanoid()
-    //   const messageId = nanoid()
-    //   const nestedPostRef = nestedPost([messageId, ownerId])
-    //   await add(nestedPostRef, {
-    //     ownerId,
-    //     title: 'Hello'
-    //   })
-    //   await add(nestedPostRef, {
-    //     ownerId,
-    //     title: 'Hello, again!'
-    //   })
-    //   const allPosts = group('posts', [nestedPost])
-    //   const posts = await query(allPosts, [where('ownerId', '==', ownerId)])
-    //   assert.deepEqual(posts.map((m) => m.data.title).sort(), [
-    //     'Hello',
-    //     'Hello, again!'
-    //   ])
-    // })
+      afterEach(() =>
+        db.groups.contactMessages
+          .all()
+          .then((docs) => docs.map((doc) => doc.remove()))
+      )
+
+      it('allows querying collection groups', async () => {
+        const sashaRef = db.contacts.ref(sashaId)
+        const tatiRef = db.contacts.ref(tatiId)
+
+        await Promise.all([
+          db.contacts(sashaId).contactMessages.add({
+            ownerId,
+            author: sashaRef,
+            text: 'Hello from Sasha!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello from Tati!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello, again!'
+          })
+        ])
+
+        const messages = await db.groups.contactMessages.query(($) => [
+          $.where('ownerId', '==', ownerId)
+        ])
+
+        expect(messages.map((m) => m.data.text).sort()).toEqual([
+          'Hello from Sasha!',
+          'Hello from Tati!',
+          'Hello, again!'
+        ])
+      })
+
+      it('allows querying nested subcollection groups', async () => {
+        const ownerId = nanoid()
+        const messageId = nanoid()
+
+        await Promise.all([
+          db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
+            ownerId,
+            title: 'Hello'
+          }),
+
+          db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
+            ownerId,
+            title: 'Hello, again!'
+          })
+        ])
+
+        const posts = await db.groups.messagePosts.query(($) => [
+          $.where('ownerId', '==', ownerId)
+        ])
+
+        expect(posts.map((m) => m.data.title).sort()).toEqual([
+          'Hello',
+          'Hello, again!'
+        ])
+      })
+    })
 
     describe('ordering', () => {
       it('allows ordering', async () => {
@@ -937,78 +935,6 @@ describe('query', () => {
           })
       }))
 
-    //   it('allows querying collection groups', async () => {
-    //     const ownerId = nanoid()
-    //     const contactMessages = subcollection<Message, Contact>(
-    //       'contactMessages',
-    //       contacts
-    //     )
-    //     const sashaRef = ref(contacts, `${ownerId}-sasha`)
-    //     const sashasContactMessages = contactMessages(sashaRef)
-    //     add(sashasContactMessages, {
-    //       ownerId,
-    //       author: sashaRef,
-    //       text: 'Hello from Sasha!'
-    //     })
-    //     const tatiRef = ref(contacts, `${ownerId}-tati`)
-    //     const tatisContactMessages = contactMessages(tatiRef)
-    //     await Promise.all([
-    //       add(tatisContactMessages, {
-    //         ownerId,
-    //         author: tatiRef,
-    //         text: 'Hello from Tati!'
-    //       }),
-    //       add(tatisContactMessages, {
-    //         ownerId,
-    //         author: tatiRef,
-    //         text: 'Hello, again!'
-    //       })
-    //     ])
-    //     const allContactMessages = group('contactMessages', [contactMessages])
-    //     const spy = sinon.spy()
-    //     return new Promise((resolve) => {
-    //       off = onQuery(
-    //         allContactMessages,
-    //         [where('ownerId', '==', ownerId)],
-    //         async (messages) => {
-    //           spy(messages.map((m) => m.data.text).sort())
-    //           if (messages.length === 3) {
-    //             await Promise.all([
-    //               add(sashasContactMessages, {
-    //                 ownerId,
-    //                 author: sashaRef,
-    //                 text: '1'
-    //               }),
-    //               add(tatisContactMessages, {
-    //                 ownerId,
-    //                 author: tatiRef,
-    //                 text: '2'
-    //               })
-    //             ])
-    //           } else if (messages.length === 5) {
-    //             assert(
-    //               spy.calledWithMatch([
-    //                 'Hello from Sasha!',
-    //                 'Hello from Tati!',
-    //                 'Hello, again!'
-    //               ])
-    //             )
-    //             assert(
-    //               spy.calledWithMatch([
-    //                 '1',
-    //                 '2',
-    //                 'Hello from Sasha!',
-    //                 'Hello from Tati!',
-    //                 'Hello, again!'
-    //               ])
-    //             )
-    //             resolve(void 0)
-    //           }
-    //         }
-    //       )
-    //     })
-    //   })
-
     it('allows to query by date', () =>
       new Promise((resolve) => {
         off = db.contacts
@@ -1021,6 +947,150 @@ describe('query', () => {
               resolve(void 0)
           })
       }))
+
+    describe('groups', () => {
+      interface Post {
+        ownerId: string
+        title: string
+      }
+
+      const db = schema(($) => ({
+        contacts: $.sub($.collection<Contact>(), {
+          contactMessages: $.sub($.collection<Message>(), {
+            messagePosts: $.collection<Post>()
+          })
+        })
+      }))
+
+      afterEach(() =>
+        db.groups.contactMessages
+          .all()
+          .then((docs) => docs.map((doc) => doc.remove()))
+      )
+
+      it('allows querying collection groups', async () => {
+        const sashaRef = db.contacts.ref(sashaId)
+        const tatiRef = db.contacts.ref(tatiId)
+
+        await Promise.all([
+          db.contacts(sashaId).contactMessages.add({
+            ownerId,
+            author: sashaRef,
+            text: 'Hello from Sasha!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello from Tati!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello, again!'
+          })
+        ])
+
+        const messages = await db.groups.contactMessages.query(($) => [
+          $.where('ownerId', '==', ownerId)
+        ])
+
+        expect(messages.map((m) => m.data.text).sort()).toEqual([
+          'Hello from Sasha!',
+          'Hello from Tati!',
+          'Hello, again!'
+        ])
+
+        const spy = sinon.spy()
+
+        return new Promise((resolve) => {
+          off = db.groups.contactMessages
+            .query(($) => [$.where('ownerId', '==', ownerId)])
+            .on(async (messages) => {
+              spy(messages.map((m) => m.data.text).sort())
+
+              if (messages.length === 3) {
+                await Promise.all([
+                  db.contacts(sashaId).contactMessages.add({
+                    ownerId,
+                    author: sashaRef,
+                    text: '1'
+                  }),
+                  db.contacts(tatiId).contactMessages.add({
+                    ownerId,
+                    author: tatiRef,
+                    text: '2'
+                  })
+                ])
+              } else if (messages.length === 5) {
+                expect(
+                  spy.calledWithMatch([
+                    'Hello from Sasha!',
+                    'Hello from Tati!',
+                    'Hello, again!'
+                  ])
+                ).toBe(true)
+                expect(
+                  spy.calledWithMatch([
+                    '1',
+                    '2',
+                    'Hello from Sasha!',
+                    'Hello from Tati!',
+                    'Hello, again!'
+                  ])
+                ).toBe(true)
+                resolve(void 0)
+              }
+            })
+        })
+      })
+
+      it('allows querying nested subcollection groups', async () => {
+        const ownerId = nanoid()
+        const messageId = nanoid()
+
+        await Promise.all([
+          db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
+            ownerId,
+            title: 'Hello'
+          }),
+
+          db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
+            ownerId,
+            title: 'Hello, again!'
+          })
+        ])
+
+        const spy = sinon.spy()
+
+        return new Promise((resolve) => {
+          off = db.groups.messagePosts
+            .query(($) => [$.where('ownerId', '==', ownerId)])
+            .on(async (posts) => {
+              spy(posts.map((m) => m.data.title).sort())
+
+              if (posts.length === 2) {
+                await db
+                  .contacts(sashaId)
+                  .contactMessages(messageId)
+                  .messagePosts.add({
+                    ownerId,
+                    title: 'Hello!!!'
+                  })
+              } else if (posts.length === 3) {
+                expect(spy.calledWithMatch(['Hello', 'Hello, again!'])).toBe(
+                  true
+                )
+                expect(
+                  spy.calledWithMatch(['Hello', 'Hello!!!', 'Hello, again!'])
+                ).toBe(true)
+                resolve(void 0)
+              }
+            })
+        })
+      })
+    })
 
     describe('ordering', () => {
       it('allows ordering', () =>
