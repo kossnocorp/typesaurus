@@ -38,25 +38,13 @@ export const defaultOnMissing: Typesaurus.OnMissingCallback<unknown> = (id) => {
 export function schema<Schema extends Typesaurus.PlainSchema>(
   getSchema: ($: Typesaurus.SchemaHelpers) => Schema
 ): Typesaurus.RootDB<Schema> {
-  const schemaHelpers: Typesaurus.SchemaHelpers = {
-    collection() {
-      return { type: 'collection' }
-    },
+  const schema = getSchema(schemaHelpers())
 
-    sub(collection, schema) {
-      return { ...collection, schema }
-    }
-  }
+  const richSchema: Typesaurus.RichSchema = enrichSchema(schema)
+  const groups: Typesaurus.Groups<Schema> = extractGroups(schema)
+  const rootDB: Typesaurus.RootDB<Schema> = { ...richSchema, groups }
 
-  const db = getSchema(schemaHelpers)
-
-  const richdb: Typesaurus.RichSchema = {}
-
-  Object.entries(db).forEach(([collectionPath, collection]) => {
-    richdb[collectionPath] = new RichCollection(collectionPath)
-  })
-
-  return richdb as unknown as Typesaurus.RootDB<Schema>
+  return rootDB
 }
 
 export async function id() {
@@ -101,7 +89,7 @@ class Group<Model> implements Typesaurus.Group<Model> {
   >(): CollectionAdapter<Model, Source, DateStrategy, Environment> {
     return {
       collection: () => this.firebaseCollection(),
-      doc: (snapshot) => pathToDoc<Model>(snapshot.ref.path)
+      doc: (snapshot) => pathToDoc<Model>(snapshot.ref.path, snapshot.data())
     }
   }
 
@@ -111,6 +99,8 @@ class Group<Model> implements Typesaurus.Group<Model> {
 }
 
 class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
+  type: 'collection' = 'collection'
+
   path: string
 
   constructor(path: string) {
@@ -495,16 +485,12 @@ function all<
   return new TypesaurusUtils.SubscriptionPromise({
     get: async () => {
       const snapshot = await firebaseCollection.get()
-      return snapshot.docs.map((doc) =>
-        adapter.doc(doc.id, wrapData(doc.data()))
-      )
+      return snapshot.docs.map((doc) => adapter.doc(doc))
     },
 
     subscribe: (onResult, onError) =>
       firebaseCollection.onSnapshot((firebaseSnap) => {
-        const docs = firebaseSnap.docs.map((doc) =>
-          adapter.doc(doc.id, wrapData(doc.data()))
-        )
+        const docs = firebaseSnap.docs.map((doc) => adapter.doc(doc))
 
         const changes = () =>
           firebaseSnap.docChanges().map((change) => ({
@@ -538,6 +524,61 @@ function all<
         onResult(docs, meta)
       }, onError)
   })
+}
+
+function schemaHelpers(): Typesaurus.SchemaHelpers {
+  return {
+    collection() {
+      return { type: 'collection' }
+    },
+
+    sub(collection, schema) {
+      return { ...collection, schema }
+    }
+  }
+}
+
+function enrichSchema(
+  schema: Typesaurus.PlainSchema,
+  nestedPath?: string
+): Typesaurus.RichSchema {
+  return Object.entries(schema).reduce<Typesaurus.RichSchema>(
+    (enrichedSchema, [path, plainCollection]) => {
+      const collection = new RichCollection(
+        nestedPath ? `${nestedPath}/${path}` : path
+      )
+
+      enrichedSchema[path] =
+        'schema' in plainCollection
+          ? new Proxy<Typesaurus.NestedRichCollection<any, any>>(() => {}, {
+              get: (_target, prop: keyof typeof collection) => collection[prop],
+
+              apply: (_target, prop, [id]: [string]) =>
+                enrichSchema(plainCollection.schema, `${collection.path}/${id}`)
+            })
+          : collection
+
+      return enrichedSchema
+    },
+    {}
+  )
+}
+
+function extractGroups(
+  schema: Typesaurus.PlainSchema
+): Typesaurus.Groups<unknown> {
+  const groups: Typesaurus.Groups<unknown> = {}
+
+  function extract(schema: Typesaurus.PlainSchema) {
+    Object.entries(schema).forEach(([path, plainCollection]) => {
+      if (path in groups) return
+      groups[path] = new Group(path)
+      if ('schema' in plainCollection) extract(plainCollection.schema)
+    })
+  }
+  extract(schema)
+
+  return groups
 }
 
 function query<
@@ -633,12 +674,8 @@ function query<
       const firebaseSnap = await firestoreQuery.get()
       return firebaseSnap.docs.map((firebaseSnap) =>
         adapter.doc(
-          firebaseSnap.id,
-          // collection.__type__ === 'collectionGroup'
-          //   ? pathToRef(firebaseSnap.ref.path)
-          //   : ref(collection, firebaseSnap.id),
-          // wrapData(a.getDocData(firebaseSnap, options)) as Model,
-          wrapData(firebaseSnap.data())
+          firebaseSnap
+
           // {
           //   firestoreData: true,
           //   environment: a.environment as Environment,
@@ -653,12 +690,7 @@ function query<
       firestoreQuery.onSnapshot((firebaseSnap) => {
         const docs = firebaseSnap.docs.map((firebaseSnap) =>
           adapter.doc(
-            firebaseSnap.id,
-            // collection.__type__ === 'collectionGroup'
-            //   ? pathToRef(firebaseSnap.ref.path)
-            //   : ref(collection, firebaseSnap.id),
-            // wrapData(a.getDocData(firebaseSnap, options)) as Model,
-            wrapData(firebaseSnap.data()) as Model
+            firebaseSnap
             // {
             //   firestoreData: true,
             //   environment: a.environment as Environment,
@@ -680,11 +712,7 @@ function query<
               // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
               // contain the removed document. In that case, we'll restore it from `change.doc`:
               adapter.doc(
-                change.doc.id,
-                // collection.__type__ === 'collectionGroup'
-                //   ? pathToRef(change.doc.ref.path)
-                //   : ref(collection, change.doc.id),
-                wrapData(change.doc.data())
+                change.doc
                 // {
                 //   firestoreData: true,
                 //   environment: a.environment,
@@ -792,11 +820,14 @@ export function pathToRef<Model>(path: string): Typesaurus.Ref<Model> {
   return new Ref<Model>(new RichCollection<Model>(collectionPath), id)
 }
 
-export function pathToDoc<Model>(path: string): Typesaurus.Doc<Model> {
+export function pathToDoc<Model>(
+  path: string,
+  data: Model
+): Typesaurus.Doc<Model> {
   const captures = path.match(/^(.+)\/(.+)$/)
   if (!captures) throw new Error(`Can't parse path ${path}`)
   const [, collectionPath, id] = captures
-  return new Doc<Model>(new RichCollection<Model>(collectionPath), id)
+  return new Doc<Model>(new RichCollection<Model>(collectionPath), id, data)
 }
 
 /**
