@@ -1,5 +1,5 @@
 import type { Typesaurus } from '.'
-import { schema } from './adaptor/admin'
+import { schema } from './adapter/admin'
 import { TypesaurusUtils } from './utils'
 
 interface Post {

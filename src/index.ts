@@ -1,3 +1,5 @@
+export { schema } from './adapter'
+
 import type { TypesaurusUtils } from './utils'
 
 export namespace Typesaurus {
@@ -1238,6 +1240,7 @@ export namespace Typesaurus {
 
   export type RootDB<Schema> = DB<Schema> & {
     groups: Groups<Schema>
+    id: () => Promise<string>
   }
 
   export type OnMissingMode<Model> = OnMissingCallback<Model> | 'ignore'

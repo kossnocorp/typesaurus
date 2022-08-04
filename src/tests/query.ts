@@ -1,8 +1,7 @@
 import { sweep } from 'js-fns'
 import { nanoid } from 'nanoid'
 import sinon from 'sinon'
-import { Typesaurus } from '..'
-import { schema } from '../adaptor'
+import { schema, Typesaurus } from '..'
 
 describe('query', () => {
   interface Contact {
@@ -98,7 +97,7 @@ describe('query', () => {
         locations: $.collection<Location>()
       }))
 
-      const mapId = nanoid()
+      const mapId = await db.id()
 
       await Promise.all([
         db.locations.add({
@@ -142,7 +141,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = nanoid()
+      const blogId = await db.id()
 
       await Promise.all([
         db.posts.add({
@@ -184,7 +183,7 @@ describe('query', () => {
         pets: $.collection<Pet>()
       }))
 
-      const ownerId = nanoid()
+      const ownerId = await db.id()
 
       await Promise.all([
         db.pets.add({
@@ -228,7 +227,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = nanoid()
+      const blogId = await db.id()
 
       await Promise.all([
         db.posts.add({
@@ -353,8 +352,8 @@ describe('query', () => {
       })
 
       it('allows querying nested subcollection groups', async () => {
-        const ownerId = nanoid()
-        const messageId = nanoid()
+        const ownerId = await db.id()
+        const messageId = await db.id()
 
         await Promise.all([
           db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
@@ -535,7 +534,7 @@ describe('query', () => {
           cities: $.collection<City>()
         }))
 
-        const mapId = nanoid()
+        const mapId = await db.id()
 
         await Promise.all([
           db.cities.add({
@@ -714,7 +713,7 @@ describe('query', () => {
 
       const spy = sinon.spy()
 
-      const mapId = nanoid()
+      const mapId = await db.id()
 
       await Promise.all([
         db.locations.add({
@@ -762,7 +761,7 @@ describe('query', () => {
       }))
 
       const spy = sinon.spy()
-      const blogId = nanoid()
+      const blogId = await db.id()
 
       await Promise.all([
         db.posts.add({
@@ -807,7 +806,7 @@ describe('query', () => {
         pets: $.collection<Pet>()
       }))
 
-      const ownerId = nanoid()
+      const ownerId = await db.id()
       const spy = sinon.spy()
 
       await Promise.all([
@@ -854,7 +853,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = nanoid()
+      const blogId = await db.id()
       const spy = sinon.spy()
 
       await Promise.all([
@@ -1047,8 +1046,8 @@ describe('query', () => {
       })
 
       it('allows querying nested subcollection groups', async () => {
-        const ownerId = nanoid()
-        const messageId = nanoid()
+        const ownerId = await db.id()
+        const messageId = await db.id()
 
         await Promise.all([
           db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
@@ -1306,7 +1305,7 @@ describe('query', () => {
           cities: $.collection<City>()
         }))
 
-        const mapId = nanoid()
+        const mapId = await db.id()
         const spy = sinon.spy()
 
         await Promise.all([

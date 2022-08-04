@@ -1,5 +1,5 @@
 import { Typesaurus } from '.'
-import { schema } from './adaptor/admin'
+import { schema } from './adapter/admin'
 import { transaction } from './transaction'
 
 describe('Typesaurus core', () => {

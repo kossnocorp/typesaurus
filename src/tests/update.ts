@@ -1,6 +1,4 @@
-import { nanoid } from 'nanoid'
-import { Typesaurus } from '..'
-import { id, schema } from '../adaptor'
+import { Typesaurus, schema } from '..'
 
 describe('update', () => {
   interface User {
@@ -89,8 +87,8 @@ describe('update', () => {
   })
 
   it('supports references', async () => {
-    const userId1 = nanoid()
-    const userId2 = nanoid()
+    const userId1 = await db.id()
+    const userId2 = await db.id()
     await db.users.set(userId1, {
       name: 'Sasha',
       address: { city: 'Omsk' },
@@ -101,7 +99,7 @@ describe('update', () => {
       address: { city: 'Dimitrovgrad' },
       visits: 0
     })
-    const postId = nanoid()
+    const postId = await db.id()
     await db.posts.set(postId, {
       author: db.users.ref(userId1),
       text: 'Hello!'
@@ -183,7 +181,7 @@ describe('update', () => {
 
   describe('updating arrays', () => {
     it('union update', async () => {
-      const userId = nanoid()
+      const userId = await db.id()
       const fav = await db.favorites.add({
         userId,
         favorites: [
@@ -213,7 +211,7 @@ describe('update', () => {
     })
 
     it('remove update', async () => {
-      const userId = nanoid()
+      const userId = await db.id()
       const fav = await db.favorites.add({
         userId,
         favorites: [
@@ -237,8 +235,8 @@ describe('update', () => {
     })
 
     it('union update references', async () => {
-      const user1 = db.users.ref(await id())
-      const user2 = db.users.ref(await id())
+      const user1 = db.users.ref(await db.id())
+      const user2 = db.users.ref(await db.id())
       const movie = await db.movies.add({
         title: "Harry Potter and the Sorcerer's Stone",
         likedBy: [user1]
@@ -255,8 +253,8 @@ describe('update', () => {
     })
 
     it('remove update references', async () => {
-      const user1 = db.users.ref(await id())
-      const user2 = db.users.ref(await id())
+      const user1 = db.users.ref(await db.id())
+      const user2 = db.users.ref(await db.id())
       const movie = await db.movies.add({
         title: 'Harry Potter and the Chamber of Secrets',
         likedBy: [user1, user2]

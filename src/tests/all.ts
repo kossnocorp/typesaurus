@@ -1,6 +1,5 @@
 import sinon from 'sinon'
-import { Typesaurus } from '..'
-import { schema } from '../adaptor'
+import { schema, Typesaurus } from '..'
 
 describe('all', () => {
   interface Book {
