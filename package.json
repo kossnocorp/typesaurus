@@ -43,6 +43,8 @@
     "prettier": "^2.0.4",
     "puppeteer": "^6.0.0",
     "sinon": "^14.0.0",
+    "size-limit": "^8.0.0",
+    "size-limit-preset-node-lib": "^0.1.0",
     "typedoc": "^0.15.0",
     "typescript": "^4.8.0-beta",
     "webpack": "4"
