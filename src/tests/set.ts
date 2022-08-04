@@ -1,6 +1,4 @@
-import { nanoid } from 'nanoid'
-import { Typesaurus } from '..'
-import { schema } from '../adaptor'
+import { schema, Typesaurus } from '..'
 
 describe('set', () => {
   interface User {
@@ -19,14 +17,14 @@ describe('set', () => {
   }))
 
   it('sets a document', async () => {
-    const id = nanoid()
+    const id = await db.id()
     await db.users.set(id, { name: 'Sasha' })
     const user = await db.users.get(id)
     expect(user?.data).toEqual({ name: 'Sasha' })
   })
 
   it('overwrites a document', async () => {
-    const id = nanoid()
+    const id = await db.id()
     await db.users.set(id, { name: 'Sasha' })
     await db.users.set(id, { name: 'Sasha Koss' })
     const user = await db.users.get(id)
@@ -34,7 +32,7 @@ describe('set', () => {
   })
 
   it('allows setting to refs', async () => {
-    const id = nanoid()
+    const id = await db.id()
     const userRef = db.users.ref(id)
     await userRef.set({ name: 'Sasha' })
     const user = await userRef.get()
@@ -42,8 +40,8 @@ describe('set', () => {
   })
 
   it('supports references', async () => {
-    const userId = nanoid()
-    const postId = nanoid()
+    const userId = await db.id()
+    const postId = await db.id()
     await db.users.set(userId, { name: 'Sasha' })
     await db.posts.set(postId, { author: db.users.ref(userId), text: 'Hello!' })
     const postFromDB = await db.posts.get(postId)
@@ -54,7 +52,7 @@ describe('set', () => {
   it('supports dates', async () => {
     const date = new Date()
     const userRef = db.users.ref('42')
-    const postId = nanoid()
+    const postId = await db.id()
     await db.posts.set(postId, { author: userRef, text: 'Hello!', date })
     const postFromDB = await db.posts.get(postId)
     expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
@@ -73,7 +71,7 @@ describe('set', () => {
     }))
 
     it('supports server dates', async () => {
-      const userId = nanoid()
+      const userId = await db.id()
       await db.users.set(userId, ($) => ({
         name: 'Sasha',
         createdAt: $.serverDate(),
@@ -93,7 +91,7 @@ describe('set', () => {
     //     it('allows to assert environment which allows setting dates', async () => {
     //       // TODO: Find a way to make the error show on fields like when assertEnvironment: 'web'
     //       // @ts-expect-error
-    //       await set(users, nanoid(), {
+    //       await set(users, await db.id(), {
     //         name: 'Sasha',
     //         createdAt: new Date(),
     //         updatedAt: new Date(),
@@ -103,7 +101,7 @@ describe('set', () => {
     //       const nodeSet = () =>
     //         set(
     //           users,
-    //           nanoid(),
+    //           await db.id(),
     //           {
     //             name: 'Sasha',
     //             createdAt: new Date(),
@@ -116,7 +114,7 @@ describe('set', () => {
     //       const webSet = () =>
     //         set(
     //           users,
-    //           nanoid(),
+    //           await db.id(),
     //           {
     //             name: 'Sasha',
     //             // @ts-expect-error

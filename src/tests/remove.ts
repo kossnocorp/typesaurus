@@ -1,4 +1,4 @@
-import { schema } from '../adaptor'
+import { schema } from '..'
 
 describe('remove', () => {
   interface User {

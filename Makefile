@@ -35,7 +35,7 @@ build:
 	@cp *.md lib
 	@rsync --archive --prune-empty-dirs --exclude '*.ts' --relative src/./ lib
 	@npx tsc --project tsconfig.lib.json --outDir lib/esm --module es2020 --target es2019
-	@cp src/adaptor/package.esm.json lib/esm/adaptor/package.json
+	@cp src/adapter/package.esm.json lib/esm/adapter/package.json
 
 publish: build
 	cd lib && npm publish --access public

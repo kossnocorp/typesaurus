@@ -1,5 +1,4 @@
-import { Typesaurus } from '..'
-import { schema } from '../adaptor'
+import { schema, Typesaurus } from '..'
 
 describe('add', () => {
   interface User {

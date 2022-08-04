@@ -1,6 +1,4 @@
-import { nanoid } from 'nanoid'
-import { Typesaurus } from '..'
-import { schema } from '../adaptor'
+import { schema, Typesaurus } from '..'
 
 describe('upset', () => {
   interface User {
@@ -24,7 +22,7 @@ describe('upset', () => {
   }
 
   it('creates a document if it does not exist', async () => {
-    const id = nanoid()
+    const id = await db.id()
     const initialUser = await db.users.get(id)
     expect(initialUser).toBeNull()
     await db.users.upset(id, { name: 'Sasha' })
@@ -33,7 +31,7 @@ describe('upset', () => {
   })
 
   it('merges data if the document does exits', async () => {
-    const id = nanoid()
+    const id = await db.id()
     await db.users.set(id, defaultUser)
     await db.users.update(id, { deleted: true })
     await db.users.upset(id, { name: 'Sasha Koss' })
@@ -45,7 +43,7 @@ describe('upset', () => {
   })
 
   it('allows setting to refs', async () => {
-    const id = nanoid()
+    const id = await db.id()
     const userRef = db.users.ref(id)
     await userRef.upset({ name: 'Sasha' })
     const user = await db.users.get(id)
@@ -53,7 +51,7 @@ describe('upset', () => {
   })
 
   it('allows setting to doc', async () => {
-    const id = nanoid()
+    const id = await db.id()
     await db.users.set(id, defaultUser)
     const user = await db.users.get(id)
     if (!user) throw new Error('Document is not found')
@@ -65,8 +63,8 @@ describe('upset', () => {
   })
 
   it('supports references', async () => {
-    const userId = nanoid()
-    const postId = nanoid()
+    const userId = await db.id()
+    const postId = await db.id()
     await db.users.upset(userId, { name: 'Sasha' })
     await db.posts.upset(postId, {
       author: db.users.ref(userId),
@@ -81,7 +79,7 @@ describe('upset', () => {
     it('supports dates', async () => {
       const date = new Date()
       const userRef = db.users.ref('42')
-      const postId = nanoid()
+      const postId = await db.id()
       await db.posts.upset(
         postId,
         {
@@ -98,7 +96,7 @@ describe('upset', () => {
 
   it('supports server dates', async () => {
     const userRef = db.users.ref('42')
-    const postId = nanoid()
+    const postId = await db.id()
     await db.posts.upset(postId, ($) => ({
       author: userRef,
       text: 'Hello!',
@@ -129,7 +127,7 @@ describe('upset', () => {
       counters: $.collection<Counter>()
     }))
 
-    const id = nanoid()
+    const id = await db.id()
     await db.counters.upset(id, ($) => ({
       count: $.increment(5)
     }))
@@ -154,7 +152,7 @@ describe('upset', () => {
     }))
 
     it('union update', async () => {
-      const id = nanoid()
+      const id = await db.id()
       await db.favorites.upset(id, {
         favorites: [
           'Sapiens',
@@ -181,7 +179,7 @@ describe('upset', () => {
     })
 
     it('remove update', async () => {
-      const id = nanoid()
+      const id = await db.id()
       await db.favorites.upset(id, {
         favorites: [
           'Sapiens',

@@ -1,6 +1,5 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
-import { collection } from 'firebase/firestore'
 import { Typesaurus } from '../..'
 import { TypesaurusUtils } from '../../utils'
 
@@ -42,12 +41,12 @@ export function schema<Schema extends Typesaurus.PlainSchema>(
 
   const richSchema: Typesaurus.RichSchema = enrichSchema(schema)
   const groups: Typesaurus.Groups<Schema> = extractGroups(schema)
-  const rootDB: Typesaurus.RootDB<Schema> = { ...richSchema, groups }
+  const rootDB: Typesaurus.RootDB<Schema> = { ...richSchema, groups, id }
 
   return rootDB
 }
 
-export async function id() {
+async function id() {
   return admin.firestore().collection('nope').doc().id
 }
 
