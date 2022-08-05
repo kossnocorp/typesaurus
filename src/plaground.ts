@@ -234,19 +234,6 @@ describe('Typesaurus core', () => {
         await sashaRef.update({ name: 'Sasha' })
 
         await nestedDB.groups.likes
-
-        // Transactions
-
-        transaction(($) => {
-          return $.execute(db.users).get('asd')
-        }).then(($) => {
-          $.execute(db.users).update('asd', {
-            // @ts-expect-error
-            ame: 'Alexander'
-          })
-
-          $.execute(db.posts).remove('123')
-        })
       })
     })
   })

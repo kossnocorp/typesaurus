@@ -1,3 +1,3 @@
-import { Typesaurus } from '../..'
+import { TypesaurusTransaction } from '../../types/transaction'
 
-export const transaction: Typesaurus.Transaction = () => {}
+export const transaction: TypesaurusTransaction.Function = () => {}

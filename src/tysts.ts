@@ -65,8 +65,6 @@ interface Account {
   }
 }
 
-type Asd = Record<string, number>
-
 interface User {
   name: string
   contacts: {
@@ -424,13 +422,6 @@ async function groups() {
     ExampleFSPP
   >
 
-  type Qwe =
-    | { books: number }
-    | { comics: number }
-    | { books: string; plants: string }
-
-  type Asd = TypesaurusUtils.UnionKeys<Qwe>
-
   type ExampleYHWG = Typesaurus.ConstructGroups<
     { books: number } | { comics: number },
     { books: string; plants: string } | {},
@@ -444,7 +435,7 @@ async function groups() {
       comics: Typesaurus.Group<number>
       plants: Typesaurus.Group<string>
     },
-    ExampleFSPP
+    ExampleYHWG
   >
 
   // GroupsLevel
