@@ -89,7 +89,7 @@ describe('set', () => {
     })
 
     //     it('allows to assert environment which allows setting dates', async () => {
-    //       // TODO: Find a way to make the error show on fields like when assertEnvironment: 'web'
+    //       // TODO: Find a way to make the error show on fields like when assertEnvironment: 'client'
     //       // @ts-expect-error
     //       await set(users, await db.id(), {
     //         name: 'Sasha',
@@ -123,7 +123,7 @@ describe('set', () => {
     //             updatedAt: new Date(),
     //             birthday: new Date(1987, 1, 11)
     //           },
-    //           { assertEnvironment: 'web' }
+    //           { assertEnvironment: 'client' }
     //         )
 
     //       if (typeof window === 'undefined') {

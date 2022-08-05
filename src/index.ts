@@ -136,7 +136,7 @@ export namespace Typesaurus {
       : DateStrategy extends 'estimate'
       ? AnyModelData<Model, 'present'>
       : AnyModelData<Model, 'nullable'>
-    environment: 'web'
+    environment: 'client'
     source: Source
     dateStrategy: DateStrategy
     pendingWrites: boolean

@@ -188,7 +188,7 @@ it.todo('TODO')
 //       // Test dates within cached doc
 
 //       const webDoc = doc(ref(users, nanoid()), user, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: true,
 //         hasPendingWrites: true
 //       })
@@ -202,7 +202,7 @@ it.todo('TODO')
 //       // Test dates within not-cached doc
 
 //       const notCachedDoc = doc(ref(users, nanoid()), user, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: false,
 //         hasPendingWrites: false
 //       })
@@ -263,7 +263,7 @@ it.todo('TODO')
 //       // Test estimate strategy
 
 //       const estimateDoc = doc(ref(users, nanoid()), user, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: true,
 //         hasPendingWrites: true,
 //         serverTimestamps: 'estimate'
@@ -276,7 +276,7 @@ it.todo('TODO')
 //       // Test previous strategy
 
 //       const previousDoc = doc(ref(users, nanoid()), user, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: true,
 //         hasPendingWrites: true,
 //         serverTimestamps: 'previous'
@@ -293,7 +293,7 @@ it.todo('TODO')
 //       // Test none strategy
 
 //       const noneDoc = doc(ref(users, nanoid()), user, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: true,
 //         hasPendingWrites: true,
 //         serverTimestamps: 'none'
@@ -306,7 +306,7 @@ it.todo('TODO')
 //       }
 
 //       const noneButNotCachedDoc = doc(ref(users, nanoid()), user, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: false,
 //         hasPendingWrites: true,
 //         serverTimestamps: 'none'
@@ -359,7 +359,7 @@ it.todo('TODO')
 //       // Test in the web environment
 
 //       const webDoc = doc(ref(groups, nanoid()), group, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: true,
 //         hasPendingWrites: true
 //       })
@@ -383,7 +383,7 @@ it.todo('TODO')
 //       // Test with the estimate strategy
 
 //       const estimateDoc = doc(ref(groups, nanoid()), group, {
-//         environment: 'web',
+//         environment: 'client',
 //         fromCache: true,
 //         hasPendingWrites: true,
 //         serverTimestamps: 'estimate'
