@@ -30,7 +30,11 @@ export namespace TypesaurusTransaction {
   export type Doc<
     Model,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > = Environment extends 'server' ? ServerDoc<Model> : ClientDoc<Model>
+  > = Environment extends 'server'
+    ? ServerDoc<Model>
+    : Environment extends 'client'
+    ? ClientDoc<Model>
+    : ServerDoc<Model> | ClientDoc<Model>
 
   export interface ServerDoc<Model> extends DocAPI<Model, 'server'> {
     type: 'doc'
@@ -203,11 +207,6 @@ export namespace TypesaurusTransaction {
       db: Typesaurus.RootDB<Schema>,
       options?: Typesaurus.OperationOptions<Environment>
     ): ReadChain<Schema, Environment>
-
-    // <ReadResult, Environment extends Typesaurus.RuntimeEnvironment>(
-    //   callback: ReadFunction<ReadResult, Environment>,
-    //   options?: Typesaurus.OperationOptions<Environment>
-    // ): WriteChain<ReadResult, Environment>
   }
 
   export type ReadDB<

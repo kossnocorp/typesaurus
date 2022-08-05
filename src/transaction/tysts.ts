@@ -173,7 +173,7 @@ async function tysts() {
       if (!$.data) return
 
       // @ts-expect-error
-      if ($.data.environment === 'web') {
+      if ($.data.environment === 'client') {
       }
 
       $.db.users.update('asd', ($) => ({
