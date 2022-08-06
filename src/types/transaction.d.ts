@@ -4,8 +4,22 @@ export namespace TypesaurusTransaction {
   /**
    * The document reference type.
    */
-  export interface Ref<Model, Environment extends Typesaurus.RuntimeEnvironment>
-    extends DocAPI<Model, Environment> {
+  export interface ReadRef<
+    Model,
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  > {
+    type: 'ref'
+    collection: ReadCollection<Model, Environment>
+    id: string
+  }
+
+  /**
+   * The document reference type.
+   */
+  export interface WriteRef<
+    Model,
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  > extends DocAPI<Model, Environment> {
     type: 'ref'
     collection: WriteCollection<Model, Environment>
     id: string
@@ -13,7 +27,7 @@ export namespace TypesaurusTransaction {
 
   export type DocAPI<
     Model,
-    Environment extends Typesaurus.RuntimeEnvironment
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = {
     set(data: Typesaurus.WriteModelArg<Model, Environment>): void
 
@@ -27,18 +41,18 @@ export namespace TypesaurusTransaction {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type Doc<
+  export type ReadDoc<
     Model,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = Environment extends 'server'
-    ? ServerDoc<Model>
+    ? ReadServerDoc<Model>
     : Environment extends 'client'
-    ? ClientDoc<Model>
-    : ServerDoc<Model> | ClientDoc<Model>
+    ? ReadClientDoc<Model>
+    : ReadServerDoc<Model> | ReadClientDoc<Model>
 
-  export interface ServerDoc<Model> extends DocAPI<Model, 'server'> {
+  export interface ReadServerDoc<Model> {
     type: 'doc'
-    ref: Ref<Model, 'server'>
+    ref: ReadRef<Model, 'server'>
     data: Typesaurus.ModelNodeData<Model>
     environment: 'server'
     source?: undefined
@@ -46,9 +60,41 @@ export namespace TypesaurusTransaction {
     pendingWrites?: undefined
   }
 
-  export interface ClientDoc<Model> extends DocAPI<Model, 'client'> {
+  export interface ReadClientDoc<Model> {
     type: 'doc'
-    ref: Ref<Model, 'client'>
+    ref: ReadRef<Model, 'client'>
+    data: Typesaurus.AnyModelData<Model, 'present'>
+    environment: 'web'
+    source: 'database'
+    dateStrategy?: undefined
+    pendingWrites?: undefined
+  }
+
+  /**
+   * The document type. It contains the reference in the DB and the model data.
+   */
+  export type WriteDoc<
+    Model,
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  > = Environment extends 'server'
+    ? WriteServerDoc<Model>
+    : Environment extends 'client'
+    ? WriteClientDoc<Model>
+    : WriteServerDoc<Model> | WriteClientDoc<Model>
+
+  export interface WriteServerDoc<Model> extends DocAPI<Model, 'server'> {
+    type: 'doc'
+    ref: WriteRef<Model, 'server'>
+    data: Typesaurus.ModelNodeData<Model>
+    environment: 'server'
+    source?: undefined
+    dateStrategy?: undefined
+    pendingWrites?: undefined
+  }
+
+  export interface WriteClientDoc<Model> extends DocAPI<Model, 'client'> {
+    type: 'doc'
+    ref: WriteRef<Model, 'client'>
     data: Typesaurus.AnyModelData<Model, 'present'>
     environment: 'web'
     source: 'database'
@@ -99,6 +145,10 @@ export namespace TypesaurusTransaction {
     ): void
 
     remove(id: string): void
+
+    ref(id: string): WriteRef<Model, Environment>
+
+    doc(id: string, data: Model): WriteDoc<Model, Environment>
   }
 
   export type AnyReadCollection<
@@ -129,7 +179,7 @@ export namespace TypesaurusTransaction {
     /** The Firestore path */
     path: string
 
-    get(id: string): Promise<Doc<Model, Environment> | null>
+    get(id: string): Promise<ReadDoc<Model, Environment> | null>
   }
 
   /**
@@ -156,10 +206,19 @@ export namespace TypesaurusTransaction {
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > {
     /** The result of the read function. */
-    data: ReadResult
+    data: ReadDocsToWriteDocs<ReadResult>
 
     db: WriteDB<Schema, Environment>
   }
+
+  export type ReadDocsToWriteDocs<
+    Result,
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  > = Result extends ReadDoc<infer Model, Environment>
+    ? WriteDoc<Model, Environment>
+    : Result extends Record<any, unknown> | Array<unknown>
+    ? { [Key in keyof Result]: ReadDocsToWriteDocs<Result[Key], Environment> }
+    : Result
 
   export interface ReadChain<
     Schema extends Typesaurus.PlainSchema,
