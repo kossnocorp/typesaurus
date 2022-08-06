@@ -100,38 +100,64 @@ async function tysts() {
       $.db.posts.remove('123')
     })
 
+  // Single doc read
+
   transaction(db)
-    .read(($) => $.db.users.get('asd'))
+    .read(async ($) => {
+      const doc = await $.db.users.get('asd')
+      // @ts-expect-error
+      doc?.upset
+      return doc
+    })
     .write(($) => {
-      // Access transaction data
-      $.data?.data.contacts.email
+      // Converts read doc to write doc
+      $.data?.upset
+    })
 
-      // @ts-expect-error - all the data is missing
-      $.db.users.set('asd', {})
+  // Array
 
-      $.db.users.set('asd', ($) => ({
-        name: 'Sasha',
-        contacts: {
-          email: 'koss@nocorp.me'
-        },
-        birthdate: new Date(1987, 1, 11),
-        createdAt: $.serverDate()
-      }))
+  transaction(db)
+    .read(async ($) =>
+      Promise.all([$.db.users.get('asd'), $.db.posts.get('qwe')])
+    )
+    .write(($) => {
+      $.data[0]?.data.contacts
+      $.data[0]?.upset
 
-      $.db.users.update('asd', {
-        // @ts-expect-error
-        ame: 'Alexander'
-      })
+      $.data[1]?.data.text
+      $.data[1]?.upset
+    })
 
-      $.db.users.update('asd', {
-        name: 'Alexander'
-      })
+  // Object
 
-      $.db.users.update('asd', {
-        name: 'Alexander'
-      })
+  transaction(db)
+    .read(async ($) => ({
+      user: await $.db.users.get('asd'),
+      post: await $.db.posts.get('qwe')
+    }))
+    .write(($) => {
+      $.data.user?.data.contacts
+      $.data.user?.upset
 
-      $.db.posts.remove('123')
+      $.data.post?.data.text
+      $.data.post?.upset
+    })
+
+  // Deeply nested
+
+  transaction(db)
+    .read(async ($) => ({
+      hello: {
+        user: await $.db.users.get('asd')
+      },
+      world: [await $.db.posts.get('qwe')]
+    }))
+    .write(($) => {
+      $.data.hello.user?.data.contacts
+      $.data.hello.user?.upset
+
+      $.data.world[0]?.data.text
+      $.data.world[0]?.upset
     })
 
   // Get multiple documents
