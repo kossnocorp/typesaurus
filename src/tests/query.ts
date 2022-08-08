@@ -910,12 +910,7 @@ describe('query', () => {
             const authors = await Promise.all(
               docs.map((doc) => doc.data.author.get())
             )
-            spy(
-              authors
-                .filter((d) => !!d)
-                .map(({ data: { name } }) => name)
-                .sort()
-            )
+            spy(authors.map((doc) => doc?.data.name).sort())
             if (spy.calledWithMatch(['Lesha', 'Sasha'])) resolve(void 0)
           })
       }))
