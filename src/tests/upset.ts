@@ -107,13 +107,13 @@ describe('upset', () => {
     const returnedDate = post?.data.date
     expect(returnedDate).toBeInstanceOf(Date)
     expect(
-      returnedDate!.getTime() < now && returnedDate!.getTime() > now - 10000
+      returnedDate!.getTime() <= now && returnedDate!.getTime() > now - 10000
     ).toBe(true)
     const postFromDB = post && (await post.ref.get())
     const dateFromDB = postFromDB?.data.date
     expect(dateFromDB).toBeInstanceOf(Date)
     expect(
-      dateFromDB!.getTime() < now && dateFromDB!.getTime() > now - 10000
+      dateFromDB!.getTime() <= now && dateFromDB!.getTime() > now - 10000
     ).toBe(true)
   })
 

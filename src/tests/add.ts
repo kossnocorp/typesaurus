@@ -74,7 +74,7 @@ describe('add', () => {
       expect(returnedDate).not.toBeUndefined()
       expect(returnedDate).toBeInstanceOf(Date)
       expect(
-        returnedDate!.getTime() < now && returnedDate!.getTime() > now - 10000
+        returnedDate!.getTime() <= now && returnedDate!.getTime() > now - 10000
       ).toBeTruthy()
     })
 

@@ -175,7 +175,7 @@ describe('update', () => {
     const now = Date.now()
     expect(dateFromDB).toBeInstanceOf(Date)
     expect(
-      dateFromDB!.getTime() < now && dateFromDB!.getTime() > now - 10000
+      dateFromDB!.getTime() <= now && dateFromDB!.getTime() > now - 10000
     ).toBe(true)
   })
 
