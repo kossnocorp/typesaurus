@@ -1,4 +1,3 @@
-import { sweep } from 'js-fns'
 import { nanoid } from 'nanoid'
 import sinon from 'sinon'
 import { schema, Typesaurus } from '..'
@@ -912,7 +911,8 @@ describe('query', () => {
               docs.map((doc) => doc.data.author.get())
             )
             spy(
-              sweep(authors)
+              authors
+                .filter((d) => !!d)
                 .map(({ data: { name } }) => name)
                 .sort()
             )
