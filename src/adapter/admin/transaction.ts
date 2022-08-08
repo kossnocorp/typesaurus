@@ -1,9 +1,17 @@
 import * as admin from 'firebase-admin'
-import { unwrapData, updateHelpers, wrapData, writeHelpers } from '.'
+import {
+  assertEnvironment,
+  unwrapData,
+  updateHelpers,
+  wrapData,
+  writeHelpers
+} from '.'
 import type { Typesaurus } from '../..'
 import type { TypesaurusTransaction } from '../../types/transaction'
 
 export const transaction: TypesaurusTransaction.Function = (db, options) => {
+  assertEnvironment(options?.as)
+
   return {
     read: (readCallback) => {
       return {

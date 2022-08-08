@@ -137,4 +137,26 @@ describe('transaction', () => {
     const doc = await db.posts(postId).counters.get(counterId)
     expect(doc?.data.count).toBe(3)
   })
+
+  it('allows to assert environment', async () => {
+    const id = await db.id()
+
+    const server = () =>
+      transaction(db, { as: 'server' })
+        .read(($) => $.db.counters.get(id))
+        .write(($) => $.data?.set({ count: ($.data?.data.count || 0) + 1 }))
+
+    const client = () =>
+      transaction(db, { as: 'client' })
+        .read(($) => $.db.counters.get(id))
+        .write(($) => $.data?.set({ count: ($.data?.data.count || 0) + 1 }))
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
 })
