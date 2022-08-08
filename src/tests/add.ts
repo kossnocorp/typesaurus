@@ -49,6 +49,49 @@ describe('add', () => {
     expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
   })
 
+  it('allows to assert environment', async () => {
+    interface User {
+      name: string
+      createdAt: Typesaurus.ServerDate
+      updatedAt?: Typesaurus.ServerDate
+      birthday: Date
+    }
+
+    const db = schema(($) => ({
+      users: $.collection<User>()
+    }))
+
+    const server = () =>
+      db.users.add(
+        {
+          name: 'Sasha',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          birthday: new Date(1987, 1, 11)
+        },
+        { as: 'server' }
+      )
+
+    const client = () =>
+      db.users.add(
+        ($) => ({
+          name: 'Sasha',
+          createdAt: $.serverDate(),
+          updatedAt: $.serverDate(),
+          birthday: new Date(1987, 1, 11)
+        }),
+        { as: 'client' }
+      )
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
   describe('server dates', () => {
     interface User {
       name: string
@@ -77,62 +120,6 @@ describe('add', () => {
         returnedDate!.getTime() <= now && returnedDate!.getTime() > now - 10000
       ).toBeTruthy()
     })
-
-    //   it('allows to assert environment which allows setting dates', async () => {
-    //     // TODO: Find a way to make the error show on fields like when assertEnvironment: 'client'
-    //     await add(users, {
-    //       name: 'Sasha',
-    //       // @ts-expect-error
-    //       createdAt: new Date(),
-    //       // @ts-expect-error
-    //       updatedAt: new Date(),
-    //       birthday: new Date(1987, 1, 11)
-    //     })
-
-    //     const nodeAdd = () =>
-    //       add(
-    //         users,
-    //         {
-    //           name: 'Sasha',
-    //           createdAt: new Date(),
-    //           updatedAt: new Date(),
-    //           birthday: new Date(1987, 1, 11)
-    //         },
-    //         { assertEnvironment: 'node' }
-    //       )
-
-    //     const webAdd = () =>
-    //       add(
-    //         users,
-    //         {
-    //           name: 'Sasha',
-    //           // @ts-expect-error
-    //           createdAt: new Date(),
-    //           // @ts-expect-error
-    //           updatedAt: new Date(),
-    //           birthday: new Date(1987, 1, 11)
-    //         },
-    //         { assertEnvironment: 'client' }
-    //       )
-
-    //     if (typeof window === 'undefined') {
-    //       await nodeAdd()
-    //       try {
-    //         await webAdd()
-    //         assert.fail('It should catch!')
-    //       } catch (err) {
-    //         assert(err.message === 'Expected web environment')
-    //       }
-    //     } else {
-    //       await webAdd()
-    //       try {
-    //         await nodeAdd()
-    //         assert.fail('It should catch!')
-    //       } catch (err) {
-    //         assert(err.message === 'Expected node environment')
-    //       }
-    //     }
-    //   })
   })
 
   describe('increment', () => {

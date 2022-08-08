@@ -27,6 +27,19 @@ describe('all', () => {
     ])
   })
 
+  it('allows to assert environment', async () => {
+    const server = () => db.books.all({ as: 'server' })
+    const client = () => db.books.all({ as: 'client' })
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
   describe('promise', () => {
     it('returns all documents in a collection', async () => {
       const docs = await db.books.all()

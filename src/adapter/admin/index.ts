@@ -121,39 +121,47 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     return new Doc<Model>(this, id, data)
   }
 
-  async add<Environment extends Typesaurus.RuntimeEnvironment>(
-    data: Typesaurus.WriteModelArg<Model, Environment>
+  add<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
+    data: Typesaurus.WriteModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
   ) {
-    const dataToAdd = typeof data === 'function' ? data(writeHelpers()) : data
-    const firebaseRef = await this.firebaseCollection().add(
-      unwrapData(dataToAdd)
-    )
-
-    return this.ref(firebaseRef.id)
+    assertEnvironment(options?.as)
+    return this.firebaseCollection()
+      .add(writeData(data))
+      .then((firebaseRef) => this.ref(firebaseRef.id))
   }
 
-  async set<Environment extends Typesaurus.RuntimeEnvironment>(
+  set<Environment extends Typesaurus.RuntimeEnvironment>(
     id: string,
-    data: Typesaurus.WriteModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
   ) {
-    const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
-    await this.firebaseDoc(id).set(unwrapData(dataToSet))
-    return this.ref(id)
+    assertEnvironment(options?.as)
+    return this.firebaseDoc(id)
+      .set(writeData(data))
+      .then(() => this.ref(id))
   }
 
-  async upset<Environment extends Typesaurus.RuntimeEnvironment>(
+  upset<Environment extends Typesaurus.RuntimeEnvironment>(
     id: string,
-    data: Typesaurus.WriteModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
   ) {
-    const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
-    await this.firebaseDoc(id).set(unwrapData(dataToUpset), { merge: true })
-    return this.ref(id)
+    assertEnvironment(options?.as)
+    return this.firebaseDoc(id)
+      .set(writeData(data), { merge: true })
+      .then(() => this.ref(id))
   }
 
-  async update<Environment extends Typesaurus.RuntimeEnvironment>(
+  update<Environment extends Typesaurus.RuntimeEnvironment>(
     id: string,
-    data: Typesaurus.UpdateModelArg<Model, Environment>
+    data: Typesaurus.UpdateModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
   ) {
+    assertEnvironment(options?.as)
+
     const updateData = typeof data === 'function' ? data(updateHelpers()) : data
 
     const update = Array.isArray(updateData)
@@ -165,8 +173,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         }, {} as Record<string, any>)
       : updateData
 
-    await this.firebaseDoc(id).update(unwrapData(update))
-    return this.ref(id)
+    return this.firebaseDoc(id)
+      .update(unwrapData(update))
+      .then(() => this.ref(id))
   }
 
   async remove(id: string) {
@@ -178,10 +187,13 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     Source extends Typesaurus.DataSource,
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
-  >(): Typesaurus.SubscriptionPromise<
+  >(
+    options?: Typesaurus.OperationOptions<Environment>
+  ): Typesaurus.SubscriptionPromise<
     Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
     Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
   > {
+    assertEnvironment(options?.as)
     return all(this.adapter())
   }
 
@@ -190,11 +202,13 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
   >(
-    queries: Typesaurus.QueryGetter<Model>
+    queries: Typesaurus.QueryGetter<Model>,
+    options?: Typesaurus.ReadOptions<DateStrategy, Environment>
   ): Typesaurus.SubscriptionPromise<
     Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
     Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
   > {
+    assertEnvironment(options?.as)
     return query(this.adapter(), queries)
   }
 
@@ -203,13 +217,16 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
   >(
-    id: string
+    id: string,
+    options?: Typesaurus.ReadOptions<DateStrategy, Environment>
   ): TypesaurusUtils.SubscriptionPromise<Typesaurus.EnvironmentDoc<
     Model,
     Source,
     DateStrategy,
     Environment
   > | null> {
+    assertEnvironment(options?.as)
+
     const doc = this.firebaseDoc(id)
 
     return new TypesaurusUtils.SubscriptionPromise({
@@ -234,15 +251,24 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   }
 
   getMany<
-    OnMissing extends Typesaurus.OnMissingMode<unknown> | undefined = undefined
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment,
+    OnMissing extends Typesaurus.OnMissingMode<Model> | undefined = undefined
   >(
     ids: string[],
-    options?: Typesaurus.GetManyOptions<OnMissing>
+    options?: Typesaurus.GetManyOptions<
+      Model,
+      DateStrategy,
+      Environment,
+      OnMissing
+    >
   ) /* : OnMissing extends 'ignore' | undefined
     ? Typesaurus.PromiseWithListSubscription<Model>
     : OnMissing extends Typesaurus.OnMissingCallback<infer OnMissingResult>
     ? Typesaurus.PromiseWithListSubscription<Model | OnMissingResult>
     : never*/ {
+    assertEnvironment(options?.as)
+
     return new TypesaurusUtils.SubscriptionPromise({
       get: async () => {
         // Firestore#getAll doesn't like empty lists
@@ -344,26 +370,32 @@ class Ref<Model> implements Typesaurus.Ref<Model> {
     this.id = id
   }
 
-  get() {
-    return this.collection.get(this.id)
+  get<
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(options?: Typesaurus.ReadOptions<DateStrategy, Environment>) {
+    return this.collection.get(this.id, options)
   }
 
   set<Environment extends Typesaurus.RuntimeEnvironment>(
-    data: Typesaurus.WriteModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
   ) {
-    return this.collection.set(this.id, data)
+    return this.collection.set(this.id, data, options)
   }
 
   upset<Environment extends Typesaurus.RuntimeEnvironment>(
-    data: Typesaurus.WriteModelArg<Model, Environment>
+    data: Typesaurus.WriteModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
   ) {
-    return this.collection.upset(this.id, data)
+    return this.collection.upset(this.id, data, options)
   }
 
   update<Environment extends Typesaurus.RuntimeEnvironment>(
-    data: Typesaurus.UpdateModelArg<Model, Environment>
+    data: Typesaurus.UpdateModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
   ) {
-    return this.collection.update(this.id, data)
+    return this.collection.update(this.id, data, options)
   }
 
   async remove() {
@@ -398,16 +430,32 @@ class Doc<Model> implements Typesaurus.ServerDoc<Model> {
     this.environment = 'server'
   }
 
-  get() {
-    return this.ref.get()
+  get<
+    DateStrategy extends Typesaurus.ServerDateStrategy,
+    Environment extends Typesaurus.RuntimeEnvironment
+  >(options?: Typesaurus.ReadOptions<DateStrategy, Environment>) {
+    return this.ref.get(options)
   }
 
-  update(update) {
-    return this.ref.update(update)
+  set<Environment extends Typesaurus.RuntimeEnvironment>(
+    data: Typesaurus.WriteModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
+  ) {
+    return this.ref.set(data, options)
   }
 
-  upset(data) {
-    return this.ref.upset(data)
+  update<Environment extends Typesaurus.RuntimeEnvironment>(
+    data: Typesaurus.UpdateModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
+  ) {
+    return this.ref.update(data, options)
+  }
+
+  upset<Environment extends Typesaurus.RuntimeEnvironment>(
+    data: Typesaurus.WriteModelArg<Model, Environment>,
+    options?: Typesaurus.OperationOptions<Environment>
+  ) {
+    return this.ref.upset(data, options)
   }
 
   async remove() {
@@ -482,6 +530,13 @@ function all<
         onResult(docs, meta)
       }, onError)
   })
+}
+
+export function writeData<
+  Model,
+  Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+>(data: Typesaurus.WriteModelArg<Model, Environment>) {
+  return unwrapData(typeof data === 'function' ? data(writeHelpers()) : data)
 }
 
 export function writeHelpers<Model>(): Typesaurus.WriteHelpers<Model> {
@@ -916,4 +971,13 @@ export function nullifyData(data: any): any {
   } else {
     return data
   }
+}
+
+export function assertEnvironment<
+  Environment extends Typesaurus.RuntimeEnvironment
+>(
+  environment: Typesaurus.RuntimeEnvironment | undefined
+): asserts environment is undefined | Environment {
+  if (environment && environment !== 'server')
+    throw new Error(`Expected ${environment} environment`)
 }

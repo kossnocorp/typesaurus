@@ -73,6 +73,25 @@ describe('query', () => {
     ])
   )
 
+  it('allows to assert environment', async () => {
+    const server = () =>
+      db.contacts.query(($) => [$.where('ownerId', '==', ownerId)], {
+        as: 'server'
+      })
+    const client = () =>
+      db.contacts.query(($) => [$.where('ownerId', '==', ownerId)], {
+        as: 'client'
+      })
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
   describe('promise', () => {
     it('queries documents', async () => {
       const docs = await db.contacts.query(($) => [

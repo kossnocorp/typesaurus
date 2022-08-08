@@ -21,6 +21,17 @@ describe('upset', () => {
     name: 'Sasha'
   }
 
+  interface UserWithDates {
+    name: string
+    createdAt: Typesaurus.ServerDate
+    updatedAt?: Typesaurus.ServerDate
+    birthday: Date
+  }
+
+  const dbWithDates = schema(($) => ({
+    users: $.collection<UserWithDates>()
+  }))
+
   it('creates a document if it does not exist', async () => {
     const id = await db.id()
     const initialUser = await db.users.get(id)
@@ -140,6 +151,115 @@ describe('upset', () => {
     const counter10 = await db.counters.get(id)
     expect(counter10?.data.count).toBe(10)
     expect(counter10?.data.flagged).toBe(true)
+  })
+
+  it('allows to assert environment', async () => {
+    const userId = await db.id()
+
+    const server = () =>
+      dbWithDates.users.upset(
+        userId,
+        {
+          name: 'Sasha',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          birthday: new Date(1987, 1, 11)
+        },
+        { as: 'server' }
+      )
+
+    const client = () =>
+      dbWithDates.users.upset(
+        userId,
+        ($) => ({
+          name: 'Sasha',
+          createdAt: $.serverDate(),
+          updatedAt: $.serverDate(),
+          birthday: new Date(1987, 1, 11)
+        }),
+        { as: 'client' }
+      )
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
+  describe('ref', () => {
+    it('allows to assert environment', async () => {
+      const userId = await db.id()
+
+      const server = () =>
+        dbWithDates.users.ref(userId).upset(
+          {
+            name: 'Sasha',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { as: 'server' }
+        )
+
+      const client = () =>
+        dbWithDates.users.ref(userId).upset(
+          ($) => ({
+            name: 'Sasha',
+            createdAt: $.serverDate(),
+            updatedAt: $.serverDate(),
+            birthday: new Date(1987, 1, 11)
+          }),
+          { as: 'client' }
+        )
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+  })
+
+  describe('doc', () => {
+    it('allows to assert environment', async () => {
+      // @ts-ignore: data is not important here
+      const doc = dbWithDates.users.doc('whatever', {})
+
+      const server = () =>
+        doc.upset(
+          {
+            name: 'Sasha',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { as: 'server' }
+        )
+
+      const client = () =>
+        doc.upset(
+          ($) => ({
+            name: 'Sasha',
+            createdAt: $.serverDate(),
+            updatedAt: $.serverDate(),
+            birthday: new Date(1987, 1, 11)
+          }),
+          { as: 'client' }
+        )
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
   })
 
   describe('updating arrays', () => {

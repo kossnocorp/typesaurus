@@ -89,6 +89,12 @@ export namespace Typesaurus {
     serverTimestamps?: DateStrategy
   }
 
+  export interface ReadOptions<
+    DateStrategy extends ServerDateStrategy,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > extends DocOptions<DateStrategy>,
+      OperationOptions<Environment> {}
+
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
@@ -782,7 +788,7 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      options?: OperationOptions<Environment>
+      options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<EnvironmentDoc<
       Model,
       Source,
@@ -810,9 +816,11 @@ export namespace Typesaurus {
 
   export interface GetManyOptions<
     Model,
+    DateStrategy extends ServerDateStrategy,
+    Environment extends RuntimeEnvironment,
     OnMissing extends OnMissingMode<Model> | undefined = undefined
-  > {
-    onMissing: OnMissing
+  > extends ReadOptions<DateStrategy, Environment> {
+    onMissing?: OnMissing
   }
 
   export interface CollectionAPI<Model> {
@@ -820,7 +828,9 @@ export namespace Typesaurus {
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
-    >(): SubscriptionPromise<
+    >(
+      options?: OperationOptions<Environment>
+    ): SubscriptionPromise<
       EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<Model, Source, DateStrategy, Environment>
     >
@@ -830,7 +840,8 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      queries: QueryGetter<Model>
+      queries: QueryGetter<Model>,
+      options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<Model, Source, DateStrategy, Environment>
@@ -860,9 +871,13 @@ export namespace Typesaurus {
       Environment
     > | null>
 
-    getMany<OnMissing extends OnMissingMode<Model> | undefined = undefined>(
+    getMany<
+      DateStrategy extends Typesaurus.ServerDateStrategy,
+      Environment extends Typesaurus.RuntimeEnvironment,
+      OnMissing extends OnMissingMode<Model> | undefined = undefined
+    >(
       ids: string[],
-      options?: GetManyOptions<Model, OnMissing>
+      options?: GetManyOptions<Model, DateStrategy, Environment, OnMissing>
     ): OnMissing extends 'ignore' | undefined
       ? SubscriptionPromise<Doc<Model>[]>
       : OnMissing extends OnMissingCallback<infer OnMissingResult>
