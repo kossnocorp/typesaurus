@@ -32,21 +32,45 @@ function transactionReadHelpers<Schema extends Typesaurus.PlainSchema>(
 }
 
 function readDB<Schema extends Typesaurus.PlainSchema>(
-  db: Typesaurus.RootDB<Schema>,
+  rootDB: Typesaurus.RootDB<Schema>,
   transaction: admin.firestore.Transaction
 ): TypesaurusTransaction.ReadDB<Schema> {
-  const processedDB = {}
+  function convertDB<SchemaNode extends Typesaurus.PlainSchema>(
+    db: Typesaurus.DB<SchemaNode>,
+    nestedPath?: string
+  ): TypesaurusTransaction.ReadDB<SchemaNode> {
+    const processedDB = {}
 
-  Object.entries(db).forEach(([key, value]) => {
-    // Ignore non-collections
-    if (key === 'groups' || key === 'id') return
-    // @ts-ignore: making it type-safe is not worth the effort, as it will make
-    // the code harder to read
-    // TODO: nested collections
-    processedDB[key] = new ReadCollection(db, transaction, key)
-  })
+    Object.entries(db).forEach(([path, collection]) => {
+      const readCollection = new ReadCollection(
+        rootDB,
+        transaction,
+        nestedPath ? `${nestedPath}/${path}` : path
+      )
 
-  return processedDB as TypesaurusTransaction.ReadDB<Schema>
+      processedDB[path] =
+        typeof collection === 'function'
+          ? new Proxy<TypesaurusTransaction.NestedReadCollection<any, any>>(
+              () => {},
+              {
+                get: (_target, prop: keyof typeof readCollection) =>
+                  readCollection[prop],
+
+                apply: (_target, _prop, [id]: [string]) =>
+                  convertDB(collection(id), `${collection.path}/${id}`)
+              }
+            )
+          : readCollection
+    })
+
+    return processedDB as TypesaurusTransaction.ReadDB<SchemaNode>
+  }
+
+  const filteredDB: Typesaurus.DB<Schema> = { ...rootDB }
+  delete filteredDB.id
+  delete filteredDB.groups
+
+  return convertDB(filteredDB)
 }
 
 class ReadCollection<Schema extends Typesaurus.PlainSchema, Model>
@@ -138,21 +162,45 @@ function transactionWriteHelpers<
 }
 
 function writeDB<Schema extends Typesaurus.PlainSchema>(
-  db: Typesaurus.RootDB<Schema>,
+  rootDB: Typesaurus.RootDB<Schema>,
   transaction: admin.firestore.Transaction
 ): TypesaurusTransaction.WriteDB<Schema> {
-  const processedDB = {}
+  function convertDB<SchemaNode extends Typesaurus.PlainSchema>(
+    db: Typesaurus.DB<SchemaNode>,
+    nestedPath?: string
+  ): TypesaurusTransaction.WriteDB<SchemaNode> {
+    const processedDB = {}
 
-  Object.entries(db).forEach(([key, value]) => {
-    // Ignore non-collections
-    if (key === 'groups' || key === 'id') return
-    // @ts-ignore: making it type-safe is not worth the effort, as it will make
-    // the code harder to read
-    // TODO: nested collections
-    processedDB[key] = new WriteCollection(db, transaction, key)
-  })
+    Object.entries(db).forEach(([path, collection]) => {
+      const writeCollection = new WriteCollection(
+        rootDB,
+        transaction,
+        nestedPath ? `${nestedPath}/${path}` : path
+      )
 
-  return processedDB as TypesaurusTransaction.WriteDB<Schema>
+      processedDB[path] =
+        typeof collection === 'function'
+          ? new Proxy<TypesaurusTransaction.NestedWriteCollection<any, any>>(
+              () => {},
+              {
+                get: (_target, prop: keyof typeof writeCollection) =>
+                  writeCollection[prop],
+
+                apply: (_target, _prop, [id]: [string]) =>
+                  convertDB(collection(id), `${collection.path}/${id}`)
+              }
+            )
+          : writeCollection
+    })
+
+    return processedDB as TypesaurusTransaction.WriteDB<SchemaNode>
+  }
+
+  const filteredDB: Typesaurus.DB<Schema> = { ...rootDB }
+  delete filteredDB.id
+  delete filteredDB.groups
+
+  return convertDB(filteredDB)
 }
 
 function readDocsToWriteDocs<Schema extends Typesaurus.PlainSchema, ReadResult>(

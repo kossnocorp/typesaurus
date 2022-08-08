@@ -8,8 +8,13 @@ describe('transaction', () => {
     optional?: true
   }
 
+  interface Post {}
+
   const db = schema(($) => ({
-    counters: $.collection<Counter>()
+    counters: $.collection<Counter>(),
+    posts: $.sub($.collection<Post>(), {
+      counters: $.collection<Counter>()
+    })
   }))
 
   let warn: typeof console.warn
@@ -112,5 +117,24 @@ describe('transaction', () => {
 
     const doc = await counter.get()
     expect(doc).toBe(null)
+  })
+
+  it('supports subcollections', async () => {
+    const postId = await db.id()
+    const counterId = await db.id()
+
+    const plus = async () =>
+      transaction(db)
+        .read(($) => $.db.posts(postId).counters.get(counterId))
+        .write(($) =>
+          $.db.posts(postId).counters.set(counterId, {
+            count: ($.data?.data.count || 0) + 1
+          })
+        )
+
+    await Promise.all([plus(), plus(), plus()])
+
+    const doc = await db.posts(postId).counters.get(counterId)
+    expect(doc?.data.count).toBe(3)
   })
 })
