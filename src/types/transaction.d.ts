@@ -133,8 +133,6 @@ export namespace TypesaurusTransaction {
     /** The Firestore path */
     path: string
 
-    add(data: Typesaurus.WriteModelArg<Model, Environment>): void
-
     set(id: string, data: Typesaurus.WriteModelArg<Model, Environment>): void
 
     upset(id: string, data: Typesaurus.WriteModelArg<Model, Environment>): void
@@ -146,9 +144,9 @@ export namespace TypesaurusTransaction {
 
     remove(id: string): void
 
-    ref(id: string): WriteRef<Model, Environment>
+    // ref(id: string): WriteRef<Model, Environment>
 
-    doc(id: string, data: Model): WriteDoc<Model, Environment>
+    // doc(id: string, data: Model): WriteDoc<Model, Environment>
   }
 
   export type AnyReadCollection<

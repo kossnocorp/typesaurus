@@ -894,9 +894,9 @@ export namespace Typesaurus {
 
     remove(id: string): Promise<Ref<Model>>
 
-    // ref(id: string): Ref<Model>
+    ref(id: string): Ref<Model>
 
-    // doc(id: string, data: Model): Doc<Model>
+    doc(id: string, data: Model): Doc<Model>
   }
 
   export interface NestedRichCollection<Model, Schema extends RichSchema>

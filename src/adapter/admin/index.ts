@@ -124,8 +124,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   async add<Environment extends Typesaurus.RuntimeEnvironment>(
     data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
-    const dataToAdd =
-      typeof data === 'function' ? data(this.writeHelpers()) : data
+    const dataToAdd = typeof data === 'function' ? data(writeHelpers()) : data
     const firebaseRef = await this.firebaseCollection().add(
       unwrapData(dataToAdd)
     )
@@ -137,8 +136,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     id: string,
     data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
-    const dataToSet =
-      typeof data === 'function' ? data(this.writeHelpers()) : data
+    const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
     await this.firebaseDoc(id).set(unwrapData(dataToSet))
     return this.ref(id)
   }
@@ -147,8 +145,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     id: string,
     data: Typesaurus.WriteModelArg<Model, Environment>
   ) {
-    const dataToUpset =
-      typeof data === 'function' ? data(this.writeHelpers()) : data
+    const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
     await this.firebaseDoc(id).set(unwrapData(dataToUpset), { merge: true })
     return this.ref(id)
   }
@@ -157,8 +154,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     id: string,
     data: Typesaurus.UpdateModelArg<Model, Environment>
   ) {
-    const updateData =
-      typeof data === 'function' ? data(this.updateHelpers()) : data
+    const updateData = typeof data === 'function' ? data(updateHelpers()) : data
 
     const update = Array.isArray(updateData)
       ? updateData.reduce((acc, field) => {
@@ -313,43 +309,6 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
         return () => offs.map((off) => off())
       }
     })
-  }
-
-  private writeHelpers(): Typesaurus.WriteHelpers<Model> {
-    return {
-      serverDate: () => ({ type: 'value', kind: 'serverDate' }),
-
-      remove: () => ({ type: 'value', kind: 'remove' }),
-
-      increment: (number) => ({
-        type: 'value',
-        kind: 'increment',
-        number
-      }),
-
-      arrayUnion: (values) => ({
-        type: 'value',
-        kind: 'arrayUnion',
-        values: [].concat(values)
-      }),
-
-      arrayRemove: (values) => ({
-        type: 'value',
-        kind: 'arrayRemove',
-        values: [].concat(values)
-      })
-    }
-  }
-
-  private updateHelpers(): Typesaurus.UpdateHelpers<Model> {
-    return {
-      ...this.writeHelpers(),
-
-      field: (...args) => ({
-        key: args.slice(0, args.length - 1),
-        value: args[args.length - 1]
-      })
-    }
   }
 
   private adapter<
@@ -523,6 +482,43 @@ function all<
         onResult(docs, meta)
       }, onError)
   })
+}
+
+export function writeHelpers<Model>(): Typesaurus.WriteHelpers<Model> {
+  return {
+    serverDate: () => ({ type: 'value', kind: 'serverDate' }),
+
+    remove: () => ({ type: 'value', kind: 'remove' }),
+
+    increment: (number) => ({
+      type: 'value',
+      kind: 'increment',
+      number
+    }),
+
+    arrayUnion: (values) => ({
+      type: 'value',
+      kind: 'arrayUnion',
+      values: [].concat(values)
+    }),
+
+    arrayRemove: (values) => ({
+      type: 'value',
+      kind: 'arrayRemove',
+      values: [].concat(values)
+    })
+  }
+}
+
+export function updateHelpers<Model>(): Typesaurus.UpdateHelpers<Model> {
+  return {
+    ...writeHelpers(),
+
+    field: (...args) => ({
+      key: args.slice(0, args.length - 1),
+      value: args[args.length - 1]
+    })
+  }
 }
 
 function schemaHelpers(): Typesaurus.SchemaHelpers {
