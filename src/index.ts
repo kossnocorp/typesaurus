@@ -153,7 +153,7 @@ export namespace Typesaurus {
   type ModelField<
     Field,
     DateNullable extends ServerDateNullable
-  > = Field extends Ref<unknown>
+  > = Field extends Ref<any>
     ? Field
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
