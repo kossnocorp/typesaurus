@@ -31,6 +31,17 @@ describe('update', () => {
     movies: $.collection<Movies>()
   }))
 
+  interface UserWithDates {
+    name: string
+    createdAt: Typesaurus.ServerDate
+    updatedAt?: Typesaurus.ServerDate
+    birthday: Date
+  }
+
+  const dbWithDates = schema(($) => ({
+    users: $.collection<UserWithDates>()
+  }))
+
   it('updates document', async () => {
     const user = await db.users.add({
       name: 'Sasha',
@@ -162,21 +173,112 @@ describe('update', () => {
   })
 
   it('supports server dates', async () => {
-    const user = await db.users.add({
+    const user = await dbWithDates.users.add({
       name: 'Sasha',
-      address: { city: 'Omsk' },
-      birthday: new Date(1987, 2, 11),
-      visits: 0
+      // @ts-ignore: we want to test server dates
+      createdAt: new Date(2000, 0, 1),
+      // @ts-ignore: we want to test server dates
+      updatedAt: new Date(2000, 0, 1),
+      birthday: new Date(1987, 1, 11)
     })
     const { id } = user
-    await db.users.update(id, ($) => ({ birthday: $.serverDate() }))
-    const userFromDB = await db.users.get(id)
-    const dateFromDB = userFromDB?.data.birthday
+    await dbWithDates.users.update(id, ($) => ({ updatedAt: $.serverDate() }))
+    const userFromDB = await dbWithDates.users.get(id)
+    const dateFromDB = userFromDB?.data.updatedAt
     const now = Date.now()
     expect(dateFromDB).toBeInstanceOf(Date)
     expect(
       dateFromDB!.getTime() <= now && dateFromDB!.getTime() > now - 10000
     ).toBe(true)
+  })
+
+  it('allows to assert environment', async () => {
+    const userId = await db.id()
+    await dbWithDates.users.set(userId, ($) => ({
+      name: 'Sasha',
+      createdAt: $.serverDate(),
+      updatedAt: $.serverDate(),
+      birthday: new Date(1987, 1, 11)
+    }))
+
+    const server = () =>
+      dbWithDates.users.update(
+        userId,
+        { updatedAt: new Date() },
+        { as: 'server' }
+      )
+
+    const client = () =>
+      dbWithDates.users.update(userId, ($) => ({ updatedAt: $.serverDate() }), {
+        as: 'client'
+      })
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
+  describe('ref', () => {
+    it('allows to assert environment', async () => {
+      const userId = await db.id()
+      await dbWithDates.users.set(userId, ($) => ({
+        name: 'Sasha',
+        createdAt: $.serverDate(),
+        updatedAt: $.serverDate(),
+        birthday: new Date(1987, 1, 11)
+      }))
+
+      const server = () =>
+        dbWithDates.users
+          .ref(userId)
+          .update({ updatedAt: new Date() }, { as: 'server' })
+
+      const client = () =>
+        dbWithDates.users
+          .ref(userId)
+          .update(($) => ({ updatedAt: $.serverDate() }), { as: 'client' })
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+  })
+
+  describe('doc', () => {
+    it('allows to assert environment', async () => {
+      const userId = await db.id()
+      await dbWithDates.users.set(userId, ($) => ({
+        name: 'Sasha',
+        createdAt: $.serverDate(),
+        updatedAt: $.serverDate(),
+        birthday: new Date(1987, 1, 11)
+      }))
+
+      // @ts-ignore: data is not important here
+      const doc = dbWithDates.users.doc(userId, {})
+
+      const server = () =>
+        doc.update({ updatedAt: new Date() }, { as: 'server' })
+
+      const client = () =>
+        doc.update(($) => ({ updatedAt: $.serverDate() }), { as: 'client' })
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
   })
 
   describe('updating arrays', () => {

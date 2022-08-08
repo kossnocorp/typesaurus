@@ -16,6 +16,17 @@ describe('set', () => {
     posts: $.collection<Post>()
   }))
 
+  interface UserWithDates {
+    name: string
+    createdAt: Typesaurus.ServerDate
+    updatedAt?: Typesaurus.ServerDate
+    birthday: Date
+  }
+
+  const dbWithDates = schema(($) => ({
+    users: $.collection<UserWithDates>()
+  }))
+
   it('sets a document', async () => {
     const id = await db.id()
     await db.users.set(id, { name: 'Sasha' })
@@ -58,6 +69,115 @@ describe('set', () => {
     expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
   })
 
+  it('allows to assert environment', async () => {
+    const userId = await db.id()
+
+    const server = () =>
+      dbWithDates.users.set(
+        userId,
+        {
+          name: 'Sasha',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          birthday: new Date(1987, 1, 11)
+        },
+        { as: 'server' }
+      )
+
+    const client = () =>
+      dbWithDates.users.set(
+        userId,
+        ($) => ({
+          name: 'Sasha',
+          createdAt: $.serverDate(),
+          updatedAt: $.serverDate(),
+          birthday: new Date(1987, 1, 11)
+        }),
+        { as: 'client' }
+      )
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
+  describe('ref', () => {
+    it('allows to assert environment', async () => {
+      const userId = await db.id()
+
+      const server = () =>
+        dbWithDates.users.ref(userId).set(
+          {
+            name: 'Sasha',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { as: 'server' }
+        )
+
+      const client = () =>
+        dbWithDates.users.ref(userId).set(
+          ($) => ({
+            name: 'Sasha',
+            createdAt: $.serverDate(),
+            updatedAt: $.serverDate(),
+            birthday: new Date(1987, 1, 11)
+          }),
+          { as: 'client' }
+        )
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+  })
+
+  describe('doc', () => {
+    it('allows to assert environment', async () => {
+      // @ts-ignore: data is not important here
+      const doc = dbWithDates.users.doc('whatever', {})
+
+      const server = () =>
+        doc.set(
+          {
+            name: 'Sasha',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            birthday: new Date(1987, 1, 11)
+          },
+          { as: 'server' }
+        )
+
+      const client = () =>
+        doc.set(
+          ($) => ({
+            name: 'Sasha',
+            createdAt: $.serverDate(),
+            updatedAt: $.serverDate(),
+            birthday: new Date(1987, 1, 11)
+          }),
+          { as: 'client' }
+        )
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+  })
+
   describe('server dates', () => {
     interface User {
       name: string
@@ -87,62 +207,5 @@ describe('set', () => {
         returnedDate!.getTime() <= now && returnedDate!.getTime() > now - 10000
       ).toBe(true)
     })
-
-    //     it('allows to assert environment which allows setting dates', async () => {
-    //       // TODO: Find a way to make the error show on fields like when assertEnvironment: 'client'
-    //       // @ts-expect-error
-    //       await set(users, await db.id(), {
-    //         name: 'Sasha',
-    //         createdAt: new Date(),
-    //         updatedAt: new Date(),
-    //         birthday: new Date(1987, 1, 11)
-    //       })
-
-    //       const nodeSet = () =>
-    //         set(
-    //           users,
-    //           await db.id(),
-    //           {
-    //             name: 'Sasha',
-    //             createdAt: new Date(),
-    //             updatedAt: new Date(),
-    //             birthday: new Date(1987, 1, 11)
-    //           },
-    //           { assertEnvironment: 'node' }
-    //         )
-
-    //       const webSet = () =>
-    //         set(
-    //           users,
-    //           await db.id(),
-    //           {
-    //             name: 'Sasha',
-    //             // @ts-expect-error
-    //             createdAt: new Date(),
-    //             // @ts-expect-error
-    //             updatedAt: new Date(),
-    //             birthday: new Date(1987, 1, 11)
-    //           },
-    //           { assertEnvironment: 'client' }
-    //         )
-
-    //       if (typeof window === 'undefined') {
-    //         await nodeSet()
-    //         try {
-    //           await webSet()
-    //           assert.fail('It should catch!')
-    //         } catch (err) {
-    //           assert(err.message === 'Expected web environment')
-    //         }
-    //       } else {
-    //         await webSet()
-    //         try {
-    //           await nodeSet()
-    //           assert.fail('It should catch!')
-    //         } catch (err) {
-    //           assert(err.message === 'Expected node environment')
-    //         }
-    //       }
-    //     })
   })
 })

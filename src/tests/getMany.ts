@@ -25,6 +25,21 @@ describe('getMany', () => {
     ])
   })
 
+  it('allows to assert environment', async () => {
+    const server = () =>
+      db.fruits.getMany(['apple', 'banana'], { as: 'server' })
+    const client = () =>
+      db.fruits.getMany(['apple', 'banana'], { as: 'client' })
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
   describe('promise', () => {
     it('returns nothing when called with empty array', async () => {
       const list = await db.fruits.getMany([])

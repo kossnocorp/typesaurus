@@ -20,6 +20,51 @@ describe('get', () => {
     nope: $.collection<Nope>()
   }))
 
+  it('allows to assert environment', async () => {
+    const server = () => db.users.get('whatever', { as: 'server' })
+    const client = () => db.users.get('whatever', { as: 'client' })
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
+  describe('ref', () => {
+    it('allows to assert environment', async () => {
+      const server = () => db.users.ref('whatever').get({ as: 'server' })
+      const client = () => db.users.ref('whatever').get({ as: 'client' })
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+  })
+
+  describe('doc', () => {
+    it('allows to assert environment', async () => {
+      const doc = db.users.doc('whatever', { name: 'Sasha' })
+
+      const server = () => doc.get({ as: 'server' })
+      const client = () => doc.get({ as: 'client' })
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+  })
+
   describe('promise', () => {
     it('returns nothing if document is not present', async () => {
       const nothing = await db.nope.get('nah')
