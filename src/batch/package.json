@@ -1,0 +1,4 @@
+{
+  "browser": "../adapter/web/batch",
+  "main": "../adapter/admin/batch"
+}
