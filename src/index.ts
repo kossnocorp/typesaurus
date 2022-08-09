@@ -1,24 +1,9 @@
-export { schema } from './adapter'
-
+import type { TypesaurusQuery } from './types/query'
 import type { TypesaurusUtils } from './utils'
 
+export { schema } from './adapter'
+
 export namespace Typesaurus {
-  export type OrderDirection = 'desc' | 'asc'
-
-  export type WhereFilter =
-    | '<'
-    | '<='
-    | '=='
-    | '!='
-    | '>='
-    | '>'
-    | 'array-contains'
-    | 'in'
-    | 'not-in'
-    | 'array-contains-any'
-
-  class DocId {}
-
   /**
    * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
    */
@@ -361,156 +346,6 @@ export namespace Typesaurus {
 
   export type Undefined<T> = T extends undefined ? T : never
 
-  /**
-   * The query type.
-   */
-  export type Query<Model, Key extends keyof Model> =
-    | OrderQuery<Model, Key>
-    | WhereQuery<Model>
-    | LimitQuery
-
-  /**
-   * The order query type. Used to build query.
-   */
-  export interface OrderQuery<Model, Key extends keyof Model> {
-    type: 'order'
-    field: Key | DocId
-    method: OrderDirection
-    cursors: OrderCursors<Model, Key>
-  }
-
-  export interface WhereQuery<_Model> {
-    type: 'where'
-    field: string | string[] | DocId
-    filter: WhereFilter
-    value: any
-  }
-
-  /**
-   * The limit query type. It contains the limit value.
-   */
-  export interface LimitQuery {
-    type: 'limit'
-    number: number
-  }
-
-  export type OrderCursors<Model, Key extends keyof Model> =
-    | [OrderCursorStart<Model, Key>]
-    | [OrderCursorEnd<Model, Key>]
-    | [OrderCursorStart<Model, Key>, OrderCursorEnd<Model, Key>]
-
-  export type OrderCursorPosition =
-    | 'startAt'
-    | 'startAfter'
-    | 'endBefore'
-    | 'endAt'
-
-  export type OrderCursorStart<Model, Key extends keyof Model> =
-    | OrderCursorStartAt<Model, Key>
-    | OrderCursorStartAfter<Model, Key>
-
-  export interface OrderCursorStartAt<Model, Key extends keyof Model>
-    extends OrderCursor<'startAt', Model, Key> {}
-
-  export interface OrderCursorStartAfter<Model, Key extends keyof Model>
-    extends OrderCursor<'startAfter', Model, Key> {}
-
-  export type OrderCursorEnd<Model, Key extends keyof Model> =
-    | OrderCursorEndAt<Model, Key>
-    | OrderCursorEndBefore<Model, Key>
-
-  export interface OrderCursorEndAt<Model, Key extends keyof Model>
-    extends OrderCursor<'endAt', Model, Key> {}
-
-  export interface OrderCursorEndBefore<Model, Key extends keyof Model>
-    extends OrderCursor<'endBefore', Model, Key> {}
-
-  export interface OrderCursor<
-    Position extends OrderCursorPosition,
-    Model,
-    Key extends keyof Model
-  > {
-    type: 'cursor'
-    position: Position
-    value: OrderCursorValue<Model, Key>
-  }
-
-  export type OrderCursorValue<Model, Key extends keyof Model> =
-    | Model[Key]
-    | Doc<Model>
-    // | typeofDocId
-    | undefined
-
-  export type QueryGetter<Model> = (
-    $: QueryHelpers<Model>
-  ) => Query<Model, keyof Model>[]
-
-  export interface QueryHelpers<Model> {
-    // where<Key extends keyof Model>(
-    //   field: DocId,
-    //   filter: WhereFilter,
-    //   value: string
-    // ): WhereQuery<DocId>
-
-    where<Key extends keyof Model>(
-      field: Key,
-      filter: WhereFilter,
-      value: Model[Key]
-    ): WhereQuery<Model[Key]>
-
-    where<Key1 extends keyof Model, Key2 extends keyof Model[Key1]>(
-      field: [Key1, Key2],
-      filter: WhereFilter,
-      value: Model[Key1][Key2]
-    ): WhereQuery<Model[Key1]>
-
-    order<Key extends keyof Model>(key: DocId): OrderQuery<Model, Key>
-
-    order<Key extends keyof Model>(key: Key): OrderQuery<Model, Key>
-
-    order<Key extends keyof Model>(
-      key: Key,
-      ...cursors: OrderCursors<Model, Key> | []
-    ): OrderQuery<Model, Key>
-
-    order<Key extends keyof Model>(
-      key: DocId,
-      ...cursors: OrderCursors<Model, Key> | []
-    ): OrderQuery<Model, Key>
-
-    order<Key extends keyof Model>(
-      key: Key,
-      method: OrderDirection,
-      ...cursors: OrderCursors<Model, Key> | []
-    ): OrderQuery<Model, Key>
-
-    order<Key extends keyof Model>(
-      key: DocId,
-      method: 'asc',
-      ...cursors: OrderCursors<Model, Key> | []
-    ): OrderQuery<Model, Key>
-
-    limit(to: number): LimitQuery
-
-    startAt<Model, Key extends keyof Model>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorStartAt<Model, Key>
-
-    startAfter<Model, Key extends keyof Model>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorStartAfter<Model, Key>
-
-    endAt<Model, Key extends keyof Model>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorEndAt<Model, Key>
-
-    endBefore<Model, Key extends keyof Model>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorEndBefore<Model, Key>
-
-    docId(): DocId
-  }
-
   export interface WriteHelpers<_Model> {
     serverDate(): ValueServerDate
 
@@ -840,7 +675,7 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      queries: QueryGetter<Model>,
+      queries: TypesaurusQuery.QueryGetter<Model>,
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
