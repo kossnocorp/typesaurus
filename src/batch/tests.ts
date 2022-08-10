@@ -20,7 +20,7 @@ describe('batch', () => {
     $.users.set(sashaId, { name: 'Sasha' })
     $.users.set(tatiId, { name: 'Tati' })
     $.users.set(edId, { name: 'Ed' })
-    await $.commit()
+    await $()
     const [sasha, tati, ed] = await Promise.all([
       db.users.get(sashaId),
       db.users.get(tatiId),
@@ -40,7 +40,7 @@ describe('batch', () => {
     $.users.set(sashaId, { name: 'Sasha' })
     $.users.set(tatiId, { name: 'Tati' })
     $.users.set(edId, { name: 'Ed' })
-    await $.commit()
+    await $()
     const [sasha, tati, ed] = await Promise.all([
       db.users.get(sashaId),
       db.users.get(tatiId),
@@ -65,7 +65,7 @@ describe('batch', () => {
     $.users.upset(sashaId, { name: 'Sasha Koss' })
     $.users.upset(tatiId, { name: 'Tati Shepeleva', foo: false })
     $.users.upset(edId, { name: 'Ed Tsech' })
-    await $.commit()
+    await $()
     const [sasha, tati, ed] = await Promise.all([
       db.users.get(sashaId),
       db.users.get(tatiId),
@@ -90,7 +90,7 @@ describe('batch', () => {
     $.users.update(sashaId, { name: 'Sasha Koss' })
     $.users.update(tatiId, { name: 'Tati Shepeleva' })
     $.users.update(edId, { name: 'Ed Tsech' })
-    await $.commit()
+    await $()
     const [sasha, tati, ed] = await Promise.all([
       db.users.get(sashaId),
       db.users.get(tatiId),
@@ -115,7 +115,7 @@ describe('batch', () => {
     $.users.remove(sashaId)
     $.users.remove(tatiId)
     $.users.remove(edId)
-    await $.commit()
+    await $()
     const [sasha, tati, ed] = await Promise.all([
       db.users.get(sashaId),
       db.users.get(tatiId),
