@@ -14,61 +14,13 @@ export function schema<Schema extends Typesaurus.PlainSchema>(
   const schema = getSchema(schemaHelpers())
 
   const richSchema: Typesaurus.RichSchema = enrichSchema(schema)
-  const groups: Typesaurus.Groups<Schema> = extractGroups(schema)
-  const rootDB: Typesaurus.RootDB<Schema> = { ...richSchema, groups, id }
+  const rootDB: Typesaurus.RootDB<Schema> = { ...richSchema, id }
 
   return rootDB
 }
 
 async function id() {
   return admin.firestore().collection('nope').doc().id
-}
-
-class Group<Model> implements Typesaurus.Group<Model> {
-  name: string
-
-  constructor(name: string) {
-    this.name = name
-  }
-
-  all<
-    Source extends Typesaurus.DataSource,
-    DateStrategy extends Typesaurus.ServerDateStrategy,
-    Environment extends Typesaurus.RuntimeEnvironment
-  >(): Typesaurus.SubscriptionPromise<
-    Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
-    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
-  > {
-    return all(this.adapter())
-  }
-
-  query<
-    Source extends Typesaurus.DataSource,
-    DateStrategy extends Typesaurus.ServerDateStrategy,
-    Environment extends Typesaurus.RuntimeEnvironment
-  >(
-    queries: TypesaurusQuery.QueryGetter<Model>
-  ): Typesaurus.SubscriptionPromise<
-    Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
-    Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
-  > {
-    return query(this.adapter(), queries)
-  }
-
-  private adapter<
-    Source extends Typesaurus.DataSource,
-    DateStrategy extends Typesaurus.ServerDateStrategy,
-    Environment extends Typesaurus.RuntimeEnvironment
-  >(): CollectionAdapter<Model, Source, DateStrategy, Environment> {
-    return {
-      collection: () => this.firebaseCollection(),
-      doc: (snapshot) => pathToDoc<Model>(snapshot.ref.path, snapshot.data())
-    }
-  }
-
-  private firebaseCollection() {
-    return admin.firestore().collectionGroup(this.name)
-  }
 }
 
 class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
@@ -437,7 +389,7 @@ class Doc<Model> implements Typesaurus.ServerDoc<Model> {
   }
 }
 
-interface CollectionAdapter<
+export interface CollectionAdapter<
   Model,
   Source extends Typesaurus.DataSource,
   DateStrategy extends Typesaurus.ServerDateStrategy,
@@ -449,7 +401,7 @@ interface CollectionAdapter<
   ) => Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>
 }
 
-function all<
+export function all<
   Model,
   Source extends Typesaurus.DataSource,
   DateStrategy extends Typesaurus.ServerDateStrategy,
@@ -575,7 +527,14 @@ function enrichSchema(
       enrichedSchema[path] =
         'schema' in plainCollection
           ? new Proxy<Typesaurus.NestedRichCollection<any, any>>(() => {}, {
-              get: (_target, prop: keyof typeof collection) => collection[prop],
+              get: (_target, prop: 'schema' | keyof typeof collection) => {
+                if (prop === 'schema') return plainCollection.schema
+                else return collection[prop]
+              },
+
+              has(_target, prop) {
+                return prop in plainCollection
+              },
 
               apply: (_target, prop, [id]: [string]) =>
                 enrichSchema(plainCollection.schema, `${collection.path}/${id}`)
@@ -588,24 +547,7 @@ function enrichSchema(
   )
 }
 
-function extractGroups(
-  schema: Typesaurus.PlainSchema
-): Typesaurus.Groups<unknown> {
-  const groups: Typesaurus.Groups<unknown> = {}
-
-  function extract(schema: Typesaurus.PlainSchema) {
-    Object.entries(schema).forEach(([path, plainCollection]) => {
-      if (path in groups) return
-      groups[path] = new Group(path)
-      if ('schema' in plainCollection) extract(plainCollection.schema)
-    })
-  }
-  extract(schema)
-
-  return groups
-}
-
-function query<
+export function query<
   Model,
   Source extends Typesaurus.DataSource,
   DateStrategy extends Typesaurus.ServerDateStrategy,
@@ -677,7 +619,7 @@ function query<
     }
   })
 
-  let groupedCursors: [Typesaurus.OrderCursorPosition, any[]][] = []
+  let groupedCursors: [TypesaurusQuery.OrderCursorPosition, any[]][] = []
 
   cursors.forEach((cursor) => {
     let methodValues = groupedCursors.find(

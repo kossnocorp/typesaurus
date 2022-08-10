@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import sinon from 'sinon'
 import { schema, Typesaurus } from '..'
+import { groups } from '../groups'
 
 describe('query', () => {
   interface Contact {
@@ -329,8 +330,8 @@ describe('query', () => {
       }))
 
       afterEach(() =>
-        db.groups.contactMessages
-          .all()
+        groups(db)
+          .contactMessages.all()
           .then((docs) => docs.map((doc) => doc.remove()))
       )
 
@@ -358,7 +359,7 @@ describe('query', () => {
           })
         ])
 
-        const messages = await db.groups.contactMessages.query(($) => [
+        const messages = await groups(db).contactMessages.query(($) => [
           $.where('ownerId', '==', ownerId)
         ])
 
@@ -385,7 +386,7 @@ describe('query', () => {
           })
         ])
 
-        const posts = await db.groups.messagePosts.query(($) => [
+        const posts = await groups(db).messagePosts.query(($) => [
           $.where('ownerId', '==', ownerId)
         ])
 
@@ -976,8 +977,8 @@ describe('query', () => {
       }))
 
       afterEach(() =>
-        db.groups.contactMessages
-          .all()
+        groups(db)
+          .contactMessages.all()
           .then((docs) => docs.map((doc) => doc.remove()))
       )
 
@@ -1005,7 +1006,7 @@ describe('query', () => {
           })
         ])
 
-        const messages = await db.groups.contactMessages.query(($) => [
+        const messages = await groups(db).contactMessages.query(($) => [
           $.where('ownerId', '==', ownerId)
         ])
 
@@ -1018,8 +1019,8 @@ describe('query', () => {
         const spy = sinon.spy()
 
         return new Promise((resolve) => {
-          off = db.groups.contactMessages
-            .query(($) => [$.where('ownerId', '==', ownerId)])
+          off = groups(db)
+            .contactMessages.query(($) => [$.where('ownerId', '==', ownerId)])
             .on(async (messages) => {
               spy(messages.map((m) => m.data.text).sort())
 
@@ -1078,8 +1079,8 @@ describe('query', () => {
         const spy = sinon.spy()
 
         return new Promise((resolve) => {
-          off = db.groups.messagePosts
-            .query(($) => [$.where('ownerId', '==', ownerId)])
+          off = groups(db)
+            .messagePosts.query(($) => [$.where('ownerId', '==', ownerId)])
             .on(async (posts) => {
               spy(posts.map((m) => m.data.title).sort())
 

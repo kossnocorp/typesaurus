@@ -1,0 +1,4 @@
+{
+  "browser": "../adapter/web/groups",
+  "main": "../adapter/admin/groups"
+}
