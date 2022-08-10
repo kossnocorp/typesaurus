@@ -709,7 +709,7 @@ export namespace Typesaurus {
     getMany<
       Source extends DataSource,
       DateStrategy extends Typesaurus.ServerDateStrategy,
-      Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined,
+      Environment extends Typesaurus.RuntimeEnvironment,
       OnMissing extends OnMissingMode<Model> | undefined = undefined
     >(
       ids: string[],
