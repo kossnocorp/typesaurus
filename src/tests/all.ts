@@ -1,5 +1,6 @@
 import sinon from 'sinon'
 import { schema, Typesaurus } from '..'
+import { groups } from '../groups'
 
 describe('all', () => {
   interface Book {
@@ -101,7 +102,9 @@ describe('all', () => {
       }))
 
       afterEach(() =>
-        db.groups.comments.all().then((docs) => docs.map((doc) => doc.remove()))
+        groups(db)
+          .comments.all()
+          .then((docs) => docs.map((doc) => doc.remove()))
       )
 
       it('allows to get all data from collection groups', async () => {
@@ -119,7 +122,7 @@ describe('all', () => {
           })
         ])
 
-        const comments = await db.groups.comments.all()
+        const comments = await groups(db).comments.all()
 
         expect(comments.map((c) => c.data.text).sort()).toEqual([
           'cruel',
@@ -232,7 +235,9 @@ describe('all', () => {
       }))
 
       afterEach(() =>
-        db.groups.comments.all().then((docs) => docs.map((doc) => doc.remove()))
+        groups(db)
+          .comments.all()
+          .then((docs) => docs.map((doc) => doc.remove()))
       )
 
       it('allows to get all data from collection groups', async () => {
@@ -251,17 +256,19 @@ describe('all', () => {
         ])
 
         return new Promise((resolve) => {
-          off = db.groups.comments.all().on((comments) => {
-            if (comments.length === 3) {
-              off?.()
-              expect(comments.map((c) => c.data.text).sort()).toEqual([
-                'cruel',
-                'hello',
-                'world'
-              ])
-              resolve(void 0)
-            }
-          })
+          off = groups(db)
+            .comments.all()
+            .on((comments) => {
+              if (comments.length === 3) {
+                off?.()
+                expect(comments.map((c) => c.data.text).sort()).toEqual([
+                  'cruel',
+                  'hello',
+                  'world'
+                ])
+                resolve(void 0)
+              }
+            })
         })
       })
     })
