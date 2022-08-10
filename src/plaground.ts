@@ -1,6 +1,5 @@
 import { Typesaurus } from '.'
 import { schema } from './adapter/admin'
-import { transaction } from './transaction'
 
 describe('Typesaurus core', () => {
   describe('DB', () => {
@@ -59,15 +58,6 @@ describe('Typesaurus core', () => {
 
         // Get few documents by ids
         await db.users.getMany(['sasha', 'lesha', 'tati'])
-
-        // Quering
-        const users = await db.users.query(($) => [
-          $.where('name', '==', 'Sasha'),
-          // @ts-expect-error
-          $.where(['contacts', 'emal'], '==', 'koss@nocorp.me'),
-          $.order('name'),
-          $.limit(1)
-        ])
 
         // NOTE: no await, it's a promise (?)
         const sashaPromise = db.users.get('sasha')
@@ -129,18 +119,6 @@ describe('Typesaurus core', () => {
         const manyUsers = await db.users.getMany(['sasha', 'lesha', 'tati'], {
           onMissing: 'ignore'
         })
-
-        const offQuery = db.users
-          .query(($) => [
-            $.where('name', '==', 'Sasha'),
-            $.where(['contacts', 'email'], '==', 'koss@nocorp.me'),
-            $.order('name'),
-            $.limit(1)
-          ])
-          .on((users) => {})
-          .catch((error) => {})
-
-        offQuery()
 
         interface User {
           name: string

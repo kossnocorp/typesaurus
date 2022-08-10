@@ -299,6 +299,74 @@ async function update() {
   )
 }
 
+async function query() {
+  // Basic query
+
+  await db.users.query(($) => [
+    $.where('name', '==', 'Sasha'),
+    // @ts-expect-error
+    $.where(['contacts', 'emal'], '==', 'koss@nocorp.me'),
+    $.order('name'),
+    $.limit(1)
+  ])
+
+  // Subscription
+
+  const offQuery = db.users
+    .query(($) => [
+      $.where('name', '==', 'Sasha'),
+      $.where(['contacts', 'email'], '==', 'koss@nocorp.me'),
+      $.order('name'),
+      $.limit(1)
+    ])
+    .on((users) => {})
+    .catch((error) => {})
+
+  offQuery()
+
+  // Nested fields
+
+  await db.users.query(($) => [
+    $.where(['contacts', 'email'], '==', 'koss@nocorp.me')
+  ])
+
+  // Optional path
+  await db.accounts.query(($) => [
+    $.where(['nested1Optional', 'nested12Optional', 'hello'], '==', 'World!')
+  ])
+
+  // where
+
+  // in
+
+  await db.accounts.query(($) => [$.where($.docId(), 'in', ['id1', 'id2'])])
+
+  await db.accounts.query(($) => [
+    // @ts-expect-error - the value should be an array
+    $.where($.docId(), 'in', 'id1')
+  ])
+
+  // array-contains
+
+  await db.posts.query(($) => $.where('likeIds', 'array-contains', 'id1'))
+
+  // @ts-expect-error - the value should be a string
+  await db.posts.query(($) => $.where('likeIds', 'array-contains', 1))
+
+  // order
+
+  await db.accounts.query(($) => $.order($.docId()))
+
+  await db.accounts.query(($) => $.order('contacts'))
+
+  await db.accounts.query(($) => $.order(['contacts', 'email']))
+
+  await db.accounts.query(($) => $.order(['contacts', 'phone']))
+
+  // @ts-expect-error - nope is not a valid field
+  await db.accounts.query(($) => $.order(['contacts', 'nope']))
+}
+
 async function groups() {
   interface Book {
     title: string
