@@ -85,10 +85,7 @@ const db = schema(($) => ({
 }))
 
 async function doc() {
-  const dbUser = await db.users.get('sasha')
-  if (!dbUser) return
-
-  const manualUser = db.users.doc('sasha', {
+  const user = db.users.doc('sasha', {
     name: 'Sasha',
     contacts: {
       email: 'koss@nocorp.me'
@@ -98,55 +95,234 @@ async function doc() {
 
   // Runtime environment
 
-  if (dbUser.environment === 'server') {
-    dbUser.data.createdAt.getDay()
+  if (user.environment === 'server') {
+    user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
-    dbUser.data.createdAt.getDay()
-  }
-
-  if (manualUser.environment === 'server') {
-    manualUser.data.createdAt.getDay()
-  } else {
-    // @ts-expect-error
-    manualUser.data.createdAt.getDay()
+    user.data.createdAt.getDay()
   }
 
   // Source
 
-  if (dbUser.source === 'database') {
-    dbUser.data.createdAt.getDay()
+  if (user.source === 'database') {
+    user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
-    dbUser.data.createdAt.getDay()
-  }
-
-  if (manualUser.source === 'database') {
-    manualUser.data.createdAt.getDay()
-  } else {
-    // @ts-expect-error
-    manualUser.data.createdAt.getDay()
+    user.data.createdAt.getDay()
   }
 
   // Server date strategy
 
-  if (dbUser.dateStrategy === 'estimate') {
-    dbUser.data.createdAt.getDay()
-  } else if (dbUser.dateStrategy === 'previous') {
-    dbUser.data.createdAt.getDay()
+  if (user.dateStrategy === 'estimate') {
+    user.data.createdAt.getDay()
+  } else if (user.dateStrategy === 'previous') {
+    user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
-    dbUser.data.createdAt.getDay()
+    user.data.createdAt.getDay()
+  }
+}
+
+async function get() {
+  const user = await db.users.get('sasha')
+  if (!user) return
+
+  // Runtime environment
+
+  if (user.environment === 'server') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
   }
 
-  if (manualUser.dateStrategy === 'estimate') {
-    manualUser.data.createdAt.getDay()
-  } else if (manualUser.dateStrategy === 'previous') {
-    manualUser.data.createdAt.getDay()
+  // Source
+
+  if (user.source === 'database') {
+    user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
-    manualUser.data.createdAt.getDay()
+    user.data.createdAt.getDay()
   }
+
+  // Server date strategy
+
+  if (user.dateStrategy === 'estimate') {
+    user.data.createdAt.getDay()
+  } else if (user.dateStrategy === 'previous') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+}
+
+async function getMany() {
+  const [user] = await db.users.getMany(['sasha'])
+  if (!user) return
+
+  // Runtime environment
+
+  if (user.environment === 'server') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+
+  // Source
+
+  if (user.source === 'database') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+
+  // Server date strategy
+
+  if (user.dateStrategy === 'estimate') {
+    user.data.createdAt.getDay()
+  } else if (user.dateStrategy === 'previous') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+}
+
+async function all() {
+  const [user] = await db.users.all()
+  if (!user) return
+
+  // Runtime environment
+
+  if (user.environment === 'server') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+
+  // Source
+
+  if (user.source === 'database') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+
+  // Server date strategy
+
+  if (user.dateStrategy === 'estimate') {
+    user.data.createdAt.getDay()
+  } else if (user.dateStrategy === 'previous') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+}
+
+async function query() {
+  const [user] = await db.users.query(($) => $.where('name', '==', 'Sasha'))
+  if (!user) return
+
+  // Runtime environment
+
+  if (user.environment === 'server') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+
+  // Source
+
+  if (user.source === 'database') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+
+  // Server date strategy
+
+  if (user.dateStrategy === 'estimate') {
+    user.data.createdAt.getDay()
+  } else if (user.dateStrategy === 'previous') {
+    user.data.createdAt.getDay()
+  } else {
+    // @ts-expect-error
+    user.data.createdAt.getDay()
+  }
+
+  // Basic query
+
+  await db.users.query(($) => [
+    $.where('name', '==', 'Sasha'),
+    // @ts-expect-error
+    $.where(['contacts', 'emal'], '==', 'koss@nocorp.me'),
+    $.order('name'),
+    $.limit(1)
+  ])
+
+  // Subscription
+
+  const offQuery = db.users
+    .query(($) => [
+      $.where('name', '==', 'Sasha'),
+      $.where(['contacts', 'email'], '==', 'koss@nocorp.me'),
+      $.order('name'),
+      $.limit(1)
+    ])
+    .on((users) => {})
+    .catch((error) => {})
+
+  offQuery()
+
+  // Nested fields
+
+  await db.users.query(($) => [
+    $.where(['contacts', 'email'], '==', 'koss@nocorp.me')
+  ])
+
+  // Optional path
+  await db.accounts.query(($) => [
+    $.where(['nested1Optional', 'nested12Optional', 'hello'], '==', 'World!')
+  ])
+
+  // where
+
+  // in
+
+  await db.accounts.query(($) => [$.where($.docId(), 'in', ['id1', 'id2'])])
+
+  await db.accounts.query(($) => [
+    // @ts-expect-error - the value should be an array
+    $.where($.docId(), 'in', 'id1')
+  ])
+
+  // array-contains
+
+  await db.posts.query(($) => $.where('likeIds', 'array-contains', 'id1'))
+
+  // @ts-expect-error - the value should be a string
+  await db.posts.query(($) => $.where('likeIds', 'array-contains', 1))
+
+  // order
+
+  await db.accounts.query(($) => $.order($.docId()))
+
+  await db.accounts.query(($) => $.order('contacts'))
+
+  await db.accounts.query(($) => $.order(['contacts', 'email']))
+
+  await db.accounts.query(($) => $.order(['contacts', 'phone']))
+
+  // @ts-expect-error - nope is not a valid field
+  await db.accounts.query(($) => $.order(['contacts', 'nope']))
 }
 
 async function update() {
@@ -297,72 +473,4 @@ async function update() {
   await db.accounts.update('sasha', ($) =>
     $.field('counters', postId, 'likes', $.increment(1))
   )
-}
-
-async function query() {
-  // Basic query
-
-  await db.users.query(($) => [
-    $.where('name', '==', 'Sasha'),
-    // @ts-expect-error
-    $.where(['contacts', 'emal'], '==', 'koss@nocorp.me'),
-    $.order('name'),
-    $.limit(1)
-  ])
-
-  // Subscription
-
-  const offQuery = db.users
-    .query(($) => [
-      $.where('name', '==', 'Sasha'),
-      $.where(['contacts', 'email'], '==', 'koss@nocorp.me'),
-      $.order('name'),
-      $.limit(1)
-    ])
-    .on((users) => {})
-    .catch((error) => {})
-
-  offQuery()
-
-  // Nested fields
-
-  await db.users.query(($) => [
-    $.where(['contacts', 'email'], '==', 'koss@nocorp.me')
-  ])
-
-  // Optional path
-  await db.accounts.query(($) => [
-    $.where(['nested1Optional', 'nested12Optional', 'hello'], '==', 'World!')
-  ])
-
-  // where
-
-  // in
-
-  await db.accounts.query(($) => [$.where($.docId(), 'in', ['id1', 'id2'])])
-
-  await db.accounts.query(($) => [
-    // @ts-expect-error - the value should be an array
-    $.where($.docId(), 'in', 'id1')
-  ])
-
-  // array-contains
-
-  await db.posts.query(($) => $.where('likeIds', 'array-contains', 'id1'))
-
-  // @ts-expect-error - the value should be a string
-  await db.posts.query(($) => $.where('likeIds', 'array-contains', 1))
-
-  // order
-
-  await db.accounts.query(($) => $.order($.docId()))
-
-  await db.accounts.query(($) => $.order('contacts'))
-
-  await db.accounts.query(($) => $.order(['contacts', 'email']))
-
-  await db.accounts.query(($) => $.order(['contacts', 'phone']))
-
-  // @ts-expect-error - nope is not a valid field
-  await db.accounts.query(($) => $.order(['contacts', 'nope']))
 }
