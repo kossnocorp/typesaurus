@@ -3,15 +3,16 @@ import type { Typesaurus } from '../..'
 import type { TypesaurusBatch } from '../../types/batch'
 import * as admin from 'firebase-admin'
 
-export const batch: TypesaurusBatch.Function = (db, options) => {
+export const batch: TypesaurusBatch.Function = (rootDB, options) => {
   assertEnvironment(options?.as)
   const firebaseBatch = admin.firestore().batch()
-  return {
-    ...batchDB(db, firebaseBatch),
-    commit: async () => {
-      await firebaseBatch.commit()
-    }
+
+  const db = async () => {
+    await firebaseBatch.commit()
   }
+  Object.assign(db, batchDB(rootDB, firebaseBatch))
+
+  return db
 }
 
 function batchDB<Schema extends Typesaurus.PlainSchema>(

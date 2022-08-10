@@ -15,7 +15,7 @@ export namespace TypesaurusBatch {
     Schema extends Typesaurus.PlainSchema,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = DB<Schema, Environment> & {
-    commit: () => Promise<void>
+    (): Promise<void>
   }
 
   export type DB<
