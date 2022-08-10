@@ -35,12 +35,21 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   doc<
     Source extends Typesaurus.DataSource,
     DateStrategy extends Typesaurus.ServerDateStrategy,
-    Environment extends Typesaurus.RuntimeEnvironment
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   >(
     id: string,
     data: Model
   ): Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment> {
-    return new Doc<Model>(this, id, data)
+    return new Doc<Model>(
+      this,
+      id,
+      data
+    ) as unknown as Typesaurus.EnvironmentDoc<
+      Model,
+      Source,
+      DateStrategy,
+      Environment
+    >
   }
 
   add<
@@ -55,7 +64,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
       .then((firebaseRef) => this.ref(firebaseRef.id))
   }
 
-  set<Environment extends Typesaurus.RuntimeEnvironment>(
+  set<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     id: string,
     data: Typesaurus.WriteModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
@@ -66,7 +77,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
       .then(() => this.ref(id))
   }
 
-  upset<Environment extends Typesaurus.RuntimeEnvironment>(
+  upset<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     id: string,
     data: Typesaurus.WriteModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
@@ -77,7 +90,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
       .then(() => this.ref(id))
   }
 
-  update<Environment extends Typesaurus.RuntimeEnvironment>(
+  update<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     id: string,
     data: Typesaurus.UpdateModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
@@ -141,7 +156,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   >(
     id: string,
     options?: Typesaurus.ReadOptions<DateStrategy, Environment>
-  ): TypesaurusUtils.SubscriptionPromise<Typesaurus.EnvironmentDoc<
+  ): Typesaurus.SubscriptionPromise<Typesaurus.EnvironmentDoc<
     Model,
     Source,
     DateStrategy,
@@ -173,8 +188,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   }
 
   getMany<
+    Source extends Typesaurus.DataSource,
     DateStrategy extends Typesaurus.ServerDateStrategy,
-    Environment extends Typesaurus.RuntimeEnvironment,
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined,
     OnMissing extends Typesaurus.OnMissingMode<Model> | undefined = undefined
   >(
     ids: string[],
@@ -184,11 +200,18 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
       Environment,
       OnMissing
     >
-  ) /* : OnMissing extends 'ignore' | undefined
-    ? Typesaurus.PromiseWithListSubscription<Model>
+  ): OnMissing extends 'ignore' | undefined
+    ? Typesaurus.SubscriptionPromise<
+        Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[]
+      >
     : OnMissing extends Typesaurus.OnMissingCallback<infer OnMissingResult>
-    ? Typesaurus.PromiseWithListSubscription<Model | OnMissingResult>
-    : never*/ {
+    ? Typesaurus.SubscriptionPromise<
+        Array<
+          | Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>
+          | OnMissingResult
+        >
+      >
+    : never {
     assertEnvironment(options?.as)
 
     return new TypesaurusUtils.SubscriptionPromise({
@@ -293,27 +316,37 @@ class Ref<Model> implements Typesaurus.Ref<Model> {
   }
 
   get<
+    Source extends Typesaurus.DataSource,
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
   >(options?: Typesaurus.ReadOptions<DateStrategy, Environment>) {
-    return this.collection.get(this.id, options)
+    return this.collection.get<Source, DateStrategy, Environment>(
+      this.id,
+      options
+    )
   }
 
-  set<Environment extends Typesaurus.RuntimeEnvironment>(
+  set<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     data: Typesaurus.WriteModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
   ) {
     return this.collection.set(this.id, data, options)
   }
 
-  upset<Environment extends Typesaurus.RuntimeEnvironment>(
+  upset<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     data: Typesaurus.WriteModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
   ) {
     return this.collection.upset(this.id, data, options)
   }
 
-  update<Environment extends Typesaurus.RuntimeEnvironment>(
+  update<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     data: Typesaurus.UpdateModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
   ) {
@@ -321,11 +354,7 @@ class Ref<Model> implements Typesaurus.Ref<Model> {
   }
 
   async remove() {
-    await this.collection.remove(this.id)
-  }
-
-  private firebaseDoc() {
-    return admin.firestore().doc(`${this.collection.path}/${this.id}`)
+    return this.collection.remove(this.id)
   }
 }
 
@@ -353,35 +382,42 @@ class Doc<Model> implements Typesaurus.ServerDoc<Model> {
   }
 
   get<
+    Source extends Typesaurus.DataSource,
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
   >(options?: Typesaurus.ReadOptions<DateStrategy, Environment>) {
-    return this.ref.get(options)
+    return this.ref.get<Source, DateStrategy, Environment>(options)
   }
 
-  set<Environment extends Typesaurus.RuntimeEnvironment>(
+  set<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     data: Typesaurus.WriteModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
   ) {
     return this.ref.set(data, options)
   }
 
-  update<Environment extends Typesaurus.RuntimeEnvironment>(
+  update<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     data: Typesaurus.UpdateModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
   ) {
     return this.ref.update(data, options)
   }
 
-  upset<Environment extends Typesaurus.RuntimeEnvironment>(
+  upset<
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+  >(
     data: Typesaurus.WriteModelArg<Model, Environment>,
     options?: Typesaurus.OperationOptions<Environment>
   ) {
     return this.ref.upset(data, options)
   }
 
-  async remove() {
-    await this.ref.remove()
+  remove() {
+    return this.ref.remove()
   }
 }
 
