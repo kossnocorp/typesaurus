@@ -4,7 +4,7 @@ import type { TypesaurusUtils } from '../utils'
 export namespace TypesaurusGroups {
   export interface Function {
     <Schema extends Typesaurus.PlainSchema>(
-      db: Typesaurus.RootDB<Schema>
+      db: Typesaurus.DB<Schema>
     ): Groups<Schema>
   }
 

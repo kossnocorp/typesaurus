@@ -261,7 +261,7 @@ export namespace TypesaurusTransaction {
       Schema extends Typesaurus.PlainSchema,
       Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
     >(
-      db: Typesaurus.RootDB<Schema>,
+      db: Typesaurus.DB<Schema>,
       options?: Typesaurus.OperationOptions<Environment>
     ): ReadChain<Schema, Environment>
   }

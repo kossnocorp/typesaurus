@@ -10,17 +10,9 @@ export const defaultOnMissing: Typesaurus.OnMissingCallback<unknown> = (id) => {
 
 export function schema<Schema extends Typesaurus.PlainSchema>(
   getSchema: ($: Typesaurus.SchemaHelpers) => Schema
-): Typesaurus.RootDB<Schema> {
+): Typesaurus.DB<Schema> {
   const schema = getSchema(schemaHelpers())
-
-  const richSchema: Typesaurus.RichSchema = enrichSchema(schema)
-  const rootDB: Typesaurus.RootDB<Schema> = { ...richSchema, id }
-
-  return rootDB
-}
-
-async function id() {
-  return admin.firestore().collection('nope').doc().id
+  return db(schema)
 }
 
 class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
@@ -30,6 +22,10 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
 
   constructor(path: string) {
     this.path = path
+  }
+
+  async id() {
+    return this.firebaseCollection().doc().id
   }
 
   ref(id: string): Typesaurus.Ref<Model> {
@@ -514,11 +510,11 @@ function schemaHelpers(): Typesaurus.SchemaHelpers {
   }
 }
 
-function enrichSchema(
+function db(
   schema: Typesaurus.PlainSchema,
   nestedPath?: string
-): Typesaurus.RichSchema {
-  return Object.entries(schema).reduce<Typesaurus.RichSchema>(
+): Typesaurus.AnyDB {
+  return Object.entries(schema).reduce<Typesaurus.AnyDB>(
     (enrichedSchema, [path, plainCollection]) => {
       const collection = new RichCollection(
         nestedPath ? `${nestedPath}/${path}` : path
@@ -537,7 +533,7 @@ function enrichSchema(
               },
 
               apply: (_target, prop, [id]: [string]) =>
-                enrichSchema(plainCollection.schema, `${collection.path}/${id}`)
+                db(plainCollection.schema, `${collection.path}/${id}`)
             })
           : collection
 

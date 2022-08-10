@@ -98,8 +98,8 @@ describe('update', () => {
   })
 
   it('supports references', async () => {
-    const userId1 = await db.id()
-    const userId2 = await db.id()
+    const userId1 = await db.users.id()
+    const userId2 = await db.users.id()
     await db.users.set(userId1, {
       name: 'Sasha',
       address: { city: 'Omsk' },
@@ -110,7 +110,7 @@ describe('update', () => {
       address: { city: 'Dimitrovgrad' },
       visits: 0
     })
-    const postId = await db.id()
+    const postId = await db.posts.id()
     await db.posts.set(postId, {
       author: db.users.ref(userId1),
       text: 'Hello!'
@@ -193,7 +193,7 @@ describe('update', () => {
   })
 
   it('allows to assert environment', async () => {
-    const userId = await db.id()
+    const userId = await db.users.id()
     await dbWithDates.users.set(userId, ($) => ({
       name: 'Sasha',
       createdAt: $.serverDate(),
@@ -224,7 +224,7 @@ describe('update', () => {
 
   describe('ref', () => {
     it('allows to assert environment', async () => {
-      const userId = await db.id()
+      const userId = await db.users.id()
       await dbWithDates.users.set(userId, ($) => ({
         name: 'Sasha',
         createdAt: $.serverDate(),
@@ -254,7 +254,7 @@ describe('update', () => {
 
   describe('doc', () => {
     it('allows to assert environment', async () => {
-      const userId = await db.id()
+      const userId = await db.users.id()
       await dbWithDates.users.set(userId, ($) => ({
         name: 'Sasha',
         createdAt: $.serverDate(),
@@ -283,7 +283,7 @@ describe('update', () => {
 
   describe('updating arrays', () => {
     it('union update', async () => {
-      const userId = await db.id()
+      const userId = await db.users.id()
       const fav = await db.favorites.add({
         userId,
         favorites: [
@@ -313,7 +313,7 @@ describe('update', () => {
     })
 
     it('remove update', async () => {
-      const userId = await db.id()
+      const userId = await db.users.id()
       const fav = await db.favorites.add({
         userId,
         favorites: [
@@ -337,8 +337,8 @@ describe('update', () => {
     })
 
     it('union update references', async () => {
-      const user1 = db.users.ref(await db.id())
-      const user2 = db.users.ref(await db.id())
+      const user1 = db.users.ref(await db.users.id())
+      const user2 = db.users.ref(await db.users.id())
       const movie = await db.movies.add({
         title: "Harry Potter and the Sorcerer's Stone",
         likedBy: [user1]
@@ -355,8 +355,8 @@ describe('update', () => {
     })
 
     it('remove update references', async () => {
-      const user1 = db.users.ref(await db.id())
-      const user2 = db.users.ref(await db.id())
+      const user1 = db.users.ref(await db.users.id())
+      const user2 = db.users.ref(await db.users.id())
       const movie = await db.movies.add({
         title: 'Harry Potter and the Chamber of Secrets',
         likedBy: [user1, user2]

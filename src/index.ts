@@ -747,9 +747,11 @@ export namespace Typesaurus {
     ref(id: string): Ref<Model>
 
     doc(id: string, data: Model): Doc<Model>
+
+    id: () => Promise<string>
   }
 
-  export interface NestedRichCollection<Model, Schema extends RichSchema>
+  export interface NestedRichCollection<Model, Schema extends AnyDB>
     extends RichCollection<Model> {
     (id: string): Schema
     schema: Schema
@@ -757,7 +759,7 @@ export namespace Typesaurus {
 
   export type AnyRichCollection<Model = unknown> =
     | RichCollection<Model>
-    | NestedRichCollection<Model, RichSchema>
+    | NestedRichCollection<Model, AnyDB>
 
   export interface PlainCollection<_Model> {
     /** The collection type */
@@ -773,12 +775,12 @@ export namespace Typesaurus {
     | PlainCollection<unknown>
     | NestedPlainCollection<unknown, PlainSchema>
 
-  export interface RichSchema {
-    [CollectionPath: string]: AnyRichCollection
-  }
-
   export interface PlainSchema {
     [CollectionPath: string]: AnyPlainCollection
+  }
+
+  export interface AnyDB {
+    [CollectionPath: string]: AnyRichCollection
   }
 
   export type DB<Schema> = {
@@ -790,10 +792,6 @@ export namespace Typesaurus {
       : Schema[Path] extends PlainCollection<infer Model>
       ? RichCollection<Model>
       : never
-  }
-
-  export type RootDB<Schema> = DB<Schema> & {
-    id: () => Promise<string>
   }
 
   export type OnMissingMode<Model> = OnMissingCallback<Model> | 'ignore'
