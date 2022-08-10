@@ -634,25 +634,25 @@ export namespace Typesaurus {
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<void>
-
-    update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: UpdateModelArg<Model, Environment>,
-      options?: OperationOptions<Environment>
-    ): Promise<void>
+    ): Promise<Ref<Model>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<void>
+    ): Promise<Ref<Model>>
 
-    remove(): Promise<void>
+    update<Environment extends RuntimeEnvironment | undefined = undefined>(
+      data: UpdateModelArg<Model, Environment>,
+      options?: OperationOptions<Environment>
+    ): Promise<Ref<Model>>
+
+    remove(): Promise<Ref<Model>>
   }
 
   export interface GetManyOptions<
     Model,
     DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment,
+    Environment extends RuntimeEnvironment | undefined = undefined,
     OnMissing extends OnMissingMode<Model> | undefined = undefined
   > extends ReadOptions<DateStrategy, Environment> {
     onMissing?: OnMissing
@@ -664,7 +664,7 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      options?: OperationOptions<Environment>
+      options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<Model, Source, DateStrategy, Environment>
@@ -698,7 +698,7 @@ export namespace Typesaurus {
       Environment extends RuntimeEnvironment
     >(
       id: string,
-      options?: OperationOptions<Environment>
+      options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<EnvironmentDoc<
       Model,
       Source,
@@ -707,16 +707,24 @@ export namespace Typesaurus {
     > | null>
 
     getMany<
+      Source extends DataSource,
       DateStrategy extends Typesaurus.ServerDateStrategy,
-      Environment extends Typesaurus.RuntimeEnvironment,
+      Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined,
       OnMissing extends OnMissingMode<Model> | undefined = undefined
     >(
       ids: string[],
       options?: GetManyOptions<Model, DateStrategy, Environment, OnMissing>
     ): OnMissing extends 'ignore' | undefined
-      ? SubscriptionPromise<Doc<Model>[]>
+      ? SubscriptionPromise<
+          EnvironmentDoc<Model, Source, DateStrategy, Environment>[]
+        >
       : OnMissing extends OnMissingCallback<infer OnMissingResult>
-      ? SubscriptionPromise<Array<Doc<Model> | OnMissingResult>>
+      ? SubscriptionPromise<
+          Array<
+            | EnvironmentDoc<Model, Source, DateStrategy, Environment>
+            | OnMissingResult
+          >
+        >
       : never
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
@@ -746,7 +754,14 @@ export namespace Typesaurus {
 
     ref(id: string): Ref<Model>
 
-    doc(id: string, data: Model): Doc<Model>
+    doc<
+      Source extends DataSource,
+      DateStrategy extends ServerDateStrategy,
+      Environment extends RuntimeEnvironment
+    >(
+      id: string,
+      data: Model
+    ): EnvironmentDoc<Model, Source, DateStrategy, Environment>
 
     id: () => Promise<string>
   }
