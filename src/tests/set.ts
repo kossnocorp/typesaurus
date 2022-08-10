@@ -28,14 +28,14 @@ describe('set', () => {
   }))
 
   it('sets a document', async () => {
-    const id = await db.id()
+    const id = await db.users.id()
     await db.users.set(id, { name: 'Sasha' })
     const user = await db.users.get(id)
     expect(user?.data).toEqual({ name: 'Sasha' })
   })
 
   it('overwrites a document', async () => {
-    const id = await db.id()
+    const id = await db.users.id()
     await db.users.set(id, { name: 'Sasha' })
     await db.users.set(id, { name: 'Sasha Koss' })
     const user = await db.users.get(id)
@@ -43,7 +43,7 @@ describe('set', () => {
   })
 
   it('allows setting to refs', async () => {
-    const id = await db.id()
+    const id = await db.users.id()
     const userRef = db.users.ref(id)
     await userRef.set({ name: 'Sasha' })
     const user = await userRef.get()
@@ -51,8 +51,8 @@ describe('set', () => {
   })
 
   it('supports references', async () => {
-    const userId = await db.id()
-    const postId = await db.id()
+    const userId = await db.users.id()
+    const postId = await db.posts.id()
     await db.users.set(userId, { name: 'Sasha' })
     await db.posts.set(postId, { author: db.users.ref(userId), text: 'Hello!' })
     const postFromDB = await db.posts.get(postId)
@@ -63,14 +63,14 @@ describe('set', () => {
   it('supports dates', async () => {
     const date = new Date()
     const userRef = db.users.ref('42')
-    const postId = await db.id()
+    const postId = await db.posts.id()
     await db.posts.set(postId, { author: userRef, text: 'Hello!', date })
     const postFromDB = await db.posts.get(postId)
     expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
   })
 
   it('allows to assert environment', async () => {
-    const userId = await db.id()
+    const userId = await db.users.id()
 
     const server = () =>
       dbWithDates.users.set(
@@ -107,7 +107,7 @@ describe('set', () => {
 
   describe('ref', () => {
     it('allows to assert environment', async () => {
-      const userId = await db.id()
+      const userId = await db.users.id()
 
       const server = () =>
         dbWithDates.users.ref(userId).set(
@@ -191,7 +191,7 @@ describe('set', () => {
     }))
 
     it('supports server dates', async () => {
-      const userId = await db.id()
+      const userId = await db.users.id()
       await db.users.set(userId, ($) => ({
         name: 'Sasha',
         createdAt: $.serverDate(),

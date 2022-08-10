@@ -2,7 +2,10 @@ import { schema } from '..'
 import { batch } from '../adapter/admin/batch'
 
 describe('batch', () => {
-  type User = { name: string; foo?: boolean }
+  interface User {
+    name: string
+    foo?: boolean
+  }
 
   const db = schema(($) => ({
     users: $.collection<User>()
@@ -10,7 +13,7 @@ describe('batch', () => {
 
   it('performs batch operations', async () => {
     const $ = batch(db)
-    const id = await db.id()
+    const id = await db.users.id()
     const sashaId = `${id}-sasha`
     const tatiId = `${id}-tati`
     const edId = `${id}-ed`
@@ -30,7 +33,7 @@ describe('batch', () => {
 
   it('allows set a new document', async () => {
     const $ = batch(db)
-    const id = await db.id()
+    const id = await db.users.id()
     const sashaId = `${id}-sasha`
     const tatiId = `${id}-tati`
     const edId = `${id}-ed`
@@ -50,7 +53,7 @@ describe('batch', () => {
 
   it('allows upsetting', async () => {
     const $ = batch(db)
-    const id = await db.id()
+    const id = await db.users.id()
     const sashaId = `${id}-sasha`
     const tatiId = `${id}-tati`
     const edId = `${id}-ed`
@@ -75,7 +78,7 @@ describe('batch', () => {
 
   it('allows updating', async () => {
     const $ = batch(db)
-    const id = await db.id()
+    const id = await db.users.id()
     const sashaId = `${id}-sasha`
     const tatiId = `${id}-tati`
     const edId = `${id}-ed`
@@ -100,7 +103,7 @@ describe('batch', () => {
 
   it('allows removing', async () => {
     const $ = batch(db)
-    const id = await db.id()
+    const id = await db.users.id()
     const sashaId = `${id}-sasha`
     const tatiId = `${id}-tati`
     const edId = `${id}-ed`

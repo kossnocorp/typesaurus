@@ -31,7 +31,7 @@ export const transaction: TypesaurusTransaction.Function = (db, options) => {
 }
 
 function transactionReadHelpers<Schema extends Typesaurus.PlainSchema>(
-  db: Typesaurus.RootDB<Schema>,
+  db: Typesaurus.DB<Schema>,
   transaction: admin.firestore.Transaction
 ): TypesaurusTransaction.ReadHelpers<Schema> {
   return {
@@ -40,7 +40,7 @@ function transactionReadHelpers<Schema extends Typesaurus.PlainSchema>(
 }
 
 function readDB<Schema extends Typesaurus.PlainSchema>(
-  rootDB: Typesaurus.RootDB<Schema>,
+  rootDB: Typesaurus.DB<Schema>,
   transaction: admin.firestore.Transaction
 ): TypesaurusTransaction.ReadDB<Schema> {
   function convertDB<SchemaNode extends Typesaurus.PlainSchema>(
@@ -88,12 +88,12 @@ class ReadCollection<Schema extends Typesaurus.PlainSchema, Model>
 
   path: string
 
-  db: Typesaurus.RootDB<Schema>
+  db: Typesaurus.DB<Schema>
 
   transaction: admin.firestore.Transaction
 
   constructor(
-    db: Typesaurus.RootDB<Schema>,
+    db: Typesaurus.DB<Schema>,
     transaction: admin.firestore.Transaction,
     path: string
   ) {
@@ -159,7 +159,7 @@ function transactionWriteHelpers<
   Schema extends Typesaurus.PlainSchema,
   ReadResult
 >(
-  db: Typesaurus.RootDB<Schema>,
+  db: Typesaurus.DB<Schema>,
   transaction: admin.firestore.Transaction,
   data: ReadResult
 ): TypesaurusTransaction.WriteHelpers<Schema, ReadResult> {
@@ -170,7 +170,7 @@ function transactionWriteHelpers<
 }
 
 function writeDB<Schema extends Typesaurus.PlainSchema>(
-  rootDB: Typesaurus.RootDB<Schema>,
+  rootDB: Typesaurus.DB<Schema>,
   transaction: admin.firestore.Transaction
 ): TypesaurusTransaction.WriteDB<Schema> {
   function convertDB<SchemaNode extends Typesaurus.PlainSchema>(
@@ -212,7 +212,7 @@ function writeDB<Schema extends Typesaurus.PlainSchema>(
 }
 
 function readDocsToWriteDocs<Schema extends Typesaurus.PlainSchema, ReadResult>(
-  db: Typesaurus.RootDB<Schema>,
+  db: Typesaurus.DB<Schema>,
   transaction: admin.firestore.Transaction,
   data: ReadResult
 ): TypesaurusTransaction.ReadDocsToWriteDocs<ReadResult> {
@@ -240,12 +240,12 @@ class WriteCollection<Schema extends Typesaurus.PlainSchema, Model>
 
   path: string
 
-  db: Typesaurus.RootDB<Schema>
+  db: Typesaurus.DB<Schema>
 
   transaction: admin.firestore.Transaction
 
   constructor(
-    db: Typesaurus.RootDB<Schema>,
+    db: Typesaurus.DB<Schema>,
     transaction: admin.firestore.Transaction,
     path: string
   ) {

@@ -95,9 +95,7 @@ async function tysts() {
     orders: $.collection<Order>()
   }))
 
-  type Schema1 = typeof db1 extends Typesaurus.RootDB<infer Schema>
-    ? Schema
-    : never
+  type Schema1 = typeof db1 extends Typesaurus.DB<infer Schema> ? Schema : never
 
   const db2 = schema(($) => ({
     books: $.sub($.collection<Book>(), {
@@ -110,9 +108,7 @@ async function tysts() {
     })
   }))
 
-  type Schema2 = typeof db2 extends Typesaurus.RootDB<infer Schema>
-    ? Schema
-    : never
+  type Schema2 = typeof db2 extends Typesaurus.DB<infer Schema> ? Schema : never
 
   const db3 = schema(($) => ({
     books: $.sub($.collection<Book>(), {
@@ -127,9 +123,7 @@ async function tysts() {
     })
   }))
 
-  type Schema3 = typeof db3 extends Typesaurus.RootDB<infer Schema>
-    ? Schema
-    : never
+  type Schema3 = typeof db3 extends Typesaurus.DB<infer Schema> ? Schema : never
 
   // ExtractDBModels
 

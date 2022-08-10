@@ -33,7 +33,7 @@ describe('upset', () => {
   }))
 
   it('creates a document if it does not exist', async () => {
-    const id = await db.id()
+    const id = await db.users.id()
     const initialUser = await db.users.get(id)
     expect(initialUser).toBeNull()
     await db.users.upset(id, { name: 'Sasha' })
@@ -42,7 +42,7 @@ describe('upset', () => {
   })
 
   it('merges data if the document does exits', async () => {
-    const id = await db.id()
+    const id = await db.users.id()
     await db.users.set(id, defaultUser)
     await db.users.update(id, { deleted: true })
     await db.users.upset(id, { name: 'Sasha Koss' })
@@ -54,7 +54,7 @@ describe('upset', () => {
   })
 
   it('allows setting to refs', async () => {
-    const id = await db.id()
+    const id = await db.users.id()
     const userRef = db.users.ref(id)
     await userRef.upset({ name: 'Sasha' })
     const user = await db.users.get(id)
@@ -62,7 +62,7 @@ describe('upset', () => {
   })
 
   it('allows setting to doc', async () => {
-    const id = await db.id()
+    const id = await db.users.id()
     await db.users.set(id, defaultUser)
     const user = await db.users.get(id)
     if (!user) throw new Error('Document is not found')
@@ -74,8 +74,8 @@ describe('upset', () => {
   })
 
   it('supports references', async () => {
-    const userId = await db.id()
-    const postId = await db.id()
+    const userId = await db.users.id()
+    const postId = await db.posts.id()
     await db.users.upset(userId, { name: 'Sasha' })
     await db.posts.upset(postId, {
       author: db.users.ref(userId),
@@ -90,7 +90,7 @@ describe('upset', () => {
     it('supports dates', async () => {
       const date = new Date()
       const userRef = db.users.ref('42')
-      const postId = await db.id()
+      const postId = await db.posts.id()
       await db.posts.upset(
         postId,
         {
@@ -107,7 +107,7 @@ describe('upset', () => {
 
   it('supports server dates', async () => {
     const userRef = db.users.ref('42')
-    const postId = await db.id()
+    const postId = await db.posts.id()
     await db.posts.upset(postId, ($) => ({
       author: userRef,
       text: 'Hello!',
@@ -138,7 +138,7 @@ describe('upset', () => {
       counters: $.collection<Counter>()
     }))
 
-    const id = await db.id()
+    const id = await db.counters.id()
     await db.counters.upset(id, ($) => ({
       count: $.increment(5)
     }))
@@ -154,7 +154,7 @@ describe('upset', () => {
   })
 
   it('allows to assert environment', async () => {
-    const userId = await db.id()
+    const userId = await db.users.id()
 
     const server = () =>
       dbWithDates.users.upset(
@@ -191,7 +191,7 @@ describe('upset', () => {
 
   describe('ref', () => {
     it('allows to assert environment', async () => {
-      const userId = await db.id()
+      const userId = await db.users.id()
 
       const server = () =>
         dbWithDates.users.ref(userId).upset(
@@ -272,7 +272,7 @@ describe('upset', () => {
     }))
 
     it('union update', async () => {
-      const id = await db.id()
+      const id = await db.favorites.id()
       await db.favorites.upset(id, {
         favorites: [
           'Sapiens',
@@ -299,7 +299,7 @@ describe('upset', () => {
     })
 
     it('remove update', async () => {
-      const id = await db.id()
+      const id = await db.favorites.id()
       await db.favorites.upset(id, {
         favorites: [
           'Sapiens',

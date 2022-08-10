@@ -15,7 +15,7 @@ export const batch: TypesaurusBatch.Function = (db, options) => {
 }
 
 function batchDB<Schema extends Typesaurus.PlainSchema>(
-  rootDB: Typesaurus.RootDB<Schema>,
+  rootDB: Typesaurus.DB<Schema>,
   batch: admin.firestore.WriteBatch
 ): TypesaurusBatch.DB<Schema> {
   function convertDB<SchemaNode extends Typesaurus.PlainSchema>(
@@ -60,12 +60,12 @@ class Collection<Schema extends Typesaurus.PlainSchema, Model>
 
   path: string
 
-  db: Typesaurus.RootDB<Schema>
+  db: Typesaurus.DB<Schema>
 
   batch: admin.firestore.WriteBatch
 
   constructor(
-    db: Typesaurus.RootDB<Schema>,
+    db: Typesaurus.DB<Schema>,
     batch: admin.firestore.WriteBatch,
     path: string
   ) {

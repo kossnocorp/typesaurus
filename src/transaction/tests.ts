@@ -49,7 +49,7 @@ describe('transaction', () => {
       })
 
   it('performs transaction', async () => {
-    const id = await db.id()
+    const id = await db.counters.id()
     const counter = db.counters.ref(id)
     await counter.set({ count: 0 })
     await Promise.all([plusOne(counter), plusOne(counter), plusOne(counter)])
@@ -58,7 +58,7 @@ describe('transaction', () => {
   })
 
   it('returns the value from the write function', async () => {
-    const id = await db.id()
+    const id = await db.counters.id()
     const counter = db.counters.ref(id)
     await counter.set({ count: 0 })
     const results = await Promise.all([
@@ -70,7 +70,7 @@ describe('transaction', () => {
   })
 
   it('allows upsetting', async () => {
-    const id = await db.id()
+    const id = await db.counters.id()
     const counter = db.counters.ref(id)
     await counter.set({ count: 0, optional: true })
 
@@ -84,7 +84,7 @@ describe('transaction', () => {
   })
 
   it('allows updating', async () => {
-    const id = await db.id()
+    const id = await db.counters.id()
     const counter = db.counters.ref(id)
     await counter.set({ count: 0 })
 
@@ -107,7 +107,7 @@ describe('transaction', () => {
   })
 
   it('allows removing', async () => {
-    const id = await db.id()
+    const id = await db.counters.id()
     const counter = db.counters.ref(id)
     await counter.set({ count: 0 })
 
@@ -120,8 +120,8 @@ describe('transaction', () => {
   })
 
   it('supports subcollections', async () => {
-    const postId = await db.id()
-    const counterId = await db.id()
+    const postId = await db.counters.id()
+    const counterId = await db.counters.id()
 
     const plus = async () =>
       transaction(db)
@@ -139,7 +139,7 @@ describe('transaction', () => {
   })
 
   it('allows to assert environment', async () => {
-    const id = await db.id()
+    const id = await db.counters.id()
 
     const server = () =>
       transaction(db, { as: 'server' })
