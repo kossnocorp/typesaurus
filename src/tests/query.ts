@@ -94,9 +94,9 @@ describe('query', () => {
 
   describe('promise', () => {
     it('queries documents', async () => {
-      const docs = await db.contacts.query(($) => [
+      const docs = await db.contacts.query(($) =>
         $.where('ownerId', '==', ownerId)
-      ])
+      )
       expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
         'Lesha',
         'Sasha',
@@ -711,7 +711,7 @@ describe('query', () => {
     it('queries documents', (done) => {
       const spy = sinon.spy()
       off = db.contacts
-        .query(($) => [$.where('ownerId', '==', ownerId)])
+        .query(($) => $.where('ownerId', '==', ownerId))
         .on((docs) => {
           spy(docs.map(({ data: { name } }) => name).sort())
           if (spy.calledWithMatch(['Lesha', 'Sasha', 'Tati'])) done()

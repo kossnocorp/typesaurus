@@ -1,9 +1,8 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
-import { Typesaurus } from '../..'
+import type { Typesaurus } from '../..'
+import type { TypesaurusQuery } from '../../types/query'
 import { TypesaurusUtils } from '../../utils'
-
-class DocId {}
 
 export const defaultOnMissing: Typesaurus.OnMissingCallback<unknown> = (id) => {
   throw new Error(`Missing document with id ${id}`)
@@ -48,7 +47,7 @@ class Group<Model> implements Typesaurus.Group<Model> {
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
   >(
-    queries: Typesaurus.QueryGetter<Model>
+    queries: TypesaurusQuery.QueryGetter<Model>
   ): Typesaurus.SubscriptionPromise<
     Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
     Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
@@ -177,7 +176,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     DateStrategy extends Typesaurus.ServerDateStrategy,
     Environment extends Typesaurus.RuntimeEnvironment
   >(
-    queries: Typesaurus.QueryGetter<Model>,
+    queries: TypesaurusQuery.QueryGetter<Model>,
     options?: Typesaurus.ReadOptions<DateStrategy, Environment>
   ): Typesaurus.SubscriptionPromise<
     Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
@@ -613,24 +612,26 @@ function query<
   Environment extends Typesaurus.RuntimeEnvironment
 >(
   adapter: CollectionAdapter<Model, Source, DateStrategy, Environment>,
-  queries: Typesaurus.QueryGetter<Model>
+  queries: TypesaurusQuery.QueryGetter<Model>
 ): Typesaurus.SubscriptionPromise<
   Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
   Typesaurus.SubscriptionListMeta<Model, Source, DateStrategy, Environment>
 > {
-  const resolvedQueries = queries(queryHelpers())
+  const resolvedQueries = ([] as TypesaurusQuery.Query<Model>[]).concat(
+    queries(queryHelpers())
+  )
   // Query accumulator, will contain final Firestore query with all the
   // filters and limits.
   let firestoreQuery: admin.firestore.Query = adapter.collection()
 
-  let cursors: Typesaurus.OrderCursor<any, any, any>[] = []
+  let cursors: TypesaurusQuery.OrderCursor<any, any, any>[] = []
 
   resolvedQueries.forEach((query) => {
     switch (query.type) {
       case 'order': {
         const { field, method, cursors: queryCursors } = query
         firestoreQuery = firestoreQuery.orderBy(
-          field instanceof DocId
+          field === '__id__'
             ? admin.firestore.FieldPath.documentId()
             : field.toString(),
           method
@@ -646,7 +647,7 @@ function query<
                 value !== null &&
                 'type' in value &&
                 value.type == 'doc'
-                  ? field instanceof DocId
+                  ? field === '__id__'
                     ? value.ref.id
                     : value.data[field]
                   : value
@@ -659,7 +660,7 @@ function query<
         const { field, filter, value } = query
         const fieldName = Array.isArray(field) ? field.join('.') : field
         firestoreQuery = firestoreQuery.where(
-          fieldName instanceof DocId
+          fieldName === '__id__'
             ? admin.firestore.FieldPath.documentId()
             : fieldName,
           filter,
@@ -758,7 +759,7 @@ function query<
   })
 }
 
-function queryHelpers<Model>(): Typesaurus.QueryHelpers<Model> {
+function queryHelpers<Model>(): TypesaurusQuery.QueryHelpers<Model> {
   return {
     where: (field, filter, value) => ({
       type: 'where',
@@ -808,7 +809,7 @@ function queryHelpers<Model>(): Typesaurus.QueryHelpers<Model> {
       value
     }),
 
-    docId: () => new DocId()
+    docId: () => '__id__'
   }
 }
 
