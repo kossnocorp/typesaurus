@@ -4,6 +4,10 @@ import type { TypesaurusUtils } from './utils'
 export { schema } from './adapter'
 
 export namespace Typesaurus {
+  export interface Id<Model> extends String {
+    __dontUseWillBeUndefined__: Model
+  }
+
   /**
    * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
    */
@@ -171,7 +175,7 @@ export namespace Typesaurus {
   export interface Ref<Model> extends DocAPI<Model> {
     type: 'ref'
     collection: RichCollection<Model>
-    id: string
+    id: Id<Model>
   }
 
   export type ServerDateNullable = 'nullable' | 'present'
@@ -697,7 +701,7 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: string,
+      id: Id<Model>,
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<EnvironmentDoc<
       Model,
@@ -712,7 +716,7 @@ export namespace Typesaurus {
       Environment extends Typesaurus.RuntimeEnvironment,
       OnMissing extends OnMissingMode<Model> | undefined = undefined
     >(
-      ids: string[],
+      ids: Id<Model>[],
       options?: GetManyOptions<Model, DateStrategy, Environment, OnMissing>
     ): OnMissing extends 'ignore' | undefined
       ? SubscriptionPromise<
@@ -733,42 +737,44 @@ export namespace Typesaurus {
     ): Promise<Ref<Model>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: string,
+      id: Id<Model>,
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Model>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: string,
+      id: Id<Model>,
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Model>>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: string,
+      id: Id<Model>,
       data: UpdateModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Model>>
 
-    remove(id: string): Promise<Ref<Model>>
+    remove(id: Id<Model>): Promise<Ref<Model>>
 
-    ref(id: string): Ref<Model>
+    ref(id: Id<Model>): Ref<Model>
 
     doc<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: string,
+      id: Id<Model>,
       data: Model
     ): EnvironmentDoc<Model, Source, DateStrategy, Environment>
 
-    id: () => Promise<string>
+    id(id: string): Id<Model>
+
+    id(): Promise<Id<Model>>
   }
 
   export interface NestedRichCollection<Model, Schema extends AnyDB>
     extends RichCollection<Model> {
-    (id: string): Schema
+    (id: Id<Model>): Schema
     schema: Schema
   }
 
@@ -811,7 +817,7 @@ export namespace Typesaurus {
 
   export type OnMissingMode<Model> = OnMissingCallback<Model> | 'ignore'
 
-  export type OnMissingCallback<Model> = (id: string) => Model
+  export type OnMissingCallback<Model> = (id: Id<Model>) => Model
 
   export interface OnMissingOptions<Model> {
     onMissing?: OnMissingMode<Model>

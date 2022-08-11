@@ -95,7 +95,7 @@ export namespace TypesaurusQuery {
   }
 
   export type OrderCursorValue<Model, Key extends keyof Model | DocId> =
-    | (Key extends keyof Model ? Model[Key] : string) // Field value or id
+    | (Key extends keyof Model ? Model[Key] : Typesaurus.Id<Model>) // Field value or id
     | Typesaurus.Doc<Model> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
@@ -120,13 +120,13 @@ export namespace TypesaurusQuery {
     where<Key extends keyof Model | DocId>(
       field: Key | [Key],
       filter: BasicWhereFilter,
-      value: Key extends keyof Model ? Model[Key] : string
+      value: Key extends keyof Model ? Model[Key] : Typesaurus.Id<Model>
     ): WhereQuery<Model>
     // in filter
     where<Key extends keyof Model | DocId>(
       field: Key | [Key],
       filter: 'in',
-      value: Key extends keyof Model ? Model[Key][] : string[]
+      value: Key extends keyof Model ? Model[Key][] : Typesaurus.Id<Model>[]
     ): WhereQuery<Model>
     // array-contains filter
     where<Key extends keyof Model>(
