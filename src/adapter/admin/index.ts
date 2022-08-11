@@ -24,8 +24,9 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     this.path = path
   }
 
-  async id() {
-    return this.firebaseCollection().doc().id
+  id(id?: string) {
+    if (id) return id as unknown as Typesaurus.Id<Model>
+    else return Promise.resolve(this.firebaseCollection().doc().id)
   }
 
   ref(id: string): Typesaurus.Ref<Model> {

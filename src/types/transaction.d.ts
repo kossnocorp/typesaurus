@@ -10,7 +10,7 @@ export namespace TypesaurusTransaction {
   > {
     type: 'ref'
     collection: ReadCollection<Model, Environment>
-    id: string
+    id: Typesaurus.Id<Model>
   }
 
   /**
@@ -22,7 +22,7 @@ export namespace TypesaurusTransaction {
   > extends DocAPI<Model, Environment> {
     type: 'ref'
     collection: WriteCollection<Model, Environment>
-    id: string
+    id: Typesaurus.Id<Model>
   }
 
   export type DocAPI<
@@ -120,7 +120,7 @@ export namespace TypesaurusTransaction {
     NestedSchema extends WriteSchema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends WriteCollection<Model, Environment> {
-    (id: string): NestedSchema
+    (id: Typesaurus.Id<Model>): NestedSchema
   }
 
   /**
@@ -133,20 +133,22 @@ export namespace TypesaurusTransaction {
     /** The Firestore path */
     path: string
 
-    set(id: string, data: Typesaurus.WriteModelArg<Model, Environment>): void
+    set(
+      id: Typesaurus.Id<Model>,
+      data: Typesaurus.WriteModelArg<Model, Environment>
+    ): void
 
-    upset(id: string, data: Typesaurus.WriteModelArg<Model, Environment>): void
+    upset(
+      id: Typesaurus.Id<Model>,
+      data: Typesaurus.WriteModelArg<Model, Environment>
+    ): void
 
     update(
-      id: string,
+      id: Typesaurus.Id<Model>,
       data: Typesaurus.UpdateModelArg<Model, Environment>
     ): void
 
-    remove(id: string): void
-
-    // ref(id: string): WriteRef<Model, Environment>
-
-    // doc(id: string, data: Model): WriteDoc<Model, Environment>
+    remove(id: Typesaurus.Id<Model>): void
   }
 
   export type AnyReadCollection<
@@ -167,7 +169,7 @@ export namespace TypesaurusTransaction {
     NestedSchema extends ReadSchema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends ReadCollection<Model, Environment> {
-    (id: string): NestedSchema
+    (id: Typesaurus.Id<Model>): NestedSchema
   }
 
   export interface ReadCollection<
@@ -177,7 +179,7 @@ export namespace TypesaurusTransaction {
     /** The Firestore path */
     path: string
 
-    get(id: string): Promise<ReadDoc<Model, Environment> | null>
+    get(id: Typesaurus.Id<Model>): Promise<ReadDoc<Model, Environment> | null>
   }
 
   /**

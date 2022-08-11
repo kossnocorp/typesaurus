@@ -21,8 +21,8 @@ describe('get', () => {
   }))
 
   it('allows to assert environment', async () => {
-    const server = () => db.users.get('whatever', { as: 'server' })
-    const client = () => db.users.get('whatever', { as: 'client' })
+    const server = () => db.users.get(db.users.id('whatever'), { as: 'server' })
+    const client = () => db.users.get(db.users.id('whatever'), { as: 'client' })
 
     if (typeof window === 'undefined') {
       await server()
@@ -67,7 +67,7 @@ describe('get', () => {
 
   describe('promise', () => {
     it('returns nothing if document is not present', async () => {
-      const nothing = await db.nope.get('nah')
+      const nothing = await db.nope.get(db.users.id('nah'))
       expect(nothing).toBe(null)
     })
 

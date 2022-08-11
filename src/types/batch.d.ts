@@ -44,7 +44,7 @@ export namespace TypesaurusBatch {
     NestedSchema extends Schema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends Collection<Model, Environment> {
-    (id: string): NestedSchema
+    (id: Typesaurus.Id<Model>): NestedSchema
   }
 
   /**
@@ -57,16 +57,22 @@ export namespace TypesaurusBatch {
     /** The Firestore path */
     path: string
 
-    set(id: string, data: Typesaurus.WriteModelArg<Model, Environment>): void
+    set(
+      id: Typesaurus.Id<Model>,
+      data: Typesaurus.WriteModelArg<Model, Environment>
+    ): void
 
-    upset(id: string, data: Typesaurus.WriteModelArg<Model, Environment>): void
+    upset(
+      id: Typesaurus.Id<Model>,
+      data: Typesaurus.WriteModelArg<Model, Environment>
+    ): void
 
     update(
-      id: string,
+      id: Typesaurus.Id<Model>,
       data: Typesaurus.UpdateModelArg<Model, Environment>
     ): void
 
-    remove(id: string): void
+    remove(id: Typesaurus.Id<Model>): void
   }
 
   export interface Schema<
