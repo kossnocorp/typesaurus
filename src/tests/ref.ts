@@ -10,7 +10,7 @@ describe('ref', () => {
   }))
 
   it('creates ref object', () => {
-    const userRef = db.users.ref('42')
+    const userRef = db.users.ref(db.users.id('42'))
     expect(userRef).toEqual({
       type: 'ref',
       id: '42',

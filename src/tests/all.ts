@@ -8,7 +8,7 @@ describe('all', () => {
   }
 
   interface Order {
-    book: Typesaurus.Ref<Book, 'books'>
+    book: Typesaurus.Ref<[Book, 'books']>
     quantity: number
     date?: Date
   }
