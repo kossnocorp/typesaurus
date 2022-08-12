@@ -13,7 +13,7 @@ describe('query', () => {
 
   interface Message {
     ownerId: string
-    author: Typesaurus.Ref<Contact>
+    author: Typesaurus.Ref<Contact, 'contacts'>
     text: string
   }
 
@@ -23,9 +23,9 @@ describe('query', () => {
   }))
 
   const ownerId = nanoid()
-  const leshaId = `lesha-${ownerId}`
-  const sashaId = `sasha-${ownerId}`
-  const tatiId = `tati-${ownerId}`
+  const leshaId = db.contacts.id(`lesha-${ownerId}`)
+  const sashaId = db.contacts.id(`sasha-${ownerId}`)
+  const tatiId = db.contacts.id(`tati-${ownerId}`)
 
   function setLesha() {
     return db.contacts.set(leshaId, {
@@ -116,7 +116,7 @@ describe('query', () => {
         locations: $.collection<Location>()
       }))
 
-      const mapId = await db.locations.id()
+      const mapId = nanoid()
 
       await Promise.all([
         db.locations.add({
@@ -160,7 +160,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = await db.posts.id()
+      const blogId = nanoid()
 
       await Promise.all([
         db.posts.add({
@@ -202,7 +202,7 @@ describe('query', () => {
         pets: $.collection<Pet>()
       }))
 
-      const ownerId = await db.pets.id()
+      const ownerId = nanoid()
 
       await Promise.all([
         db.pets.add({
@@ -246,7 +246,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = await db.posts.id()
+      const blogId = nanoid()
 
       await Promise.all([
         db.posts.add({
@@ -376,12 +376,12 @@ describe('query', () => {
 
         await Promise.all([
           db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
-            ownerId,
+            ownerId: ownerId.toString(),
             title: 'Hello'
           }),
 
           db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
-            ownerId,
+            ownerId: ownerId.toString(),
             title: 'Hello, again!'
           })
         ])
@@ -553,7 +553,7 @@ describe('query', () => {
           cities: $.collection<City>()
         }))
 
-        const mapId = await db.cities.id()
+        const mapId = nanoid()
 
         await Promise.all([
           db.cities.add({
@@ -635,16 +635,22 @@ describe('query', () => {
 
       it('allows to query by documentId', async () => {
         await Promise.all([
-          db.shardedCounters.set(`draft-0`, { n: 0 }),
-          db.shardedCounters.set(`draft-1`, { n: 0 }),
-          db.shardedCounters.set(`published-0`, { n: 0 }),
-          db.shardedCounters.set(`published-1`, { n: 0 }),
-          db.shardedCounters.set(`suspended-0`, { n: 0 }),
-          db.shardedCounters.set(`suspended-1`, { n: 0 })
+          db.shardedCounters.set(db.shardedCounters.id('draft-0'), { n: 0 }),
+          db.shardedCounters.set(db.shardedCounters.id('draft-1'), { n: 0 }),
+          db.shardedCounters.set(db.shardedCounters.id('published-0'), {
+            n: 0
+          }),
+          db.shardedCounters.set(db.shardedCounters.id('published-1'), {
+            n: 0
+          }),
+          db.shardedCounters.set(db.shardedCounters.id('suspended-0'), {
+            n: 0
+          }),
+          db.shardedCounters.set(db.shardedCounters.id('suspended-1'), { n: 0 })
         ])
         const docs = await db.shardedCounters.query(($) => [
-          $.where($.docId(), '>=', 'published'),
-          $.where($.docId(), '<', 'publishee')
+          $.where($.docId(), '>=', db.shardedCounters.id('published')),
+          $.where($.docId(), '<', db.shardedCounters.id('publishee'))
         ])
         expect(docs.map((doc) => doc.ref.id)).toEqual([
           'published-0',
@@ -666,8 +672,8 @@ describe('query', () => {
         // expect(descend[1]?.ref.id).toBe(`published-0`)
 
         const ascend = await db.shardedCounters.query(($) => [
-          $.where($.docId(), '>=', 'published'),
-          $.where($.docId(), '<', 'publishee'),
+          $.where($.docId(), '>=', db.shardedCounters.id('published')),
+          $.where($.docId(), '<', db.shardedCounters.id('publishee')),
           $.order($.docId())
         ])
         expect(ascend.length).toBe(2)
@@ -680,8 +686,8 @@ describe('query', () => {
           $.order(
             $.docId(),
             'asc',
-            $.startAt('draft-1'),
-            $.endAt('published-1')
+            $.startAt(db.shardedCounters.id('draft-1')),
+            $.endAt(db.shardedCounters.id('published-1'))
           )
         ])
         expect(docs.length).toBe(3)
@@ -731,8 +737,7 @@ describe('query', () => {
       }))
 
       const spy = sinon.spy()
-
-      const mapId = await db.locations.id()
+      const mapId = nanoid()
 
       await Promise.all([
         db.locations.add({
@@ -780,7 +785,7 @@ describe('query', () => {
       }))
 
       const spy = sinon.spy()
-      const blogId = await db.posts.id()
+      const blogId = nanoid()
 
       await Promise.all([
         db.posts.add({
@@ -825,7 +830,7 @@ describe('query', () => {
         pets: $.collection<Pet>()
       }))
 
-      const ownerId = await db.pets.id()
+      const ownerId = nanoid()
       const spy = sinon.spy()
 
       await Promise.all([
@@ -872,7 +877,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = await db.posts.id()
+      const blogId = nanoid()
       const spy = sinon.spy()
 
       await Promise.all([
@@ -1066,12 +1071,12 @@ describe('query', () => {
 
         await Promise.all([
           db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
-            ownerId,
+            ownerId: ownerId.toString(),
             title: 'Hello'
           }),
 
           db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
-            ownerId,
+            ownerId: ownerId.toString(),
             title: 'Hello, again!'
           })
         ])
@@ -1089,7 +1094,7 @@ describe('query', () => {
                   .contacts(sashaId)
                   .contactMessages(messageId)
                   .messagePosts.add({
-                    ownerId,
+                    ownerId: ownerId.toString(),
                     title: 'Hello!!!'
                   })
               } else if (posts.length === 3) {
@@ -1320,7 +1325,7 @@ describe('query', () => {
           cities: $.collection<City>()
         }))
 
-        const mapId = await db.cities.id()
+        const mapId = nanoid()
         const spy = sinon.spy()
 
         await Promise.all([
@@ -1425,20 +1430,28 @@ describe('query', () => {
       it('allows to query by documentId', () =>
         new Promise(async (resolve) => {
           await Promise.all([
-            db.shardedCounters.set(`draft-0`, { n: 0 }),
-            db.shardedCounters.set(`draft-1`, { n: 0 }),
-            db.shardedCounters.set(`published-0`, { n: 0 }),
-            db.shardedCounters.set(`published-1`, { n: 0 }),
-            db.shardedCounters.set(`suspended-0`, { n: 0 }),
-            db.shardedCounters.set(`suspended-1`, { n: 0 })
+            db.shardedCounters.set(db.shardedCounters.id('draft-0'), { n: 0 }),
+            db.shardedCounters.set(db.shardedCounters.id('draft-1'), { n: 0 }),
+            db.shardedCounters.set(db.shardedCounters.id('published-0'), {
+              n: 0
+            }),
+            db.shardedCounters.set(db.shardedCounters.id('published-1'), {
+              n: 0
+            }),
+            db.shardedCounters.set(db.shardedCounters.id('suspended-0'), {
+              n: 0
+            }),
+            db.shardedCounters.set(db.shardedCounters.id('suspended-1'), {
+              n: 0
+            })
           ])
 
           const spy = sinon.spy()
 
           off = db.shardedCounters
             .query(($) => [
-              $.where($.docId(), '>=', 'published'),
-              $.where($.docId(), '<', 'publishee')
+              $.where($.docId(), '>=', db.shardedCounters.id('published')),
+              $.where($.docId(), '<', db.shardedCounters.id('publishee'))
             ])
             .on((docs) => {
               spy(docs.map((doc) => doc.ref.id))
@@ -1479,8 +1492,8 @@ describe('query', () => {
             offs.push(
               db.shardedCounters
                 .query(($) => [
-                  $.where($.docId(), '>=', 'published'),
-                  $.where($.docId(), '<', 'publishee'),
+                  $.where($.docId(), '>=', db.shardedCounters.id('published')),
+                  $.where($.docId(), '<', db.shardedCounters.id('publishee')),
                   $.order($.docId(), 'asc')
                 ])
                 .on((ascend) => {
@@ -1502,8 +1515,8 @@ describe('query', () => {
               $.order(
                 $.docId(),
                 'asc',
-                $.startAt('draft-1'),
-                $.endAt('published-1')
+                $.startAt(db.shardedCounters.id('draft-1')),
+                $.endAt(db.shardedCounters.id('published-1'))
               )
             ])
             .on((docs) => {
@@ -1539,9 +1552,9 @@ describe('query', () => {
     })
 
     describe('real-time', () => {
-      const theoId = `theo-${ownerId}`
-      const harryId = `harry-${ownerId}`
-      const ronId = `ron-${ownerId}`
+      const theoId = db.contacts.id('theo-${ownerId}')
+      const harryId = db.contacts.id('harry-${ownerId}')
+      const ronId = db.contacts.id('ron-${ownerId}')
 
       beforeEach(() => setLesha())
 

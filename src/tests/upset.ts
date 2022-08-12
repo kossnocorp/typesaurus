@@ -7,7 +7,7 @@ describe('upset', () => {
   }
 
   interface Post {
-    author: Typesaurus.Ref<User>
+    author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Typesaurus.ServerDate
   }
@@ -89,7 +89,7 @@ describe('upset', () => {
   if (typeof window === 'undefined') {
     it('supports dates', async () => {
       const date = new Date()
-      const userRef = db.users.ref('42')
+      const userRef = db.users.ref(db.users.id('42'))
       const postId = await db.posts.id()
       await db.posts.upset(
         postId,
@@ -106,7 +106,7 @@ describe('upset', () => {
   }
 
   it('supports server dates', async () => {
-    const userRef = db.users.ref('42')
+    const userRef = db.users.ref(db.users.id('42'))
     const postId = await db.posts.id()
     await db.posts.upset(postId, ($) => ({
       author: userRef,

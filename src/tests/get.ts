@@ -7,7 +7,7 @@ describe('get', () => {
   }
 
   interface Post {
-    author: Typesaurus.Ref<User>
+    author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Date
   }
@@ -35,8 +35,10 @@ describe('get', () => {
 
   describe('ref', () => {
     it('allows to assert environment', async () => {
-      const server = () => db.users.ref('whatever').get({ as: 'server' })
-      const client = () => db.users.ref('whatever').get({ as: 'client' })
+      const server = () =>
+        db.users.ref(db.users.id('whatever')).get({ as: 'server' })
+      const client = () =>
+        db.users.ref(db.users.id('whatever')).get({ as: 'client' })
 
       if (typeof window === 'undefined') {
         await server()
@@ -50,7 +52,7 @@ describe('get', () => {
 
   describe('doc', () => {
     it('allows to assert environment', async () => {
-      const doc = db.users.doc('whatever', { name: 'Sasha' })
+      const doc = db.users.doc(db.users.id('whatever'), { name: 'Sasha' })
 
       const server = () => doc.get({ as: 'server' })
       const client = () => doc.get({ as: 'client' })
@@ -67,7 +69,7 @@ describe('get', () => {
 
   describe('promise', () => {
     it('returns nothing if document is not present', async () => {
-      const nothing = await db.nope.get(db.users.id('nah'))
+      const nothing = await db.nope.get(db.nope.id('nah'))
       expect(nothing).toBe(null)
     })
 
@@ -91,7 +93,7 @@ describe('get', () => {
 
     it('expands dates', async () => {
       const date = new Date()
-      const userRef = db.users.ref('42')
+      const userRef = db.users.ref(db.users.id('42'))
       const post = await db.posts.add({
         author: userRef,
         text: 'Hello!',
@@ -111,7 +113,7 @@ describe('get', () => {
 
     it('returns nothing if document is not present', () =>
       new Promise((resolve) => {
-        off = db.nope.get('nah').on((nothing) => {
+        off = db.nope.get(db.nope.id('nah')).on((nothing) => {
           expect(nothing).toBeNull()
           resolve(void 0)
         })
@@ -144,7 +146,7 @@ describe('get', () => {
 
     it('expands dates', async () => {
       const date = new Date()
-      const userRef = db.users.ref('42')
+      const userRef = db.users.ref(db.users.id('42'))
       const post = await db.posts.add({
         author: userRef,
         text: 'Hello!',

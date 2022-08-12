@@ -8,7 +8,7 @@ describe('all', () => {
   }
 
   interface Order {
-    book: Typesaurus.Ref<Book>
+    book: Typesaurus.Ref<Book, 'books'>
     quantity: number
     date?: Date
   }
@@ -20,11 +20,13 @@ describe('all', () => {
 
   beforeEach(async () => {
     await Promise.all([
-      db.books.set('sapiens', { title: 'Sapiens' }),
-      db.books.set('22laws', { title: 'The 22 Immutable Laws of Marketing' }),
-      db.books.set('momtest', { title: 'The Mom Test' }),
-      db.books.remove('hp1'),
-      db.books.remove('hp2')
+      db.books.set(db.books.id('sapiens'), { title: 'Sapiens' }),
+      db.books.set(db.books.id('22laws'), {
+        title: 'The 22 Immutable Laws of Marketing'
+      }),
+      db.books.set(db.books.id('momtest'), { title: 'The Mom Test' }),
+      db.books.remove(db.books.id('hp1')),
+      db.books.remove(db.books.id('hp2'))
     ])
   })
 
@@ -53,8 +55,14 @@ describe('all', () => {
 
     it('expands references', async () => {
       await Promise.all([
-        db.orders.set('order1', { book: db.books.ref('sapiens'), quantity: 1 }),
-        db.orders.set('order2', { book: db.books.ref('22laws'), quantity: 1 })
+        db.orders.set(db.orders.id('order1'), {
+          book: db.books.ref(db.books.id('sapiens')),
+          quantity: 1
+        }),
+        db.orders.set(db.orders.id('order2'), {
+          book: db.books.ref(db.books.id('22laws')),
+          quantity: 1
+        })
       ])
       const docs = await db.orders.all()
       expect(docs[0]?.data.book.type).toBe('ref')
@@ -70,13 +78,13 @@ describe('all', () => {
     it('expands dates', async () => {
       const date = new Date(1987, 1, 11)
       await Promise.all([
-        db.orders.set('order1', {
-          book: db.books.ref('sapiens'),
+        db.orders.set(db.orders.id('order1'), {
+          book: db.books.ref(db.books.id('sapiens')),
           quantity: 1,
           date
         }),
-        db.orders.set('order2', {
-          book: db.books.ref('22laws'),
+        db.orders.set(db.orders.id('order2'), {
+          book: db.books.ref(db.books.id('22laws')),
           quantity: 1,
           date
         })
@@ -109,15 +117,15 @@ describe('all', () => {
 
       it('allows to get all data from collection groups', async () => {
         await Promise.all([
-          db.books('qwe').comments.add({
+          db.books(db.books.id('qwe')).comments.add({
             text: 'hello'
           }),
 
-          db.books('asd').comments.add({
+          db.books(db.books.id('asd')).comments.add({
             text: 'cruel'
           }),
 
-          db.books('zxc').comments.add({
+          db.books(db.books.id('zxc')).comments.add({
             text: 'world'
           })
         ])
@@ -159,8 +167,14 @@ describe('all', () => {
 
     it('expands references', async () => {
       await Promise.all([
-        db.orders.set('order1', { book: db.books.ref('sapiens'), quantity: 1 }),
-        db.orders.set('order2', { book: db.books.ref('22laws'), quantity: 1 })
+        db.orders.set(db.orders.id('order1'), {
+          book: db.books.ref(db.books.id('sapiens')),
+          quantity: 1
+        }),
+        db.orders.set(db.orders.id('order2'), {
+          book: db.books.ref(db.books.id('22laws')),
+          quantity: 1
+        })
       ])
 
       return new Promise((resolve) => {
@@ -185,13 +199,13 @@ describe('all', () => {
     it('expands dates', async () => {
       const date = new Date()
       await Promise.all([
-        db.orders.set('order1', {
-          book: db.books.ref('sapiens'),
+        db.orders.set(db.orders.id('order1'), {
+          book: db.books.ref(db.books.id('sapiens')),
           quantity: 1,
           date
         }),
-        db.orders.set('order2', {
-          book: db.books.ref('22laws'),
+        db.orders.set(db.orders.id('order2'), {
+          book: db.books.ref(db.books.id('22laws')),
           quantity: 1,
           date
         })
@@ -242,15 +256,15 @@ describe('all', () => {
 
       it('allows to get all data from collection groups', async () => {
         await Promise.all([
-          db.books('qwe').comments.add({
+          db.books(db.books.id('qwe')).comments.add({
             text: 'hello'
           }),
 
-          db.books('asd').comments.add({
+          db.books(db.books.id('asd')).comments.add({
             text: 'cruel'
           }),
 
-          db.books('zxc').comments.add({
+          db.books(db.books.id('zxc')).comments.add({
             text: 'world'
           })
         ])
@@ -319,7 +333,7 @@ describe('all', () => {
                   },
                   { type: 'added', title: 'The Mom Test' }
                 ])
-                await db.books.set('hp1', {
+                await db.books.set(db.books.id('hp1'), {
                   title: "Harry Potter and the Sorcerer's Stone"
                 })
                 return
@@ -376,10 +390,10 @@ describe('all', () => {
           }
           on()
           off?.()
-          await db.books.set('hp1', {
+          await db.books.set(db.books.id('hp1'), {
             title: "Harry Potter and the Sorcerer's Stone"
           })
-          await db.books.set('hp2', {
+          await db.books.set(db.books.id('hp2'), {
             title: 'Harry Potter and the Chamber of Secrets'
           })
           on()

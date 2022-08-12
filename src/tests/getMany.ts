@@ -1,4 +1,4 @@
-import { schema } from '..'
+import { schema, Typesaurus } from '..'
 
 describe('getMany', () => {
   interface Fruit {
@@ -11,25 +11,29 @@ describe('getMany', () => {
 
   beforeAll(async () => {
     await Promise.all([
-      db.fruits.set('apple', { color: 'green' }),
-      db.fruits.set('banana', { color: 'yellow' }),
-      db.fruits.set('orange', { color: 'orange' })
+      db.fruits.set(db.fruits.id('apple'), { color: 'green' }),
+      db.fruits.set(db.fruits.id('banana'), { color: 'yellow' }),
+      db.fruits.set(db.fruits.id('orange'), { color: 'orange' })
     ])
   })
 
   afterAll(async () => {
     await Promise.all([
-      db.fruits.remove('apple'),
-      db.fruits.remove('banana'),
-      db.fruits.remove('orange')
+      db.fruits.remove(db.fruits.id('apple')),
+      db.fruits.remove(db.fruits.id('banana')),
+      db.fruits.remove(db.fruits.id('orange'))
     ])
   })
 
   it('allows to assert environment', async () => {
     const server = () =>
-      db.fruits.getMany(['apple', 'banana'], { as: 'server' })
+      db.fruits.getMany([db.fruits.id('apple'), db.fruits.id('banana')], {
+        as: 'server'
+      })
     const client = () =>
-      db.fruits.getMany(['apple', 'banana'], { as: 'client' })
+      db.fruits.getMany([db.fruits.id('apple'), db.fruits.id('banana')], {
+        as: 'client'
+      })
 
     if (typeof window === 'undefined') {
       await server()
@@ -47,31 +51,31 @@ describe('getMany', () => {
     })
 
     it('allows to get single doc by id', async () => {
-      const fruitsFromDB = await db.fruits.getMany(['apple'])
+      const fruitsFromDB = await db.fruits.getMany([db.fruits.id('apple')])
       expect(fruitsFromDB.length).toBe(1)
       expect(fruitsFromDB[0]?.type).toBe('doc')
       expect(fruitsFromDB[0]?.data.color).toBe('green')
-      expect(fruitsFromDB[0]?.ref.id).toBe('apple')
+      expect(fruitsFromDB[0]?.ref.id).toBe(db.fruits.id('apple'))
       expect(fruitsFromDB[0]?.ref.collection.path).toBe('fruits')
     })
 
     it('allows to get multiple docs by id', async () => {
       const fruitsFromDB = await db.fruits.getMany([
-        'banana',
-        'apple',
-        'banana',
-        'orange'
+        db.fruits.id('banana'),
+        db.fruits.id('apple'),
+        db.fruits.id('banana'),
+        db.fruits.id('orange')
       ])
       expect(fruitsFromDB.length).toBe(4)
-      expect(fruitsFromDB[0]?.ref.id).toBe('banana')
-      expect(fruitsFromDB[1]?.ref.id).toBe('apple')
-      expect(fruitsFromDB[2]?.ref.id).toBe('banana')
-      expect(fruitsFromDB[3]?.ref.id).toBe('orange')
+      expect(fruitsFromDB[0]?.ref.id).toBe(db.fruits.id('banana'))
+      expect(fruitsFromDB[1]?.ref.id).toBe(db.fruits.id('apple'))
+      expect(fruitsFromDB[2]?.ref.id).toBe(db.fruits.id('banana'))
+      expect(fruitsFromDB[3]?.ref.id).toBe(db.fruits.id('orange'))
     })
 
     it('throws an error when an id is missing', () =>
       db.fruits
-        .getMany(['nonexistant'])
+        .getMany([db.fruits.id('nonexistant')])
         .then(() => {
           throw new Error('The promise should be rejected')
         })
@@ -80,7 +84,7 @@ describe('getMany', () => {
         }))
 
     it('allows to specify custom logic when a document is not found', async () => {
-      const list = await db.fruits.getMany(['nonexistant'], {
+      const list = await db.fruits.getMany([db.fruits.id('nonexistant')], {
         onMissing: (id) => ({ color: `${id} is missing but I filled it in` })
       })
       expect(list.length).toBe(1)
@@ -90,9 +94,16 @@ describe('getMany', () => {
     })
 
     it('allows to ignore missing documents', async () => {
-      const list = await db.fruits.getMany(['apple', 'nonexistant', 'banana'], {
-        onMissing: 'ignore'
-      })
+      const list = await db.fruits.getMany(
+        [
+          db.fruits.id('apple'),
+          db.fruits.id('nonexistant'),
+          db.fruits.id('banana')
+        ],
+        {
+          onMissing: 'ignore'
+        }
+      )
       expect(list.length).toBe(2)
     })
   })
@@ -114,11 +125,11 @@ describe('getMany', () => {
 
     it('allows to get single doc by id', () => {
       return new Promise((resolve) => {
-        off = db.fruits.getMany(['apple']).on((fruitsFromDB) => {
+        off = db.fruits.getMany([db.fruits.id('apple')]).on((fruitsFromDB) => {
           expect(fruitsFromDB.length).toBe(1)
           expect(fruitsFromDB[0]?.type).toBe('doc')
           expect(fruitsFromDB[0]?.data.color).toBe('green')
-          expect(fruitsFromDB[0]?.ref.id).toBe('apple')
+          expect(fruitsFromDB[0]?.ref.id).toBe(db.fruits.id('apple'))
           expect(fruitsFromDB[0]?.ref.collection.path).toBe('fruits')
           resolve(void 0)
         })
@@ -128,13 +139,18 @@ describe('getMany', () => {
     it('allows to get multiple docs by id', () =>
       new Promise((resolve) => {
         off = db.fruits
-          .getMany(['banana', 'apple', 'banana', 'orange'])
+          .getMany([
+            db.fruits.id('banana'),
+            db.fruits.id('apple'),
+            db.fruits.id('banana'),
+            db.fruits.id('orange')
+          ])
           .on((fruitsFromDB) => {
             expect(fruitsFromDB.length).toBe(4)
-            expect(fruitsFromDB[0]?.ref.id).toBe('banana')
-            expect(fruitsFromDB[1]?.ref.id).toBe('apple')
-            expect(fruitsFromDB[2]?.ref.id).toBe('banana')
-            expect(fruitsFromDB[3]?.ref.id).toBe('orange')
+            expect(fruitsFromDB[0]?.ref.id).toBe(db.fruits.id('banana'))
+            expect(fruitsFromDB[1]?.ref.id).toBe(db.fruits.id('apple'))
+            expect(fruitsFromDB[2]?.ref.id).toBe(db.fruits.id('banana'))
+            expect(fruitsFromDB[3]?.ref.id).toBe(db.fruits.id('orange'))
             resolve(void 0)
           })
       }))
@@ -174,7 +190,7 @@ describe('getMany', () => {
     // it('allows to ignore missing documents', () =>
     //   new Promise((resolve) => {
     //     off = db.fruits
-    //       .getMany(['apple', 'nonexistant', 'banana'], {
+    //       .getMany([db.fruits.id('apple'), 'nonexistant', db.fruits.id('banana')], {
     //         onMissing: 'ignore'
     //       })
     //       .on((list) => {
@@ -186,24 +202,29 @@ describe('getMany', () => {
     describe('real-time', () => {
       it('subscribes to updates', async () => {
         await Promise.all([
-          db.fruits.set('apple', { color: 'green' }),
-          db.fruits.set('mango', { color: 'green' })
+          db.fruits.set(db.fruits.id('apple'), { color: 'green' }),
+          db.fruits.set(db.fruits.id('mango'), { color: 'green' })
         ])
         setTimeout(() => {
-          db.fruits.update('mango', { color: 'yellow' })
+          db.fruits.update(db.fruits.id('mango'), { color: 'yellow' })
         })
         return new Promise((resolve) => {
-          off = db.fruits.getMany(['apple', 'mango']).on((list) => {
-            const colorOf = (id: string) =>
-              list.find((doc) => doc?.ref.id === id)!.data.color
-            if (colorOf('mango') === 'yellow') {
-              db.fruits.update('mango', { color: 'red' })
-              db.fruits.update('apple', { color: 'red' })
-            }
-            if (colorOf('mango') === 'red' && colorOf('apple') === 'red') {
-              resolve(void 0)
-            }
-          })
+          off = db.fruits
+            .getMany([db.fruits.id('apple'), db.fruits.id('mango')])
+            .on((list) => {
+              const colorOf = (id: Typesaurus.Id<'fruits'>) =>
+                list.find((doc) => doc?.ref.id === id)!.data.color
+              if (colorOf(db.fruits.id('mango')) === 'yellow') {
+                db.fruits.update(db.fruits.id('mango'), { color: 'red' })
+                db.fruits.update(db.fruits.id('apple'), { color: 'red' })
+              }
+              if (
+                colorOf(db.fruits.id('mango')) === 'red' &&
+                colorOf(db.fruits.id('apple')) === 'red'
+              ) {
+                resolve(void 0)
+              }
+            })
         })
       })
     })
