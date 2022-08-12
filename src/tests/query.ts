@@ -13,7 +13,7 @@ describe('query', () => {
 
   interface Message {
     ownerId: string
-    author: Typesaurus.Ref<Contact, 'contacts'>
+    author: Typesaurus.Ref<[Contact, 'contacts']>
     text: string
   }
 
@@ -387,7 +387,7 @@ describe('query', () => {
         ])
 
         const posts = await groups(db).messagePosts.query(($) => [
-          $.where('ownerId', '==', ownerId)
+          $.where('ownerId', '==', ownerId.toString())
         ])
 
         expect(posts.map((m) => m.data.title).sort()).toEqual([
@@ -1085,7 +1085,9 @@ describe('query', () => {
 
         return new Promise((resolve) => {
           off = groups(db)
-            .messagePosts.query(($) => [$.where('ownerId', '==', ownerId)])
+            .messagePosts.query(($) => [
+              $.where('ownerId', '==', ownerId.toString())
+            ])
             .on(async (posts) => {
               spy(posts.map((m) => m.data.title).sort())
 

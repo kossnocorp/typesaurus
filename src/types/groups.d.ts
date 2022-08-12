@@ -3,13 +3,11 @@ import type { TypesaurusUtils } from '../utils'
 
 export namespace TypesaurusGroups {
   export interface Function {
-    <Schema extends Typesaurus.PlainSchema>(
-      db: Typesaurus.DB<Schema>
-    ): Groups<Schema>
+    <DB extends Typesaurus.DB<any>>(db: DB): Groups<DB>
   }
 
-  export interface Group<Model, Path>
-    extends Typesaurus.CollectionAPI<Model, Path> {
+  export interface Group<ModelPair extends [any, any]>
+    extends Typesaurus.CollectionAPI<ModelPair> {
     /** The group type */
     type: 'group'
 
@@ -21,17 +19,13 @@ export namespace TypesaurusGroups {
    * The type flattens the schema and generates groups from nested and
    * root collections.
    */
-  export type Groups<Schema> =
+  export type Groups<DB extends Typesaurus.DB<any>> =
     /**
      * {@link ConstructGroups} here plays a role of merger, each level of nesting
      * returns respective collections and the type creates an object from those,
      * inferring the Model (`PostComment | UpdateComment`).
      */
-    ConstructGroups<
-      GroupsLevel1<Schema>,
-      GroupsLevel2<Schema>,
-      GroupsLevel3<Schema>
-    > // TODO: Do we need more!?
+    ConstructGroups<GroupsLevel1<DB>, GroupsLevel2<DB>, GroupsLevel3<DB>> // TODO: Do we need more!?
 
   /**
    * The type merges extracted collections into groups.
@@ -42,7 +36,11 @@ export namespace TypesaurusGroups {
     | Schema3 extends infer Schema
     ? {
         [Key in TypesaurusUtils.UnionKeys<Schema>]: Group<
-          Schema extends Record<Key, infer Value> ? Value : never
+          Schema extends Record<Key, infer Value>
+            ? Value extends [any, any]
+              ? Value
+              : never
+            : never
         >
       }
     : never
@@ -50,50 +48,50 @@ export namespace TypesaurusGroups {
   /**
    * The type extracts schema models from a collections for {@link Groups}.
    */
-  export type ExtractGroupModels<Schema> = {
-    [Path in keyof Schema]: Schema[Path] extends
-      | Typesaurus.PlainCollection<infer Model>
-      | Typesaurus.NestedPlainCollection<infer Model, any>
-      ? Model
+  export type ExtractGroupModels<DB extends Typesaurus.DB<any>> = {
+    [Path in keyof DB]: DB[Path] extends
+      | Typesaurus.RichCollection<infer ModelPair>
+      | Typesaurus.NestedRichCollection<infer ModelPair, any>
+      ? ModelPair
       : never
   }
 
-  export type GroupsLevel1<Schema> =
+  export type GroupsLevel1<DB extends Typesaurus.DB<any>> =
     // Get the models for the given (0) level
-    ExtractGroupModels<Schema>
+    ExtractGroupModels<DB>
 
-  export type GroupsLevel2<Schema> =
+  export type GroupsLevel2<DB extends Typesaurus.DB<any>> =
     // Infer the nested (1) schema
-    Schema extends Record<any, infer Collections>
+    DB extends Record<any, infer Collections>
       ? Collections extends Typesaurus.NestedPlainCollection<any, any>
         ? {
             [Key in TypesaurusUtils.UnionKeys<
               Collections['schema']
             >]: Collections['schema'] extends Record<
               Key,
-              | Typesaurus.PlainCollection<infer Model>
-              | Typesaurus.NestedPlainCollection<infer Model, any>
+              | Typesaurus.RichCollection<infer ModelPair>
+              | Typesaurus.NestedRichCollection<infer ModelPair, any>
             >
-              ? Model
+              ? ModelPair
               : {}
           }
         : {}
       : {}
 
-  export type GroupsLevel3<Schema> =
+  export type GroupsLevel3<DB extends Typesaurus.DB<any>> =
     // Infer the nested (2) schema
-    Schema extends Record<any, infer Collections>
-      ? Collections extends Typesaurus.NestedPlainCollection<any, any>
+    DB extends Record<any, infer Collections>
+      ? Collections extends Typesaurus.NestedRichCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Typesaurus.NestedPlainCollection<any, any>
+          ? Collections extends Typesaurus.NestedRichCollection<any, any>
             ? {
                 [Key in TypesaurusUtils.UnionKeys<
                   Collections['schema']
                 >]: Collections['schema'] extends Record<
                   Key,
-                  Typesaurus.PlainCollection<infer Model>
+                  Typesaurus.RichCollection<infer ModelPair>
                 >
-                  ? Model
+                  ? ModelPair
                   : {}
               }
             : {}

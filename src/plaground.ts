@@ -26,10 +26,7 @@ describe('Typesaurus core', () => {
             likes: $.collection<PostLike>()
           }),
 
-          // updates: $.collection<Update>()
           updates: $.sub($.collection<Update>(), {
-            // comments: $.collection<Comment>(),
-
             comments: $.sub($.collection<Comment>(), {
               likes: $.collection<Like>()
             })

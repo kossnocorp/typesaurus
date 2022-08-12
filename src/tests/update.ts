@@ -10,7 +10,7 @@ describe('update', () => {
   }
 
   interface Post {
-    author: Typesaurus.Ref<User, 'users'>
+    author: Typesaurus.Ref<[User, 'users']>
     text: string
   }
 
@@ -21,7 +21,7 @@ describe('update', () => {
 
   interface Movies {
     title: string
-    likedBy: Typesaurus.Ref<User, 'users'>[]
+    likedBy: Typesaurus.Ref<[User, 'users']>[]
   }
 
   const db = schema(($) => ({

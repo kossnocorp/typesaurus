@@ -72,7 +72,7 @@ async function tysts() {
   }
 
   interface Order {
-    book: Typesaurus.Ref<Book>
+    book: Typesaurus.Ref<[Book, 'books']>
     quantity: number
     date?: Date
   }
@@ -95,7 +95,7 @@ async function tysts() {
     orders: $.collection<Order>()
   }))
 
-  type Schema1 = typeof db1 extends Typesaurus.DB<infer Schema> ? Schema : never
+  type Schema1 = typeof db1
 
   const db2 = schema(($) => ({
     books: $.sub($.collection<Book>(), {
@@ -108,7 +108,7 @@ async function tysts() {
     })
   }))
 
-  type Schema2 = typeof db2 extends Typesaurus.DB<infer Schema> ? Schema : never
+  type Schema2 = typeof db2
 
   const db3 = schema(($) => ({
     books: $.sub($.collection<Book>(), {
@@ -123,78 +123,87 @@ async function tysts() {
     })
   }))
 
-  type Schema3 = typeof db3 extends Typesaurus.DB<infer Schema> ? Schema : never
+  type Schema3 = typeof db3
 
   // ExtractDBModels
 
   type ExampleAQ30 = TypesaurusGroups.ExtractGroupModels<{
-    books: Typesaurus.PlainCollection<Book>
-    orders: Typesaurus.PlainCollection<Order>
+    books: Typesaurus.RichCollection<[Book, 'books']>
+    orders: Typesaurus.RichCollection<[Order, 'orders']>
   }>
 
   type ResultAQ30 = Assert<
     {
-      books: Book
-      orders: Order
+      books: [Book, 'books']
+      orders: [Order, 'orders']
     },
     ExampleAQ30
   >
 
-  type ExampleRVD2 = Typesaurus.ExtractGroupModels<Schema3>
+  type ExampleRVD2 = TypesaurusGroups.ExtractGroupModels<Schema3>
 
   type ResultRVD2 = Assert<
     {
-      books: Book
-      orders: Order
+      books: [Book, 'books']
+      orders: [Order, 'orders']
     },
     ExampleRVD2
   >
 
   // ConstructGroups
 
-  type ExampleOSE7 = Typesaurus.ConstructGroups<
-    { books: number; comics: number },
-    { books: string; plants: string },
-    { plants: boolean }
+  type ExampleOSE7 = TypesaurusGroups.ConstructGroups<
+    { books: [number, 'books']; comics: [number, 'comics'] },
+    { books: [string, 'archive/books']; plants: [string, 'plants'] },
+    { plants: [boolean, 'archive/plants'] }
   >
 
   type ResultOSE7 = Assert<
     {
-      books: Typesaurus.Group<string | number>
-      comics: Typesaurus.Group<number>
-      plants: Typesaurus.Group<string | boolean>
+      books: TypesaurusGroups.Group<
+        [number, 'books'] | [string, 'archive/books']
+      >
+      comics: TypesaurusGroups.Group<[number, 'comics']>
+      plants: TypesaurusGroups.Group<
+        [string, 'plants'] | [boolean, 'archive/plants']
+      >
     },
     ExampleOSE7
   >
 
-  type ExampleFSPP = Typesaurus.ConstructGroups<
-    { books: number; comics: number },
-    { books: string; plants: string },
-    Typesaurus.ExtractGroupModels<Schema3>
+  type ExampleFSPP = TypesaurusGroups.ConstructGroups<
+    { books: [number, 'orders/books']; comics: [number, 'comics'] },
+    { books: [string, 'archive/books']; plants: [string, 'archive/plants'] },
+    TypesaurusGroups.ExtractGroupModels<Schema3>
   >
 
   type ResultFSPP = Assert<
     {
-      books: Typesaurus.Group<string | number | Book>
-      orders: Typesaurus.Group<Order>
-      comics: Typesaurus.Group<number>
-      plants: Typesaurus.Group<string>
+      books: TypesaurusGroups.Group<
+        [Book, 'books'] | [string, 'archive/books'] | [number, 'orders/books']
+      >
+      orders: TypesaurusGroups.Group<[Order, 'orders']>
+      comics: TypesaurusGroups.Group<[number, 'comics']>
+      plants: TypesaurusGroups.Group<[string, 'archive/plants']>
     },
     ExampleFSPP
   >
 
-  type ExampleYHWG = Typesaurus.ConstructGroups<
-    { books: number } | { comics: number },
-    { books: string; plants: string } | {},
-    Typesaurus.ExtractGroupModels<Schema3>
+  type ExampleYHWG = TypesaurusGroups.ConstructGroups<
+    { books: [number, 'orders/books']; comics: [number, 'comics'] },
+    | { books: [string, 'archive/books']; plants: [string, 'archive/plants'] }
+    | {},
+    TypesaurusGroups.ExtractGroupModels<Schema3>
   >
 
   type ResultYHWG = Assert<
     {
-      books: Typesaurus.Group<string | number | Book>
-      orders: Typesaurus.Group<Order>
-      comics: Typesaurus.Group<number>
-      plants: Typesaurus.Group<string>
+      books: TypesaurusGroups.Group<
+        [Book, 'books'] | [string, 'archive/books'] | [number, 'orders/books']
+      >
+      orders: TypesaurusGroups.Group<[Order, 'orders']>
+      comics: TypesaurusGroups.Group<[number, 'comics']>
+      plants: TypesaurusGroups.Group<[string, 'archive/plants']>
     },
     ExampleYHWG
   >
@@ -203,61 +212,79 @@ async function tysts() {
 
   // Root level
 
-  type Example1PWX = Typesaurus.GroupsLevel1<Schema1>
+  type Example1PWX = TypesaurusGroups.GroupsLevel1<Schema1>
 
   type Result1PWX = Assert<
     {
-      books: Book
-      orders: Order
+      books: [Book, 'books']
+      orders: [Order, 'orders']
     },
     Example1PWX
   >
 
-  type ExampleCCR2 = Typesaurus.GroupsLevel1<Schema2>
+  type ExampleCCR2 = TypesaurusGroups.GroupsLevel1<Schema2>
 
   type ResultCCR2 = Assert<
     {
-      books: Book
-      orders: Order
+      books: [Book, 'books']
+      orders: [Order, 'orders']
     },
     ExampleCCR2
   >
 
-  type ExampleGQLP = Typesaurus.GroupsLevel1<Schema3>
+  type ExampleGQLP = TypesaurusGroups.GroupsLevel1<Schema3>
 
   type ResultGQLP = Assert<
     {
-      books: Book
-      orders: Order
+      books: [Book, 'books']
+      orders: [Order, 'orders']
     },
     ExampleGQLP
   >
 
   // 2nd level
 
-  type ExampleQJGO = Typesaurus.GroupsLevel2<Schema1>
+  type ExampleQJGO = TypesaurusGroups.GroupsLevel2<Schema1>
 
   type ResultQJGO = Assert<{}, ExampleQJGO>
 
-  type ExampleUMAX = Typesaurus.GroupsLevel2<Schema2>
+  type ExampleUMAX = TypesaurusGroups.GroupsLevel2<Schema2>
 
-  type ResultUMAX = Assert<{ comments: Comment | OrderComment }, ExampleUMAX>
+  type ResultUMAX = Assert<
+    | {
+        comments: [Comment, [['books'], 'comments']]
+        likes: [Like, [['books'], 'likes']]
+      }
+    | {
+        comments: [OrderComment, [['orders'], 'comments']]
+      },
+    ExampleUMAX
+  >
 
-  type Example4JFS = Typesaurus.GroupsLevel2<Schema3>
+  type Example4JFS = TypesaurusGroups.GroupsLevel2<Schema3>
 
-  type Result4JFS = Assert<{ comments: Comment | OrderComment }, Example4JFS>
+  type Result4JFS = Assert<
+    | {
+        comments: [Comment, [['books'], 'comments']]
+        likes: [Like, [['books'], 'likes']]
+      }
+    | {
+        comments: [OrderComment, [['orders'], 'comments']]
+      },
+    Example4JFS
+  >
 
   // 3rd level
 
-  type ExampleMAJN = Typesaurus.GroupsLevel3<Schema1>
+  type ExampleMAJN = TypesaurusGroups.GroupsLevel3<Schema1>
 
   type ResultMAJN = Assert<{}, ExampleMAJN>
 
-  type ExampleWLYA = Typesaurus.GroupsLevel3<Schema2>
+  type ExampleWLYA = TypesaurusGroups.GroupsLevel3<Schema2>
 
   type ResultWLYA = Assert<{}, ExampleWLYA>
 
-  type ExampleXNAT = Typesaurus.GroupsLevel3<Schema3>
+  type ExampleXNAT = TypesaurusGroups.GroupsLevel3<Schema3>
 
   type ResultXNAT = Assert<{ likes: Like } | {}, ExampleXNAT>
 
@@ -265,55 +292,98 @@ async function tysts() {
 
   // Root level
 
-  type Example7DGC = Typesaurus.Groups<Schema1>
+  type Example7DGC = TypesaurusGroups.Groups<Schema1>
 
   type Result7DGC = Assert<
     {
-      books: Typesaurus.Group<Book>
-      orders: Typesaurus.Group<Order>
+      books: TypesaurusGroups.Group<[Book, 'books']>
+      orders: TypesaurusGroups.Group<[Order, 'orders']>
     },
     Example7DGC
   >
 
   // 2nd level
 
-  type ExampleMIAM = Typesaurus.Groups<Schema1>
+  type ExampleMIAM = TypesaurusGroups.Groups<Schema1>
 
   type ResultMIAM = Assert<
     {
-      books: Typesaurus.Group<Book>
-      orders: Typesaurus.Group<Order>
+      books: TypesaurusGroups.Group<[Book, 'books']>
+      orders: TypesaurusGroups.Group<[Order, 'orders']>
     },
     ExampleMIAM
   >
 
   // 3rd level
 
-  type ExampleM7US = Typesaurus.Groups<Schema3>
+  type ExampleM7US = TypesaurusGroups.Groups<Schema3>
 
   type ResultM7US = Assert<
     {
-      likes: Typesaurus.Group<Like>
-      books: Typesaurus.Group<Book>
-      comments: Typesaurus.Group<Comment | OrderComment>
-      orders: Typesaurus.Group<Order>
+      books: TypesaurusGroups.Group<[Book, 'books']>
+      comments: TypesaurusGroups.Group<
+        | [Comment, [['books'], 'comments']]
+        | [OrderComment, [['orders'], 'comments']]
+      >
+      likes: TypesaurusGroups.Group<
+        | [Like, [['books'], 'likes']]
+        | [Like, [[['orders'], 'comments'], 'likes']]
+      >
+      orders: TypesaurusGroups.Group<[Order, 'orders']>
     },
     ExampleM7US
   >
 
   // Functions
 
-  db1.groups.books.all()
+  groups(db1).books.all()
 
-  db2.groups.comments.all()
+  groups(db2).comments.all()
 
-  db2.groups.likes.all()
+  groups(db2).likes.all()
 
-  db3.groups.comments.all()
+  groups(db3)
+    .comments.all()
+    .then((comments) => {
+      const comment = comments[0]
+      if (!comment) return
 
-  db3.groups.likes.all()
+      // It's a book comment
+      if ('text' in comment.data) {
+        // @ts-expect-error: It's not possible in TypeScript ATM
+        db3.books(db3.books.id('asd')).comments.get(comment.ref.id)
+      }
+
+      // It's order comment
+      if ('rating' in comment.data) {
+        // @ts-expect-error: It's not possible in TypeScript ATM
+        db3.orders(db3.orders.id('asd')).comments.get(comment.ref.id)
+      }
+    })
+
+  groups(db3).likes.all()
 }
 
 type Assert<Type1, _Type2 extends Type1> = true
 
 function assert<Type>(arg: Type) {}
+
+// interface Hello<Pair extends [any, any]> {
+//   hello: Pair[0]
+//   world: Pair[1]
+// }
+
+// type Asd = Hello<[string, 'hello!']> | Hello<[number, 'world!']>
+
+interface Qwe<Hello, World> {
+  hello: Hello
+  world: World
+}
+
+type Asd = Qwe<string, 'hello!'> | Qwe<number, 'world!'>
+
+const asd = {} as unknown as Asd
+
+if (typeof asd.hello === 'string') {
+  asd.world
+}
