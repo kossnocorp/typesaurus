@@ -18,11 +18,11 @@ export const batch: TypesaurusBatch.Function = (rootDB, options) => {
 function batchDB<Schema extends Typesaurus.PlainSchema>(
   rootDB: Typesaurus.DB<Schema>,
   batch: admin.firestore.WriteBatch
-): TypesaurusBatch.DB<Schema> {
+): TypesaurusBatch.BatchDB<Schema> {
   function convertDB<SchemaNode extends Typesaurus.PlainSchema>(
     db: Typesaurus.DB<SchemaNode>,
     nestedPath?: string
-  ): TypesaurusBatch.DB<SchemaNode> {
+  ): TypesaurusBatch.BatchDB<SchemaNode> {
     const processedDB = {}
 
     Object.entries(db).forEach(([path, collection]) => {
@@ -44,7 +44,7 @@ function batchDB<Schema extends Typesaurus.PlainSchema>(
           : readCollection
     })
 
-    return processedDB as TypesaurusBatch.DB<SchemaNode>
+    return processedDB as TypesaurusBatch.BatchDB<SchemaNode>
   }
 
   const filteredDB: Typesaurus.DB<Schema> = { ...rootDB }

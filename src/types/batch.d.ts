@@ -3,81 +3,81 @@ import type { Typesaurus } from '..'
 export namespace TypesaurusBatch {
   export interface Function {
     <
-      Schema extends Typesaurus.PlainSchema,
+      DB extends Typesaurus.DB<any>,
       Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
     >(
-      db: Typesaurus.DB<Schema>,
+      db: DB,
       options?: Typesaurus.OperationOptions<Environment>
-    ): RootDB<Schema, Environment>
+    ): RootDB<DB, Environment>
   }
 
   export type RootDB<
-    Schema extends Typesaurus.PlainSchema,
+    DB extends Typesaurus.DB<any>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > = DB<Schema, Environment> & {
+  > = BatchDB<DB, Environment> & {
     (): Promise<void>
   }
 
-  export type DB<
-    Schema extends Typesaurus.PlainSchema,
+  export type BatchDB<
+    DB extends Typesaurus.DB<any>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = {
-    [Path in keyof Schema]: Schema[Path] extends Typesaurus.NestedPlainCollection<
+    [Path in keyof DB]: DB[Path] extends Typesaurus.NestedRichCollection<
       infer Model,
-      infer Schema
+      infer NestedDB
     >
-      ? NestedCollection<Model, DB<Schema, Environment>, Environment>
-      : Schema[Path] extends Typesaurus.PlainCollection<infer Model>
-      ? Collection<Model, Environment>
+      ? NestedCollection<Model, BatchDB<NestedDB, Environment>, Environment>
+      : DB[Path] extends Typesaurus.RichCollection<infer ModelPair>
+      ? Collection<ModelPair, Environment>
       : never
   }
 
   export type AnyCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > =
-    | Collection<Model, Environment>
-    | NestedCollection<Model, Schema<Environment>, Environment>
+    | Collection<ModelPair, Environment>
+    | NestedCollection<ModelPair, Schema<Environment>, Environment>
 
   export interface NestedCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     NestedSchema extends Schema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > extends Collection<Model, Environment> {
-    (id: Typesaurus.Id<Model>): NestedSchema
+  > extends Collection<ModelPair, Environment> {
+    (id: Typesaurus.Id<ModelPair[1] /* Path */>): NestedSchema
   }
 
   /**
    *
    */
   export interface Collection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > extends Typesaurus.PlainCollection<Model> {
+  > extends Typesaurus.PlainCollection<ModelPair[0] /* Model */> {
     /** The Firestore path */
     path: string
 
     set(
-      id: Typesaurus.Id<Model>,
-      data: Typesaurus.WriteModelArg<Model, Environment>
+      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     upset(
-      id: Typesaurus.Id<Model>,
-      data: Typesaurus.WriteModelArg<Model, Environment>
+      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     update(
-      id: Typesaurus.Id<Model>,
-      data: Typesaurus.UpdateModelArg<Model, Environment>
+      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      data: Typesaurus.UpdateModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
-    remove(id: Typesaurus.Id<Model>): void
+    remove(id: Typesaurus.Id<ModelPair[1] /* Path */>): void
   }
 
   export interface Schema<
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > {
-    [CollectionPath: string]: AnyCollection<unknown, Environment>
+    [CollectionPath: string]: AnyCollection<any, Environment>
   }
 }
