@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import { schema } from '..'
 import { batch } from '../adapter/admin/batch'
 
@@ -13,10 +14,10 @@ describe('batch', () => {
 
   it('performs batch operations', async () => {
     const $ = batch(db)
-    const id = await db.users.id()
-    const sashaId = `${id}-sasha`
-    const tatiId = `${id}-tati`
-    const edId = `${id}-ed`
+    const id = nanoid()
+    const sashaId = db.users.id(`${id}-sasha`)
+    const tatiId = db.users.id(`${id}-tati`)
+    const edId = db.users.id(`${id}-ed`)
     $.users.set(sashaId, { name: 'Sasha' })
     $.users.set(tatiId, { name: 'Tati' })
     $.users.set(edId, { name: 'Ed' })
@@ -33,10 +34,10 @@ describe('batch', () => {
 
   it('allows set a new document', async () => {
     const $ = batch(db)
-    const id = await db.users.id()
-    const sashaId = `${id}-sasha`
-    const tatiId = `${id}-tati`
-    const edId = `${id}-ed`
+    const id = nanoid()
+    const sashaId = db.users.id(`${id}-sasha`)
+    const tatiId = db.users.id(`${id}-tati`)
+    const edId = db.users.id(`${id}-ed`)
     $.users.set(sashaId, { name: 'Sasha' })
     $.users.set(tatiId, { name: 'Tati' })
     $.users.set(edId, { name: 'Ed' })
@@ -53,10 +54,10 @@ describe('batch', () => {
 
   it('allows upsetting', async () => {
     const $ = batch(db)
-    const id = await db.users.id()
-    const sashaId = `${id}-sasha`
-    const tatiId = `${id}-tati`
-    const edId = `${id}-ed`
+    const id = nanoid()
+    const sashaId = db.users.id(`${id}-sasha`)
+    const tatiId = db.users.id(`${id}-tati`)
+    const edId = db.users.id(`${id}-ed`)
     await Promise.all([
       db.users.set(sashaId, { name: 'Sasha', foo: true }),
       db.users.set(tatiId, { name: 'Tati', foo: true }),
@@ -78,10 +79,10 @@ describe('batch', () => {
 
   it('allows updating', async () => {
     const $ = batch(db)
-    const id = await db.users.id()
-    const sashaId = `${id}-sasha`
-    const tatiId = `${id}-tati`
-    const edId = `${id}-ed`
+    const id = nanoid()
+    const sashaId = db.users.id(`${id}-sasha`)
+    const tatiId = db.users.id(`${id}-tati`)
+    const edId = db.users.id(`${id}-ed`)
     await Promise.all([
       db.users.set(sashaId, { name: 'Sasha' }),
       db.users.set(tatiId, { name: 'Tati' }),
@@ -103,10 +104,10 @@ describe('batch', () => {
 
   it('allows removing', async () => {
     const $ = batch(db)
-    const id = await db.users.id()
-    const sashaId = `${id}-sasha`
-    const tatiId = `${id}-tati`
-    const edId = `${id}-ed`
+    const id = nanoid()
+    const sashaId = db.users.id(`${id}-sasha`)
+    const tatiId = db.users.id(`${id}-tati`)
+    const edId = db.users.id(`${id}-ed`)
     await Promise.all([
       db.users.set(sashaId, { name: 'Sasha' }),
       db.users.set(tatiId, { name: 'Tati' }),

@@ -1,5 +1,6 @@
 import { schema, Typesaurus } from '..'
 import { batch } from '.'
+import { nanoid } from 'nanoid'
 
 interface User {
   name: string
@@ -69,9 +70,9 @@ async function tysts() {
   const $ = batch(db)
 
   // @ts-expect-error - all the data is missing
-  $.users.set('asd', {})
+  $.users.set(db.users.id('asd'), {})
 
-  $.users.set('asd', ($) => ({
+  $.users.set(db.users.id('asd'), ($) => ({
     name: 'Sasha',
     contacts: {
       email: 'koss@nocorp.me'
@@ -80,35 +81,35 @@ async function tysts() {
     createdAt: $.serverDate()
   }))
 
-  $.users.update('asd', {
+  $.users.update(db.users.id('asd'), {
     // @ts-expect-error
     ame: 'Alexander'
   })
 
-  $.users.update('asd', {
+  $.users.update(db.users.id('asd'), {
     name: 'Alexander'
   })
 
-  $.users.update('asd', {
+  $.users.update(db.users.id('asd'), {
     name: 'Alexander'
   })
 
-  $.posts.remove('123')
+  $.posts.remove(db.posts.id('123'))
 
   // Runtime environement
 
   // @ts-expect-error - created at must be a server date
-  $.users.update('asd', ($) => ({
+  $.users.update(db.users.id('asd'), ($) => ({
     createdAt: new Date()
   }))
 
-  $.users.update('asd', ($) => ({
+  $.users.update(db.users.id('asd'), ($) => ({
     createdAt: $.serverDate()
   }))
 
   const $server = batch(db, { as: 'server' })
 
-  $server.users.update('asd', ($) => ({
+  $server.users.update(db.users.id('asd'), ($) => ({
     createdAt: new Date()
   }))
 
@@ -116,42 +117,42 @@ async function tysts() {
 
   // Simple update
 
-  $.users.update('user-id', {
+  $.users.update(db.users.id('user-id'), {
     name: 'Alexander'
   })
 
   // Update with helpers
 
-  $.users.update('user-id', ($) => ({
+  $.users.update(db.users.id('user-id'), ($) => ({
     name: 'Sasha',
     birthdate: $.remove(),
     createdAt: $.serverDate()
   }))
 
-  $.posts.update('post-id', ($) => ({
+  $.posts.update(db.posts.id('post-id'), ($) => ({
     likes: $.increment(5),
     likeIds: $.arrayUnion('like-id')
   }))
 
-  $.posts.update('post-id', ($) => ({
+  $.posts.update(db.posts.id('post-id'), ($) => ({
     likeIds: $.arrayRemove('like-id')
   }))
 
   // Enforce required fields
 
   // @ts-expect-error - name is required
-  $.users.update('user-id', ($) => ({
+  $.users.update(db.users.id('user-id'), ($) => ({
     name: $.remove()
   }))
 
   // @ts-expect-error - name is required
-  $.users.update('sasha', {
+  $.users.update(db.users.id('sasha'), {
     name: undefined
   })
 
   // Works with nested fields
 
-  $.users.update('sasha', ($) => ({
+  $.users.update(db.users.id('sasha'), ($) => ({
     contacts: {
       email: 'koss@nocorp.me',
       phone: $.remove()
@@ -159,47 +160,53 @@ async function tysts() {
   }))
 
   // @ts-expect-error - email is required
-  $.users.update('sasha', ($) => ({
+  $.users.update(db.users.id('sasha'), ($) => ({
     contacts: {
       email: $.remove()
     }
   }))
 
-  $.accounts.update('sasha', ($) => $.field('nested1Optional', $.remove()))
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
+    $.field('nested1Optional', $.remove())
+  )
 
   // Single field update
 
-  $.accounts.update('sasha', ($) => $.field('name', 'Alexander'))
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
+    $.field('name', 'Alexander')
+  )
 
   // Multiple fields update
 
-  $.accounts.update('sasha', ($) => [
+  $.accounts.update(db.accounts.id('sasha'), ($) => [
     $.field('name', 'Alexander'),
     $.field('createdAt', $.serverDate())
   ])
 
   // Nested fields
 
-  $.accounts.update('sasha', ($) => $.field('contacts', 'phone', '+65xxxxxxxx'))
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
+    $.field('contacts', 'phone', '+65xxxxxxxx')
+  )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - wrong type
     $.field('contacts', 'phone', 6500000000)
   )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - can't update because emergencyContacts can be undefined
     $.field('emergencyContacts', 'phone', '+65xxxxxxxx')
   )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - emergencyContacts must have name and phone
     $.field('emergencyContacts', {
       name: 'Sasha'
     })
   )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('emergencyContacts', {
       name: 'Sasha',
       phone: '+65xxxxxxxx'
@@ -208,34 +215,34 @@ async function tysts() {
 
   // Deeply nested field corner cases
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Required', 'nested12Required', {
       hello: 'Hello!'
     })
   )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Required', 'nested12Required', {
       hello: 'Hello!',
       world: 'World!'
     })
   )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - can't update without hello
     $.field('nested1Required', 'nested12Required', {
       world: 'World!'
     })
   )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Optional', 'nested12Optional', {
       // @ts-expect-error - should not update because requried12 on nested1Optional is required
       hello: 'Hello!'
     })
   )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Optional', 'nested12Optional', {
       // @ts-expect-error - nested1Optional has required12, so can't update
       world: 'World!'
@@ -244,15 +251,17 @@ async function tysts() {
 
   // Nested fields with records
 
-  const postId = 'post-id'
+  const postId = nanoid()
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('counters', { [postId]: { likes: 5 } })
   )
 
-  $.accounts.update('sasha', ($) => $.field('counters', postId, { likes: 5 }))
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
+    $.field('counters', postId, { likes: 5 })
+  )
 
-  $.accounts.update('sasha', ($) =>
+  $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('counters', postId, 'likes', $.increment(1))
   )
 }
