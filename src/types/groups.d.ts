@@ -8,7 +8,8 @@ export namespace TypesaurusGroups {
     ): Groups<Schema>
   }
 
-  export interface Group<Model> extends Typesaurus.CollectionAPI<Model> {
+  export interface Group<Model, Path>
+    extends Typesaurus.CollectionAPI<Model, Path> {
     /** The group type */
     type: 'group'
 

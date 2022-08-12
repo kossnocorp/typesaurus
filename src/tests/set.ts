@@ -6,7 +6,7 @@ describe('set', () => {
   }
 
   interface Post {
-    author: Typesaurus.Ref<User>
+    author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Date
   }
@@ -62,7 +62,7 @@ describe('set', () => {
 
   it('supports dates', async () => {
     const date = new Date()
-    const userRef = db.users.ref('42')
+    const userRef = db.users.ref(db.users.id('42'))
     const postId = await db.posts.id()
     await db.posts.set(postId, { author: userRef, text: 'Hello!', date })
     const postFromDB = await db.posts.get(postId)

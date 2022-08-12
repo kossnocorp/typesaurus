@@ -35,7 +35,7 @@ export namespace TypesaurusQuery {
     type: 'order'
     field: string
     method: OrderDirection
-    cursors: OrderCursors<any, any>
+    cursors: OrderCursors<any, any, any>
   }
 
   export interface WhereQuery<_Model> {
@@ -53,10 +53,10 @@ export namespace TypesaurusQuery {
     number: number
   }
 
-  export type OrderCursors<Model, Key extends keyof Model | DocId> =
-    | [OrderCursorStart<Model, Key>]
-    | [OrderCursorEnd<Model, Key>]
-    | [OrderCursorStart<Model, Key>, OrderCursorEnd<Model, Key>]
+  export type OrderCursors<Model, Path, Key extends keyof Model | DocId> =
+    | [OrderCursorStart<Model, Path, Key>]
+    | [OrderCursorEnd<Model, Path, Key>]
+    | [OrderCursorStart<Model, Path, Key>, OrderCursorEnd<Model, Path, Key>]
 
   export type OrderCursorPosition =
     | 'startAt'
@@ -64,46 +64,59 @@ export namespace TypesaurusQuery {
     | 'endBefore'
     | 'endAt'
 
-  export type OrderCursorStart<Model, Key extends keyof Model | DocId> =
-    | OrderCursorStartAt<Model, Key>
-    | OrderCursorStartAfter<Model, Key>
+  export type OrderCursorStart<Model, Path, Key extends keyof Model | DocId> =
+    | OrderCursorStartAt<Model, Path, Key>
+    | OrderCursorStartAfter<Model, Path, Key>
 
-  export interface OrderCursorStartAt<Model, Key extends keyof Model | DocId>
-    extends OrderCursor<'startAt', Model, Key> {}
+  export interface OrderCursorStartAt<
+    Model,
+    Path,
+    Key extends keyof Model | DocId
+  > extends OrderCursor<Model, Path, 'startAt', Key> {}
 
-  export interface OrderCursorStartAfter<Model, Key extends keyof Model | DocId>
-    extends OrderCursor<'startAfter', Model, Key> {}
+  export interface OrderCursorStartAfter<
+    Model,
+    Path,
+    Key extends keyof Model | DocId
+  > extends OrderCursor<Model, Path, 'startAfter', Key> {}
 
-  export type OrderCursorEnd<Model, Key extends keyof Model | DocId> =
-    | OrderCursorEndAt<Model, Key>
-    | OrderCursorEndBefore<Model, Key>
+  export type OrderCursorEnd<Model, Path, Key extends keyof Model | DocId> =
+    | OrderCursorEndAt<Model, Path, Key>
+    | OrderCursorEndBefore<Model, Path, Key>
 
-  export interface OrderCursorEndAt<Model, Key extends keyof Model | DocId>
-    extends OrderCursor<'endAt', Model, Key> {}
+  export interface OrderCursorEndAt<
+    Model,
+    Path,
+    Key extends keyof Model | DocId
+  > extends OrderCursor<Model, Path, 'endAt', Key> {}
 
-  export interface OrderCursorEndBefore<Model, Key extends keyof Model | DocId>
-    extends OrderCursor<'endBefore', Model, Key> {}
+  export interface OrderCursorEndBefore<
+    Model,
+    Path,
+    Key extends keyof Model | DocId
+  > extends OrderCursor<Model, Path, 'endBefore', Key> {}
 
   export interface OrderCursor<
-    Position extends OrderCursorPosition,
     Model,
+    Path,
+    Position extends OrderCursorPosition,
     Key extends keyof Model | DocId
   > {
     type: 'cursor'
     position: Position
-    value: OrderCursorValue<Model, Key>
+    value: OrderCursorValue<Model, Path, Key>
   }
 
-  export type OrderCursorValue<Model, Key extends keyof Model | DocId> =
-    | (Key extends keyof Model ? Model[Key] : Typesaurus.Id<Model>) // Field value or id
-    | Typesaurus.Doc<Model> // Will be used to get value for the cursor
+  export type OrderCursorValue<Model, Path, Key extends keyof Model | DocId> =
+    | (Key extends keyof Model ? Model[Key] : Typesaurus.Id<Path>) // Field value or id
+    | Typesaurus.Doc<Model, Path> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
-  export type QueryGetter<Model> = (
-    $: QueryHelpers<Model>
+  export type QueryGetter<Model, Path> = (
+    $: QueryHelpers<Model, Path>
   ) => Query<Model> | Query<Model>[]
 
-  export interface QueryHelpers<Model> {
+  export interface QueryHelpers<Model, Path> {
     /*
                      oooo                                     
                      `888                                     
@@ -120,13 +133,13 @@ export namespace TypesaurusQuery {
     where<Key extends keyof Model | DocId>(
       field: Key | [Key],
       filter: BasicWhereFilter,
-      value: Key extends keyof Model ? Model[Key] : Typesaurus.Id<Model>
+      value: Key extends keyof Model ? Model[Key] : Typesaurus.Id<Path>
     ): WhereQuery<Model>
     // in filter
     where<Key extends keyof Model | DocId>(
       field: Key | [Key],
       filter: 'in',
-      value: Key extends keyof Model ? Model[Key][] : Typesaurus.Id<Model>[]
+      value: Key extends keyof Model ? Model[Key][] : Typesaurus.Id<Path>[]
     ): WhereQuery<Model>
     // array-contains filter
     where<Key extends keyof Model>(
@@ -247,13 +260,13 @@ export namespace TypesaurusQuery {
     // With cursors
     order<Key extends keyof Model | DocId>(
       key: Key | readonly [Key],
-      ...cursors: OrderCursors<Model, Key> | []
+      ...cursors: OrderCursors<Model, Path, Key> | []
     ): OrderQuery<Model>
     // With method and cursors
     order<Key extends keyof Model | DocId>(
       key: Key | readonly [Key],
       method: OrderDirection,
-      ...cursors: OrderCursors<Model, Key> | []
+      ...cursors: OrderCursors<Model, Path, Key> | []
     ): OrderQuery<Model>
 
     // 2-level keys path
@@ -276,6 +289,7 @@ export namespace TypesaurusQuery {
             TypesaurusUtils.AllRequired<
               TypesaurusUtils.AllRequired<Model>[Key1]
             >,
+            Path,
             Key2
           >
         | []
@@ -292,6 +306,7 @@ export namespace TypesaurusQuery {
             TypesaurusUtils.AllRequired<
               TypesaurusUtils.AllRequired<Model>[Key1]
             >,
+            Path,
             Key2
           >
         | []
@@ -325,6 +340,7 @@ export namespace TypesaurusQuery {
                 TypesaurusUtils.AllRequired<Model>[Key1]
               >[Key2]
             >,
+            Path,
             Key3
           >
         | []
@@ -346,6 +362,7 @@ export namespace TypesaurusQuery {
                 TypesaurusUtils.AllRequired<Model>[Key1]
               >[Key2]
             >,
+            Path,
             Key3
           >
         | []
@@ -363,21 +380,21 @@ export namespace TypesaurusQuery {
 
     limit(to: number): LimitQuery<Model>
 
-    startAt<Model, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorStartAt<Model, Key>
+    startAt<Model, Path, Key extends keyof Model | DocId>(
+      value: OrderCursorValue<Model, Path, Key>
+    ): OrderCursorStartAt<Model, Path, Key>
 
-    startAfter<Model, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorStartAfter<Model, Key>
+    startAfter<Model, Path, Key extends keyof Model | DocId>(
+      value: OrderCursorValue<Model, Path, Key>
+    ): OrderCursorStartAfter<Model, Path, Key>
 
-    endAt<Model, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorEndAt<Model, Key>
+    endAt<Model, Path, Key extends keyof Model | DocId>(
+      value: OrderCursorValue<Model, Path, Key>
+    ): OrderCursorEndAt<Model, Path, Key>
 
-    endBefore<Model, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<Model, Key>
-    ): OrderCursorEndBefore<Model, Key>
+    endBefore<Model, Path, Key extends keyof Model | DocId>(
+      value: OrderCursorValue<Model, Path, Key>
+    ): OrderCursorEndBefore<Model, Path, Key>
 
     docId(): DocId
   }

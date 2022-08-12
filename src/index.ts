@@ -4,8 +4,8 @@ import type { TypesaurusUtils } from './utils'
 export { schema } from './adapter'
 
 export namespace Typesaurus {
-  export interface Id<Model> extends String {
-    __dontUseWillBeUndefined__: Model
+  export interface Id<Path> extends String {
+    __dontUseWillBeUndefined__: Path
   }
 
   /**
@@ -24,6 +24,7 @@ export namespace Typesaurus {
    */
   export interface DocChange<
     Model,
+    Path,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -32,7 +33,7 @@ export namespace Typesaurus {
     readonly type: DocChangeType
 
     /** The document affected by this change. */
-    readonly doc: EnvironmentDoc<Model, Source, DateStrategy, Environment>
+    readonly doc: EnvironmentDoc<Model, Path, Source, DateStrategy, Environment>
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -56,6 +57,7 @@ export namespace Typesaurus {
    */
   export interface SubscriptionListMeta<
     Model,
+    Path,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -65,7 +67,7 @@ export namespace Typesaurus {
      * this is the first snapshot, all documents will be in the list as added
      * changes.
      */
-    changes: () => DocChange<Model, Source, DateStrategy, Environment>[]
+    changes: () => DocChange<Model, Path, Source, DateStrategy, Environment>[]
 
     /** The number of documents in the QuerySnapshot. */
     readonly size: number
@@ -87,8 +89,9 @@ export namespace Typesaurus {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type Doc<Model> = EnvironmentDoc<
+  export type Doc<Model, Path> = EnvironmentDoc<
     Model,
+    Path,
     DataSource,
     ServerDateStrategy,
     RuntimeEnvironment
@@ -96,22 +99,23 @@ export namespace Typesaurus {
 
   export type EnvironmentDoc<
     Model,
+    Path,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = Environment extends 'server'
-    ? ServerDoc<Model>
+    ? ServerDoc<Model, Path>
     : Source extends 'database'
-    ? ClientDoc<Model, 'database', DateStrategy>
+    ? ClientDoc<Model, Path, 'database', DateStrategy>
     : DateStrategy extends 'estimate'
-    ? ClientDoc<Model, 'database', 'estimate'>
+    ? ClientDoc<Model, Path, 'database', 'estimate'>
     : DateStrategy extends 'previous'
-    ? ClientDoc<Model, 'database', 'previous'>
-    : ClientDoc<Model, Source, DateStrategy>
+    ? ClientDoc<Model, Path, 'database', 'previous'>
+    : ClientDoc<Model, Path, Source, DateStrategy>
 
-  export interface ServerDoc<Model> extends DocAPI<Model> {
+  export interface ServerDoc<Model, Path> extends DocAPI<Model, Path> {
     type: 'doc'
-    ref: Ref<Model>
+    ref: Ref<Model, Path>
     data: ModelNodeData<Model>
     environment: 'server'
     source?: undefined
@@ -121,11 +125,12 @@ export namespace Typesaurus {
 
   export interface ClientDoc<
     Model,
+    Path,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy
-  > extends DocAPI<Model> {
+  > extends DocAPI<Model, Path> {
     type: 'doc'
-    ref: Ref<Model>
+    ref: Ref<Model, Path>
     data: Source extends 'database'
       ? AnyModelData<Model, 'present'>
       : DateStrategy extends 'estimate'
@@ -148,7 +153,7 @@ export namespace Typesaurus {
   type ModelField<
     Field,
     DateNullable extends ServerDateNullable
-  > = Field extends Ref<any>
+  > = Field extends Ref<any, any>
     ? Field
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
@@ -172,10 +177,10 @@ export namespace Typesaurus {
   /**
    * The document reference type.
    */
-  export interface Ref<Model> extends DocAPI<Model> {
+  export interface Ref<Model, Path> extends DocAPI<Model, Path> {
     type: 'ref'
-    collection: RichCollection<Model>
-    id: Id<Model>
+    collection: RichCollection<Model, Path>
+    id: Id<Path>
   }
 
   export type ServerDateNullable = 'nullable' | 'present'
@@ -599,8 +604,8 @@ export namespace Typesaurus {
     catch(callback: SubscriptionErrorCallback): OffSubscription
   }
 
-  export type GetSubscriptionCallback<Model> = {
-    (result: Doc<Model> | null /*, info: SnapshotInfo<Model> */): void
+  export type GetSubscriptionCallback<Model, Path> = {
+    (result: Doc<Model, Path> | null /*, info: SnapshotInfo<Model> */): void
   }
 
   export interface SubscriptionPromise<Result, SubscriptionMeta = undefined>
@@ -617,11 +622,11 @@ export namespace Typesaurus {
     ? (result: Result) => void
     : (result: Result, meta: SubscriptionMeta) => void
 
-  export type ListSubscriptionCallback<Model> = {
-    (result: Doc<Model>[]): void
+  export type ListSubscriptionCallback<Model, Path> = {
+    (result: Doc<Model, Path>[]): void
   }
 
-  export interface DocAPI<Model> {
+  export interface DocAPI<Model, Path> {
     get<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -630,6 +635,7 @@ export namespace Typesaurus {
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<EnvironmentDoc<
       Model,
+      Path,
       Source,
       DateStrategy,
       Environment
@@ -638,31 +644,32 @@ export namespace Typesaurus {
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<Model>>
+    ): Promise<Ref<Model, Path>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<Model>>
+    ): Promise<Ref<Model, Path>>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: UpdateModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<Model>>
+    ): Promise<Ref<Model, Path>>
 
-    remove(): Promise<Ref<Model>>
+    remove(): Promise<Ref<Model, Path>>
   }
 
   export interface GetManyOptions<
     Model,
+    Path,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined,
-    OnMissing extends OnMissingMode<Model> | undefined = undefined
+    OnMissing extends OnMissingMode<Model, Path> | undefined = undefined
   > extends ReadOptions<DateStrategy, Environment> {
     onMissing?: OnMissing
   }
 
-  export interface CollectionAPI<Model> {
+  export interface CollectionAPI<Model, Path> {
     all<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -670,8 +677,8 @@ export namespace Typesaurus {
     >(
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
-      EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
-      SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+      EnvironmentDoc<Model, Path, Source, DateStrategy, Environment>[],
+      SubscriptionListMeta<Model, Path, Source, DateStrategy, Environment>
     >
 
     query<
@@ -679,20 +686,20 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      queries: TypesaurusQuery.QueryGetter<Model>,
+      queries: TypesaurusQuery.QueryGetter<Model, Path>,
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
-      EnvironmentDoc<Model, Source, DateStrategy, Environment>[],
-      SubscriptionListMeta<Model, Source, DateStrategy, Environment>
+      EnvironmentDoc<Model, Path, Source, DateStrategy, Environment>[],
+      SubscriptionListMeta<Model, Path, Source, DateStrategy, Environment>
     >
   }
 
   /**
    *
    */
-  export interface RichCollection<Model>
+  export interface RichCollection<Model, Path>
     extends PlainCollection<Model>,
-      CollectionAPI<Model> {
+      CollectionAPI<Model, Path> {
     /** The Firestore path */
     path: string
 
@@ -701,10 +708,11 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: Id<Model>,
+      id: Id<Path>,
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<EnvironmentDoc<
       Model,
+      Path,
       Source,
       DateStrategy,
       Environment
@@ -714,18 +722,24 @@ export namespace Typesaurus {
       Source extends DataSource,
       DateStrategy extends Typesaurus.ServerDateStrategy,
       Environment extends Typesaurus.RuntimeEnvironment,
-      OnMissing extends OnMissingMode<Model> | undefined = undefined
+      OnMissing extends OnMissingMode<Model, Path> | undefined = undefined
     >(
-      ids: Id<Model>[],
-      options?: GetManyOptions<Model, DateStrategy, Environment, OnMissing>
+      ids: Id<Path>[],
+      options?: GetManyOptions<
+        Model,
+        Path,
+        DateStrategy,
+        Environment,
+        OnMissing
+      >
     ): OnMissing extends 'ignore' | undefined
       ? SubscriptionPromise<
-          EnvironmentDoc<Model, Source, DateStrategy, Environment>[]
+          EnvironmentDoc<Model, Path, Source, DateStrategy, Environment>[]
         >
-      : OnMissing extends OnMissingCallback<infer OnMissingResult>
+      : OnMissing extends OnMissingCallback<infer OnMissingResult, Path>
       ? SubscriptionPromise<
           Array<
-            | EnvironmentDoc<Model, Source, DateStrategy, Environment>
+            | EnvironmentDoc<Model, Path, Source, DateStrategy, Environment>
             | OnMissingResult
           >
         >
@@ -734,53 +748,53 @@ export namespace Typesaurus {
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<Model>>
+    ): Promise<Ref<Model, Path>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: Id<Model>,
+      id: Id<Path>,
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<Model>>
+    ): Promise<Ref<Model, Path>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: Id<Model>,
+      id: Id<Path>,
       data: WriteModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<Model>>
+    ): Promise<Ref<Model, Path>>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: Id<Model>,
+      id: Id<Path>,
       data: UpdateModelArg<Model, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<Model>>
+    ): Promise<Ref<Model, Path>>
 
-    remove(id: Id<Model>): Promise<Ref<Model>>
+    remove(id: Id<Path>): Promise<Ref<Model, Path>>
 
-    ref(id: Id<Model>): Ref<Model>
+    ref(id: Id<Path>): Ref<Model, Path>
 
     doc<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: Id<Model>,
+      id: Id<Path>,
       data: Model
-    ): EnvironmentDoc<Model, Source, DateStrategy, Environment>
+    ): EnvironmentDoc<Model, Path, Source, DateStrategy, Environment>
 
-    id(id: string): Id<Model>
+    id(id: string): Id<Path>
 
-    id(): Promise<Id<Model>>
+    id(): Promise<Id<Path>>
   }
 
-  export interface NestedRichCollection<Model, Schema extends AnyDB>
-    extends RichCollection<Model> {
-    (id: Id<Model>): Schema
+  export interface NestedRichCollection<Model, Schema extends AnyDB, Path>
+    extends RichCollection<Model, Path> {
+    (id: Id<Path>): Schema
     schema: Schema
   }
 
-  export type AnyRichCollection<Model = unknown> =
-    | RichCollection<Model>
-    | NestedRichCollection<Model, AnyDB>
+  export type AnyRichCollection<Model = unknown, Path = unknown> =
+    | RichCollection<Model, unknown>
+    | NestedRichCollection<Model, AnyDB, unknown>
 
   export interface PlainCollection<_Model> {
     /** The collection type */
@@ -797,29 +811,43 @@ export namespace Typesaurus {
     | NestedPlainCollection<unknown, PlainSchema>
 
   export interface PlainSchema {
-    [CollectionPath: string]: AnyPlainCollection
+    [Path: string]:
+      | PlainCollection<unknown>
+      | NestedPlainCollection<unknown, PlainSchema>
   }
 
   export interface AnyDB {
     [CollectionPath: string]: AnyRichCollection
   }
 
-  export type DB<Schema> = {
+  export type DB<Schema, NestedPath = undefined> = {
     [Path in keyof Schema]: Schema[Path] extends NestedPlainCollection<
       infer Model,
       infer Schema
     >
-      ? NestedRichCollection<Model, DB<Schema>>
+      ? NestedRichCollection<
+          Model,
+          DB<
+            Schema,
+            NestedPath extends undefined ? [Path] : [NestedPath, Path]
+          >,
+          NestedPath extends undefined ? Path : [NestedPath, Path]
+        >
       : Schema[Path] extends PlainCollection<infer Model>
-      ? RichCollection<Model>
+      ? RichCollection<
+          Model,
+          NestedPath extends undefined ? Path : [NestedPath, Path]
+        >
       : never
   }
 
-  export type OnMissingMode<Model> = OnMissingCallback<Model> | 'ignore'
+  export type OnMissingMode<Model, Path> =
+    | OnMissingCallback<Model, Path>
+    | 'ignore'
 
-  export type OnMissingCallback<Model> = (id: Id<Model>) => Model
+  export type OnMissingCallback<Model, Path> = (id: Id<Path>) => Model
 
-  export interface OnMissingOptions<Model> {
-    onMissing?: OnMissingMode<Model>
+  export interface OnMissingOptions<Model, Path> {
+    onMissing?: OnMissingMode<Model, Path>
   }
 }
