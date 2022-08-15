@@ -8,7 +8,7 @@ export namespace Typesaurus {
     __dontUseWillBeUndefined__: Path
   }
 
-  export type ModelIdPair = [any, any]
+  export type ModelPathPair = [any, any]
 
   /**
    * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
@@ -25,7 +25,7 @@ export namespace Typesaurus {
    * the change, and the position change.
    */
   export interface DocChange<
-    ModelPair extends ModelIdPair,
+    ModelPair extends ModelPathPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -57,7 +57,7 @@ export namespace Typesaurus {
    * `query`.
    */
   export interface SubscriptionListMeta<
-    ModelPair extends ModelIdPair,
+    ModelPair extends ModelPathPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -89,7 +89,7 @@ export namespace Typesaurus {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type Doc<ModelPair extends ModelIdPair> = EnvironmentDoc<
+  export type Doc<ModelPair extends ModelPathPair> = EnvironmentDoc<
     ModelPair,
     DataSource,
     ServerDateStrategy,
@@ -97,7 +97,7 @@ export namespace Typesaurus {
   >
 
   export type EnvironmentDoc<
-    ModelPair extends ModelIdPair,
+    ModelPair extends ModelPathPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -111,7 +111,7 @@ export namespace Typesaurus {
     ? ClientDoc<ModelPair, 'database', 'previous'>
     : ClientDoc<ModelPair, Source, DateStrategy>
 
-  export interface ServerDoc<ModelPair extends ModelIdPair>
+  export interface ServerDoc<ModelPair extends ModelPathPair>
     extends DocAPI<ModelPair> {
     type: 'doc'
     ref: Ref<ModelPair>
@@ -123,7 +123,7 @@ export namespace Typesaurus {
   }
 
   export interface ClientDoc<
-    ModelPair extends ModelIdPair,
+    ModelPair extends ModelPathPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy
   > extends DocAPI<ModelPair> {
@@ -151,7 +151,7 @@ export namespace Typesaurus {
   type ModelField<
     Field,
     DateNullable extends ServerDateNullable
-  > = Field extends Ref<Typesaurus.ModelIdPair>
+  > = Field extends Ref<Typesaurus.ModelPathPair>
     ? Field
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
@@ -175,7 +175,7 @@ export namespace Typesaurus {
   /**
    * The document reference type.
    */
-  export interface Ref<ModelPair extends ModelIdPair>
+  export interface Ref<ModelPair extends ModelPathPair>
     extends DocAPI<ModelPair> {
     type: 'ref'
     collection: RichCollection<ModelPair>
@@ -603,7 +603,7 @@ export namespace Typesaurus {
     catch(callback: SubscriptionErrorCallback): OffSubscription
   }
 
-  export type GetSubscriptionCallback<ModelPair extends ModelIdPair> = {
+  export type GetSubscriptionCallback<ModelPair extends ModelPathPair> = {
     (result: Doc<ModelPair> | null /*, info: SnapshotInfo<Model> */): void
   }
 
@@ -621,11 +621,11 @@ export namespace Typesaurus {
     ? (result: Result) => void
     : (result: Result, meta: SubscriptionMeta) => void
 
-  export type ListSubscriptionCallback<ModelPair extends ModelIdPair> = {
+  export type ListSubscriptionCallback<ModelPair extends ModelPathPair> = {
     (result: Doc<ModelPair>[]): void
   }
 
-  export interface DocAPI<ModelPair extends ModelIdPair> {
+  export interface DocAPI<ModelPair extends ModelPathPair> {
     get<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -658,7 +658,7 @@ export namespace Typesaurus {
   }
 
   export interface GetManyOptions<
-    ModelPair extends ModelIdPair,
+    ModelPair extends ModelPathPair,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined,
     OnMissing extends OnMissingMode<ModelPair> | undefined = undefined
@@ -666,7 +666,7 @@ export namespace Typesaurus {
     onMissing?: OnMissing
   }
 
-  export interface CollectionAPI<ModelPair extends ModelIdPair> {
+  export interface CollectionAPI<ModelPair extends ModelPathPair> {
     all<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -694,7 +694,7 @@ export namespace Typesaurus {
   /**
    *
    */
-  export interface RichCollection<ModelPair extends ModelIdPair>
+  export interface RichCollection<ModelPair extends ModelPathPair>
     extends PlainCollection<ModelPair>,
       CollectionAPI<ModelPair> {
     /** The Firestore path */
@@ -779,7 +779,7 @@ export namespace Typesaurus {
   }
 
   export interface NestedRichCollection<
-    ModelPair extends ModelIdPair,
+    ModelPair extends ModelPathPair,
     Schema extends AnyDB
   > extends RichCollection<ModelPair> {
     (id: Id<ModelPair[1] /* Path */>): Schema
@@ -787,7 +787,7 @@ export namespace Typesaurus {
   }
 
   export type AnyRichCollection<
-    ModelPair extends Typesaurus.ModelIdPair = Typesaurus.ModelIdPair
+    ModelPair extends Typesaurus.ModelPathPair = Typesaurus.ModelPathPair
   > = RichCollection<ModelPair> | NestedRichCollection<ModelPair, AnyDB>
 
   export interface PlainCollection<_Model> {
@@ -814,31 +814,30 @@ export namespace Typesaurus {
     [CollectionPath: string]: AnyRichCollection
   }
 
-  export type DB<Schema, NestedPath = undefined> = {
-    [Path in keyof Schema]: Schema[Path] extends NestedPlainCollection<
-      infer Model,
-      infer Schema
-    >
-      ? NestedRichCollection<
-          [Model, NestedPath extends undefined ? Path : [NestedPath, Path]],
-          DB<Schema, NestedPath extends undefined ? [Path] : [NestedPath, Path]>
-        >
-      : Schema[Path] extends PlainCollection<infer Model>
-      ? RichCollection<
-          [Model, NestedPath extends undefined ? Path : [NestedPath, Path]]
-        >
+  export type DB<Schema, BasePath extends string | undefined = undefined> = {
+    [Path in keyof Schema]: Path extends string
+      ? Schema[Path] extends NestedPlainCollection<infer Model, infer Schema>
+        ? NestedRichCollection<
+            [Model, TypesaurusUtils.ComposePath<BasePath, Path>],
+            DB<Schema, TypesaurusUtils.ComposePath<BasePath, Path>>
+          >
+        : Schema[Path] extends PlainCollection<infer Model>
+        ? RichCollection<
+            [Model, BasePath extends undefined ? Path : [BasePath, Path]]
+          >
+        : never
       : never
   }
 
-  export type OnMissingMode<ModelPair extends ModelIdPair> =
+  export type OnMissingMode<ModelPair extends ModelPathPair> =
     | OnMissingCallback<ModelPair>
     | 'ignore'
 
-  export type OnMissingCallback<ModelPair extends ModelIdPair> = (
+  export type OnMissingCallback<ModelPair extends ModelPathPair> = (
     id: Id<ModelPair[1] /* Path */>
   ) => ModelPair[0] /* Model */
 
-  export interface OnMissingOptions<ModelPair extends ModelIdPair> {
+  export interface OnMissingOptions<ModelPair extends ModelPathPair> {
     onMissing?: OnMissingMode<ModelPair>
   }
 }

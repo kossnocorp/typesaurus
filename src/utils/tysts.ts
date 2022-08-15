@@ -1,5 +1,17 @@
 import type { TypesaurusUtils } from '.'
 
+namespace ComposePath {
+  type Result1 = Assert<
+    'users',
+    TypesaurusUtils.ComposePath<undefined, 'users'>
+  >
+
+  type Result2 = Assert<
+    'users/posts',
+    TypesaurusUtils.ComposePath<'users', 'posts'>
+  >
+}
+
 namespace UnionKeys {
   type Example = { books: true } | { comics: true }
 

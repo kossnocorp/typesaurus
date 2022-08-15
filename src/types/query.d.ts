@@ -35,7 +35,7 @@ export namespace TypesaurusQuery {
     type: 'order'
     field: string
     method: OrderDirection
-    cursors: OrderCursors<Typesaurus.ModelIdPair, any>
+    cursors: OrderCursors<Typesaurus.ModelPathPair, any>
   }
 
   export interface WhereQuery<_Model> {
@@ -54,7 +54,7 @@ export namespace TypesaurusQuery {
   }
 
   export type OrderCursors<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > =
     | [OrderCursorStart<ModelPair, Key>]
@@ -68,37 +68,37 @@ export namespace TypesaurusQuery {
     | 'endAt'
 
   export type OrderCursorStart<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > = OrderCursorStartAt<ModelPair, Key> | OrderCursorStartAfter<ModelPair, Key>
 
   export interface OrderCursorStartAt<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > extends OrderCursor<ModelPair, 'startAt', Key> {}
 
   export interface OrderCursorStartAfter<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > extends OrderCursor<ModelPair, 'startAfter', Key> {}
 
   export type OrderCursorEnd<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > = OrderCursorEndAt<ModelPair, Key> | OrderCursorEndBefore<ModelPair, Key>
 
   export interface OrderCursorEndAt<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > extends OrderCursor<ModelPair, 'endAt', Key> {}
 
   export interface OrderCursorEndBefore<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > extends OrderCursor<ModelPair, 'endBefore', Key> {}
 
   export interface OrderCursor<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Position extends OrderCursorPosition,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > {
@@ -108,7 +108,7 @@ export namespace TypesaurusQuery {
   }
 
   export type OrderCursorValue<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Key extends keyof ModelPair[0] /* Model */ | DocId
   > =
     | (Key extends keyof ModelPair[0] /* Model */
@@ -117,7 +117,7 @@ export namespace TypesaurusQuery {
     | Typesaurus.Doc<ModelPair> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
-  export type QueryGetter<ModelPair extends Typesaurus.ModelIdPair> = (
+  export type QueryGetter<ModelPair extends Typesaurus.ModelPathPair> = (
     $: QueryHelpers<ModelPair[0], ModelPair[1]>
   ) => Query<ModelPair[0] /* Model */> | Query<ModelPair[0] /* Model */>[]
 

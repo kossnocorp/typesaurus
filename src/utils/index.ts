@@ -1,6 +1,11 @@
 import type { Typesaurus } from '..'
 
 export namespace TypesaurusUtils {
+  export type ComposePath<
+    BasePath extends string | undefined,
+    Path extends string
+  > = BasePath extends undefined ? Path : `${BasePath}/${Path}`
+
   /**
    * Resolves union keys.
    */
