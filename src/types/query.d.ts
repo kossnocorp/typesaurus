@@ -35,7 +35,7 @@ export namespace TypesaurusQuery {
     type: 'order'
     field: string
     method: OrderDirection
-    cursors: OrderCursors<[any, any], any>
+    cursors: OrderCursors<Typesaurus.ModelIdPair, any>
   }
 
   export interface WhereQuery<_Model> {
