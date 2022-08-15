@@ -33,14 +33,14 @@ export namespace TypesaurusBatch {
   }
 
   export type AnyCollection<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > =
     | Collection<ModelPair, Environment>
     | NestedCollection<ModelPair, Schema<Environment>, Environment>
 
   export interface NestedCollection<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     NestedSchema extends Schema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends Collection<ModelPair, Environment> {
@@ -51,7 +51,7 @@ export namespace TypesaurusBatch {
    *
    */
   export interface Collection<
-    ModelPair extends Typesaurus.ModelIdPair,
+    ModelPair extends Typesaurus.ModelPathPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends Typesaurus.PlainCollection<ModelPair[0] /* Model */> {
     /** The Firestore path */
