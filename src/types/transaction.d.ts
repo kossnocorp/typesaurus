@@ -5,35 +5,41 @@ export namespace TypesaurusTransaction {
    * The document reference type.
    */
   export interface ReadRef<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > {
     type: 'ref'
-    collection: ReadCollection<Model, Environment>
-    id: Typesaurus.Id<Model>
+    collection: ReadCollection<ModelPair, Environment>
+    id: Typesaurus.Id<ModelPair[1] /* Path */>
   }
 
   /**
    * The document reference type.
    */
   export interface WriteRef<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > extends DocAPI<Model, Environment> {
+  > extends DocAPI<ModelPair, Environment> {
     type: 'ref'
-    collection: WriteCollection<Model, Environment>
-    id: Typesaurus.Id<Model>
+    collection: WriteCollection<ModelPair, Environment>
+    id: Typesaurus.Id<ModelPair[1] /* Path */>
   }
 
   export type DocAPI<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = {
-    set(data: Typesaurus.WriteModelArg<Model, Environment>): void
+    set(
+      data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
+    ): void
 
-    update(data: Typesaurus.UpdateModelArg<Model, Environment>): void
+    update(
+      data: Typesaurus.UpdateModelArg<ModelPair[0] /* Model */, Environment>
+    ): void
 
-    upset(data: Typesaurus.WriteModelArg<Model, Environment>): void
+    upset(
+      data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
+    ): void
 
     remove(): void
   }
@@ -42,28 +48,28 @@ export namespace TypesaurusTransaction {
    * The document type. It contains the reference in the DB and the model data.
    */
   export type ReadDoc<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = Environment extends 'server'
-    ? ReadServerDoc<Model>
+    ? ReadServerDoc<ModelPair>
     : Environment extends 'client'
-    ? ReadClientDoc<Model>
-    : ReadServerDoc<Model> | ReadClientDoc<Model>
+    ? ReadClientDoc<ModelPair>
+    : ReadServerDoc<ModelPair> | ReadClientDoc<ModelPair>
 
-  export interface ReadServerDoc<Model> {
+  export interface ReadServerDoc<ModelPair extends Typesaurus.ModelIdPair> {
     type: 'doc'
-    ref: ReadRef<Model, 'server'>
-    data: Typesaurus.ModelNodeData<Model>
+    ref: ReadRef<ModelPair, 'server'>
+    data: Typesaurus.ModelNodeData<ModelPair[0] /* Model */>
     environment: 'server'
     source?: undefined
     dateStrategy?: undefined
     pendingWrites?: undefined
   }
 
-  export interface ReadClientDoc<Model> {
+  export interface ReadClientDoc<ModelPair extends Typesaurus.ModelIdPair> {
     type: 'doc'
-    ref: ReadRef<Model, 'client'>
-    data: Typesaurus.AnyModelData<Model, 'present'>
+    ref: ReadRef<ModelPair, 'client'>
+    data: Typesaurus.AnyModelData<ModelPair[0] /* Model */, 'present'>
     environment: 'web'
     source: 'database'
     dateStrategy?: undefined
@@ -74,28 +80,30 @@ export namespace TypesaurusTransaction {
    * The document type. It contains the reference in the DB and the model data.
    */
   export type WriteDoc<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = Environment extends 'server'
-    ? WriteServerDoc<Model>
+    ? WriteServerDoc<ModelPair>
     : Environment extends 'client'
-    ? WriteClientDoc<Model>
-    : WriteServerDoc<Model> | WriteClientDoc<Model>
+    ? WriteClientDoc<ModelPair>
+    : WriteServerDoc<ModelPair> | WriteClientDoc<ModelPair>
 
-  export interface WriteServerDoc<Model> extends DocAPI<Model, 'server'> {
+  export interface WriteServerDoc<ModelPair extends Typesaurus.ModelIdPair>
+    extends DocAPI<ModelPair, 'server'> {
     type: 'doc'
-    ref: WriteRef<Model, 'server'>
-    data: Typesaurus.ModelNodeData<Model>
+    ref: WriteRef<ModelPair, 'server'>
+    data: Typesaurus.ModelNodeData<ModelPair[0] /* Model */>
     environment: 'server'
     source?: undefined
     dateStrategy?: undefined
     pendingWrites?: undefined
   }
 
-  export interface WriteClientDoc<Model> extends DocAPI<Model, 'client'> {
+  export interface WriteClientDoc<ModelPair extends Typesaurus.ModelIdPair>
+    extends DocAPI<ModelPair, 'client'> {
     type: 'doc'
-    ref: WriteRef<Model, 'client'>
-    data: Typesaurus.AnyModelData<Model, 'present'>
+    ref: WriteRef<ModelPair, 'client'>
+    data: Typesaurus.AnyModelData<ModelPair[0] /* Model */, 'present'>
     environment: 'web'
     source: 'database'
     dateStrategy?: undefined
@@ -103,83 +111,91 @@ export namespace TypesaurusTransaction {
   }
 
   export type AnyWriteCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > =
-    | WriteCollection<Model, Environment>
-    | NestedWriteCollection<Model, WriteSchema<Environment>, Environment>
+    | WriteCollection<ModelPair, Environment>
+    | NestedWriteCollection<ModelPair, WriteSchema<Environment>, Environment>
 
   export interface WriteSchema<
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > {
-    [CollectionPath: string]: AnyWriteCollection<unknown, Environment>
+    [CollectionPath: string]: AnyWriteCollection<
+      Typesaurus.ModelIdPair,
+      Environment
+    >
   }
 
   export interface NestedWriteCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     NestedSchema extends WriteSchema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > extends WriteCollection<Model, Environment> {
-    (id: Typesaurus.Id<Model>): NestedSchema
+  > extends WriteCollection<ModelPair, Environment> {
+    (id: Typesaurus.Id<ModelPair[1] /* Path */>): NestedSchema
   }
 
   /**
    *
    */
   export interface WriteCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > extends Typesaurus.PlainCollection<Model> {
+  > extends Typesaurus.PlainCollection<ModelPair> {
     /** The Firestore path */
     path: string
 
     set(
-      id: Typesaurus.Id<Model>,
-      data: Typesaurus.WriteModelArg<Model, Environment>
+      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     upset(
-      id: Typesaurus.Id<Model>,
-      data: Typesaurus.WriteModelArg<Model, Environment>
+      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     update(
-      id: Typesaurus.Id<Model>,
-      data: Typesaurus.UpdateModelArg<Model, Environment>
+      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      data: Typesaurus.UpdateModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
-    remove(id: Typesaurus.Id<Model>): void
+    remove(id: Typesaurus.Id<ModelPair[1] /* Path */>): void
   }
 
   export type AnyReadCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > =
-    | ReadCollection<Model, Environment>
-    | NestedReadCollection<Model, ReadSchema<Environment>, Environment>
+    | ReadCollection<ModelPair, Environment>
+    | NestedReadCollection<ModelPair, ReadSchema<Environment>, Environment>
 
   export interface ReadSchema<
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > {
-    [CollectionPath: string]: AnyReadCollection<unknown, Environment>
+    [CollectionPath: string]: AnyReadCollection<
+      Typesaurus.ModelIdPair,
+      Environment
+    >
   }
 
   export interface NestedReadCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     NestedSchema extends ReadSchema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > extends ReadCollection<Model, Environment> {
-    (id: Typesaurus.Id<Model>): NestedSchema
+  > extends ReadCollection<ModelPair, Environment> {
+    (id: Typesaurus.Id<ModelPair[1] /* Path */>): NestedSchema
   }
 
   export interface ReadCollection<
-    Model,
+    ModelPair extends Typesaurus.ModelIdPair,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-  > extends Typesaurus.PlainCollection<Model> {
+  > extends Typesaurus.PlainCollection<ModelPair> {
     /** The Firestore path */
     path: string
 
-    get(id: Typesaurus.Id<Model>): Promise<ReadDoc<Model, Environment> | null>
+    get(
+      id: Typesaurus.Id<ModelPair[1] /* Path */>
+    ): Promise<ReadDoc<ModelPair, Environment> | null>
   }
 
   /**
@@ -270,29 +286,45 @@ export namespace TypesaurusTransaction {
 
   export type ReadDB<
     Schema extends Typesaurus.PlainSchema,
-    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined,
+    NestedPath = undefined
   > = {
     [Path in keyof Schema]: Schema[Path] extends Typesaurus.NestedPlainCollection<
       infer Model,
       infer Schema
     >
-      ? NestedReadCollection<Model, ReadDB<Schema, Environment>, Environment>
+      ? NestedReadCollection<
+          [Model, NestedPath extends undefined ? Path : [NestedPath, Path]],
+          ReadDB<Schema, Environment>,
+          Environment
+        >
       : Schema[Path] extends Typesaurus.PlainCollection<infer Model>
-      ? ReadCollection<Model, Environment>
+      ? ReadCollection<
+          [Model, NestedPath extends undefined ? Path : [NestedPath, Path]],
+          Environment
+        >
       : never
   }
 
   export type WriteDB<
     Schema extends Typesaurus.PlainSchema,
-    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined,
+    NestedPath = undefined
   > = {
     [Path in keyof Schema]: Schema[Path] extends Typesaurus.NestedPlainCollection<
       infer Model,
       infer Schema
     >
-      ? NestedWriteCollection<Model, WriteDB<Schema, Environment>, Environment>
+      ? NestedWriteCollection<
+          [Model, NestedPath extends undefined ? Path : [NestedPath, Path]],
+          WriteDB<Schema, Environment>,
+          Environment
+        >
       : Schema[Path] extends Typesaurus.PlainCollection<infer Model>
-      ? WriteCollection<Model, Environment>
+      ? WriteCollection<
+          [Model, NestedPath extends undefined ? Path : [NestedPath, Path]],
+          Environment
+        >
       : never
   }
 }

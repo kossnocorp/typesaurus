@@ -151,7 +151,7 @@ export namespace Typesaurus {
   type ModelField<
     Field,
     DateNullable extends ServerDateNullable
-  > = Field extends Ref<[any, any]>
+  > = Field extends Ref<Typesaurus.ModelIdPair>
     ? Field
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
@@ -786,9 +786,9 @@ export namespace Typesaurus {
     schema: Schema
   }
 
-  export type AnyRichCollection<ModelPair = [any, any]> =
-    | RichCollection<ModelPair>
-    | NestedRichCollection<ModelPair, AnyDB>
+  export type AnyRichCollection<
+    ModelPair extends Typesaurus.ModelIdPair = Typesaurus.ModelIdPair
+  > = RichCollection<ModelPair> | NestedRichCollection<ModelPair, AnyDB>
 
   export interface PlainCollection<_Model> {
     /** The collection type */

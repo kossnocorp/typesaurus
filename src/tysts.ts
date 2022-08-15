@@ -85,7 +85,7 @@ const db = schema(($) => ({
 }))
 
 async function doc() {
-  const user = db.users.doc('sasha', {
+  const user = db.users.doc(db.users.id('sasha'), {
     name: 'Sasha',
     contacts: {
       email: 'koss@nocorp.me'
@@ -124,7 +124,7 @@ async function doc() {
 }
 
 async function get() {
-  const user = await db.users.get('sasha')
+  const user = await db.users.get(db.users.id('sasha'))
   if (!user) return
 
   // Runtime environment
@@ -158,7 +158,7 @@ async function get() {
 }
 
 async function getMany() {
-  const [user] = await db.users.getMany(['sasha'])
+  const [user] = await db.users.getMany([db.users.id('sasha')])
   if (!user) return
 
   // Runtime environment
@@ -297,7 +297,9 @@ async function query() {
 
   // in
 
-  await db.accounts.query(($) => [$.where($.docId(), 'in', ['id1', 'id2'])])
+  await db.accounts.query(($) => [
+    $.where($.docId(), 'in', [db.accounts.id('id1'), db.accounts.id('id2')])
+  ])
 
   await db.accounts.query(($) => [
     // @ts-expect-error - the value should be an array
@@ -328,42 +330,42 @@ async function query() {
 async function update() {
   // Simple update
 
-  await db.users.update('sasha', {
+  await db.users.update(db.users.id('sasha'), {
     name: 'Alexander'
   })
 
   // Update with helpers
 
-  await db.users.update('sasha', ($) => ({
+  await db.users.update(db.users.id('sasha'), ($) => ({
     name: 'Sasha',
     birthdate: $.remove(),
     createdAt: $.serverDate()
   }))
 
-  await db.posts.update('post-id', ($) => ({
+  await db.posts.update(db.posts.id('post-id'), ($) => ({
     likes: $.increment(5),
     likeIds: $.arrayUnion('like-id')
   }))
 
-  await db.posts.update('post-id', ($) => ({
+  await db.posts.update(db.posts.id('post-id'), ($) => ({
     likeIds: $.arrayRemove('like-id')
   }))
 
   // Enforce required fields
 
   // @ts-expect-error - name is required
-  await db.users.update('sasha', ($) => ({
+  await db.users.update(db.users.id('sasha'), ($) => ({
     name: $.remove()
   }))
 
   // @ts-expect-error - name is required
-  await db.users.update('sasha', ($) => ({
+  await db.users.update(db.users.id('sasha'), ($) => ({
     name: undefined
   }))
 
   // Works with nested fields
 
-  await db.users.update('sasha', ($) => ({
+  await db.users.update(db.users.id('sasha'), ($) => ({
     contacts: {
       email: 'koss@nocorp.me',
       phone: $.remove()
@@ -371,51 +373,53 @@ async function update() {
   }))
 
   // @ts-expect-error - email is required
-  await db.users.update('sasha', ($) => ({
+  await db.users.update(db.users.id('sasha'), ($) => ({
     contacts: {
       email: $.remove()
     }
   }))
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Optional', $.remove())
   )
 
   // Single field update
 
-  await db.accounts.update('sasha', ($) => $.field('name', 'Alexander'))
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
+    $.field('name', 'Alexander')
+  )
 
   // Multiple fields update
 
-  await db.accounts.update('sasha', ($) => [
+  await db.accounts.update(db.accounts.id('sasha'), ($) => [
     $.field('name', 'Alexander'),
     $.field('createdAt', $.serverDate())
   ])
 
   // Nested fields
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('contacts', 'phone', '+65xxxxxxxx')
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - wrong type
     $.field('contacts', 'phone', 6500000000)
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - can't update because emergencyContacts can be undefined
     $.field('emergencyContacts', 'phone', '+65xxxxxxxx')
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - emergencyContacts must have name and phone
     $.field('emergencyContacts', {
       name: 'Sasha'
     })
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('emergencyContacts', {
       name: 'Sasha',
       phone: '+65xxxxxxxx'
@@ -424,34 +428,34 @@ async function update() {
 
   // Deeply nested field corner cases
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Required', 'nested12Required', {
       hello: 'Hello!'
     })
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Required', 'nested12Required', {
       hello: 'Hello!',
       world: 'World!'
     })
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - can't update without hello
     $.field('nested1Required', 'nested12Required', {
       world: 'World!'
     })
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Optional', 'nested12Optional', {
       // @ts-expect-error - should not update because requried12 on nested1Optional is required
       hello: 'Hello!'
     })
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('nested1Optional', 'nested12Optional', {
       // @ts-expect-error - nested1Optional has required12, so can't update
       world: 'World!'
@@ -462,15 +466,15 @@ async function update() {
 
   const postId = 'post-id'
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('counters', { [postId]: { likes: 5 } })
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('counters', postId, { likes: 5 })
   )
 
-  await db.accounts.update('sasha', ($) =>
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('counters', postId, 'likes', $.increment(1))
   )
 }

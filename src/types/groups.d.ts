@@ -6,7 +6,7 @@ export namespace TypesaurusGroups {
     <DB extends Typesaurus.DB<any>>(db: DB): Groups<DB>
   }
 
-  export interface Group<ModelPair extends [any, any]>
+  export interface Group<ModelPair extends Typesaurus.ModelIdPair>
     extends Typesaurus.CollectionAPI<ModelPair> {
     /** The group type */
     type: 'group'
@@ -37,7 +37,7 @@ export namespace TypesaurusGroups {
     ? {
         [Key in TypesaurusUtils.UnionKeys<Schema>]: Group<
           Schema extends Record<Key, infer Value>
-            ? Value extends [any, any]
+            ? Value extends Typesaurus.ModelIdPair
               ? Value
               : never
             : never

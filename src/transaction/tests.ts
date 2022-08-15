@@ -32,7 +32,7 @@ describe('transaction', () => {
   })
 
   const plusOne = async (
-    counter: Typesaurus.Ref<Counter>,
+    counter: Typesaurus.Ref<[Counter, 'counters']>,
     useUpdate?: boolean
   ) =>
     transaction(db)
@@ -120,7 +120,7 @@ describe('transaction', () => {
   })
 
   it('supports subcollections', async () => {
-    const postId = await db.counters.id()
+    const postId = await db.posts.id()
     const counterId = await db.counters.id()
 
     const plus = async () =>
@@ -134,7 +134,10 @@ describe('transaction', () => {
 
     await Promise.all([plus(), plus(), plus()])
 
-    const doc = await db.posts(postId).counters.get(counterId)
+    const doc = await db
+      .posts(postId)
+      .counters.get(db.posts(postId).counters.id(counterId.toString()))
+
     expect(doc?.data.count).toBe(3)
   })
 
