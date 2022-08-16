@@ -1,6 +1,5 @@
-import { TypesaurusUtils } from '.'
 import sinon from 'sinon'
-import { stringify } from 'querystring'
+import { TypesaurusUtils } from '.'
 
 describe('TypesaurusUtils', () => {
   describe('SubscriptionPromise', () => {

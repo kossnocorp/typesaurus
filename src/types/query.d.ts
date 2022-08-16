@@ -1,5 +1,5 @@
 import type { Typesaurus } from '..'
-import { TypesaurusUtils } from '../utils'
+import type { TypesaurusUtils } from '../utils'
 
 export namespace TypesaurusQuery {
   export type DocId = '__id__'
@@ -13,12 +13,10 @@ export namespace TypesaurusQuery {
     | '!='
     | '>='
     | '>'
-    | 'array-contains'
     | 'in'
     | 'not-in'
+    | 'array-contains'
     | 'array-contains-any'
-
-  export type BasicWhereFilter = Exclude<WhereFilter, 'array-contains' | 'in'>
 
   /**
    * The query type.
@@ -33,14 +31,14 @@ export namespace TypesaurusQuery {
    */
   export interface OrderQuery<_Model> {
     type: 'order'
-    field: string
+    field: string[]
     method: OrderDirection
-    cursors: OrderCursors<Typesaurus.ModelPathPair, any>
+    cursors: OrderCursors<Typesaurus.ModelPathPair, any, any>
   }
 
   export interface WhereQuery<_Model> {
     type: 'where'
-    field: string | string[] | DocId
+    field: string[] | [DocId]
     filter: WhereFilter
     value: any
   }
@@ -55,11 +53,15 @@ export namespace TypesaurusQuery {
 
   export type OrderCursors<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
+    Parent,
+    Key extends keyof Parent | DocId
   > =
-    | [OrderCursorStart<ModelPair, Key>]
-    | [OrderCursorEnd<ModelPair, Key>]
-    | [OrderCursorStart<ModelPair, Key>, OrderCursorEnd<ModelPair, Key>]
+    | [OrderCursorStart<ModelPair, Parent, Key>]
+    | [OrderCursorEnd<ModelPair, Parent, Key>]
+    | [
+        OrderCursorStart<ModelPair, Parent, Key>,
+        OrderCursorEnd<ModelPair, Parent, Key>
+      ]
 
   export type OrderCursorPosition =
     | 'startAt'
@@ -69,50 +71,62 @@ export namespace TypesaurusQuery {
 
   export type OrderCursorStart<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
-  > = OrderCursorStartAt<ModelPair, Key> | OrderCursorStartAfter<ModelPair, Key>
+    Parent,
+    Key extends keyof Parent | DocId
+  > =
+    | OrderCursorStartAt<ModelPair, Parent, Key>
+    | OrderCursorStartAfter<ModelPair, Parent, Key>
 
   export interface OrderCursorStartAt<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
-  > extends OrderCursor<ModelPair, 'startAt', Key> {}
+    Parent,
+    Key extends keyof Parent | DocId
+  > extends OrderCursor<ModelPair, Parent, Key, 'startAt'> {}
 
   export interface OrderCursorStartAfter<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
-  > extends OrderCursor<ModelPair, 'startAfter', Key> {}
+    Parent,
+    Key extends keyof Parent | DocId
+  > extends OrderCursor<ModelPair, Parent, Key, 'startAfter'> {}
 
   export type OrderCursorEnd<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
-  > = OrderCursorEndAt<ModelPair, Key> | OrderCursorEndBefore<ModelPair, Key>
+    Parent,
+    Key extends keyof Parent | DocId
+  > =
+    | OrderCursorEndAt<ModelPair, Parent, Key>
+    | OrderCursorEndBefore<ModelPair, Parent, Key>
 
   export interface OrderCursorEndAt<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
-  > extends OrderCursor<ModelPair, 'endAt', Key> {}
+    Parent,
+    Key extends keyof Parent | DocId
+  > extends OrderCursor<ModelPair, Parent, Key, 'endAt'> {}
 
   export interface OrderCursorEndBefore<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
-  > extends OrderCursor<ModelPair, 'endBefore', Key> {}
+    Parent,
+    Key extends keyof Parent | DocId
+  > extends OrderCursor<ModelPair, Parent, Key, 'endBefore'> {}
 
   export interface OrderCursor<
     ModelPair extends Typesaurus.ModelPathPair,
-    Position extends OrderCursorPosition,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
+    Parent,
+    Key extends keyof Parent | DocId,
+    Position extends OrderCursorPosition
   > {
     type: 'cursor'
     position: Position
-    value: OrderCursorValue<ModelPair, Key>
+    value: OrderCursorValue<ModelPair, Parent, Key>
   }
 
   export type OrderCursorValue<
     ModelPair extends Typesaurus.ModelPathPair,
-    Key extends keyof ModelPair[0] /* Model */ | DocId
+    Parent,
+    Key extends keyof Parent | DocId
   > =
-    | (Key extends keyof ModelPair[0] /* Model */
-        ? ModelPair[0] /* Model */[Key]
+    | (Key extends keyof Parent
+        ? Parent[Key]
         : Typesaurus.Id<ModelPair[1] /* Path */>) // Field value or id
     | Typesaurus.Doc<ModelPair> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
@@ -121,293 +135,156 @@ export namespace TypesaurusQuery {
     $: QueryHelpers<ModelPair[0], ModelPair[1]>
   ) => Query<ModelPair[0] /* Model */> | Query<ModelPair[0] /* Model */>[]
 
+  export interface QueryFieldBase<
+    ModelPair extends Typesaurus.ModelPathPair,
+    Parent,
+    Key extends keyof Parent | DocId
+  > {
+    // With cursors
+    order(
+      ...cursors: OrderCursors<ModelPair, Parent, Key> | []
+    ): OrderQuery<ModelPair[0] /* Model */>
+
+    // With method and cursors
+    order(
+      method: OrderDirection,
+      ...cursors: OrderCursors<ModelPair, Parent, Key> | []
+    ): OrderQuery<ModelPair[0] /* Model */>
+  }
+
+  export interface QueryIdField<ModelPair extends Typesaurus.ModelPathPair>
+    extends QueryFieldBase<ModelPair, ModelPair[0] /* Model */, DocId> {
+    less(
+      id: Typesaurus.Id<ModelPair[1] /* Path */>
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    lessOrEqual(
+      id: Typesaurus.Id<ModelPair[1] /* Path */>
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    equal(
+      id: Typesaurus.Id<ModelPair[1] /* Path */>
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    not(
+      id: Typesaurus.Id<ModelPair[1] /* Path */>
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    more(
+      id: Typesaurus.Id<ModelPair[1] /* Path */>
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    moreOrEqual(
+      id: Typesaurus.Id<ModelPair[1] /* Path */>
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    in(
+      ids: Typesaurus.Id<ModelPair[1] /* Path */>[]
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    notIn(
+      ids: Typesaurus.Id<ModelPair[1] /* Path */>[]
+    ): WhereQuery<ModelPair[0] /* Model */>
+  }
+
+  export interface QueryPrimitiveField<
+    ModelPair extends Typesaurus.ModelPathPair,
+    Parent,
+    Key extends keyof Parent
+  > extends QueryFieldBase<ModelPair, Parent, Key> {
+    less(field: Parent[Key]): WhereQuery<ModelPair[0] /* Model */>
+
+    lessOrEqual(field: Parent[Key]): WhereQuery<ModelPair[0] /* Model */>
+
+    equal(field: Parent[Key]): WhereQuery<ModelPair[0] /* Model */>
+
+    not(field: Parent[Key]): WhereQuery<ModelPair[0] /* Model */>
+
+    more(field: Parent[Key]): WhereQuery<ModelPair[0] /* Model */>
+
+    moreOrEqual(field: Parent[Key]): WhereQuery<ModelPair[0] /* Model */>
+
+    in(fields: Parent[Key][]): WhereQuery<ModelPair[0] /* Model */>
+
+    notIn(fields: Parent[Key][]): WhereQuery<ModelPair[0] /* Model */>
+  }
+
+  export interface QueryArrayField<
+    ModelPair extends Typesaurus.ModelPathPair,
+    Parent,
+    Key extends keyof Parent
+  > {
+    contains(
+      field: Exclude<Parent[Key], undefined> extends Array<infer ItemType>
+        ? ItemType
+        : never
+    ): WhereQuery<ModelPair[0] /* Model */>
+
+    containsAny(
+      field: Exclude<Parent[Key], undefined> extends Array<any>
+        ? Parent[Key]
+        : never
+    ): WhereQuery<ModelPair[0] /* Model */>
+  }
+
+  export type QueryField<
+    ModelPair extends Typesaurus.ModelPathPair,
+    Parent,
+    Key extends keyof Parent
+  > = Exclude<Parent[Key], undefined> extends Array<any>
+    ? QueryArrayField<ModelPair, Parent, Key>
+    : QueryPrimitiveField<ModelPair, Parent, Key>
+
   export interface QueryHelpers<Model, Path> {
-    /*
-                     oooo                                     
-                     `888                                     
-    oooo oooo    ooo  888 .oo.    .ooooo.  oooo d8b  .ooooo.  
-     `88. `88.  .8'   888P"Y88b  d88' `88b `888""8P d88' `88b 
-      `88..]88..8'    888   888  888ooo888  888     888ooo888 
-       `888'`888'     888   888  888    .o  888     888    .o 
-        `8'  `8'     o888o o888o `Y8bod8P' d888b    `Y8bod8P' 
-    */
+    field(id: DocId): QueryIdField<[Model, Path]>
 
-    // 1-level keys path
+    field<Key extends keyof Model>(
+      key: Key
+    ): QueryField<[Model, Path], Model, Key>
 
-    // Basic filter
-    where<Key extends keyof Model | DocId>(
-      field: Key | [Key],
-      filter: BasicWhereFilter,
-      value: Key extends keyof Model ? Model[Key] : Typesaurus.Id<Path>
-    ): WhereQuery<Model>
-    // in filter
-    where<Key extends keyof Model | DocId>(
-      field: Key | [Key],
-      filter: 'in',
-      value: Key extends keyof Model ? Model[Key][] : Typesaurus.Id<Path>[]
-    ): WhereQuery<Model>
-    // array-contains filter
-    where<Key extends keyof Model>(
-      field: Key | [Key],
-      filter: 'array-contains',
-      value: TypesaurusUtils.AllRequired<Model>[Key] extends Array<
-        infer ItemType
-      >
-        ? ItemType
-        : never
-    ): WhereQuery<Model>
-
-    // 2-level keys path
-
-    // Basic filter
-    where<
+    field<
       Key1 extends keyof Model,
       Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
     >(
-      field: [Key1, Key2],
-      filter: BasicWhereFilter,
-      value: TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2]
-    ): WhereQuery<Model>
-    // in filter
-    where<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
-    >(
-      field: [Key1, Key2],
-      filter: 'in',
-      value: TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2][]
-    ): WhereQuery<Model>
-    // array-contains filter
-    where<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
-    >(
-      field: [Key1, Key2],
-      filter: 'array-contains',
-      value: TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2] extends Array<infer ItemType>
-        ? ItemType
-        : never
-    ): WhereQuery<Model>
+      key1: Key1,
+      key2: Key2
+    ): QueryField<[Model, Path], TypesaurusUtils.AllRequired<Model>[Key1], Key2>
 
-    // 3-level keys path
-
-    // Basic filter
-    where<
+    field<
       Key1 extends keyof Model,
       Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
       Key3 extends keyof TypesaurusUtils.AllRequired<
         TypesaurusUtils.AllRequired<Model>[Key1]
       >[Key2]
     >(
-      field: [Key1, Key2, Key3],
-      filter: BasicWhereFilter,
-      value: TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<
-          TypesaurusUtils.AllRequired<Model>[Key1]
-        >[Key2]
-      >[Key3]
-    ): WhereQuery<Model>
-    // in filter
-    where<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
-      Key3 extends keyof TypesaurusUtils.AllRequired<
+      key1: Key1,
+      key2: Key2,
+      key3: Key3
+    ): QueryField<
+      [Model, Path],
+      TypesaurusUtils.AllRequired<
         TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2]
-    >(
-      field: [Key1, Key2, Key3],
-      filter: 'in',
-      value: TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<
-          TypesaurusUtils.AllRequired<Model>[Key1]
-        >[Key2]
-      >[Key3][]
-    ): WhereQuery<Model>
-    // array-contains filter
-    where<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
-      Key3 extends keyof TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2]
-    >(
-      field: [Key1, Key2, Key3],
-      filter: 'array-contains',
-      value: TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<
-          TypesaurusUtils.AllRequired<Model>[Key1]
-        >[Key2]
-      >[Key3] extends Array<infer ItemType>
-        ? ItemType
-        : never
-    ): WhereQuery<Model>
-
-    /*
-                             .o8                     
-                            "888                     
-     .ooooo.  oooo d8b  .oooo888   .ooooo.  oooo d8b 
-    d88' `88b `888""8P d88' `888  d88' `88b `888""8P 
-    888   888  888     888   888  888ooo888  888     
-    888   888  888     888   888  888    .o  888     
-    `Y8bod8P' d888b    `Y8bod88P" `Y8bod8P' d888b    
-    */
-
-    // 1-level keys path
-
-    // Only key
-    order<Key extends keyof Model | DocId>(key: Key | [Key]): OrderQuery<Model>
-    // With cursors
-    order<Key extends keyof Model | DocId>(
-      key: Key | readonly [Key],
-      ...cursors: OrderCursors<[Model, Path], Key> | []
-    ): OrderQuery<Model>
-    // With method and cursors
-    order<Key extends keyof Model | DocId>(
-      key: Key | readonly [Key],
-      method: OrderDirection,
-      ...cursors: OrderCursors<[Model, Path], Key> | []
-    ): OrderQuery<Model>
-
-    // 2-level keys path
-
-    // Only key
-    order<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
-    >(
-      key: readonly [Key1, Key2]
-    ): OrderQuery<Model>
-    // With cursors
-    order<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
-    >(
-      key: readonly [Key1, Key2],
-      ...cursors:
-        | OrderCursors<
-            [
-              TypesaurusUtils.AllRequired<
-                TypesaurusUtils.AllRequired<Model>[Key1]
-              >,
-              Path
-            ],
-            Key2
-          >
-        | []
-    ): OrderQuery<Model>
-    // With method and cursors
-    order<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
-    >(
-      key: readonly [Key1, Key2],
-      method: OrderDirection,
-      ...cursors:
-        | OrderCursors<
-            [
-              TypesaurusUtils.AllRequired<
-                TypesaurusUtils.AllRequired<Model>[Key1]
-              >,
-              Path
-            ],
-            Key2
-          >
-        | []
-    ): OrderQuery<Model>
-
-    // 3-level keys path
-
-    // Only key
-    order<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
-      Key3 extends keyof TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2]
-    >(
-      field: readonly [Key1, Key2, Key3]
-    ): OrderQuery<Model>
-    // With cursors
-    order<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
-      Key3 extends keyof TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2]
-    >(
-      field: readonly [Key1, Key2, Key3],
-      ...cursors:
-        | OrderCursors<
-            [
-              TypesaurusUtils.AllRequired<
-                TypesaurusUtils.AllRequired<
-                  TypesaurusUtils.AllRequired<Model>[Key1]
-                >[Key2]
-              >,
-              Path
-            ],
-            Key3
-          >
-        | []
-    ): OrderQuery<Model>
-    // With method and cursors
-    order<
-      Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
-      Key3 extends keyof TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2]
-    >(
-      field: readonly [Key1, Key2, Key3],
-      method: OrderDirection,
-      ...cursors:
-        | OrderCursors<
-            [
-              TypesaurusUtils.AllRequired<
-                TypesaurusUtils.AllRequired<
-                  TypesaurusUtils.AllRequired<Model>[Key1]
-                >[Key2]
-              >,
-              Path
-            ],
-            Key3
-          >
-        | []
-    ): OrderQuery<Model>
-
-    /*
-                                .o8  
-                               "888  
-     .ooooo.  ooo. .oo.    .oooo888  
-    d88' `88b `888P"Y88b  d88' `888  
-    888ooo888  888   888  888   888  
-    888    .o  888   888  888   888  
-    `Y8bod8P' o888o o888o `Y8bod88P" 
-    */
+      >[Key2],
+      Key3
+    >
 
     limit(to: number): LimitQuery<Model>
 
-    startAt<Model, Path, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<[Model, Path], Key>
-    ): OrderCursorStartAt<[Model, Path], Key>
+    startAt<Parent, Key extends keyof Parent | DocId>(
+      value: OrderCursorValue<[Model, Path], Parent, Key>
+    ): OrderCursorStartAt<[Model, Path], Parent, Key>
 
-    startAfter<Model, Path, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<[Model, Path], Key>
-    ): OrderCursorStartAfter<[Model, Path], Key>
+    startAfter<Parent, Key extends keyof Parent | DocId>(
+      value: OrderCursorValue<[Model, Path], Parent, Key>
+    ): OrderCursorStartAfter<[Model, Path], Parent, Key>
 
-    endAt<Model, Path, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<[Model, Path], Key>
-    ): OrderCursorEndAt<[Model, Path], Key>
+    endAt<Parent, Key extends keyof Parent | DocId>(
+      value: OrderCursorValue<[Model, Path], Parent, Key>
+    ): OrderCursorEndAt<[Model, Path], Parent, Key>
 
-    endBefore<Model, Path, Key extends keyof Model | DocId>(
-      value: OrderCursorValue<[Model, Path], Key>
-    ): OrderCursorEndBefore<[Model, Path], Key>
+    endBefore<Parent, Key extends keyof Parent | DocId>(
+      value: OrderCursorValue<[Model, Path], Parent, Key>
+    ): OrderCursorEndBefore<[Model, Path], Parent, Key>
 
     docId(): DocId
   }

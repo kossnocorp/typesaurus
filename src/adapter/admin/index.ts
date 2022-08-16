@@ -606,9 +606,9 @@ export function query<
       case 'order': {
         const { field, method, cursors: queryCursors } = query
         firestoreQuery = firestoreQuery.orderBy(
-          field === '__id__'
+          field[0] === '__id__'
             ? admin.firestore.FieldPath.documentId()
-            : field.toString(),
+            : field.join('.'),
           method
         )
 
@@ -622,9 +622,9 @@ export function query<
                 value !== null &&
                 'type' in value &&
                 value.type == 'doc'
-                  ? field === '__id__'
+                  ? field[0] === '__id__'
                     ? value.ref.id
-                    : value.data[field]
+                    : field.reduce((acc, key) => acc[key], value.data)
                   : value
             }))
           )
@@ -633,11 +633,10 @@ export function query<
 
       case 'where': {
         const { field, filter, value } = query
-        const fieldName = Array.isArray(field) ? field.join('.') : field
         firestoreQuery = firestoreQuery.where(
-          fieldName === '__id__'
+          field[0] === '__id__'
             ? admin.firestore.FieldPath.documentId()
-            : fieldName,
+            : field.join('.'),
           filter,
           unwrapData(value)
         )
@@ -735,24 +734,39 @@ export function query<
 }
 
 function queryHelpers<Model>(): TypesaurusQuery.QueryHelpers<Model> {
-  return {
-    where: (field, filter, value) => ({
+  function where(field, filter, value) {
+    return {
       type: 'where',
       field,
       filter,
       value
-    }),
+    }
+  }
 
-    order: (field, ...args) => ({
-      type: 'order',
-      field,
-      method: typeof args[0] === 'string' ? args[0] : 'asc',
-      cursors:
-        args.length > 1
-          ? args.slice(1)
-          : typeof args[0] === 'object'
-          ? args
-          : undefined
+  return {
+    field: (...field) => ({
+      less: where.bind(null, field, '<'),
+      lessOrEqual: where.bind(null, field, '<='),
+      equal: where.bind(null, field, '=='),
+      not: where.bind(null, field, '!='),
+      more: where.bind(null, field, '>'),
+      moreOrEqual: where.bind(null, field, '>='),
+      in: where.bind(null, field, 'in'),
+      notIn: where.bind(null, field, 'not-in'),
+      contains: where.bind(null, field, 'array-contains'),
+      containsAny: where.bind(null, field, 'array-contains-any'),
+
+      order: (...args) => ({
+        type: 'order',
+        field,
+        method: typeof args[0] === 'string' ? args[0] : 'asc',
+        cursors:
+          args.length > 1
+            ? args.slice(1)
+            : typeof args[0] === 'object'
+            ? args
+            : undefined
+      })
     }),
 
     limit: (number) => ({
