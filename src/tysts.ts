@@ -380,47 +380,45 @@ async function update() {
   }))
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('nested1Optional', $.remove())
+    $.field('nested1Optional').set($.remove())
   )
 
   // Single field update
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('name', 'Alexander')
+    $.field('name').set('Alexander')
   )
 
   // Multiple fields update
 
   await db.accounts.update(db.accounts.id('sasha'), ($) => [
-    $.field('name', 'Alexander'),
-    $.field('createdAt', $.serverDate())
+    $.field('name').set('Alexander'),
+    $.field('createdAt').set($.serverDate())
   ])
 
   // Nested fields
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('contacts', 'phone', '+65xxxxxxxx')
+    $.field('contacts', 'phone').set('+65xxxxxxxx')
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - wrong type
-    $.field('contacts', 'phone', 6500000000)
+    $.field('contacts', 'phone').set(6500000000)
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - can't update because emergencyContacts can be undefined
-    $.field('emergencyContacts', 'phone', '+65xxxxxxxx')
+    $.field('emergencyContacts', 'phone').set('+65xxxxxxxx')
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - emergencyContacts must have name and phone
-    $.field('emergencyContacts', {
-      name: 'Sasha'
-    })
+    $.field('emergencyContacts').set({ name: 'Sasha' })
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('emergencyContacts', {
+    $.field('emergencyContacts').set({
       name: 'Sasha',
       phone: '+65xxxxxxxx'
     })
@@ -429,13 +427,13 @@ async function update() {
   // Deeply nested field corner cases
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('nested1Required', 'nested12Required', {
+    $.field('nested1Required', 'nested12Required').set({
       hello: 'Hello!'
     })
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('nested1Required', 'nested12Required', {
+    $.field('nested1Required', 'nested12Required').set({
       hello: 'Hello!',
       world: 'World!'
     })
@@ -443,21 +441,19 @@ async function update() {
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
     // @ts-expect-error - can't update without hello
-    $.field('nested1Required', 'nested12Required', {
+    $.field('nested1Required', 'nested12Required').set({
       world: 'World!'
     })
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('nested1Optional', 'nested12Optional', {
-      // @ts-expect-error - should not update because requried12 on nested1Optional is required
-      hello: 'Hello!'
-    })
+    // @ts-expect-error - should not update because requried12 on nested1Optional is required
+    $.field('nested1Optional', 'nested12Optional').set({ hello: 'Hello!' })
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('nested1Optional', 'nested12Optional', {
-      // @ts-expect-error - nested1Optional has required12, so can't update
+    // @ts-expect-error - nested1Optional has required12, so can't update
+    $.field('nested1Optional', 'nested12Optional').set({
       world: 'World!'
     })
   )
@@ -467,14 +463,14 @@ async function update() {
   const postId = 'post-id'
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('counters', { [postId]: { likes: 5 } })
+    $.field('counters').set({ [postId]: { likes: 5 } })
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('counters', postId, { likes: 5 })
+    $.field('counters', postId).set({ likes: 5 })
   )
 
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
-    $.field('counters', postId, 'likes', $.increment(1))
+    $.field('counters', postId, 'likes').set($.increment(1))
   )
 }
