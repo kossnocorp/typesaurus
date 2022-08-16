@@ -366,35 +366,24 @@ export namespace Typesaurus {
     arrayRemove<Type>(values: Type | Type[]): ValueArrayRemove<Type>
   }
 
+  export interface UpdateFieldHelpers<Model, Parent, Key extends keyof Parent> {
+    set(value: WriteValue<Parent, Key>): UpdateField<Model>
+  }
+
   export interface UpdateHelpers<Model> extends WriteHelpers<Model> {
     field<Key1 extends keyof Model>(
-      key: Key1,
-      value: WriteValue<Model, Key1>
-    ): UpdateField<Model>
+      key: Key1
+    ): UpdateFieldHelpers<Model, Model, Key1>
 
     field<
       Key1 extends keyof Model,
       Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
     >(
       key1: Key1,
-      key2: Key2,
-      value: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
-        ? WriteValue<TypesaurusUtils.AllRequired<Model>[Key1], Key2>
+      key2: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
+        ? Key2
         : never
-    ): UpdateField<Model>
-
-    // field<
-    //   Key1 extends keyof Model,
-    //   Key2 extends keyof Model[Key1],
-    //   Key3 extends keyof Model[Key1][Key2]
-    // >(
-    //   key1: Key1,
-    //   key2: Key2,
-    //   key3: Key3,
-    //   value: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
-    //     ? UpdateValue<Model[Key1][Key2], Key3>
-    //     : never
-    // ): UpdateField<Model>
+    ): UpdateFieldHelpers<Model, TypesaurusUtils.AllRequired<Model>[Key1], Key2>
 
     field<
       Key1 extends keyof Model,
@@ -404,17 +393,19 @@ export namespace Typesaurus {
       >[Key2]
     >(
       key1: Key1,
-      key2: Key2,
-      key3: Key3,
-      value: TypesaurusUtils.SafePath3<Model, Key1, Key2, Key3> extends true
-        ? WriteValue<
-            TypesaurusUtils.AllRequired<
-              TypesaurusUtils.AllRequired<Model>[Key1]
-            >[Key2],
-            Key3
-          >
+      key2: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
+        ? Key2
+        : never,
+      key3: TypesaurusUtils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
         : never
-    ): UpdateField<Model>
+    ): UpdateFieldHelpers<
+      Model,
+      TypesaurusUtils.AllRequired<
+        TypesaurusUtils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key3
+    >
 
     field<
       Key1 extends keyof Model,
@@ -429,154 +420,30 @@ export namespace Typesaurus {
       >[Key3]
     >(
       key1: Key1,
-      key2: Key2,
-      key3: Key3,
-      key4: Key4,
-      value: TypesaurusUtils.SafePath4<
+      key2: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
+        ? Key2
+        : never,
+      key3: TypesaurusUtils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
+        : never,
+      key4: TypesaurusUtils.SafePath4<
         Model,
         Key1,
         Key2,
         Key3,
         Key4
       > extends true
-        ? WriteValue<
-            TypesaurusUtils.AllRequired<
-              TypesaurusUtils.AllRequired<
-                TypesaurusUtils.AllRequired<Model>[Key1]
-              >[Key2]
-            >[Key3],
-            Key4
-          >
+        ? Key4
         : never
-    ): UpdateField<Model>
-
-    /*
-
-    field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Model[Key1],
-      Key3 extends keyof Model[Key1][Key2],
-      Key4 extends keyof Model[Key1][Key2][Key3]
-    >(
-      key: readonly [Key1, Key2, Key3, Key4],
-      value:
-        | UpdateModel<Model[Key1][Key2][Key3][Key4]>
-        | UpdateValue<Model[Key1][Key2][Key3], Key4>
-    ): UpdateField<Model>
-
-    field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Model[Key1],
-      Key3 extends keyof Model[Key1][Key2],
-      Key4 extends keyof Model[Key1][Key2][Key3],
-      Key5 extends keyof Model[Key1][Key2][Key3][Key4]
-    >(
-      key: readonly [Key1, Key2, Key3, Key4, Key5],
-      value:
-        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5]>
-        | UpdateValue<Model[Key1][Key2][Key3][Key4], Key5>
-    ): UpdateField<Model>
-
-    field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Model[Key1],
-      Key3 extends keyof Model[Key1][Key2],
-      Key4 extends keyof Model[Key1][Key2][Key3],
-      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5]
-    >(
-      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6],
-      value:
-        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5][Key6]>
-        | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5], Key6>
-    ): UpdateField<Model>
-
-    field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Model[Key1],
-      Key3 extends keyof Model[Key1][Key2],
-      Key4 extends keyof Model[Key1][Key2][Key3],
-      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6]
-    >(
-      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6, Key7],
-      value:
-        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]>
-        | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5][Key6], Key7>
-    ): UpdateField<Model>
-
-    field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Model[Key1],
-      Key3 extends keyof Model[Key1][Key2],
-      Key4 extends keyof Model[Key1][Key2][Key3],
-      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-      Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
-    >(
-      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8],
-      value:
-        | UpdateModel<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]>
-        | UpdateValue<Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7], Key8>
-    ): UpdateField<Model>
-
-    field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Model[Key1],
-      Key3 extends keyof Model[Key1][Key2],
-      Key4 extends keyof Model[Key1][Key2][Key3],
-      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-      Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-      Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
-    >(
-      key: readonly [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9],
-      value:
-        | UpdateModel<
-            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
-          >
-        | UpdateValue<
-            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
-            Key9
-          >
-    ): UpdateField<Model>
-
-    field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Model[Key1],
-      Key3 extends keyof Model[Key1][Key2],
-      Key4 extends keyof Model[Key1][Key2][Key3],
-      Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-      Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-      Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-      Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-      Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
-      Key10 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
-    >(
-      key: readonly [
-        Key1,
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9,
-        Key10
-      ],
-      value:
-        | UpdateModel<
-            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10]
-          >
-        | UpdateValue<
-            Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
-            Key10
-          >
-    ): UpdateField<Model>*/
+    ): UpdateFieldHelpers<
+      Model,
+      TypesaurusUtils.AllRequired<
+        TypesaurusUtils.AllRequired<
+          TypesaurusUtils.AllRequired<Model>[Key1]
+        >[Key2]
+      >[Key3],
+      Key4
+    >
   }
 
   export interface SchemaHelpers {

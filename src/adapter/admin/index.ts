@@ -528,9 +528,11 @@ export function updateHelpers<Model>(): Typesaurus.UpdateHelpers<Model> {
   return {
     ...writeHelpers(),
 
-    field: (...args) => ({
-      key: args.slice(0, args.length - 1),
-      value: args[args.length - 1]
+    field: (...field) => ({
+      set: (value) => ({
+        key: field,
+        value
+      })
     })
   }
 }

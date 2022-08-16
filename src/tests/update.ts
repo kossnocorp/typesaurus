@@ -66,8 +66,8 @@ describe('update', () => {
     })
     await user.update({ name: 'Sasha Koss' })
     await user.update(($) => [
-      $.field('name', 'Sasha Koss'),
-      $.field('address', 'city', 'Moscow')
+      $.field('name').set('Sasha Koss'),
+      $.field('address', 'city').set('Moscow')
     ])
     const userFromDB = await db.users.get(user.id)
     expect(userFromDB?.data).toEqual({
@@ -85,9 +85,9 @@ describe('update', () => {
     })
     const { id } = user
     await db.users.update(id, ($) => [
-      $.field('name', 'Sasha Koss'),
-      $.field('address', 'city', 'Dimitrovgrad'),
-      $.field('visits', $.increment(1))
+      $.field('name').set('Sasha Koss'),
+      $.field('address', 'city').set('Dimitrovgrad'),
+      $.field('visits').set($.increment(1))
     ])
     const userFromDB = await user.get()
     expect(userFromDB?.data).toEqual({
