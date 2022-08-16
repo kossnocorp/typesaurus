@@ -5,8 +5,14 @@ describe('remove', () => {
     name: string
   }
 
+  interface Order {
+    title: string
+  }
+
   const db = schema(($) => ({
-    users: $.collection<User>()
+    users: $.collection<User>().sub({
+      orders: $.collection<Order>()
+    })
   }))
 
   it('removes document', async () => {
@@ -31,5 +37,18 @@ describe('remove', () => {
     await userDoc.remove()
     const userFromDB = await user.get()
     expect(userFromDB).toBeNull()
+  })
+
+  describe('subcollection', () => {
+    it('works on subcollections', async () => {
+      const userId = await db.users.id()
+      const orderId = await db.users(userId).orders.id()
+      const orderRef = await db
+        .users(userId)
+        .orders.set(orderId, { title: 'Amazing product' })
+      await db.users(userId).orders.remove(orderRef.id)
+      const order = await db.users(userId).orders.get(orderRef.id)
+      expect(order).toBeNull()
+    })
   })
 })

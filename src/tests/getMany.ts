@@ -5,8 +5,14 @@ describe('getMany', () => {
     color: string
   }
 
+  interface Fly {
+    color: string
+  }
+
   const db = schema(($) => ({
-    fruits: $.collection<Fruit>()
+    fruits: $.collection<Fruit>().sub({
+      flies: $.collection<Fly>()
+    })
   }))
 
   beforeAll(async () => {
@@ -106,6 +112,26 @@ describe('getMany', () => {
       )
       expect(list.length).toBe(2)
     })
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const fruitId = await db.fruits.id()
+
+        const [fly1, fly2] = await Promise.all([
+          db.fruits(fruitId).flies.add({ color: 'Brown' }),
+          db.fruits(fruitId).flies.add({ color: 'Black' })
+        ])
+
+        const updates = await db
+          .fruits(fruitId)
+          .flies.getMany([fly1.id, fly2.id])
+
+        expect(updates.map((o) => o.data.color).sort()).toEqual([
+          'Black',
+          'Brown'
+        ])
+      })
+    })
   })
 
   describe('subscription', () => {
@@ -198,6 +224,30 @@ describe('getMany', () => {
     //         resolve(void 0)
     //       })
     //   }))
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const fruitId = await db.fruits.id()
+
+        const [fly1, fly2] = await Promise.all([
+          db.fruits(fruitId).flies.add({ color: 'Brown' }),
+          db.fruits(fruitId).flies.add({ color: 'Black' })
+        ])
+
+        return new Promise((resolve) => {
+          off = db
+            .fruits(fruitId)
+            .flies.getMany([fly1.id, fly2.id])
+            .on((flies) => {
+              expect(flies.map((o) => o.data.color).sort()).toEqual([
+                'Black',
+                'Brown'
+              ])
+              resolve(void 0)
+            })
+        })
+      })
+    })
 
     describe('real-time', () => {
       it('subscribes to updates', async () => {

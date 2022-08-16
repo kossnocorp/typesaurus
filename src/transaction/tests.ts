@@ -119,28 +119,6 @@ describe('transaction', () => {
     expect(doc).toBe(null)
   })
 
-  it('supports subcollections', async () => {
-    const postId = await db.posts.id()
-    const counterId = await db.counters.id()
-
-    const plus = async () =>
-      transaction(db)
-        .read(($) => $.db.posts(postId).counters.get(counterId))
-        .write(($) =>
-          $.db.posts(postId).counters.set(counterId, {
-            count: ($.data?.data.count || 0) + 1
-          })
-        )
-
-    await Promise.all([plus(), plus(), plus()])
-
-    const doc = await db
-      .posts(postId)
-      .counters.get(db.posts(postId).counters.id(counterId.toString()))
-
-    expect(doc?.data.count).toBe(3)
-  })
-
   it('allows to assert environment', async () => {
     const id = await db.counters.id()
 
@@ -161,5 +139,29 @@ describe('transaction', () => {
       await client()
       expect(server).toThrowError('Expected server environment')
     }
+  })
+
+  describe('subcollection', () => {
+    it('works on subcollections', async () => {
+      const postId = await db.posts.id()
+      const counterId = await db.counters.id()
+
+      const plus = async () =>
+        transaction(db)
+          .read(($) => $.db.posts(postId).counters.get(counterId))
+          .write(($) =>
+            $.db.posts(postId).counters.set(counterId, {
+              count: ($.data?.data.count || 0) + 1
+            })
+          )
+
+      await Promise.all([plus(), plus(), plus()])
+
+      const doc = await db
+        .posts(postId)
+        .counters.get(db.posts(postId).counters.id(counterId.toString()))
+
+      expect(doc?.data.count).toBe(3)
+    })
   })
 })

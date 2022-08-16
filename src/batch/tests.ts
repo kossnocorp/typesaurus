@@ -8,8 +8,14 @@ describe('batch', () => {
     foo?: boolean
   }
 
+  interface Order {
+    title: string
+  }
+
   const db = schema(($) => ({
-    users: $.collection<User>()
+    users: $.collection<User>().sub({
+      orders: $.collection<Order>()
+    })
   }))
 
   it('performs batch operations', async () => {
@@ -138,5 +144,25 @@ describe('batch', () => {
       await client()
       expect(server).toThrowError('Expected server environment')
     }
+  })
+
+  describe('subcollection', () => {
+    it('works on subcollections', async () => {
+      const userId = await db.users.id()
+      const orderId1 = await db.users(userId).orders.id()
+      const orderId2 = await db.users(userId).orders.id()
+
+      const $ = batch(db)
+      $.users(userId).orders.set(orderId1, { title: 'First order' })
+      $.users(userId).orders.set(orderId2, { title: 'Another order' })
+      await $()
+
+      const [order1, order2] = await db
+        .users(userId)
+        .orders.getMany([orderId1, orderId2])
+
+      expect(order1?.data.title).toBe('First order')
+      expect(order2?.data.title).toBe('Another order')
+    })
   })
 })

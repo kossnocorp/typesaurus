@@ -13,9 +13,15 @@ describe('all', () => {
     date?: Date
   }
 
+  interface Update {
+    location: string
+  }
+
   const db = schema(($) => ({
     books: $.collection<Book>(),
-    orders: $.collection<Order>()
+    orders: $.collection<Order>().sub({
+      updates: $.collection<Update>()
+    })
   }))
 
   beforeEach(async () => {
@@ -92,6 +98,26 @@ describe('all', () => {
       const docs = await db.orders.all()
       expect(docs[0]?.data.date?.getTime()).toBe(date.getTime())
       expect(docs[1]?.data.date?.getTime()).toBe(date.getTime())
+    })
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const orderId = await db.orders.id()
+
+        await Promise.all([
+          db.orders(orderId).updates.add({ location: 'New York' }),
+          db.orders(orderId).updates.add({ location: 'Singapore' }),
+          db.orders(orderId).updates.add({ location: 'Prague' })
+        ])
+
+        const updates = await db.orders(orderId).updates.all()
+
+        expect(updates.map((o) => o.data.location).sort()).toEqual([
+          'New York',
+          'Prague',
+          'Singapore'
+        ])
+      })
     })
 
     describe('groups', () => {
@@ -229,6 +255,32 @@ describe('all', () => {
             }
             resolve(void 0)
           }
+        })
+      })
+    })
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const orderId = await db.orders.id()
+
+        await Promise.all([
+          db.orders(orderId).updates.add({ location: 'New York' }),
+          db.orders(orderId).updates.add({ location: 'Singapore' }),
+          db.orders(orderId).updates.add({ location: 'Prague' })
+        ])
+
+        return new Promise((resolve) => {
+          off = db
+            .orders(orderId)
+            .updates.all()
+            .on((updates) => {
+              expect(updates.map((o) => o.data.location).sort()).toEqual([
+                'New York',
+                'Prague',
+                'Singapore'
+              ])
+              resolve(void 0)
+            })
         })
       })
     })
