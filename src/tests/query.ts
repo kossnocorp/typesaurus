@@ -322,8 +322,8 @@ describe('query', () => {
       }
 
       const db = schema(($) => ({
-        contacts: $.sub($.collection<Contact>(), {
-          contactMessages: $.sub($.collection<Message>(), {
+        contacts: $.collection<Contact>().sub({
+          contactMessages: $.collection<Message>().sub({
             messagePosts: $.collection<Post>()
           })
         })
@@ -973,8 +973,8 @@ describe('query', () => {
       }
 
       const db = schema(($) => ({
-        contacts: $.sub($.collection<Contact>(), {
-          contactMessages: $.sub($.collection<Message>(), {
+        contacts: $.collection<Contact>().sub({
+          contactMessages: $.collection<Message>().sub({
             messagePosts: $.collection<Post>()
           })
         })

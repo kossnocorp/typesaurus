@@ -447,11 +447,6 @@ export namespace Typesaurus {
   }
 
   export interface SchemaHelpers {
-    sub<Model, Schema extends PlainSchema>(
-      collection: PlainCollection<Model>,
-      schema: Schema
-    ): NestedPlainCollection<Model, Schema>
-
     collection<Model>(): PlainCollection<Model>
   }
 
@@ -562,8 +557,10 @@ export namespace Typesaurus {
    *
    */
   export interface RichCollection<ModelPair extends ModelPathPair>
-    extends PlainCollection<ModelPair>,
-      CollectionAPI<ModelPair> {
+    extends CollectionAPI<ModelPair> {
+    /** The collection type */
+    type: 'collection'
+
     /** The Firestore path */
     path: string
 
@@ -657,13 +654,19 @@ export namespace Typesaurus {
     ModelPair extends Typesaurus.ModelPathPair = Typesaurus.ModelPathPair
   > = RichCollection<ModelPair> | NestedRichCollection<ModelPair, AnyDB>
 
-  export interface PlainCollection<_Model> {
+  export interface PlainCollection<Model> {
     /** The collection type */
     type: 'collection'
+
+    sub<Schema extends PlainSchema>(
+      schema: Schema
+    ): NestedPlainCollection<Model, Schema>
   }
 
-  export interface NestedPlainCollection<Model, Schema extends PlainSchema>
-    extends PlainCollection<Model> {
+  export interface NestedPlainCollection<_Model, Schema extends PlainSchema> {
+    /** The collection type */
+    type: 'collection'
+
     schema: Schema
   }
 

@@ -540,11 +540,13 @@ export function updateHelpers<Model>(): Typesaurus.UpdateHelpers<Model> {
 function schemaHelpers(): Typesaurus.SchemaHelpers {
   return {
     collection() {
-      return { type: 'collection' }
-    },
+      return {
+        type: 'collection',
 
-    sub(collection, schema) {
-      return { ...collection, schema }
+        sub(schema) {
+          return { type: 'collection', schema }
+        }
+      }
     }
   }
 }

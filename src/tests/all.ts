@@ -100,11 +100,11 @@ describe('all', () => {
       }
 
       const db = schema(($) => ({
-        books: $.sub($.collection<Book>(), {
+        books: $.collection<Book>().sub({
           comments: $.collection<Comment>()
         }),
 
-        orders: $.sub($.collection<Order>(), {
+        orders: $.collection<Order>().sub({
           comments: $.collection<Comment>()
         })
       }))
@@ -239,11 +239,11 @@ describe('all', () => {
       }
 
       const db = schema(($) => ({
-        books: $.sub($.collection<Book>(), {
+        books: $.collection<Book>().sub({
           comments: $.collection<Comment>()
         }),
 
-        orders: $.sub($.collection<Order>(), {
+        orders: $.collection<Order>().sub({
           comments: $.collection<Comment>()
         })
       }))
