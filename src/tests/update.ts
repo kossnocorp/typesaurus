@@ -24,8 +24,15 @@ describe('update', () => {
     likedBy: Typesaurus.Ref<[User, 'users']>[]
   }
 
+  interface Order {
+    title: string
+    quantity: number
+  }
+
   const db = schema(($) => ({
-    users: $.collection<User>(),
+    users: $.collection<User>().sub({
+      orders: $.collection<Order>()
+    }),
     posts: $.collection<Post>(),
     favorites: $.collection<Favorite>(),
     movies: $.collection<Movies>()
@@ -281,6 +288,19 @@ describe('update', () => {
     })
   })
 
+  describe('subcollection', () => {
+    it('works on subcollections', async () => {
+      const userId = await db.users.id()
+      const orderId = await db.users(userId).orders.id()
+      const orderRef = await db
+        .users(userId)
+        .orders.set(orderId, { title: 'Amazing product', quantity: 42 })
+      await db.users(userId).orders.update(orderRef.id, { quantity: 41 })
+      const order = await db.users(userId).orders.get(orderRef.id)
+      expect(order?.data.quantity).toBe(41)
+    })
+  })
+
   describe('updating arrays', () => {
     it('union update', async () => {
       const userId = await db.users.id()
@@ -348,10 +368,9 @@ describe('update', () => {
         likedBy: $.arrayUnion([user2])
       }))
       const movieFromDB = await movie.get()
-      expect(movieFromDB?.data).toEqual({
-        title: "Harry Potter and the Sorcerer's Stone",
-        likedBy: [user1, user2]
-      })
+      expect(movieFromDB?.data.likedBy.length).toBe(2)
+      expect(movieFromDB?.data.likedBy[0]?.id).toBe(user1.id)
+      expect(movieFromDB?.data.likedBy[1]?.id).toBe(user2.id)
     })
 
     it('remove update references', async () => {
@@ -366,10 +385,8 @@ describe('update', () => {
         likedBy: $.arrayRemove([user2])
       }))
       const bookFromDB = await movie.get()
-      expect(bookFromDB?.data).toEqual({
-        title: 'Harry Potter and the Chamber of Secrets',
-        likedBy: [user1]
-      })
+      expect(bookFromDB?.data.likedBy.length).toBe(1)
+      expect(bookFromDB?.data.likedBy[0]?.id).toBe(user1.id)
     })
   })
 })

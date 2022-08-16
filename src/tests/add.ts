@@ -11,8 +11,14 @@ describe('add', () => {
     date?: Date
   }
 
+  interface Order {
+    title: string
+  }
+
   const db = schema(($) => ({
-    users: $.collection<User>(),
+    users: $.collection<User>().sub({
+      orders: $.collection<Order>()
+    }),
     posts: $.collection<Post>()
   }))
 
@@ -90,6 +96,17 @@ describe('add', () => {
       await client()
       expect(server).toThrowError('Expected server environment')
     }
+  })
+
+  describe('subcollection', () => {
+    it('works on subcollections', async () => {
+      const userId = await db.users.id()
+      const orderRef = await db
+        .users(userId)
+        .orders.add({ title: 'Amazing product' })
+      const order = await db.users(userId).orders.get(orderRef.id)
+      expect(order?.data.title).toBe('Amazing product')
+    })
   })
 
   describe('server dates', () => {

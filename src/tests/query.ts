@@ -17,9 +17,16 @@ describe('query', () => {
     text: string
   }
 
+  interface Reply {
+    ownerId: string
+    text: string
+  }
+
   const db = schema(($) => ({
     contacts: $.collection<Contact>(),
-    messages: $.collection<Message>()
+    messages: $.collection<Message>().sub({
+      replies: $.collection<Reply>()
+    })
   }))
 
   const ownerId = nanoid()
@@ -313,6 +320,27 @@ describe('query', () => {
       ])
       expect(docs.length).toBe(1)
       expect(docs[0]?.data.name).toBe('Sasha')
+    })
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const ownerId = nanoid()
+        const messageId = await db.messages.id()
+
+        await Promise.all([
+          db.messages(messageId).replies.add({ ownerId, text: 'Hey!' }),
+          db.messages(messageId).replies.add({ ownerId, text: 'Ho!' }),
+          db
+            .messages(messageId)
+            .replies.add({ ownerId: 'another-id', text: "Let's go" })
+        ])
+
+        const updates = await db
+          .messages(messageId)
+          .replies.query(($) => $.field('ownerId').equal(ownerId))
+
+        expect(updates.map((o) => o.data.text).sort()).toEqual(['Hey!', 'Ho!'])
+      })
     })
 
     describe('groups', () => {
@@ -965,6 +993,34 @@ describe('query', () => {
               resolve(void 0)
           })
       }))
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const ownerId = nanoid()
+        const messageId = await db.messages.id()
+
+        await Promise.all([
+          db.messages(messageId).replies.add({ ownerId, text: 'Hey!' }),
+          db.messages(messageId).replies.add({ ownerId, text: 'Ho!' }),
+          db
+            .messages(messageId)
+            .replies.add({ ownerId: 'another-id', text: "Let's go" })
+        ])
+
+        return new Promise((resolve) => {
+          off = db
+            .messages(messageId)
+            .replies.query(($) => $.field('ownerId').equal(ownerId))
+            .on((updates) => {
+              expect(updates.map((o) => o.data.text).sort()).toEqual([
+                'Hey!',
+                'Ho!'
+              ])
+              resolve(void 0)
+            })
+        })
+      })
+    })
 
     describe('groups', () => {
       interface Post {

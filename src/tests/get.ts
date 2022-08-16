@@ -14,8 +14,14 @@ describe('get', () => {
 
   interface Nope {}
 
+  interface Order {
+    title: string
+  }
+
   const db = schema(($) => ({
-    users: $.collection<User>(),
+    users: $.collection<User>().sub({
+      orders: $.collection<Order>()
+    }),
     posts: $.collection<Post>(),
     nope: $.collection<Nope>()
   }))
@@ -102,6 +108,20 @@ describe('get', () => {
       const postFromDB = await post.get()
       expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
     })
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const userId = await db.users.id()
+
+        const orderRef = await db
+          .users(userId)
+          .orders.add({ title: 'Amazing product' })
+
+        const order = await db.users(userId).orders.get(orderRef.id)
+
+        expect(order?.data.title).toBe('Amazing product')
+      })
+    })
   })
 
   describe('subscription', () => {
@@ -157,6 +177,26 @@ describe('get', () => {
         off = db.posts.get(post.id).on((postFromDB) => {
           expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
           resolve(void 0)
+        })
+      })
+    })
+
+    describe('subcollection', () => {
+      it('works on subcollections', async () => {
+        const userId = await db.users.id()
+
+        const orderRef = await db
+          .users(userId)
+          .orders.add({ title: 'Amazing product' })
+
+        return new Promise((resolve) => {
+          off = db
+            .users(userId)
+            .orders.get(orderRef.id)
+            .on((order) => {
+              expect(order?.data.title).toBe('Amazing product')
+              resolve(void 0)
+            })
         })
       })
     })
