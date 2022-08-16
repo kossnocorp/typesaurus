@@ -12,7 +12,7 @@ describe('transaction', () => {
 
   const db = schema(($) => ({
     counters: $.collection<Counter>(),
-    posts: $.sub($.collection<Post>(), {
+    posts: $.collection<Post>().sub({
       counters: $.collection<Counter>()
     })
   }))

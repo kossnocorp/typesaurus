@@ -67,15 +67,15 @@ const db = schema(($) => ({
 
 async function tysts() {
   transaction(db)
-    .read(($) => $.db.users.get('asd'))
+    .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
       // Access transaction data
       $.data?.data.contacts.email
 
       // @ts-expect-error - all the data is missing
-      $.db.users.set('asd', {})
+      $.db.users.set(db.users.id('asd'), {})
 
-      $.db.users.set('asd', ($) => ({
+      $.db.users.set(db.users.id('asd'), ($) => ({
         name: 'Sasha',
         contacts: {
           email: 'koss@nocorp.me'
@@ -84,27 +84,27 @@ async function tysts() {
         createdAt: $.serverDate()
       }))
 
-      $.db.users.update('asd', {
+      $.db.users.update(db.users.id('asd'), {
         // @ts-expect-error
         ame: 'Alexander'
       })
 
-      $.db.users.update('asd', {
+      $.db.users.update(db.users.id('asd'), {
         name: 'Alexander'
       })
 
-      $.db.users.update('asd', {
+      $.db.users.update(db.users.id('asd'), {
         name: 'Alexander'
       })
 
-      $.db.posts.remove('123')
+      $.db.posts.remove(db.posts.id('qwe'))
     })
 
   // Single doc read
 
   transaction(db)
     .read(async ($) => {
-      const doc = await $.db.users.get('asd')
+      const doc = await $.db.users.get(db.users.id('asd'))
       // @ts-expect-error
       doc?.upset
       return doc
@@ -118,7 +118,10 @@ async function tysts() {
 
   transaction(db)
     .read(async ($) =>
-      Promise.all([$.db.users.get('asd'), $.db.posts.get('qwe')])
+      Promise.all([
+        $.db.users.get(db.users.id('asd')),
+        $.db.posts.get(db.posts.id('qwe'))
+      ])
     )
     .write(($) => {
       $.data[0]?.data.contacts
@@ -132,8 +135,8 @@ async function tysts() {
 
   transaction(db)
     .read(async ($) => ({
-      user: await $.db.users.get('asd'),
-      post: await $.db.posts.get('qwe')
+      user: await $.db.users.get(db.users.id('asd')),
+      post: await $.db.posts.get(db.posts.id('qwe'))
     }))
     .write(($) => {
       $.data.user?.data.contacts
@@ -148,9 +151,9 @@ async function tysts() {
   transaction(db)
     .read(async ($) => ({
       hello: {
-        user: await $.db.users.get('asd')
+        user: await $.db.users.get(db.users.id('asd'))
       },
-      world: [await $.db.posts.get('qwe')]
+      world: [await $.db.posts.get(db.posts.id('qwe'))]
     }))
     .write(($) => {
       $.data.hello.user?.data.contacts
@@ -163,7 +166,12 @@ async function tysts() {
   // Get multiple documents
 
   transaction(db)
-    .read(($) => Promise.all([$.db.users.get('asd'), $.db.posts.get('asd')]))
+    .read(($) =>
+      Promise.all([
+        $.db.users.get(db.users.id('asd')),
+        $.db.posts.get(db.posts.id('qwe'))
+      ])
+    )
     .write(($) => {
       $.data[0]?.data.birthdate
       $.data[1]?.data.title
@@ -172,7 +180,7 @@ async function tysts() {
   // Runtime environement
 
   transaction(db)
-    .read(($) => $.db.users.get('asd'))
+    .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
       if (!$.data) return
 
@@ -184,17 +192,17 @@ async function tysts() {
       $.data.data.createdAt.getDay()
 
       // @ts-expect-error - created at must be a server date
-      $.db.users.update('asd', ($) => ({
+      $.db.users.update(db.users.id('asd'), ($) => ({
         createdAt: new Date()
       }))
 
-      $.db.users.update('asd', ($) => ({
+      $.db.users.update(db.users.id('asd'), ($) => ({
         createdAt: $.serverDate()
       }))
     })
 
   transaction(db, { as: 'server' })
-    .read(($) => $.db.users.get('asd'))
+    .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
       if (!$.data) return
 
@@ -202,7 +210,7 @@ async function tysts() {
       if ($.data.environment === 'client') {
       }
 
-      $.db.users.update('asd', ($) => ({
+      $.db.users.update(db.users.id('asd'), ($) => ({
         createdAt: new Date()
       }))
     })
@@ -210,7 +218,7 @@ async function tysts() {
   // Update constraints
 
   transaction(db)
-    .read(($) => $.db.users.get('asd'))
+    .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
       if (!$.data) return
 
@@ -228,30 +236,30 @@ async function tysts() {
         createdAt: $.serverDate()
       }))
 
-      $.db.posts.update('post-id', ($) => ({
+      $.db.posts.update(db.posts.id('qwe'), ($) => ({
         likes: $.increment(5),
         likeIds: $.arrayUnion('like-id')
       }))
 
-      $.db.posts.update('post-id', ($) => ({
+      $.db.posts.update(db.posts.id('qwe'), ($) => ({
         likeIds: $.arrayRemove('like-id')
       }))
 
       // Enforce required fields
 
       // @ts-expect-error - name is required
-      $.data.update('sasha', ($) => ({
+      $.data.update(db.users.id('sasha'), ($) => ({
         name: $.remove()
       }))
 
       // @ts-expect-error - name is required
-      $.db.users.update('sasha', ($) => ({
+      $.db.users.update(db.users.id('sasha'), ($) => ({
         name: undefined
       }))
 
       // Works with nested fields
 
-      $.db.users.update('sasha', ($) => ({
+      $.db.users.update(db.users.id('sasha'), ($) => ({
         contacts: {
           email: 'koss@nocorp.me',
           phone: $.remove()
@@ -259,52 +267,54 @@ async function tysts() {
       }))
 
       // @ts-expect-error - email is required
-      $.db.users.update('sasha', ($) => ({
+      $.db.users.update(db.users.id('sasha'), ($) => ({
         contacts: {
           email: $.remove()
         }
       }))
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('nested1Optional', $.remove())
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('nested1Optional').set($.remove())
       )
 
       // Single field update
 
-      $.db.accounts.update('sasha', ($) => $.field('name', 'Alexander'))
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('name').set('Alexander')
+      )
 
       // Multiple fields update
 
-      $.db.accounts.update('sasha', ($) => [
-        $.field('name', 'Alexander'),
-        $.field('createdAt', $.serverDate())
+      $.db.accounts.update(db.accounts.id('sasha'), ($) => [
+        $.field('name').set('Alexander'),
+        $.field('createdAt').set($.serverDate())
       ])
 
       // Nested fields
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('contacts', 'phone', '+65xxxxxxxx')
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('contacts', 'phone').set('+65xxxxxxxx')
       )
 
-      $.db.accounts.update('sasha', ($) =>
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
         // @ts-expect-error - wrong type
-        $.field('contacts', 'phone', 6500000000)
+        $.field('contacts', 'phone').set(6500000000)
       )
 
-      $.db.accounts.update('sasha', ($) =>
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
         // @ts-expect-error - can't update because emergencyContacts can be undefined
-        $.field('emergencyContacts', 'phone', '+65xxxxxxxx')
+        $.field('emergencyContacts', 'phone').set('+65xxxxxxxx')
       )
 
-      $.db.accounts.update('sasha', ($) =>
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
         // @ts-expect-error - emergencyContacts must have name and phone
-        $.field('emergencyContacts', {
+        $.field('emergencyContacts').set({
           name: 'Sasha'
         })
       )
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('emergencyContacts', {
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('emergencyContacts').set({
           name: 'Sasha',
           phone: '+65xxxxxxxx'
         })
@@ -312,36 +322,36 @@ async function tysts() {
 
       // Deeply nested field corner cases
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('nested1Required', 'nested12Required', {
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('nested1Required', 'nested12Required').set({
           hello: 'Hello!'
         })
       )
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('nested1Required', 'nested12Required', {
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('nested1Required', 'nested12Required').set({
           hello: 'Hello!',
           world: 'World!'
         })
       )
 
-      $.db.accounts.update('sasha', ($) =>
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
         // @ts-expect-error - can't update without hello
-        $.field('nested1Required', 'nested12Required', {
+        $.field('nested1Required', 'nested12Required').set({
           world: 'World!'
         })
       )
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('nested1Optional', 'nested12Optional', {
-          // @ts-expect-error - should not update because requried12 on nested1Optional is required
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        // @ts-expect-error - should not update because requried12 on nested1Optional is required
+        $.field('nested1Optional', 'nested12Optional').set({
           hello: 'Hello!'
         })
       )
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('nested1Optional', 'nested12Optional', {
-          // @ts-expect-error - nested1Optional has required12, so can't update
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        // @ts-expect-error - nested1Optional has required12, so can't update
+        $.field('nested1Optional', 'nested12Optional').set({
           world: 'World!'
         })
       )
@@ -350,16 +360,16 @@ async function tysts() {
 
       const postId = 'post-id'
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('counters', { [postId]: { likes: 5 } })
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('counters').set({ [postId]: { likes: 5 } })
       )
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('counters', postId, { likes: 5 })
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('counters', postId).set({ likes: 5 })
       )
 
-      $.db.accounts.update('sasha', ($) =>
-        $.field('counters', postId, 'likes', $.increment(1))
+      $.db.accounts.update(db.accounts.id('sasha'), ($) =>
+        $.field('counters', postId, 'likes').set($.increment(1))
       )
     })
 }
