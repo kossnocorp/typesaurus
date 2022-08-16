@@ -76,11 +76,11 @@ describe('query', () => {
 
   it('allows to assert environment', async () => {
     const server = () =>
-      db.contacts.query(($) => [$.where('ownerId', '==', ownerId)], {
+      db.contacts.query(($) => $.field('ownerId').equal(ownerId), {
         as: 'server'
       })
     const client = () =>
-      db.contacts.query(($) => [$.where('ownerId', '==', ownerId)], {
+      db.contacts.query(($) => $.field('ownerId').equal(ownerId), {
         as: 'client'
       })
 
@@ -96,7 +96,7 @@ describe('query', () => {
   describe('promise', () => {
     it('queries documents', async () => {
       const docs = await db.contacts.query(($) =>
-        $.where('ownerId', '==', ownerId)
+        $.field('ownerId').equal(ownerId)
       )
       expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
         'Lesha',
@@ -137,8 +137,8 @@ describe('query', () => {
       ])
 
       const docs = await db.locations.query(($) => [
-        $.where('mapId', '==', mapId),
-        $.where(['address', 'city'], '==', 'New York')
+        $.field('mapId').equal(mapId),
+        $.field('address', 'city').equal('New York')
       ])
 
       expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
@@ -181,8 +181,8 @@ describe('query', () => {
       ])
 
       const docs = await db.posts.query(($) => [
-        $.where('blogId', '==', blogId),
-        $.where('tags', 'array-contains', 'pets')
+        $.field('blogId').equal(blogId),
+        $.field('tags').contains('pets')
       ])
 
       expect(docs.map(({ data: { title } }) => title).sort()).toEqual([
@@ -223,8 +223,8 @@ describe('query', () => {
       ])
 
       const docs = await db.pets.query(($) => [
-        $.where('ownerId', '==', ownerId),
-        $.where('type', 'in', ['cat', 'dog'])
+        $.field('ownerId').equal(ownerId),
+        $.field('type').in(['cat', 'dog'])
       ])
 
       expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
@@ -272,8 +272,8 @@ describe('query', () => {
       ])
 
       const docs = await db.posts.query(($) => [
-        $.where('blogId', '==', blogId),
-        $.where('tags', 'array-contains-any', ['pets', 'wildlife'])
+        $.field('blogId').equal(blogId),
+        $.field('tags').containsAny(['pets', 'wildlife'])
       ])
 
       expect(docs.map(({ data: { title } }) => title).sort()).toEqual([
@@ -285,8 +285,8 @@ describe('query', () => {
 
     it('expands references', async () => {
       const docs = await db.messages.query(($) => [
-        $.where('ownerId', '==', ownerId),
-        $.where('text', '==', '+1')
+        $.field('ownerId').equal(ownerId),
+        $.field('text').equal('+1')
       ])
 
       const authors = await Promise.all(
@@ -300,16 +300,16 @@ describe('query', () => {
 
     it('allows to query by reference', async () => {
       const docs = await db.messages.query(($) => [
-        $.where('ownerId', '==', ownerId),
-        $.where('author', '==', db.contacts.ref(sashaId))
+        $.field('ownerId').equal(ownerId),
+        $.field('author').equal(db.contacts.ref(sashaId))
       ])
       expect(docs.map((doc) => doc.data.text).sort()).toEqual(['+1', 'lul'])
     })
 
     it('allows to query by date', async () => {
       const docs = await db.contacts.query(($) => [
-        $.where('ownerId', '==', ownerId),
-        $.where('birthday', '==', new Date(1987, 1, 11))
+        $.field('ownerId').equal(ownerId),
+        $.field('birthday').equal(new Date(1987, 1, 11))
       ])
       expect(docs.length).toBe(1)
       expect(docs[0]?.data.name).toBe('Sasha')
@@ -360,7 +360,7 @@ describe('query', () => {
         ])
 
         const messages = await groups(db).contactMessages.query(($) => [
-          $.where('ownerId', '==', ownerId)
+          $.field('ownerId').equal(ownerId)
         ])
 
         expect(messages.map((m) => m.data.text).sort()).toEqual([
@@ -387,7 +387,7 @@ describe('query', () => {
         ])
 
         const posts = await groups(db).messagePosts.query(($) => [
-          $.where('ownerId', '==', ownerId.toString())
+          $.field('ownerId').equal(ownerId.toString())
         ])
 
         expect(posts.map((m) => m.data.title).sort()).toEqual([
@@ -400,8 +400,8 @@ describe('query', () => {
     describe('ordering', () => {
       it('allows ordering', async () => {
         const docs = await db.contacts.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('year', 'asc')
+          $.field('ownerId').equal(ownerId),
+          $.field('year').order('asc')
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual([
           'Sasha',
@@ -412,8 +412,8 @@ describe('query', () => {
 
       it('allows ordering by desc', async () => {
         const docs = await db.contacts.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('year', 'desc')
+          $.field('ownerId').equal(ownerId),
+          $.field('year').order('desc')
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual([
           'Lesha',
@@ -424,9 +424,9 @@ describe('query', () => {
 
       it('allows ordering by references', async () => {
         const docs = await db.messages.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('author', 'desc'),
-          $.order('text')
+          $.field('ownerId').equal(ownerId),
+          $.field('author').order('desc'),
+          $.field('text').order()
         ])
         const messagesLog = await Promise.all(
           docs.map((doc) =>
@@ -445,8 +445,8 @@ describe('query', () => {
 
       it('allows ordering by date', async () => {
         const docs = await db.contacts.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('birthday', 'asc')
+          $.field('ownerId').equal(ownerId),
+          $.field('birthday').order('asc')
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual([
           'Sasha',
@@ -459,8 +459,8 @@ describe('query', () => {
     describe('limiting', () => {
       it('allows to limit response length', async () => {
         const docs = await db.contacts.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('year', 'asc'),
+          $.field('ownerId').equal(ownerId),
+          $.field('year').order('asc'),
           $.limit(2)
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual([
@@ -474,8 +474,8 @@ describe('query', () => {
       describe('startAfter', () => {
         it('allows to paginate', async () => {
           const page1Docs = await db.contacts.query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.order('year', 'asc', $.startAfter(undefined)),
+            $.field('ownerId').equal(ownerId),
+            $.field('year').order('asc', $.startAfter(undefined)),
             $.limit(2)
           ])
           expect(page1Docs.map(({ data: { name } }) => name)).toEqual([
@@ -483,8 +483,8 @@ describe('query', () => {
             'Tati'
           ])
           const page2Docs = await db.contacts.query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.order('year', 'asc', $.startAfter(page1Docs[1]!.data.year)),
+            $.field('ownerId').equal(ownerId),
+            $.field('year').order('asc', $.startAfter(page1Docs[1]!.data.year)),
             $.limit(2)
           ])
           expect(page2Docs.map(({ data: { name } }) => name)).toEqual(['Lesha'])
@@ -494,8 +494,8 @@ describe('query', () => {
       describe('startAt', () => {
         it('allows to paginate', async () => {
           const docs = await db.contacts.query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.order('year', 'asc', $.startAt(1989)),
+            $.field('ownerId').equal(ownerId),
+            $.field('year').order('asc', $.startAt(1989)),
             $.limit(2)
           ])
           expect(docs.map(({ data: { name } }) => name)).toEqual([
@@ -508,8 +508,8 @@ describe('query', () => {
       describe('endBefore', () => {
         it('allows to paginate', async () => {
           const docs = await db.contacts.query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.order('year', 'asc', $.endBefore(1989)),
+            $.field('ownerId').equal(ownerId),
+            $.field('year').order('asc', $.endBefore(1989)),
             $.limit(2)
           ])
           expect(docs.map(({ data: { name } }) => name)).toEqual(['Sasha'])
@@ -519,8 +519,8 @@ describe('query', () => {
       describe('endAt', () => {
         it('allows to paginate', async () => {
           const docs = await db.contacts.query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.order('year', 'asc', $.endAt(1989)),
+            $.field('ownerId').equal(ownerId),
+            $.field('year').order('asc', $.endAt(1989)),
             $.limit(2)
           ])
           expect(docs.map(({ data: { name } }) => name)).toEqual([
@@ -532,8 +532,8 @@ describe('query', () => {
 
       it('uses asc ordering method by default', async () => {
         const docs = await db.contacts.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('year', $.startAt(1989)),
+          $.field('ownerId').equal(ownerId),
+          $.field('year').order($.startAt(1989)),
           $.limit(2)
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual([
@@ -576,9 +576,9 @@ describe('query', () => {
         ])
 
         const docs = await db.cities.query(($) => [
-          $.where('mapId', '==', mapId),
-          $.order('name', 'asc', $.startAt('Springfield')),
-          $.order('state', 'asc', $.startAt('Missouri')),
+          $.field('mapId').equal(mapId),
+          $.field('name').order('asc', $.startAt('Springfield')),
+          $.field('state').order('asc', $.startAt('Missouri')),
           $.limit(2)
         ])
 
@@ -589,8 +589,8 @@ describe('query', () => {
 
       it('allows to combine cursors', async () => {
         const docs = await db.contacts.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('year', 'asc', $.startAt(1989), $.endAt(1989)),
+          $.field('ownerId').equal(ownerId),
+          $.field('year').order('asc', $.startAt(1989), $.endAt(1989)),
           $.limit(2)
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual(['Tati'])
@@ -601,8 +601,8 @@ describe('query', () => {
         const docs =
           tati &&
           (await db.contacts.query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.order('year', 'asc', $.startAt(tati)),
+            $.field('ownerId').equal(ownerId),
+            $.field('year').order('asc', $.startAt(tati)),
             $.limit(2)
           ]))
         expect(docs?.map(({ data: { name } }) => name)).toEqual([
@@ -613,8 +613,8 @@ describe('query', () => {
 
       it('allows using dates as cursors', async () => {
         const docs = await db.contacts.query(($) => [
-          $.where('ownerId', '==', ownerId),
-          $.order('birthday', 'asc', $.startAt(new Date(1989, 6, 10))),
+          $.field('ownerId').equal(ownerId),
+          $.field('birthday').order('asc', $.startAt(new Date(1989, 6, 10))),
           $.limit(2)
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual([
@@ -649,8 +649,8 @@ describe('query', () => {
           db.shardedCounters.set(db.shardedCounters.id('suspended-1'), { n: 0 })
         ])
         const docs = await db.shardedCounters.query(($) => [
-          $.where($.docId(), '>=', db.shardedCounters.id('published')),
-          $.where($.docId(), '<', db.shardedCounters.id('publishee'))
+          $.field($.docId()).moreOrEqual(db.shardedCounters.id('published')),
+          $.field($.docId()).less(db.shardedCounters.id('publishee'))
         ])
         expect(docs.map((doc) => doc.ref.id)).toEqual([
           'published-0',
@@ -672,9 +672,9 @@ describe('query', () => {
         // expect(descend[1]?.ref.id).toBe(`published-0`)
 
         const ascend = await db.shardedCounters.query(($) => [
-          $.where($.docId(), '>=', db.shardedCounters.id('published')),
-          $.where($.docId(), '<', db.shardedCounters.id('publishee')),
-          $.order($.docId())
+          $.field($.docId()).moreOrEqual(db.shardedCounters.id('published')),
+          $.field($.docId()).less(db.shardedCounters.id('publishee')),
+          $.field($.docId()).order()
         ])
         expect(ascend.length).toBe(2)
         expect(ascend[0]?.ref.id).toBe(`published-0`)
@@ -683,8 +683,7 @@ describe('query', () => {
 
       it('allows cursors to use documentId', async () => {
         const docs = await db.shardedCounters.query(($) => [
-          $.order(
-            $.docId(),
+          $.field($.docId()).order(
             'asc',
             $.startAt(db.shardedCounters.id('draft-1')),
             $.endAt(db.shardedCounters.id('published-1'))
@@ -718,7 +717,7 @@ describe('query', () => {
     it('queries documents', (done) => {
       const spy = sinon.spy()
       off = db.contacts
-        .query(($) => $.where('ownerId', '==', ownerId))
+        .query(($) => $.field('ownerId').equal(ownerId))
         .on((docs) => {
           spy(docs.map(({ data: { name } }) => name).sort())
           if (spy.calledWithMatch(['Lesha', 'Sasha', 'Tati'])) done()
@@ -760,8 +759,8 @@ describe('query', () => {
       return new Promise((resolve) => {
         off = db.locations
           .query(($) => [
-            $.where('mapId', '==', mapId),
-            $.where(['address', 'city'], '==', 'New York')
+            $.field('mapId').equal(mapId),
+            $.field('address', 'city').equal('New York')
           ])
           .on((docs) => {
             spy(docs.map(({ data: { name } }) => name).sort())
@@ -808,8 +807,8 @@ describe('query', () => {
       return new Promise((resolve) => {
         off = db.posts
           .query(($) => [
-            $.where('blogId', '==', blogId),
-            $.where('tags', 'array-contains', 'pets')
+            $.field('blogId').equal(blogId),
+            $.field('tags').contains('pets')
           ])
           .on((docs) => {
             spy(docs.map(({ data: { title } }) => title).sort())
@@ -854,8 +853,8 @@ describe('query', () => {
       return new Promise((resolve) => {
         off = db.pets
           .query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.where('type', 'in', ['cat', 'dog'])
+            $.field('ownerId').equal(ownerId),
+            $.field('type').in(['cat', 'dog'])
           ])
           .on((docs) => {
             spy(docs.map(({ data: { name } }) => name).sort())
@@ -906,8 +905,8 @@ describe('query', () => {
       return new Promise((resolve) => {
         off = db.posts
           .query(($) => [
-            $.where('blogId', '==', blogId),
-            $.where('tags', 'array-contains-any', ['pets', 'wildlife'])
+            $.field('blogId').equal(blogId),
+            $.field('tags').containsAny(['pets', 'wildlife'])
           ])
           .on((docs) => {
             spy(docs.map(({ data: { title } }) => title).sort())
@@ -928,8 +927,8 @@ describe('query', () => {
         const spy = sinon.spy()
         off = db.messages
           .query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.where('text', '==', '+1')
+            $.field('ownerId').equal(ownerId),
+            $.field('text').equal('+1')
           ])
           .on(async (docs) => {
             const authors = await Promise.all(
@@ -945,8 +944,8 @@ describe('query', () => {
         const spy = sinon.spy()
         off = db.messages
           .query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.where('author', '==', db.contacts.ref(sashaId))
+            $.field('ownerId').equal(ownerId),
+            $.field('author').equal(db.contacts.ref(sashaId))
           ])
           .on((docs) => {
             spy(docs.map((doc) => doc.data.text).sort())
@@ -958,8 +957,8 @@ describe('query', () => {
       new Promise((resolve) => {
         off = db.contacts
           .query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.where('birthday', '==', new Date(1987, 1, 11))
+            $.field('ownerId').equal(ownerId),
+            $.field('birthday').equal(new Date(1987, 1, 11))
           ])
           .on((docs) => {
             if (docs.length === 1 && docs[0]?.data.name === 'Sasha')
@@ -1012,7 +1011,7 @@ describe('query', () => {
         ])
 
         const messages = await groups(db).contactMessages.query(($) => [
-          $.where('ownerId', '==', ownerId)
+          $.field('ownerId').equal(ownerId)
         ])
 
         expect(messages.map((m) => m.data.text).sort()).toEqual([
@@ -1025,7 +1024,7 @@ describe('query', () => {
 
         return new Promise((resolve) => {
           off = groups(db)
-            .contactMessages.query(($) => [$.where('ownerId', '==', ownerId)])
+            .contactMessages.query(($) => $.field('ownerId').equal(ownerId))
             .on(async (messages) => {
               spy(messages.map((m) => m.data.text).sort())
 
@@ -1085,9 +1084,9 @@ describe('query', () => {
 
         return new Promise((resolve) => {
           off = groups(db)
-            .messagePosts.query(($) => [
-              $.where('ownerId', '==', ownerId.toString())
-            ])
+            .messagePosts.query(($) =>
+              $.field('ownerId').equal(ownerId.toString())
+            )
             .on(async (posts) => {
               spy(posts.map((m) => m.data.title).sort())
 
@@ -1119,8 +1118,8 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('year', 'asc')
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc')
             ])
             .on((docs) => {
               spy(docs.map(({ data: { name } }) => name))
@@ -1133,8 +1132,8 @@ describe('query', () => {
         const spy = sinon.spy()
         off = db.contacts
           .query(($) => [
-            $.where('ownerId', '==', ownerId),
-            $.order('year', 'desc')
+            $.field('ownerId').equal(ownerId),
+            $.field('year').order('desc')
           ])
           .on((docs) => {
             spy(docs.map(({ data: { name } }) => name))
@@ -1147,9 +1146,9 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.messages
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('author', 'desc'),
-              $.order('text')
+              $.field('ownerId').equal(ownerId),
+              $.field('author').order('desc'),
+              $.field('text').order()
             ])
             .on(async (docs) => {
               const messagesLog = await Promise.all(
@@ -1179,8 +1178,8 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('birthday', 'asc')
+              $.field('ownerId').equal(ownerId),
+              $.field('birthday').order('asc')
             ])
             .on((docs) => {
               spy(docs.map(({ data: { name } }) => name))
@@ -1196,8 +1195,8 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('year', 'asc'),
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc'),
               $.limit(2)
             ])
             .on((docs) => {
@@ -1223,8 +1222,8 @@ describe('query', () => {
             const spyPage2 = sinon.spy()
             page1Off = db.contacts
               .query(($) => [
-                $.where('ownerId', '==', ownerId),
-                $.order('year', 'asc', $.startAfter(undefined)),
+                $.field('ownerId').equal(ownerId),
+                $.field('year').order('asc', $.startAfter(undefined)),
                 $.limit(2)
               ])
               .on((page1Docs) => {
@@ -1233,9 +1232,8 @@ describe('query', () => {
                   page1Off()
                   page2Off = db.contacts
                     .query(($) => [
-                      $.where('ownerId', '==', ownerId),
-                      $.order(
-                        'year',
+                      $.field('ownerId').equal(ownerId),
+                      $.field('year').order(
                         'asc',
                         $.startAfter(page1Docs[1]?.data.year)
                       ),
@@ -1256,8 +1254,8 @@ describe('query', () => {
             const spy = sinon.spy()
             off = db.contacts
               .query(($) => [
-                $.where('ownerId', '==', ownerId),
-                $.order('year', 'asc', $.startAt(1989)),
+                $.field('ownerId').equal(ownerId),
+                $.field('year').order('asc', $.startAt(1989)),
                 $.limit(2)
               ])
               .on((docs) => {
@@ -1273,8 +1271,8 @@ describe('query', () => {
             const spy = sinon.spy()
             off = db.contacts
               .query(($) => [
-                $.where('ownerId', '==', ownerId),
-                $.order('year', 'asc', $.endBefore(1989)),
+                $.field('ownerId').equal(ownerId),
+                $.field('year').order('asc', $.endBefore(1989)),
                 $.limit(2)
               ])
               .on((docs) => {
@@ -1290,8 +1288,8 @@ describe('query', () => {
             const spy = sinon.spy()
             off = db.contacts
               .query(($) => [
-                $.where('ownerId', '==', ownerId),
-                $.order('year', 'asc', $.endAt(1989)),
+                $.field('ownerId').equal(ownerId),
+                $.field('year').order('asc', $.endAt(1989)),
                 $.limit(2)
               ])
               .on((docs) => {
@@ -1306,8 +1304,8 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('year', $.startAt(1989)),
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order($.startAt(1989)),
               $.limit(2)
             ])
             .on((docs) => {
@@ -1351,9 +1349,9 @@ describe('query', () => {
         return new Promise(async (resolve) => {
           off = await db.cities
             .query(($) => [
-              $.where('mapId', '==', mapId),
-              $.order('name', 'asc', $.startAt('Springfield')),
-              $.order('state', 'asc', $.startAt('Missouri')),
+              $.field('mapId').equal(mapId),
+              $.field('name').order('asc', $.startAt('Springfield')),
+              $.field('state').order('asc', $.startAt('Missouri')),
               $.limit(2)
             ])
             .on((docs) => {
@@ -1375,8 +1373,8 @@ describe('query', () => {
 
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('year', 'asc', $.startAt(1989), $.endAt(1989)),
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc', $.startAt(1989), $.endAt(1989)),
               $.limit(2)
             ])
             .on((docs) => {
@@ -1390,8 +1388,8 @@ describe('query', () => {
           const tati = await db.contacts.get(tatiId)
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('year', 'asc', $.startAt(tati!)),
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc', $.startAt(tati!)),
               $.limit(2)
             ])
             .on((docs) => {
@@ -1409,8 +1407,11 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.order('birthday', 'asc', $.startAt(new Date(1989, 6, 10))),
+              $.field('ownerId').equal(ownerId),
+              $.field('birthday').order(
+                'asc',
+                $.startAt(new Date(1989, 6, 10))
+              ),
               $.limit(2)
             ])
             .on((docs) => {
@@ -1452,8 +1453,10 @@ describe('query', () => {
 
           off = db.shardedCounters
             .query(($) => [
-              $.where($.docId(), '>=', db.shardedCounters.id('published')),
-              $.where($.docId(), '<', db.shardedCounters.id('publishee'))
+              $.field($.docId()).moreOrEqual(
+                db.shardedCounters.id('published')
+              ),
+              $.field($.docId()).less(db.shardedCounters.id('publishee'))
             ])
             .on((docs) => {
               spy(docs.map((doc) => doc.ref.id))
@@ -1494,9 +1497,11 @@ describe('query', () => {
             offs.push(
               db.shardedCounters
                 .query(($) => [
-                  $.where($.docId(), '>=', db.shardedCounters.id('published')),
-                  $.where($.docId(), '<', db.shardedCounters.id('publishee')),
-                  $.order($.docId(), 'asc')
+                  $.field($.docId()).moreOrEqual(
+                    db.shardedCounters.id('published')
+                  ),
+                  $.field($.docId()).less(db.shardedCounters.id('publishee')),
+                  $.field($.docId()).order('asc')
                 ])
                 .on((ascend) => {
                   spy(ascend.map((doc) => doc.ref.id))
@@ -1514,8 +1519,7 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.shardedCounters
             .query(($) => [
-              $.order(
-                $.docId(),
+              $.field($.docId()).order(
                 'asc',
                 $.startAt(db.shardedCounters.id('draft-1')),
                 $.endAt(db.shardedCounters.id('published-1'))
@@ -1543,7 +1547,7 @@ describe('query', () => {
           }))
 
           off = db.penguins
-            .query(($) => [$.where('ability', 'array-contains', 'fly')])
+            .query(($) => $.field('ability').contains('fly'))
             .on((docs, { changes, empty }) => {
               expect(empty).toBeTruthy()
               expect(docs.length).toBe(0)
@@ -1573,10 +1577,10 @@ describe('query', () => {
           let c = 0
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
+              $.field('ownerId').equal(ownerId),
               // TODO: Figure out why when a timestamp is used, the order is incorrect
               // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-              $.order('year', 'asc', $.startAt(1989)),
+              $.field('year').order('asc', $.startAt(1989)),
               $.limit(3)
             ])
             .on(async (docs, { changes }) => {
@@ -1634,10 +1638,10 @@ describe('query', () => {
           new Promise((resolveCondition) => {
             off = db.contacts
               .query(($) => [
-                $.where('ownerId', '==', ownerId),
+                $.field('ownerId').equal(ownerId),
                 // TODO: Figure out why when a timestamp is used, the order is incorrect
                 // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-                $.order('year', 'asc', $.startAt(1989)),
+                $.field('year').order('asc', $.startAt(1989)),
                 $.limit(3)
               ])
               .on(async (docs) => {
@@ -1677,9 +1681,9 @@ describe('query', () => {
           const onResult = sinon.spy()
           off = db.contacts
             .query(($) => [
-              $.where('ownerId', '==', ownerId),
-              $.where('year', '>', 1989),
-              $.where('birthday', '>', new Date(1989, 6, 10))
+              $.field('ownerId').equal(ownerId),
+              $.field('year').more(1989),
+              $.field('birthday').more(new Date(1989, 6, 10))
             ])
             .on(onResult)
             .catch((error) => {

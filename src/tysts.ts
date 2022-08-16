@@ -226,7 +226,7 @@ async function all() {
 }
 
 async function query() {
-  const [user] = await db.users.query(($) => $.where('name', '==', 'Sasha'))
+  const [user] = await db.users.query(($) => $.field('name').equal('Sasha'))
   if (!user) return
 
   // Runtime environment
@@ -261,10 +261,10 @@ async function query() {
   // Basic query
 
   await db.users.query(($) => [
-    $.where('name', '==', 'Sasha'),
+    $.field('name').equal('Sasha'),
     // @ts-expect-error
-    $.where(['contacts', 'emal'], '==', 'koss@nocorp.me'),
-    $.order('name'),
+    $.field('contacts', 'emal').equal('koss@nocorp.me'),
+    $.field('name').order(),
     $.limit(1)
   ])
 
@@ -272,9 +272,9 @@ async function query() {
 
   const offQuery = db.users
     .query(($) => [
-      $.where('name', '==', 'Sasha'),
-      $.where(['contacts', 'email'], '==', 'koss@nocorp.me'),
-      $.order('name'),
+      $.field('name').equal('Sasha'),
+      $.field('contacts', 'email').equal('koss@nocorp.me'),
+      $.field('name').order(),
       $.limit(1)
     ])
     .on((users) => {})
@@ -285,12 +285,12 @@ async function query() {
   // Nested fields
 
   await db.users.query(($) => [
-    $.where(['contacts', 'email'], '==', 'koss@nocorp.me')
+    $.field('contacts', 'email').equal('koss@nocorp.me')
   ])
 
   // Optional path
   await db.accounts.query(($) => [
-    $.where(['nested1Optional', 'nested12Optional', 'hello'], '==', 'World!')
+    $.field('nested1Optional', 'nested12Optional', 'hello').equal('World!')
   ])
 
   // where
@@ -298,7 +298,7 @@ async function query() {
   // in
 
   await db.accounts.query(($) => [
-    $.where($.docId(), 'in', [db.accounts.id('id1'), db.accounts.id('id2')])
+    $.field($.docId()).in([db.accounts.id('id1'), db.accounts.id('id2')])
   ])
 
   await db.accounts.query(($) => [
@@ -308,23 +308,23 @@ async function query() {
 
   // array-contains
 
-  await db.posts.query(($) => $.where('likeIds', 'array-contains', 'id1'))
+  await db.posts.query(($) => $.field('likeIds').contains('id1'))
 
   // @ts-expect-error - the value should be a string
-  await db.posts.query(($) => $.where('likeIds', 'array-contains', 1))
+  await db.posts.query(($) => $.field('likeIds').contains(1))
 
   // order
 
-  await db.accounts.query(($) => $.order($.docId()))
+  await db.accounts.query(($) => $.field($.docId()).order())
 
-  await db.accounts.query(($) => $.order('contacts'))
+  await db.accounts.query(($) => $.field('contacts').order())
 
-  await db.accounts.query(($) => $.order(['contacts', 'email']))
+  await db.accounts.query(($) => $.field('contacts', 'email').order())
 
-  await db.accounts.query(($) => $.order(['contacts', 'phone']))
+  await db.accounts.query(($) => $.field('contacts', 'phone').order())
 
   // @ts-expect-error - nope is not a valid field
-  await db.accounts.query(($) => $.order(['contacts', 'nope']))
+  await db.accounts.query(($) => $.field('contacts', 'nope').order())
 }
 
 async function update() {
