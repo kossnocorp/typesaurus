@@ -1,5 +1,7 @@
+import { group } from 'console'
 import { Typesaurus } from '.'
 import { schema } from './adapter/admin'
+import { groups } from './adapter/admin/groups'
 
 describe('Typesaurus core', () => {
   describe('DB', () => {
@@ -18,29 +20,28 @@ describe('Typesaurus core', () => {
         const nestedDB = schema(($) => ({
           users: $.collection<User>(),
 
-          posts: $.sub($.collection<Post>(), {
-            comments: $.sub($.collection<Comment>(), {
+          posts: $.collection<Post>().sub({
+            comments: $.collection<Comment>().sub({
               likes: $.collection<Like>()
             }),
 
             likes: $.collection<PostLike>()
           }),
 
-          updates: $.sub($.collection<Update>(), {
-            comments: $.sub($.collection<Comment>(), {
+          updates: $.collection<Update>().sub({
+            comments: $.collection<Comment>().sub({
               likes: $.collection<Like>()
             })
           })
         }))
 
-        // TODO: Problem with groups ^^^
-        await nestedDB.groups.comments
+        await groups(nestedDB).comments
 
         // Get all users
         await db.users.all()
 
         // Get a single document
-        await db.users.get('sasha')
+        await db.users.get(db.users.id('sasha'))
 
         await db.users.add(($) => ({
           name: 'Sfg',
@@ -51,13 +52,21 @@ describe('Typesaurus core', () => {
         }))
 
         // Subcollections example
-        await nestedDB.posts('123').comments.get('comment-id')
+        await nestedDB
+          .posts(nestedDB.posts.id('123'))
+          .comments.get(
+            nestedDB.posts(nestedDB.posts.id('123')).comments.id('comment-id')
+          )
 
         // Get few documents by ids
-        await db.users.getMany(['sasha', 'lesha', 'tati'])
+        await db.users.many([
+          db.users.id('sasha'),
+          db.users.id('lesha'),
+          db.users.id('tati')
+        ])
 
         // NOTE: no await, it's a promise (?)
-        const sashaPromise = db.users.get('sasha')
+        const sashaPromise = db.users.get(db.users.id('sasha'))
 
         // 1. Get the document
         const sasha = await sashaPromise
@@ -76,7 +85,7 @@ describe('Typesaurus core', () => {
 
         // Subscribe to a single document (real-time)
         const sashaUnsubscribe2 = db.users
-          .get('sasha')
+          .get(db.users.id('sasha'))
           .on((user) => {
             // Fresh user data
             user
@@ -87,35 +96,15 @@ describe('Typesaurus core', () => {
 
         sashaUnsubscribe2()
 
-        db.users.getMany(['sasha', 'lesha', 'tati']).on((users) => {
-          // Fresh users data
-        })
-
         db.users
-          .getMany(['sasha', 'lesha', 'tati'], { onMissing: 'ignore' })
+          .many([
+            db.users.id('sasha'),
+            db.users.id('lesha'),
+            db.users.id('tati')
+          ])
           .on((users) => {
             // Fresh users data
           })
-
-        db.users
-          .getMany(['sasha', 'lesha', 'tati'], { onMissing: () => null })
-          .on((users) => {
-            // Fresh users data
-          })
-
-        db.users
-          .getMany(['sasha', 'lesha', 'tati'], {
-            onMissing: () => {
-              throw new Error('Oh no')
-            }
-          })
-          .on((users) => {
-            // Fresh users data
-          })
-
-        const manyUsers = await db.users.getMany(['sasha', 'lesha', 'tati'], {
-          onMissing: 'ignore'
-        })
 
         interface User {
           name: string
@@ -156,23 +145,29 @@ describe('Typesaurus core', () => {
         db.posts.add({ title: 'Hello, world!', text: 'Hello!' })
 
         // Subcollections example
-        await nestedDB.posts('123').comments('qwe').likes.add({ userId: '123' })
+        await nestedDB
+          .posts(nestedDB.posts.id('123'))
+          .comments(nestedDB.posts(nestedDB.posts.id('123')).comments.id('qwe'))
+          .likes.add({ userId: '123' })
 
         // Set the document
-        db.posts.set('doc-id', { title: 'Hello, world!', text: 'Hello!' })
+        db.posts.set(db.posts.id('doc-id'), {
+          title: 'Hello, world!',
+          text: 'Hello!'
+        })
 
         // Update
 
         // upset, unlike update it will NOT trigger error
         // if the 'sasha` document don't exists.
-        await db.users.upset('sasha', ($) => ({
+        await db.users.upset(db.users.id('sasha'), ($) => ({
           name: 'Sasha',
           contacts: { email: 'koss@nocorp.me' },
           createdAt: $.serverDate()
         }))
 
         // Remove
-        await db.users.remove('sasha')
+        await db.users.remove(db.users.id('sasha'))
 
         const addedUser = await db.users.add(($) => ({
           name: 'Sasha',
@@ -182,14 +177,14 @@ describe('Typesaurus core', () => {
 
         await addedUser.remove()
 
-        await db.users.set('sasha', ($) => ({
+        await db.users.set(db.users.id('sasha'), ($) => ({
           name: 'Sasha',
           contacts: { email: 'koss@nocorp.me' },
           createdAt: $.serverDate()
         }))
 
         await db.users.set(
-          'sasha',
+          db.users.id('sasha'),
           {
             name: 'Sasha',
             contacts: { email: 'koss@nocorp.me' },
@@ -198,17 +193,17 @@ describe('Typesaurus core', () => {
           { as: 'server' }
         )
 
-        await db.users.update('sasha', () => ({ name: 'Sasha' }), {
+        await db.users.update(db.users.id('sasha'), () => ({ name: 'Sasha' }), {
           as: 'server'
         })
 
-        const sashaRef = db.users.ref('sasha')
+        const sashaRef = db.users.ref(db.users.id('sasha'))
 
         await sashaRef.remove()
 
         await sashaRef.update({ name: 'Sasha' })
 
-        await nestedDB.groups.likes
+        await groups(nestedDB).likes
       })
     })
   })

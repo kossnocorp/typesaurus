@@ -4,10 +4,6 @@ import type { Typesaurus } from '../..'
 import type { TypesaurusQuery } from '../../types/query'
 import { TypesaurusUtils } from '../../utils'
 
-export const defaultOnMissing: Typesaurus.OnMissingCallback<unknown> = (id) => {
-  throw new Error(`Missing document with id ${id}`)
-}
-
 export function schema<Schema extends Typesaurus.PlainSchema>(
   getSchema: ($: Typesaurus.SchemaHelpers) => Schema
 ): Typesaurus.DB<Schema> {
@@ -188,31 +184,21 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     })
   }
 
-  getMany<
-    Source extends Typesaurus.DataSource,
+  many<
+    Source extends DataSource,
     DateStrategy extends Typesaurus.ServerDateStrategy,
-    Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined,
-    OnMissing extends Typesaurus.OnMissingMode<Model> | undefined = undefined
+    Environment extends Typesaurus.RuntimeEnvironment
   >(
     ids: string[],
-    options?: Typesaurus.GetManyOptions<
-      Model,
+    options?: Typesaurus.ReadOptions<DateStrategy, Environment>
+  ): TypesaurusUtils.SubscriptionPromise<
+    Array<Typesaurus.EnvironmentDoc<
+      ModelPair,
+      Source,
       DateStrategy,
-      Environment,
-      OnMissing
-    >
-  ): OnMissing extends 'ignore' | undefined
-    ? Typesaurus.SubscriptionPromise<
-        Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>[]
-      >
-    : OnMissing extends Typesaurus.OnMissingCallback<infer OnMissingResult>
-    ? Typesaurus.SubscriptionPromise<
-        Array<
-          | Typesaurus.EnvironmentDoc<Model, Source, DateStrategy, Environment>
-          | OnMissingResult
-        >
-      >
-    : never {
+      Environment
+    > | null>
+  > {
     assertEnvironment(options?.as)
 
     return new TypesaurusUtils.SubscriptionPromise({
@@ -224,38 +210,23 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
           .firestore()
           .getAll(...ids.map((id) => this.firebaseDoc(id)))
 
-        return firebaseSnap
-          .map((firebaseSnap) => {
-            if (!firebaseSnap.exists) {
-              if (options?.onMissing === 'ignore') {
-                return null
-              } else {
-                return this.doc(
-                  firebaseSnap.id,
-                  (options?.onMissing || defaultOnMissing)(firebaseSnap.id)
-                  // {
-                  //   firestoreData: true,
-                  //   environment: a.environment,
-                  //   serverTimestamps: options?.serverTimestamps,
-                  //   ...a.getDocMeta(firestoreSnap)
-                  // }
-                )
-              }
-            }
+        return firebaseSnap.map((firebaseSnap) => {
+          if (!firebaseSnap.exists) {
+            return null
+          }
 
-            const firestoreData = firebaseSnap.data()
-            const data = firestoreData && (wrapData(firestoreData) as Model)
-            return this.doc(
-              firebaseSnap.id,
-              data /*, {
+          const firestoreData = firebaseSnap.data()
+          const data = firestoreData && (wrapData(firestoreData) as Model)
+          return this.doc(
+            firebaseSnap.id,
+            data /*, {
               firestoreData: true,
               environment: a.environment,
               serverTimestamps: options?.serverTimestamps,
               ...a.getDocMeta(firestoreSnap)
             } */
-            )
-          })
-          .filter((doc) => doc != null)
+          )
+        })
       },
 
       subscribe: (onResult, onError) => {
