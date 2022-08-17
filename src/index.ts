@@ -519,15 +519,6 @@ export namespace Typesaurus {
     remove(): Promise<Ref<ModelPair>>
   }
 
-  export interface GetManyOptions<
-    ModelPair extends ModelPathPair,
-    DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment | undefined = undefined,
-    OnMissing extends OnMissingMode<ModelPair> | undefined = undefined
-  > extends ReadOptions<DateStrategy, Environment> {
-    onMissing?: OnMissing
-  }
-
   export interface CollectionAPI<ModelPair extends ModelPathPair> {
     all<
       Source extends DataSource,
@@ -578,28 +569,16 @@ export namespace Typesaurus {
       Environment
     > | null>
 
-    getMany<
+    many<
       Source extends DataSource,
       DateStrategy extends Typesaurus.ServerDateStrategy,
-      Environment extends Typesaurus.RuntimeEnvironment,
-      OnMissing extends OnMissingMode<ModelPair> | undefined = undefined
+      Environment extends Typesaurus.RuntimeEnvironment
     >(
       ids: Id<ModelPair[1] /* Path */>[],
-      options?: GetManyOptions<ModelPair, DateStrategy, Environment, OnMissing>
-    ): OnMissing extends 'ignore' | undefined
-      ? SubscriptionPromise<
-          EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[]
-        >
-      : OnMissing extends OnMissingCallback<
-          [infer OnMissingResult, ModelPair[1] /* Path */]
-        >
-      ? SubscriptionPromise<
-          Array<
-            | EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>
-            | OnMissingResult
-          >
-        >
-      : never
+      options?: ReadOptions<DateStrategy, Environment>
+    ): SubscriptionPromise<
+      Array<EnvironmentDoc<ModelPair, Source, DateStrategy, Environment> | null>
+    >
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
@@ -697,17 +676,5 @@ export namespace Typesaurus {
           >
         : never
       : never
-  }
-
-  export type OnMissingMode<ModelPair extends ModelPathPair> =
-    | OnMissingCallback<ModelPair>
-    | 'ignore'
-
-  export type OnMissingCallback<ModelPair extends ModelPathPair> = (
-    id: Id<ModelPair[1] /* Path */>
-  ) => ModelPair[0] /* Model */
-
-  export interface OnMissingOptions<ModelPair extends ModelPathPair> {
-    onMissing?: OnMissingMode<ModelPair>
   }
 }

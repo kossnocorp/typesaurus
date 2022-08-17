@@ -158,7 +158,7 @@ async function get() {
 }
 
 async function getMany() {
-  const [user] = await db.users.getMany([db.users.id('sasha')])
+  const [user] = await db.users.many([db.users.id('sasha')])
   if (!user) return
 
   // Runtime environment

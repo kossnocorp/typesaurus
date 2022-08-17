@@ -159,7 +159,7 @@ describe('batch', () => {
 
       const [order1, order2] = await db
         .users(userId)
-        .orders.getMany([orderId1, orderId2])
+        .orders.many([orderId1, orderId2])
 
       expect(order1?.data.title).toBe('First order')
       expect(order2?.data.title).toBe('Another order')
