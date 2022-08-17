@@ -220,7 +220,10 @@ export namespace Typesaurus {
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = {
-    [Key in keyof Model]: WriteValue<Model, Key, Environment>
+    [Key in keyof Model]: WriteValueNullable<
+      Model[Key],
+      WriteValue<Model, Key, Environment>
+    >
   }
 
   export type WriteValue<
@@ -240,6 +243,9 @@ export namespace Typesaurus {
     : Exclude<Model[Key], undefined> extends number
     ? Model[Key] | ValueIncrement | MaybeValueRemove<Model, Key>
     : Model[Key] | MaybeValueRemove<Model, Key>
+
+  export type WriteValueNullable<OriginType, Value> =
+    OriginType extends undefined ? Value | null : Value
 
   export type WriteValueServerDate<
     Model,
@@ -272,7 +278,10 @@ export namespace Typesaurus {
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = {
-    [Key in keyof Model]?: WriteValue<Model, Key, Environment>
+    [Key in keyof Model]?: WriteValueNullable<
+      Model[Key],
+      WriteValue<Model, Key, Environment>
+    >
   }
 
   /**
@@ -371,7 +380,9 @@ export namespace Typesaurus {
   }
 
   export interface UpdateFieldHelpers<Model, Parent, Key extends keyof Parent> {
-    set(value: WriteValue<Parent, Key>): UpdateField<Model>
+    set(
+      value: WriteValueNullable<Parent[Key], WriteValue<Parent, Key>>
+    ): UpdateField<Model>
   }
 
   export interface UpdateHelpers<Model> extends WriteHelpers<Model> {

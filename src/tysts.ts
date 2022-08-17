@@ -331,6 +331,75 @@ async function query() {
   await db.accounts.query(($) => $.field('contacts', 'nope').order())
 }
 
+async function set() {
+  // Simple set
+
+  db.posts.set(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!'
+  })
+
+  // Set with helpers
+
+  await db.users.set(db.users.id('sasha'), ($) => ({
+    name: 'Sasha',
+    contacts: { email: 'koss@nocorp.me' },
+    createdAt: $.serverDate()
+  }))
+
+  await db.users.set(
+    db.users.id('sasha'),
+    {
+      name: 'Sasha',
+      contacts: { email: 'koss@nocorp.me' },
+      createdAt: new Date()
+    },
+    { as: 'server' }
+  )
+
+  // Nullable fields
+
+  db.posts.set(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!',
+    likes: null
+  })
+}
+
+async function upset() {
+  // Simple set
+
+  db.posts.upset(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!'
+  })
+
+  // Upset with helpers
+
+  await db.users.upset(db.users.id('sasha'), ($) => ({
+    name: 'Sasha',
+    contacts: { email: 'koss@nocorp.me' },
+    createdAt: $.serverDate()
+  }))
+
+  await db.users.upset(
+    db.users.id('sasha'),
+    {
+      name: 'Sasha',
+      contacts: { email: 'koss@nocorp.me' },
+      createdAt: new Date()
+    },
+    { as: 'server' }
+  )
+
+  // Nullable fields
+
+  db.posts.upset(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!',
+    likes: null
+  })
+}
 async function update() {
   // Simple update
 
@@ -477,6 +546,14 @@ async function update() {
   await db.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('counters', postId, 'likes').set($.increment(1))
   )
+
+  // Nullable fields
+
+  db.posts.update(db.posts.id('doc-id'), {
+    likes: null
+  })
+
+  db.posts.update(db.posts.id('doc-id'), ($) => $.field('likes').set(null))
 }
 
 export function assertType<Type>(value: Type) {}
