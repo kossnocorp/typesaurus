@@ -69,56 +69,6 @@ describe('transaction', () => {
     expect(results.sort()).toEqual([1, 2, 3])
   })
 
-  it('allows upsetting', async () => {
-    const id = await db.counters.id()
-    const counter = db.counters.ref(id)
-    await counter.set({ count: 0, optional: true })
-
-    await transaction(db)
-      .read(($) => $.db.counters.get(counter.id))
-      .write(($) => $.data?.upset({ count: ($.data?.data.count || 0) + 1 }))
-
-    const doc = await counter.get()
-    expect(doc?.data.count).toBe(1)
-    expect(doc?.data.optional).toBe(true)
-  })
-
-  it('allows updating', async () => {
-    const id = await db.counters.id()
-    const counter = db.counters.ref(id)
-    await counter.set({ count: 0 })
-
-    await Promise.all([
-      plusOne(counter, true),
-
-      transaction(db)
-        .read(($) => $.db.counters.get(counter.id))
-        .write(($) =>
-          $.data?.update({
-            count: ($.data?.data.count || 0) + 1,
-            optional: true
-          })
-        )
-    ])
-
-    const doc = await counter.get()
-    expect(doc?.data.count).toBe(2)
-    expect(doc?.data.optional).toBe(true)
-  })
-
-  it('allows removing', async () => {
-    const id = await db.counters.id()
-    const counter = db.counters.ref(id)
-    await counter.set({ count: 0 })
-
-    await transaction(db)
-      .read(($) => $.db.counters.get(counter.id))
-      .write(($) => $.data?.remove())
-
-    const doc = await counter.get()
-    expect(doc).toBe(null)
-  })
-
   it('allows to assert environment', async () => {
     const id = await db.counters.id()
 
@@ -139,6 +89,144 @@ describe('transaction', () => {
       await client()
       expect(server).toThrowError('Expected server environment')
     }
+  })
+
+  describe('set', () => {
+    it('allows setting', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await transaction(db)
+        .read(($) => $.db.counters.get(counter.id))
+        .write(($) =>
+          $.db.counters.set(id, { count: ($.data?.data.count || 0) + 1 })
+        )
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(1)
+    })
+
+    it('works on docs', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await transaction(db)
+        .read(($) => $.db.counters.get(counter.id))
+        .write(($) => $.data?.set({ count: ($.data?.data.count || 0) + 1 }))
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(1)
+    })
+  })
+
+  describe('upset', () => {
+    it('allows upsetting', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0, optional: true })
+
+      await transaction(db)
+        .read(($) => $.db.counters.get(counter.id))
+        .write(($) =>
+          $.db.counters.upset(id, { count: ($.data?.data.count || 0) + 1 })
+        )
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(1)
+      expect(doc?.data.optional).toBe(true)
+    })
+
+    it('works on docs', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0, optional: true })
+
+      await transaction(db)
+        .read(($) => $.db.counters.get(counter.id))
+        .write(($) => $.data?.upset({ count: ($.data?.data.count || 0) + 1 }))
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(1)
+      expect(doc?.data.optional).toBe(true)
+    })
+  })
+
+  describe('update', () => {
+    it('allows updating', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await Promise.all([
+        plusOne(counter, true),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) =>
+            $.db.counters.update(id, {
+              count: ($.data?.data.count || 0) + 1,
+              optional: true
+            })
+          )
+      ])
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(2)
+      expect(doc?.data.optional).toBe(true)
+    })
+
+    it('works on docs', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await Promise.all([
+        plusOne(counter, true),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) =>
+            $.data?.update({
+              count: ($.data?.data.count || 0) + 1,
+              optional: true
+            })
+          )
+      ])
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(2)
+      expect(doc?.data.optional).toBe(true)
+    })
+  })
+
+  describe('remove', () => {
+    it('allows removing', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await transaction(db)
+        .read(($) => $.db.counters.get(counter.id))
+        .write(($) => $.db.counters.remove(id))
+
+      const doc = await counter.get()
+      expect(doc).toBe(null)
+    })
+
+    it('works on docs', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await transaction(db)
+        .read(($) => $.db.counters.get(counter.id))
+        .write(($) => $.data?.remove())
+
+      const doc = await counter.get()
+      expect(doc).toBe(null)
+    })
   })
 
   describe('subcollection', () => {
