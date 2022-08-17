@@ -79,12 +79,6 @@ describe('get', () => {
       expect(nothing).toBe(null)
     })
 
-    it('allows to get via ref', async () => {
-      const userRef = await db.users.add({ name: 'Sasha' })
-      const userFromDB = await userRef.get()
-      expect(userFromDB?.data).toEqual({ name: 'Sasha' })
-    })
-
     it('expands references', async () => {
       const userRef = await db.users.add({ name: 'Sasha' })
       const postRef = await db.posts.add({
@@ -107,6 +101,23 @@ describe('get', () => {
       })
       const postFromDB = await post.get()
       expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
+    })
+
+    describe('ref', () => {
+      it('works on refs', async () => {
+        const userRef = await db.users.add({ name: 'Sasha' })
+        const user = await userRef.get()
+        expect(user?.data).toEqual({ name: 'Sasha' })
+      })
+    })
+
+    describe('doc', () => {
+      it('works on docs', async () => {
+        const userRef = await db.users.add({ name: 'Sasha' })
+        const userDoc = await userRef.get()
+        const user = await userDoc?.get()
+        expect(user?.data).toEqual({ name: 'Sasha' })
+      })
     })
 
     describe('subcollection', () => {
@@ -177,6 +188,31 @@ describe('get', () => {
         off = db.posts.get(post.id).on((postFromDB) => {
           expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
           resolve(void 0)
+        })
+      })
+    })
+
+    describe('ref', () => {
+      it('works on refs', async () => {
+        const userRef = await db.users.add({ name: 'Sasha' })
+        return new Promise((resolve) => {
+          off = userRef.get().on((user) => {
+            expect(user?.data).toEqual({ name: 'Sasha' })
+            resolve(void 0)
+          })
+        })
+      })
+    })
+
+    describe('doc', () => {
+      it('works on docs', async () => {
+        const userRef = await db.users.add({ name: 'Sasha' })
+        const userDoc = await userRef.get()
+        return new Promise((resolve) => {
+          off = userDoc?.get().on((user) => {
+            expect(user?.data).toEqual({ name: 'Sasha' })
+            resolve(void 0)
+          })
         })
       })
     })

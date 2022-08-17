@@ -59,14 +59,6 @@ describe('upset', () => {
     })
   })
 
-  it('allows setting to refs', async () => {
-    const id = await db.users.id()
-    const userRef = db.users.ref(id)
-    await userRef.upset({ name: 'Sasha' })
-    const user = await db.users.get(id)
-    expect(user?.data).toEqual({ name: 'Sasha' })
-  })
-
   it('allows setting to doc', async () => {
     const id = await db.users.id()
     await db.users.set(id, defaultUser)
@@ -196,6 +188,14 @@ describe('upset', () => {
   })
 
   describe('ref', () => {
+    it('works on refs', async () => {
+      const id = await db.users.id()
+      const userRef = db.users.ref(id)
+      await userRef.upset({ name: 'Sasha' })
+      const user = await userRef.get()
+      expect(user?.data).toEqual({ name: 'Sasha' })
+    })
+
     it('allows to assert environment', async () => {
       const userId = await db.users.id()
 
@@ -232,6 +232,16 @@ describe('upset', () => {
   })
 
   describe('doc', () => {
+    it('works on docs', async () => {
+      const id = await db.users.id()
+      const userRef = db.users.ref(id)
+      await userRef.set({ name: 'Alexander' })
+      const userDoc = await userRef.get()
+      await userDoc?.upset({ name: 'Sasha' })
+      const user = await userRef.get()
+      expect(user?.data).toEqual({ name: 'Sasha' })
+    })
+
     it('allows to assert environment', async () => {
       // @ts-ignore: data is not important here
       const doc = dbWithDates.users.doc('whatever', {})

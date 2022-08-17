@@ -230,6 +230,15 @@ describe('update', () => {
   })
 
   describe('ref', () => {
+    it('works on refs', async () => {
+      const id = await db.movies.id()
+      const movieRef = db.movies.ref(id)
+      await movieRef.set({ title: 'Better Call Saul', likedBy: [] })
+      await movieRef.update({ title: 'Better Call Jimmy' })
+      const movie = await movieRef.get()
+      expect(movie?.data).toEqual({ title: 'Better Call Jimmy', likedBy: [] })
+    })
+
     it('allows to assert environment', async () => {
       const userId = await db.users.id()
       await dbWithDates.users.set(userId, ($) => ({
@@ -260,6 +269,16 @@ describe('update', () => {
   })
 
   describe('doc', () => {
+    it('works on docs', async () => {
+      const id = await db.movies.id()
+      const movieRef = db.movies.ref(id)
+      await movieRef.set({ title: 'Better Call Saul', likedBy: [] })
+      const movieDoc = await movieRef.get()
+      await movieDoc?.update({ title: 'Better Call Jimmy' })
+      const movie = await movieRef.get()
+      expect(movie?.data).toEqual({ title: 'Better Call Jimmy', likedBy: [] })
+    })
+
     it('allows to assert environment', async () => {
       const userId = await db.users.id()
       await dbWithDates.users.set(userId, ($) => ({
