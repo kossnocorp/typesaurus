@@ -150,12 +150,6 @@ describe('Typesaurus core', () => {
           .comments(nestedDB.posts(nestedDB.posts.id('123')).comments.id('qwe'))
           .likes.add({ userId: '123' })
 
-        // Set the document
-        db.posts.set(db.posts.id('doc-id'), {
-          title: 'Hello, world!',
-          text: 'Hello!'
-        })
-
         // Update
 
         // upset, unlike update it will NOT trigger error
@@ -176,22 +170,6 @@ describe('Typesaurus core', () => {
         }))
 
         await addedUser.remove()
-
-        await db.users.set(db.users.id('sasha'), ($) => ({
-          name: 'Sasha',
-          contacts: { email: 'koss@nocorp.me' },
-          createdAt: $.serverDate()
-        }))
-
-        await db.users.set(
-          db.users.id('sasha'),
-          {
-            name: 'Sasha',
-            contacts: { email: 'koss@nocorp.me' },
-            createdAt: new Date()
-          },
-          { as: 'server' }
-        )
 
         await db.users.update(db.users.id('sasha'), () => ({ name: 'Sasha' }), {
           as: 'server'
