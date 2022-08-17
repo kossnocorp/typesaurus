@@ -15,11 +15,6 @@ export namespace Typesaurus {
    */
   export type DocChangeType = 'added' | 'removed' | 'modified'
 
-  export interface DocumentMetaData {
-    fromCache: boolean
-    hasPendingWrites: boolean
-  }
-
   /**
    * Doc change information. It contains the type of change, the doc after
    * the change, and the position change.

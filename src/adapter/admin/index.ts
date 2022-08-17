@@ -40,7 +40,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
     return new Doc<Model>(
       this,
       id,
-      data
+      nullifyData(data)
     ) as unknown as Typesaurus.EnvironmentDoc<
       Model,
       Source,
@@ -167,18 +167,14 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
       get: async () => {
         const firebaseSnap = await doc.get()
         const data = firebaseSnap.data()
-        if (data)
-          return this.doc<Source, DateStrategy, Environment>(id, wrapData(data))
+        if (data) return new Doc<Model>(this, id, wrapData(data))
         return null
       },
 
       subscribe: (onResult, onError) =>
         doc.onSnapshot((firebaseSnap) => {
           const data = firebaseSnap.data()
-          if (data)
-            onResult(
-              this.doc<Source, DateStrategy, Environment>(id, wrapData(data))
-            )
+          if (data) onResult(new Doc<Model>(this, id, wrapData(data)))
           else onResult(null)
         }, onError)
     })
@@ -217,15 +213,7 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
 
           const firestoreData = firebaseSnap.data()
           const data = firestoreData && (wrapData(firestoreData) as Model)
-          return this.doc(
-            firebaseSnap.id,
-            data /*, {
-              firestoreData: true,
-              environment: a.environment,
-              serverTimestamps: options?.serverTimestamps,
-              ...a.getDocMeta(firestoreSnap)
-            } */
-          )
+          return new Doc<Model>(this, firebaseSnap.id, data)
         })
       },
 
@@ -261,7 +249,8 @@ class RichCollection<Model> implements Typesaurus.RichCollection<Model> {
   >(): CollectionAdapter<Model, Source, DateStrategy, Environment> {
     return {
       collection: () => this.firebaseCollection(),
-      doc: (snapshot) => this.doc(snapshot.id, wrapData(snapshot.data()))
+      doc: (snapshot) =>
+        new Doc<Model>(this, snapshot.id, wrapData(snapshot.data()))
     }
   }
 
