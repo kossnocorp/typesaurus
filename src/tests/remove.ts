@@ -23,20 +23,24 @@ describe('remove', () => {
     expect(userFromDB).toBeNull()
   })
 
-  it('allows removing via ref', async () => {
-    const user = await db.users.add({ name: 'Sasha' })
-    await user.remove()
-    const userFromDB = await user.get()
-    expect(userFromDB).toBeNull()
+  describe('ref', () => {
+    it('works on refs', async () => {
+      const user = await db.users.add({ name: 'Sasha' })
+      await user.remove()
+      const userFromDB = await user.get()
+      expect(userFromDB).toBeNull()
+    })
   })
 
-  it('allows removing via doc', async () => {
-    const user = await db.users.add({ name: 'Sasha' })
-    const userDoc = await user.get()
-    if (!userDoc) throw new Error('Document is not present')
-    await userDoc.remove()
-    const userFromDB = await user.get()
-    expect(userFromDB).toBeNull()
+  describe('doc', () => {
+    it('works on docs', async () => {
+      const user = await db.users.add({ name: 'Sasha' })
+      const userDoc = await user.get()
+      if (!userDoc) throw new Error('Document is not present')
+      await userDoc.remove()
+      const userFromDB = await user.get()
+      expect(userFromDB).toBeNull()
+    })
   })
 
   describe('subcollection', () => {
