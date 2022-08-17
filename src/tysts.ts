@@ -121,6 +121,10 @@ async function doc() {
     // @ts-expect-error
     user.data.createdAt.getDay()
   }
+
+  assertType<TypeEqual<typeof user.data.birthdate, Date | undefined | null>>(
+    true
+  )
 }
 
 async function get() {
@@ -157,7 +161,7 @@ async function get() {
   }
 }
 
-async function getMany() {
+async function many() {
   const [user] = await db.users.many([db.users.id('sasha')])
   if (!user) return
 
@@ -474,3 +478,11 @@ async function update() {
     $.field('counters', postId, 'likes').set($.increment(1))
   )
 }
+
+export function assertType<Type>(value: Type) {}
+
+export type TypeEqual<T, U> = Exclude<T, U> extends never
+  ? Exclude<U, T> extends never
+    ? true
+    : false
+  : false

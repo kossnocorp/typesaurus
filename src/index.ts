@@ -148,20 +148,24 @@ export namespace Typesaurus {
     [Key in keyof Model]: ModelField<Model[Key], DateNullable>
   }
 
-  type ModelField<
+  export type ModelField<
     Field,
     DateNullable extends ServerDateNullable
   > = Field extends Ref<Typesaurus.ModelPathPair>
-    ? Field
+    ? ModelFieldNullable<Field>
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
       ? Date | null
-      : Date
+      : ModelFieldNullable<Date>
     : Field extends Date // Stop dates from being processed as an object
-    ? Field
+    ? ModelFieldNullable<Field>
     : Field extends object // If it's an object, recursively pass through ModelData
     ? AnyModelData<Field, DateNullable>
-    : Field
+    : ModelFieldNullable<Field>
+
+  export type ModelFieldNullable<Type> = Type extends undefined
+    ? Type | null
+    : Type
 
   export type ResolvedWebServerDate<
     FromCache extends boolean,
