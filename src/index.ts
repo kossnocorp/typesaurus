@@ -681,9 +681,7 @@ export namespace Typesaurus {
             DB<Schema, TypesaurusUtils.ComposePath<BasePath, Path>>
           >
         : Schema[Path] extends PlainCollection<infer Model>
-        ? RichCollection<
-            [Model, BasePath extends undefined ? Path : [BasePath, Path]]
-          >
+        ? RichCollection<[Model, TypesaurusUtils.ComposePath<BasePath, Path>]>
         : never
       : never
   }
