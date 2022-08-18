@@ -32,7 +32,7 @@ describe('transaction', () => {
   })
 
   const plusOne = async (
-    counter: Typesaurus.Ref<[Counter, 'counters']>,
+    counter: Typesaurus.Ref<Counter, 'counters'>,
     useUpdate?: boolean
   ) =>
     transaction(db)

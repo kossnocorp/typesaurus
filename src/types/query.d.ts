@@ -128,7 +128,7 @@ export namespace TypesaurusQuery {
     | (Key extends keyof Parent
         ? Parent[Key]
         : Typesaurus.Id<ModelPair[1] /* Path */>) // Field value or id
-    | Typesaurus.Doc<ModelPair> // Will be used to get value for the cursor
+    | Typesaurus.Doc<ModelPair[0] /* Model */, ModelPair[1] /* Path */> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
   export type QueryGetter<ModelPair extends Typesaurus.ModelPathPair> = (
@@ -235,7 +235,10 @@ export namespace TypesaurusQuery {
     ? QueryArrayField<ModelPair, Parent, Key>
     : QueryPrimitiveField<ModelPair, Parent, Key>
 
-  export interface QueryHelpers<Model, Path> {
+  export interface QueryHelpers<
+    Model extends Typesaurus.ModelType,
+    Path extends string
+  > {
     field(id: DocId): QueryIdField<[Model, Path]>
 
     field<Key extends keyof Model>(
