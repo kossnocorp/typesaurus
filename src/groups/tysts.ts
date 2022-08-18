@@ -1,6 +1,6 @@
-import { groups } from '../groups'
-import { schema, Typesaurus } from '..'
+import { schema, ServerDate, Ref, groups } from '..'
 import type { TypesaurusGroups } from '../types/groups'
+import type { Typesaurus } from '../types/typesaurus'
 
 interface User {
   name: string
@@ -11,7 +11,7 @@ interface User {
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
-  createdAt: Typesaurus.ServerDate
+  createdAt: ServerDate
 }
 
 interface Post {
@@ -23,7 +23,7 @@ interface Post {
 
 interface Account {
   name: string
-  createdAt: Typesaurus.ServerDate
+  createdAt: ServerDate
 
   contacts: {
     email: string
@@ -72,7 +72,7 @@ async function tysts() {
   }
 
   interface Order {
-    book: Typesaurus.Ref<Book, 'books'>
+    book: Ref<Book, 'books'>
     quantity: number
     date?: Date
   }

@@ -1,6 +1,5 @@
 import sinon from 'sinon'
-import { transaction } from '.'
-import { Typesaurus, schema } from '..'
+import { Ref, schema, transaction } from '..'
 
 describe('transaction', () => {
   interface Counter {
@@ -32,7 +31,7 @@ describe('transaction', () => {
   })
 
   const plusOne = async (
-    counter: Typesaurus.Ref<Counter, 'counters'>,
+    counter: Ref<Counter, 'counters'>,
     useUpdate?: boolean
   ) =>
     transaction(db)

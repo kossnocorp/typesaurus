@@ -1,10 +1,14 @@
-import type { TypesaurusQuery } from './types/query'
-import type { TypesaurusUtils } from './utils'
-
-export { schema } from './adapter'
+import type { TypesaurusQuery } from './query'
+import type { TypesaurusUtils } from '../utils'
 
 export namespace Typesaurus {
-  export interface Id<Path> extends String {
+  export interface Function {
+    <Schema extends Typesaurus.PlainSchema>(
+      getSchema: ($: Typesaurus.SchemaHelpers) => Schema
+    ): DB<Schema>
+  }
+
+  export interface Id<Path extends string> extends String {
     __dontUseWillBeUndefined__: Path
   }
 

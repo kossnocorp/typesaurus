@@ -1,5 +1,5 @@
-import type { Typesaurus } from '..'
 import type { TypesaurusUtils } from '../utils'
+import type { Typesaurus } from './typesaurus'
 
 export namespace TypesaurusQuery {
   export type DocId = '__id__'

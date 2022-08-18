@@ -1,6 +1,4 @@
-import type { Typesaurus } from '.'
-import { schema } from './adapter/admin'
-import { TypesaurusUtils } from './utils'
+import { schema, ServerDate } from '.'
 
 interface Post {
   title: string
@@ -28,7 +26,7 @@ interface Like {
 
 interface Account {
   name: string
-  createdAt: Typesaurus.ServerDate
+  createdAt: ServerDate
 
   contacts: {
     email: string
@@ -74,7 +72,7 @@ interface User {
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
-  createdAt: Typesaurus.ServerDate
+  createdAt: ServerDate
 }
 
 // Flat schema
@@ -90,7 +88,7 @@ async function doc() {
     contacts: {
       email: 'koss@nocorp.me'
     },
-    createdAt: new Date() as Typesaurus.ServerDate
+    createdAt: new Date() as ServerDate
   })
 
   // Runtime environment

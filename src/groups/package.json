@@ -1,4 +1,4 @@
 {
-  "browser": "../adapter/web/groups",
-  "main": "../adapter/admin/groups"
+  "browser": "../adapter/web/groups.js",
+  "main": "../adapter/admin/groups.js"
 }

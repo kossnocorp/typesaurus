@@ -1,14 +1,14 @@
 import sinon from 'sinon'
-import { schema, Typesaurus } from '..'
+import { Ref, schema } from '..'
 
 describe('get', () => {
   interface User {
     name: string
-    lastOrder?: Typesaurus.Ref<Order, 'users/orders'>
+    lastOrder?: Ref<Order, 'users/orders'>
   }
 
   interface Post {
-    author: Typesaurus.Ref<User, 'users'>
+    author: Ref<User, 'users'>
     text: string
     date?: Date
   }

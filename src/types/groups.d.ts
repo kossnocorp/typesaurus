@@ -1,4 +1,4 @@
-import type { Typesaurus } from '..'
+import type { Typesaurus } from './typesaurus'
 import type { TypesaurusUtils } from '../utils'
 
 export namespace TypesaurusGroups {

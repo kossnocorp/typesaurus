@@ -1,6 +1,5 @@
 import { nanoid } from 'nanoid'
-import { schema } from '..'
-import { batch } from '../adapter/admin/batch'
+import { schema, batch } from '..'
 
 describe('batch', () => {
   interface User {
