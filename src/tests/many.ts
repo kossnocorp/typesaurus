@@ -3,8 +3,8 @@ import { schema, Typesaurus } from '..'
 describe('many', () => {
   interface Fruit {
     color: string
-    tree?: Typesaurus.Ref<[Tree, 'trees']>
-    lastFly?: Typesaurus.Ref<[Fly, 'fruits/flies']>
+    tree?: Typesaurus.Ref<Tree, 'trees'>
+    lastFly?: Typesaurus.Ref<Fly, 'fruits/flies'>
   }
 
   interface Fly {

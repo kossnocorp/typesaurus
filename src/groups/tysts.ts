@@ -72,7 +72,7 @@ async function tysts() {
   }
 
   interface Order {
-    book: Typesaurus.Ref<[Book, 'books']>
+    book: Typesaurus.Ref<Book, 'books'>
     quantity: number
     date?: Date
   }
@@ -89,6 +89,15 @@ async function tysts() {
     userId: string
   }
 
+  interface Comic {
+    title: string
+  }
+
+  interface Plant {
+    name: string
+    color: string
+  }
+
   const db1 = schema(($) => ({
     books: $.collection<Book>(),
 
@@ -98,12 +107,12 @@ async function tysts() {
   type Schema1 = typeof db1
 
   const db2 = schema(($) => ({
-    books: $.sub($.collection<Book>(), {
+    books: $.collection<Book>().sub({
       comments: $.collection<Comment>(),
       likes: $.collection<Like>()
     }),
 
-    orders: $.sub($.collection<Order>(), {
+    orders: $.collection<Order>().sub({
       comments: $.collection<OrderComment>()
     })
   }))
@@ -111,13 +120,13 @@ async function tysts() {
   type Schema2 = typeof db2
 
   const db3 = schema(($) => ({
-    books: $.sub($.collection<Book>(), {
+    books: $.collection<Book>().sub({
       comments: $.collection<Comment>(),
       likes: $.collection<Like>()
     }),
 
-    orders: $.sub($.collection<Order>(), {
-      comments: $.sub($.collection<OrderComment>(), {
+    orders: $.collection<Order>().sub({
+      comments: $.collection<OrderComment>().sub({
         likes: $.collection<Like>()
       })
     })
@@ -160,50 +169,47 @@ async function tysts() {
 
   type ResultOSE7 = Assert<
     {
-      books: TypesaurusGroups.Group<
-        [number, 'books'] | [string, 'archive/books']
-      >
-      comics: TypesaurusGroups.Group<[number, 'comics']>
+      books: TypesaurusGroups.Group<[Book, 'books'] | [Book, 'archive/books']>
+      comics: TypesaurusGroups.Group<[Comic, 'comics']>
       plants: TypesaurusGroups.Group<
-        [string, 'plants'] | [boolean, 'archive/plants']
+        [Plant, 'plants'] | [Plant, 'archive/plants']
       >
     },
     ExampleOSE7
   >
 
   type ExampleFSPP = TypesaurusGroups.ConstructGroups<
-    { books: [number, 'orders/books']; comics: [number, 'comics'] },
-    { books: [string, 'archive/books']; plants: [string, 'archive/plants'] },
+    { books: [Book, 'orders/books']; comics: [Comic, 'comics'] },
+    { books: [Book, 'archive/books']; plants: [Plant, 'archive/plants'] },
     TypesaurusGroups.ExtractGroupModels<Schema3>
   >
 
   type ResultFSPP = Assert<
     {
       books: TypesaurusGroups.Group<
-        [Book, 'books'] | [string, 'archive/books'] | [number, 'orders/books']
+        [Book, 'books'] | [Book, 'archive/books'] | [Book, 'orders/books']
       >
       orders: TypesaurusGroups.Group<[Order, 'orders']>
-      comics: TypesaurusGroups.Group<[number, 'comics']>
-      plants: TypesaurusGroups.Group<[string, 'archive/plants']>
+      comics: TypesaurusGroups.Group<[Comic, 'comics']>
+      plants: TypesaurusGroups.Group<[Plant, 'archive/plants']>
     },
     ExampleFSPP
   >
 
   type ExampleYHWG = TypesaurusGroups.ConstructGroups<
-    { books: [number, 'orders/books']; comics: [number, 'comics'] },
-    | { books: [string, 'archive/books']; plants: [string, 'archive/plants'] }
-    | {},
+    { books: [Book, 'orders/books']; comics: [Comic, 'comics'] },
+    { books: [Book, 'archive/books']; plants: [Plant, 'archive/plants'] } | {},
     TypesaurusGroups.ExtractGroupModels<Schema3>
   >
 
   type ResultYHWG = Assert<
     {
       books: TypesaurusGroups.Group<
-        [Book, 'books'] | [string, 'archive/books'] | [number, 'orders/books']
+        [Book, 'books'] | [Book, 'archive/books'] | [Book, 'orders/books']
       >
       orders: TypesaurusGroups.Group<[Order, 'orders']>
-      comics: TypesaurusGroups.Group<[number, 'comics']>
-      plants: TypesaurusGroups.Group<[string, 'archive/plants']>
+      comics: TypesaurusGroups.Group<[Comic, 'comics']>
+      plants: TypesaurusGroups.Group<[Plant, 'archive/plants']>
     },
     ExampleYHWG
   >
@@ -252,11 +258,11 @@ async function tysts() {
 
   type ResultUMAX = Assert<
     | {
-        comments: [Comment, [['books'], 'comments']]
-        likes: [Like, [['books'], 'likes']]
+        comments: [Comment, 'books/comments']
+        likes: [Like, 'books/likes']
       }
     | {
-        comments: [OrderComment, [['orders'], 'comments']]
+        comments: [OrderComment, 'orders/comments']
       },
     ExampleUMAX
   >
@@ -265,11 +271,11 @@ async function tysts() {
 
   type Result4JFS = Assert<
     | {
-        comments: [Comment, [['books'], 'comments']]
-        likes: [Like, [['books'], 'likes']]
+        comments: [Comment, 'books/comments']
+        likes: [Like, 'books/likes']
       }
     | {
-        comments: [OrderComment, [['orders'], 'comments']]
+        comments: [OrderComment, 'orders/comments']
       },
     Example4JFS
   >
@@ -322,12 +328,10 @@ async function tysts() {
     {
       books: TypesaurusGroups.Group<[Book, 'books']>
       comments: TypesaurusGroups.Group<
-        | [Comment, [['books'], 'comments']]
-        | [OrderComment, [['orders'], 'comments']]
+        [Comment, 'books/comments'] | [OrderComment, 'orders/comments']
       >
       likes: TypesaurusGroups.Group<
-        | [Like, [['books'], 'likes']]
-        | [Like, [[['orders'], 'comments'], 'likes']]
+        [Like, 'books/likes'] | [Like, 'orders/comments/likes']
       >
       orders: TypesaurusGroups.Group<[Order, 'orders']>
     },

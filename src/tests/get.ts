@@ -4,11 +4,11 @@ import { schema, Typesaurus } from '..'
 describe('get', () => {
   interface User {
     name: string
-    lastOrder?: Typesaurus.Ref<[Order, 'users/orders']>
+    lastOrder?: Typesaurus.Ref<Order, 'users/orders'>
   }
 
   interface Post {
-    author: Typesaurus.Ref<[User, 'users']>
+    author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Date
   }

@@ -6,7 +6,7 @@ describe('add', () => {
   }
 
   interface Post {
-    author: Typesaurus.Ref<[User, 'users']>
+    author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Date
   }

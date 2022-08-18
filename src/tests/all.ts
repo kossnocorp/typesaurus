@@ -8,10 +8,10 @@ describe('all', () => {
   }
 
   interface Order {
-    book: Typesaurus.Ref<[Book, 'books']>
+    book: Typesaurus.Ref<Book, 'books'>
     quantity: number
     date?: Date
-    lastUpdate?: Typesaurus.Ref<[Update, 'orders/updates']>
+    lastUpdate?: Typesaurus.Ref<Update, 'orders/updates'>
   }
 
   interface Update {

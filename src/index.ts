@@ -8,7 +8,9 @@ export namespace Typesaurus {
     __dontUseWillBeUndefined__: Path
   }
 
-  export type ModelPathPair = [any, any]
+  export type ModelType = Record<string, any>
+
+  export type ModelPathPair = [ModelType, string]
 
   /**
    * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
@@ -84,8 +86,11 @@ export namespace Typesaurus {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type Doc<ModelPair extends ModelPathPair> = EnvironmentDoc<
-    ModelPair,
+  export type Doc<
+    Model extends ModelType,
+    Path extends string
+  > = EnvironmentDoc<
+    [Model, Path],
     DataSource,
     ServerDateStrategy,
     RuntimeEnvironment
@@ -109,7 +114,7 @@ export namespace Typesaurus {
   export interface ServerDoc<ModelPair extends ModelPathPair>
     extends DocAPI<ModelPair> {
     type: 'doc'
-    ref: Ref<ModelPair>
+    ref: Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>
     data: ModelNodeData<ModelPair[0] /* Model */>
     environment: 'server'
     source?: undefined
@@ -123,7 +128,7 @@ export namespace Typesaurus {
     DateStrategy extends ServerDateStrategy
   > extends DocAPI<ModelPair> {
     type: 'doc'
-    ref: Ref<ModelPair>
+    ref: Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>
     data: Source extends 'database'
       ? AnyModelData<ModelPair[0] /* Model */, 'present'>
       : DateStrategy extends 'estimate'
@@ -146,7 +151,7 @@ export namespace Typesaurus {
   export type ModelField<
     Field,
     DateNullable extends ServerDateNullable
-  > = Field extends Ref<Typesaurus.ModelPathPair>
+  > = Field extends Ref<any, any>
     ? ModelFieldNullable<Field>
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
@@ -174,11 +179,11 @@ export namespace Typesaurus {
   /**
    * The document reference type.
    */
-  export interface Ref<ModelPair extends ModelPathPair>
-    extends DocAPI<ModelPair> {
+  export interface Ref<Model extends ModelType, Path extends string>
+    extends DocAPI<[Model, Path]> {
     type: 'ref'
-    collection: RichCollection<ModelPair>
-    id: Id<ModelPair[1] /* Path */>
+    collection: RichCollection<[Model, Path]>
+    id: Id<Path>
   }
 
   export type ServerDateNullable = 'nullable' | 'present'
@@ -457,7 +462,7 @@ export namespace Typesaurus {
   }
 
   export interface SchemaHelpers {
-    collection<Model>(): PlainCollection<Model>
+    collection<Model extends ModelType>(): PlainCollection<Model>
   }
 
   export interface OperationOptions<
@@ -476,7 +481,12 @@ export namespace Typesaurus {
   }
 
   export type GetSubscriptionCallback<ModelPair extends ModelPathPair> = {
-    (result: Doc<ModelPair> | null /*, info: SnapshotInfo<Model> */): void
+    (
+      result: Doc<
+        ModelPair[0] /* Model */,
+        ModelPair[1] /* Path */
+      > | null /*, info: SnapshotInfo<Model> */
+    ): void
   }
 
   export interface SubscriptionPromise<Result, SubscriptionMeta = undefined>
@@ -494,7 +504,7 @@ export namespace Typesaurus {
     : (result: Result, meta: SubscriptionMeta) => void
 
   export type ListSubscriptionCallback<ModelPair extends ModelPathPair> = {
-    (result: Doc<ModelPair>[]): void
+    (result: Doc<ModelPair[0] /* Model */, ModelPair[1] /* Path */>[]): void
   }
 
   export interface DocAPI<ModelPair extends ModelPathPair> {
@@ -514,19 +524,19 @@ export namespace Typesaurus {
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: UpdateModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
-    remove(): Promise<Ref<ModelPair>>
+    remove(): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
   }
 
   export interface CollectionAPI<ModelPair extends ModelPathPair> {
@@ -593,29 +603,33 @@ export namespace Typesaurus {
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: Id<ModelPair[1] /* Path */>,
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: Id<ModelPair[1] /* Path */>,
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: Id<ModelPair[1] /* Path */>,
       data: UpdateModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
-    remove(id: Id<ModelPair[1] /* Path */>): Promise<Ref<ModelPair>>
+    remove(
+      id: Id<ModelPair[1] /* Path */>
+    ): Promise<Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>>
 
-    ref(id: Id<ModelPair[1] /* Path */>): Ref<ModelPair>
+    ref(
+      id: Id<ModelPair[1] /* Path */>
+    ): Ref<ModelPair[0] /* Model */, ModelPair[1] /* Path */>
 
     doc<
       Source extends DataSource,
@@ -643,7 +657,7 @@ export namespace Typesaurus {
     ModelPair extends Typesaurus.ModelPathPair = Typesaurus.ModelPathPair
   > = RichCollection<ModelPair> | NestedRichCollection<ModelPair, AnyDB>
 
-  export interface PlainCollection<Model> {
+  export interface PlainCollection<Model extends ModelType> {
     /** The collection type */
     type: 'collection'
 
@@ -652,7 +666,10 @@ export namespace Typesaurus {
     ): NestedPlainCollection<Model, Schema>
   }
 
-  export interface NestedPlainCollection<_Model, Schema extends PlainSchema> {
+  export interface NestedPlainCollection<
+    _Model extends ModelType,
+    Schema extends PlainSchema
+  > {
     /** The collection type */
     type: 'collection'
 
@@ -660,13 +677,13 @@ export namespace Typesaurus {
   }
 
   export type AnyPlainCollection =
-    | PlainCollection<unknown>
-    | NestedPlainCollection<unknown, PlainSchema>
+    | PlainCollection<any>
+    | NestedPlainCollection<any, PlainSchema>
 
   export interface PlainSchema {
     [Path: string]:
-      | PlainCollection<unknown>
-      | NestedPlainCollection<unknown, PlainSchema>
+      | PlainCollection<any>
+      | NestedPlainCollection<any, PlainSchema>
   }
 
   export interface AnyDB {
