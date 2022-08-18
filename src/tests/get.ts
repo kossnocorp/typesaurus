@@ -4,6 +4,7 @@ import { schema, Typesaurus } from '..'
 describe('get', () => {
   interface User {
     name: string
+    lastOrder?: Typesaurus.Ref<[Order, 'users/orders']>
   }
 
   interface Post {
@@ -86,7 +87,13 @@ describe('get', () => {
         text: 'Hello!'
       })
       const postFromDB = await postRef.get()
+
       expect(postFromDB?.data.author.type).toBe('ref')
+      expect(postFromDB?.data.author.id).toBe(userRef.id)
+
+      expect(postFromDB?.data.author.collection.type).toBe('collection')
+      expect(postFromDB?.data.author.collection.path).toBe('users')
+
       const userFromDB = postFromDB && (await postFromDB.data.author.get())
       expect(userFromDB?.data).toEqual({ name: 'Sasha' })
     })
@@ -132,6 +139,28 @@ describe('get', () => {
 
         expect(order?.data.title).toBe('Amazing product')
       })
+
+      it('expands references', async () => {
+        const userId = await db.users.id()
+
+        const orderRef = await db
+          .users(userId)
+          .orders.add({ title: 'Amazing product' })
+
+        await db.users.set(userId, {
+          name: 'Sasha',
+          lastOrder: orderRef
+        })
+
+        const user = await db.users.get(userId)
+
+        expect(user?.data.lastOrder?.type).toBe('ref')
+        expect(user?.data.lastOrder?.id).toBe(orderRef.id)
+        expect(user?.data.lastOrder?.collection.type).toBe('collection')
+        expect(user?.data.lastOrder?.collection.path).toBe(
+          `users/${userId}/orders`
+        )
+      })
     })
   })
 
@@ -168,6 +197,12 @@ describe('get', () => {
       })
       return new Promise((resolve) => {
         off = db.posts.get(post.id).on(async (postFromDB) => {
+          expect(postFromDB?.data.author.type).toBe('ref')
+          expect(postFromDB?.data.author.id).toBe(user.id)
+
+          expect(postFromDB?.data.author.collection.type).toBe('collection')
+          expect(postFromDB?.data.author.collection.path).toBe('users')
+
           const userFromDB = await postFromDB?.data.author.get()
           expect(userFromDB?.data).toEqual({ name: 'Sasha' })
           resolve(void 0)
@@ -233,6 +268,31 @@ describe('get', () => {
               expect(order?.data.title).toBe('Amazing product')
               resolve(void 0)
             })
+        })
+      })
+
+      it('expands references', async () => {
+        const userId = await db.users.id()
+
+        const orderRef = await db
+          .users(userId)
+          .orders.add({ title: 'Amazing product' })
+
+        await db.users.set(userId, {
+          name: 'Sasha',
+          lastOrder: orderRef
+        })
+
+        return new Promise((resolve) => {
+          off = db.users.get(userId).on((user) => {
+            expect(user?.data.lastOrder?.type).toBe('ref')
+            expect(user?.data.lastOrder?.id).toBe(orderRef.id)
+            expect(user?.data.lastOrder?.collection.type).toBe('collection')
+            expect(user?.data.lastOrder?.collection.path).toBe(
+              `users/${userId}/orders`
+            )
+            resolve(void 0)
+          })
         })
       })
     })

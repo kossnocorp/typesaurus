@@ -11,6 +11,7 @@ describe('all', () => {
     book: Typesaurus.Ref<[Book, 'books']>
     quantity: number
     date?: Date
+    lastUpdate?: Typesaurus.Ref<[Update, 'orders/updates']>
   }
 
   interface Update {
@@ -72,6 +73,8 @@ describe('all', () => {
       ])
       const docs = await db.orders.all()
       expect(docs[0]?.data.book.type).toBe('ref')
+      expect(docs[0]?.data.book.collection.type).toBe('collection')
+      expect(docs[0]?.data.book.collection.path).toBe('books')
       const orderedBooks = await Promise.all(
         docs.map((doc) => doc.data.book.get())
       )
@@ -118,6 +121,33 @@ describe('all', () => {
           'Singapore'
         ])
       })
+
+      it('expands references', async () => {
+        const orderId = db.orders.id('order1')
+
+        const updateRef = await db
+          .orders(orderId)
+          .updates.add({ location: 'New York' })
+
+        await db.orders.set(orderId, {
+          book: db.books.ref(db.books.id('sapiens')),
+          quantity: 1,
+          lastUpdate: updateRef
+        })
+
+        const orders = await db.orders.all()
+        const order = orders.find(
+          (order) => order.ref.id.toString() === 'order1'
+        )
+
+        expect(order?.data.lastUpdate?.type).toBe('ref')
+        expect(order?.data.lastUpdate?.id).toBe(updateRef.id)
+
+        expect(order?.data.lastUpdate?.collection.type).toBe('collection')
+        expect(order?.data.lastUpdate?.collection.path).toBe(
+          `orders/${orderId}/updates`
+        )
+      })
     })
 
     describe('groups', () => {
@@ -131,7 +161,8 @@ describe('all', () => {
         }),
 
         orders: $.collection<Order>().sub({
-          comments: $.collection<Comment>()
+          comments: $.collection<Comment>(),
+          updates: $.collection<Update>()
         })
       }))
 
@@ -163,6 +194,21 @@ describe('all', () => {
           'hello',
           'world'
         ])
+      })
+
+      it('expands references', async () => {
+        await db.orders.set(db.orders.id('order1'), {
+          book: db.books.ref(db.books.id('sapiens')),
+          quantity: 1
+        })
+
+        const docs = await groups(db).orders.all()
+
+        const order = docs.find((order) => order.ref.id.toString() === 'order1')
+
+        expect(order?.data.book.type).toBe('ref')
+        expect(order?.data.book.collection.type).toBe('collection')
+        expect(order?.data.book.collection.path).toBe('books')
       })
     })
   })
@@ -207,6 +253,9 @@ describe('all', () => {
         const spy = sinon.spy()
         off = db.orders.all().on(async (docs) => {
           off?.()
+          expect(docs[0]?.data.book.type).toBe('ref')
+          expect(docs[0]?.data.book.collection.path).toBe('books')
+
           const orderedBooks = await Promise.all(
             docs.map((doc) => doc.data.book.get())
           )
@@ -283,6 +332,37 @@ describe('all', () => {
             })
         })
       })
+
+      it('expands references', async () => {
+        const orderId = db.orders.id('order1')
+
+        const updateRef = await db
+          .orders(orderId)
+          .updates.add({ location: 'New York' })
+
+        await db.orders.set(orderId, {
+          book: db.books.ref(db.books.id('sapiens')),
+          quantity: 1,
+          lastUpdate: updateRef
+        })
+
+        return new Promise((resolve) => {
+          off = db.orders.all().on((orders) => {
+            const order = orders.find(
+              (order) => order.ref.id.toString() === 'order1'
+            )
+
+            expect(order?.data.lastUpdate?.type).toBe('ref')
+            expect(order?.data.lastUpdate?.id).toBe(updateRef.id)
+
+            expect(order?.data.lastUpdate?.collection.type).toBe('collection')
+            expect(order?.data.lastUpdate?.collection.path).toBe(
+              `orders/${orderId}/updates`
+            )
+            resolve(void 0)
+          })
+        })
+      })
     })
 
     describe('groups', () => {
@@ -296,7 +376,8 @@ describe('all', () => {
         }),
 
         orders: $.collection<Order>().sub({
-          comments: $.collection<Comment>()
+          comments: $.collection<Comment>(),
+          updates: $.collection<Update>()
         })
       }))
 
@@ -334,6 +415,31 @@ describe('all', () => {
                 ])
                 resolve(void 0)
               }
+            })
+        })
+      })
+
+      it('expands references', async () => {
+        await db.orders.set(db.orders.id('order1'), {
+          book: db.books.ref(db.books.id('sapiens')),
+          quantity: 1
+        })
+
+        return new Promise((resolve) => {
+          off = groups(db)
+            .orders.all()
+            .on((docs) => {
+              off?.()
+
+              const order = docs.find(
+                (order) => order.ref.id.toString() === 'order1'
+              )
+
+              expect(order?.data.book.type).toBe('ref')
+              expect(order?.data.book.collection.type).toBe('collection')
+              expect(order?.data.book.collection.path).toBe('books')
+
+              resolve(void 0)
             })
         })
       })
