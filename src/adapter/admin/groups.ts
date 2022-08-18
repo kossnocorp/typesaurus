@@ -1,7 +1,7 @@
-import { all, CollectionAdapter, pathToDoc, query } from '.'
+import { all, CollectionAdapter, pathToDoc, query, wrapData } from '.'
 import type { Typesaurus } from '../..'
 import type { TypesaurusGroups } from '../../types/groups'
-import { TypesaurusQuery } from '../../types/query'
+import type { TypesaurusQuery } from '../../types/query'
 import * as admin from 'firebase-admin'
 
 export const groups: TypesaurusGroups.Function = (rootDB) => {
@@ -59,7 +59,8 @@ class Group<Model> implements TypesaurusGroups.Group<Model> {
   >(): CollectionAdapter<Model, Source, DateStrategy, Environment> {
     return {
       collection: () => this.firebaseCollection(),
-      doc: (snapshot) => pathToDoc<Model>(snapshot.ref.path, snapshot.data())
+      doc: (snapshot) =>
+        pathToDoc<Model>(snapshot.ref.path, wrapData(snapshot.data()))
     }
   }
 

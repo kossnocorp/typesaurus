@@ -3,16 +3,23 @@ import { schema, Typesaurus } from '..'
 describe('many', () => {
   interface Fruit {
     color: string
+    tree?: Typesaurus.Ref<[Tree, 'trees']>
+    lastFly?: Typesaurus.Ref<[Fly, 'fruits/flies']>
   }
 
   interface Fly {
     color: string
   }
 
+  interface Tree {
+    name: string
+  }
+
   const db = schema(($) => ({
     fruits: $.collection<Fruit>().sub({
       flies: $.collection<Fly>()
-    })
+    }),
+    trees: $.collection<Tree>()
   }))
 
   beforeAll(async () => {
@@ -91,6 +98,23 @@ describe('many', () => {
       expect(list[2]?.ref.id).toBe('banana')
     })
 
+    it('expands references', async () => {
+      const treeRef = await db.trees.set(db.trees.id('palm'), {
+        name: 'Pineapple palm'
+      })
+      await db.fruits.set(db.fruits.id('pineapple'), {
+        color: 'yellow',
+        tree: treeRef
+      })
+
+      const fruits = await db.fruits.many([db.fruits.id('pineapple')])
+
+      expect(fruits[0]?.data.tree?.type).toBe('ref')
+      expect(fruits[0]?.data.tree?.id).toBe('palm')
+      expect(fruits[0]?.data.tree?.collection.type).toBe('collection')
+      expect(fruits[0]?.data.tree?.collection.path).toBe('trees')
+    })
+
     describe('subcollection', () => {
       it('works on subcollections', async () => {
         const fruitId = await db.fruits.id()
@@ -106,6 +130,28 @@ describe('many', () => {
           'Black',
           'Brown'
         ])
+      })
+
+      it('expands references', async () => {
+        const fruitId = await db.fruits.id()
+
+        const flyRef = await db.fruits(fruitId).flies.add({
+          color: 'Red'
+        })
+
+        await db.fruits.set(fruitId, {
+          color: 'Pink',
+          lastFly: flyRef
+        })
+
+        const fruits = await db.fruits.many([fruitId])
+
+        expect(fruits[0]?.data.lastFly?.type).toBe('ref')
+        expect(fruits[0]?.data.lastFly?.id).toBe(flyRef.id)
+        expect(fruits[0]?.data.lastFly?.collection.type).toBe('collection')
+        expect(fruits[0]?.data.lastFly?.collection.path).toBe(
+          `fruits/${fruitId}/flies`
+        )
       })
     })
   })
@@ -174,6 +220,26 @@ describe('many', () => {
           })
       }))
 
+    it('expands references', async () => {
+      const treeRef = await db.trees.set(db.trees.id('palm'), {
+        name: 'Pineapple palm'
+      })
+      await db.fruits.set(db.fruits.id('pineapple'), {
+        color: 'yellow',
+        tree: treeRef
+      })
+
+      return new Promise((resolve) => {
+        off = db.fruits.many([db.fruits.id('pineapple')]).on((fruits) => {
+          expect(fruits[0]?.data.tree?.type).toBe('ref')
+          expect(fruits[0]?.data.tree?.id).toBe('palm')
+          expect(fruits[0]?.data.tree?.collection.type).toBe('collection')
+          expect(fruits[0]?.data.tree?.collection.path).toBe('trees')
+          resolve(void 0)
+        })
+      })
+    })
+
     describe('subcollection', () => {
       it('works on subcollections', async () => {
         const fruitId = await db.fruits.id()
@@ -194,6 +260,31 @@ describe('many', () => {
               ])
               resolve(void 0)
             })
+        })
+      })
+
+      it('expands references', async () => {
+        const fruitId = await db.fruits.id()
+
+        const flyRef = await db.fruits(fruitId).flies.add({
+          color: 'Red'
+        })
+
+        await db.fruits.set(fruitId, {
+          color: 'Pink',
+          lastFly: flyRef
+        })
+
+        return new Promise((resolve) => {
+          off = db.fruits.many([fruitId]).on((fruits) => {
+            expect(fruits[0]?.data.lastFly?.type).toBe('ref')
+            expect(fruits[0]?.data.lastFly?.id).toBe(flyRef.id)
+            expect(fruits[0]?.data.lastFly?.collection.type).toBe('collection')
+            expect(fruits[0]?.data.lastFly?.collection.path).toBe(
+              `fruits/${fruitId}/flies`
+            )
+            resolve(void 0)
+          })
         })
       })
     })

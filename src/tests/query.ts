@@ -9,12 +9,14 @@ describe('query', () => {
     name: string
     year: number
     birthday: Date
+    lastMessage?: Typesaurus.Ref<[Message, 'contacts/contactMessages']>
   }
 
   interface Message {
     ownerId: string
     author: Typesaurus.Ref<[Contact, 'contacts']>
     text: string
+    lastReply?: Typesaurus.Ref<[Reply, 'messages/replies']>
   }
 
   interface Reply {
@@ -296,6 +298,10 @@ describe('query', () => {
         $.field('text').equal('+1')
       ])
 
+      expect(docs[0]?.data.author.type).toBe('ref')
+      expect(docs[0]?.data.author.collection.type).toBe('collection')
+      expect(docs[0]?.data.author.collection.path).toBe('contacts')
+
       const authors = await Promise.all(
         docs.map((doc) => doc.data.author.get())
       )
@@ -340,6 +346,35 @@ describe('query', () => {
           .replies.query(($) => $.field('ownerId').equal(ownerId))
 
         expect(updates.map((o) => o.data.text).sort()).toEqual(['Hey!', 'Ho!'])
+      })
+
+      it('expands references', async () => {
+        const ownerId = nanoid()
+        const messageId = await db.messages.id()
+
+        const replyRef = await db.messages(messageId).replies.add({
+          ownerId,
+          text: 'Hi!'
+        })
+
+        await db.messages.set(messageId, {
+          ownerId,
+          author: db.contacts.ref(sashaId),
+          text: 'Hey!',
+          lastReply: replyRef
+        })
+
+        const messages = await db.messages.query(($) =>
+          $.field('ownerId').equal(ownerId)
+        )
+
+        expect(messages[0]?.data.lastReply?.type).toBe('ref')
+        expect(messages[0]?.data.lastReply?.id).toBe(replyRef.id)
+
+        expect(messages[0]?.data.lastReply?.collection.type).toBe('collection')
+        expect(messages[0]?.data.lastReply?.collection.path).toBe(
+          `messages/${messageId}/replies`
+        )
       })
     })
 
@@ -422,6 +457,37 @@ describe('query', () => {
           'Hello',
           'Hello, again!'
         ])
+      })
+
+      it('expands references', async () => {
+        const ownerId = nanoid()
+        const contactId = await db.contacts.id()
+
+        const messageRef = await db.contacts(contactId).contactMessages.add({
+          ownerId,
+          author: db.contacts.ref(sashaId),
+          text: 'Hola!'
+        })
+
+        await db.contacts.set(contactId, {
+          ownerId,
+          name: 'Sasha',
+          year: 1987,
+          birthday: new Date(1987, 1, 11),
+          lastMessage: messageRef
+        })
+
+        const contacts = await groups(db).contacts.query(($) =>
+          $.field('ownerId').equal(ownerId)
+        )
+
+        expect(contacts[0]?.data.lastMessage?.type).toBe('ref')
+        expect(contacts[0]?.data.lastMessage?.collection.type).toBe(
+          'collection'
+        )
+        expect(contacts[0]?.data.lastMessage?.collection.path).toBe(
+          `contacts/${contactId}/contactMessages`
+        )
       })
     })
 
@@ -959,6 +1025,10 @@ describe('query', () => {
             $.field('text').equal('+1')
           ])
           .on(async (docs) => {
+            expect(docs[0]?.data.author.type).toBe('ref')
+            expect(docs[0]?.data.author.collection.type).toBe('collection')
+            expect(docs[0]?.data.author.collection.path).toBe('contacts')
+
             const authors = await Promise.all(
               docs.map((doc) => doc.data.author.get())
             )
@@ -1016,6 +1086,40 @@ describe('query', () => {
                 'Hey!',
                 'Ho!'
               ])
+              resolve(void 0)
+            })
+        })
+      })
+
+      it('expands references', async () => {
+        const ownerId = nanoid()
+        const messageId = await db.messages.id()
+
+        const replyRef = await db.messages(messageId).replies.add({
+          ownerId,
+          text: 'Hi!'
+        })
+
+        await db.messages.set(messageId, {
+          ownerId,
+          author: db.contacts.ref(sashaId),
+          text: 'Hey!',
+          lastReply: replyRef
+        })
+
+        return new Promise((resolve) => {
+          off = db.messages
+            .query(($) => $.field('ownerId').equal(ownerId))
+            .on((messages) => {
+              expect(messages[0]?.data.lastReply?.type).toBe('ref')
+              expect(messages[0]?.data.lastReply?.id).toBe(replyRef.id)
+
+              expect(messages[0]?.data.lastReply?.collection.type).toBe(
+                'collection'
+              )
+              expect(messages[0]?.data.lastReply?.collection.path).toBe(
+                `messages/${messageId}/replies`
+              )
               resolve(void 0)
             })
         })
@@ -1163,6 +1267,43 @@ describe('query', () => {
                 ).toBe(true)
                 resolve(void 0)
               }
+            })
+        })
+      })
+
+      it('expands references', async () => {
+        const ownerId = nanoid()
+        const contactId = await db.contacts.id()
+
+        const messageRef = await db.contacts(contactId).contactMessages.add({
+          ownerId,
+          author: db.contacts.ref(sashaId),
+          text: 'Hola!'
+        })
+
+        await db.contacts.set(contactId, {
+          ownerId,
+          name: 'Sasha',
+          year: 1987,
+          birthday: new Date(1987, 1, 11),
+          lastMessage: messageRef
+        })
+
+        return new Promise((resolve) => {
+          off = groups(db)
+            .contacts.query(($) => $.field('ownerId').equal(ownerId))
+            .on(async (contacts) => {
+              off?.()
+
+              expect(contacts[0]?.data.lastMessage?.type).toBe('ref')
+              expect(contacts[0]?.data.lastMessage?.collection.type).toBe(
+                'collection'
+              )
+              expect(contacts[0]?.data.lastMessage?.collection.path).toBe(
+                `contacts/${contactId}/contactMessages`
+              )
+
+              resolve(void 0)
             })
         })
       })
