@@ -225,6 +225,10 @@ async function all() {
     // @ts-expect-error
     user.data.createdAt.getDay()
   }
+
+  // Simple query
+
+  await db.users.all()
 }
 
 async function query() {
@@ -364,6 +368,40 @@ async function set() {
   })
 }
 
+async function add() {
+  // Simple add
+
+  await db.posts.add({
+    title: 'Hello, world!',
+    text: 'Hello!'
+  })
+
+  // Upset with helpers
+
+  await db.users.add(($) => ({
+    name: 'Sasha',
+    contacts: { email: 'koss@nocorp.me' },
+    createdAt: $.serverDate()
+  }))
+
+  await db.users.add(
+    {
+      name: 'Sasha',
+      contacts: { email: 'koss@nocorp.me' },
+      createdAt: new Date()
+    },
+    { as: 'server' }
+  )
+
+  // Nullable fields
+
+  db.posts.add({
+    title: 'Hello, world!',
+    text: 'Hello!',
+    likes: null
+  })
+}
+
 async function upset() {
   // Simple set
 
@@ -398,6 +436,7 @@ async function upset() {
     likes: null
   })
 }
+
 async function update() {
   // Simple update
 
