@@ -1,6 +1,5 @@
-import { schema, Typesaurus } from '..'
-import { batch } from '.'
 import { nanoid } from 'nanoid'
+import { batch, schema, ServerDate } from '..'
 
 interface User {
   name: string
@@ -11,7 +10,7 @@ interface User {
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
-  createdAt: Typesaurus.ServerDate
+  createdAt: ServerDate
 }
 
 interface Post {
@@ -23,7 +22,7 @@ interface Post {
 
 interface Account {
   name: string
-  createdAt: Typesaurus.ServerDate
+  createdAt: ServerDate
 
   contacts: {
     email: string

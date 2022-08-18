@@ -1,4 +1,4 @@
-import { schema, Typesaurus } from '..'
+import { Ref, schema, ServerDate } from '..'
 
 describe('set', () => {
   interface User {
@@ -6,7 +6,7 @@ describe('set', () => {
   }
 
   interface Post {
-    author: Typesaurus.Ref<User, 'users'>
+    author: Ref<User, 'users'>
     text: string
     date?: Date
   }
@@ -24,8 +24,8 @@ describe('set', () => {
 
   interface UserWithDates {
     name: string
-    createdAt: Typesaurus.ServerDate
-    updatedAt?: Typesaurus.ServerDate
+    createdAt: ServerDate
+    updatedAt?: ServerDate
     birthday: Date
   }
 
@@ -209,8 +209,8 @@ describe('set', () => {
   describe('server dates', () => {
     interface User {
       name: string
-      createdAt: Typesaurus.ServerDate
-      updatedAt?: Typesaurus.ServerDate
+      createdAt: ServerDate
+      updatedAt?: ServerDate
       birthday: Date
     }
 

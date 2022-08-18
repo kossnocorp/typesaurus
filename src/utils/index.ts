@@ -1,4 +1,4 @@
-import type { Typesaurus } from '..'
+import { Typesaurus } from '../types/typesaurus'
 
 export namespace TypesaurusUtils {
   export type ComposePath<

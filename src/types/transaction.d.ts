@@ -1,7 +1,17 @@
-import type { Typesaurus } from '..'
+import type { Typesaurus } from './typesaurus'
 import type { TypesaurusUtils } from '../utils'
 
 export namespace TypesaurusTransaction {
+  export interface Function {
+    <
+      Schema extends Typesaurus.PlainSchema,
+      Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
+    >(
+      db: Typesaurus.DB<Schema>,
+      options?: Typesaurus.OperationOptions<Environment>
+    ): ReadChain<Schema, Environment>
+  }
+
   /**
    * The document reference type.
    */
@@ -274,16 +284,6 @@ export namespace TypesaurusTransaction {
     WriteResult,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > = ($: WriteHelpers<Schema, ReadResult, Environment>) => WriteResult
-
-  export interface Function {
-    <
-      Schema extends Typesaurus.PlainSchema,
-      Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
-    >(
-      db: Typesaurus.DB<Schema>,
-      options?: Typesaurus.OperationOptions<Environment>
-    ): ReadChain<Schema, Environment>
-  }
 
   export type ReadDB<
     Schema extends Typesaurus.PlainSchema,

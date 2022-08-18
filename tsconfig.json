@@ -12,7 +12,8 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "allowJs": true
   },
   "exclude": ["lib", "node_modules", "legacy"]
 }

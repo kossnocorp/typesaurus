@@ -1,7 +1,4 @@
-import { group } from 'console'
-import { Typesaurus } from '.'
-import { schema } from './adapter/admin'
-import { groups } from './adapter/admin/groups'
+import { groups, schema, ServerDate } from '.'
 
 describe('Typesaurus core', () => {
   describe('DB', () => {
@@ -113,7 +110,7 @@ describe('Typesaurus core', () => {
           }
           // Allow setting only server date on client,
           // but allow on server
-          createdAt: Typesaurus.ServerDate
+          createdAt: ServerDate
         }
 
         // @ts-expect-error - createdDate is a server date

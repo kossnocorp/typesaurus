@@ -1,0 +1,4 @@
+{
+  "browser": "./adapter/web/index.js",
+  "main": "./adapter/admin/index.js"
+}
