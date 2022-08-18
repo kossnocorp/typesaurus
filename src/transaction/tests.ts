@@ -7,7 +7,9 @@ describe('transaction', () => {
     optional?: true
   }
 
-  interface Post {}
+  interface Post {
+    counter: Ref<Counter, 'counters'>
+  }
 
   const db = schema(($) => ({
     counters: $.collection<Counter>(),
@@ -88,6 +90,20 @@ describe('transaction', () => {
       await client()
       expect(server).toThrowError('Expected server environment')
     }
+  })
+
+  it('expands references', async () => {
+    const counterRef = await db.counters.add({ count: 42 })
+    const postRef = await db.posts.add({ counter: counterRef })
+
+    return transaction(db)
+      .read(($) => $.db.posts.get(postRef.id))
+      .write(($) => {
+        expect($.data?.data.counter.type).toBe('ref')
+        expect($.data?.data.counter.collection.type).toBe('collection')
+        expect($.data?.data.counter.collection.path).toBe('counters')
+        expect($.data?.data.counter.collection.get).toBe(undefined)
+      })
   })
 
   describe('set', () => {

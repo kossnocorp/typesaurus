@@ -625,15 +625,15 @@ export function unwrapData(data) {
  * @param data - the data to convert
  * @returns the data in Typesaurus format
  */
-export function wrapData(data) {
+export function wrapData(data, ref = pathToRef) {
   if (data instanceof firestore.DocumentReference) {
-    return pathToRef(data.path)
+    return ref(data.path)
   } else if (data instanceof firestore.Timestamp) {
     return data.toDate()
   } else if (data && typeof data === 'object') {
     const wrappedData = Object.assign(Array.isArray(data) ? [] : {}, data)
     Object.keys(wrappedData).forEach((key) => {
-      wrappedData[key] = wrapData(wrappedData[key])
+      wrappedData[key] = wrapData(wrappedData[key], ref)
     })
     return wrappedData
   } else {

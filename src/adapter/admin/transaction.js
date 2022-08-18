@@ -71,8 +71,13 @@ class ReadCollection {
     const doc = firebaseDoc(this.path, id)
     const snapshot = await this.transaction.get(doc)
     if (!snapshot.exists) return null
-    // TODO: Expand Ref to WriteRef only
-    return new ReadDoc(this, id, wrapData(snapshot.data()))
+    return new ReadDoc(
+      this,
+      id,
+      wrapData(snapshot.data(), (path) =>
+        pathToWriteRef(this.db, this.transaction, path)
+      )
+    )
   }
 }
 
@@ -213,6 +218,7 @@ class WriteRef {
     return this.collection.remove(this.id)
   }
 }
+
 class WriteDoc {
   constructor(collection, id, data) {
     this.type = 'doc'
@@ -244,4 +250,11 @@ class WriteDoc {
       doc.data
     )
   }
+}
+
+export function pathToWriteRef(db, transaction, path) {
+  const captures = path.match(/^(.+)\/(.+)$/)
+  if (!captures) throw new Error(`Can't parse path ${path}`)
+  const [, collectionPath, id] = captures
+  return new WriteRef(new WriteCollection(db, transaction, collectionPath), id)
 }
