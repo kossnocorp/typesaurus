@@ -3,15 +3,23 @@
 
 BIN = $(shell yarn bin)
 
-test:
-	npx firebase emulators:exec --only firestore "npx jest --env node"
+test: test-node test-browser
 .PHONY: test
-
-test-watch:
-	npx firebase emulators:exec --only firestore "npx jest --env node --watch"
 
 test-setup:
 	npx firebase setup:emulators:firestore
+
+test-node:
+	npx firebase emulators:exec --only firestore "npx jest --env node"
+
+test-node-watch:
+	npx firebase emulators:exec --only firestore "npx jest --env node --watch"
+
+test-browser:
+	npx firebase emulators:exec --only firestore "npx karma start --single-run"
+
+test-browser-watch:
+	npx firebase emulators:exec --only firestore "npx karma start"
 
 test-system: test-system-node test-system-browser
 

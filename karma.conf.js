@@ -51,7 +51,7 @@ module.exports = (config) => {
       module: {
         rules: [
           {
-            test: /\.ts$/,
+            test: /\.[tj]s$/,
             loader: 'babel-loader',
             exclude: /node_modules/
           }
