@@ -217,7 +217,7 @@ class Doc {
     this.collection = collection
     this.ref = new Ref(collection, id)
     this.data = data
-    this.environment = 'server'
+    this.environment = 'client'
   }
 
   get(options) {
