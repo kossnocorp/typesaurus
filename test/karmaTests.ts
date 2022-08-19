@@ -13,6 +13,7 @@ const db = getFirestore()
 connectFirestoreEmulator(db, 'localhost', 8080)
 
 require('../src/tests/add')
+require('../src/tests/all')
 
 // import firebase from 'firebase/app'
 // import 'firebase/auth'
