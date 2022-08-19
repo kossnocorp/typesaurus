@@ -13,7 +13,10 @@ import {
   increment,
   arrayUnion,
   arrayRemove,
-  deleteField
+  deleteField,
+  getDocs,
+  deleteDoc,
+  onSnapshot
 } from 'firebase/firestore'
 import { TypesaurusUtils } from '../../utils'
 
@@ -21,7 +24,7 @@ import { TypesaurusUtils } from '../../utils'
 
 // export { transaction } from './transaction'
 
-// export { groups } from './groups'
+export { groups } from './groups'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())
@@ -58,9 +61,9 @@ class RichCollection {
 
   set(id, data, options) {
     assertEnvironment(options?.as)
-    return this.firebaseDoc(id)
-      .set(writeData(data))
-      .then(() => this.ref(id))
+    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB, data)).then(
+      () => this.ref(id)
+    )
   }
 
   upset(id, data, options) {
@@ -87,9 +90,8 @@ class RichCollection {
       .then(() => this.ref(id))
   }
 
-  async remove(id) {
-    await this.firebaseDoc(id).delete()
-    return this.ref(id)
+  remove(id) {
+    return deleteDoc(this.firebaseDoc(id)).then(() => this.ref(id))
   }
 
   all(options) {
@@ -244,41 +246,45 @@ export function all(adapter) {
 
   return new TypesaurusUtils.SubscriptionPromise({
     get: async () => {
-      const snapshot = await firebaseCollection.get()
+      const snapshot = await getDocs(firebaseCollection)
       return snapshot.docs.map((doc) => adapter.doc(doc))
     },
 
     subscribe: (onResult, onError) =>
-      firebaseCollection.onSnapshot((firebaseSnap) => {
-        const docs = firebaseSnap.docs.map((doc) => adapter.doc(doc))
-        const changes = () =>
-          firebaseSnap.docChanges().map((change) => ({
-            type: change.type,
-            oldIndex: change.oldIndex,
-            newIndex: change.newIndex,
-            doc:
-              docs[
-                change.type === 'removed' ? change.oldIndex : change.newIndex
-              ] ||
-              // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
-              // contain the removed document. In that case, we'll restore it from `change.doc`:
-              adapter.doc(
-                change.doc
-                // {
-                //   firestoreData: true,
-                //   environment: a.environment,
-                //   serverTimestamps: options?.serverTimestamps,
-                //   ...a.getDocMeta(change.doc)
-                // }
-              )
-          }))
-        const meta = {
-          changes,
-          size: firebaseSnap.size,
-          empty: firebaseSnap.empty
-        }
-        onResult(docs, meta)
-      }, onError)
+      onSnapshot(
+        firebaseCollection,
+        (firebaseSnap) => {
+          const docs = firebaseSnap.docs.map((doc) => adapter.doc(doc))
+          const changes = () =>
+            firebaseSnap.docChanges().map((change) => ({
+              type: change.type,
+              oldIndex: change.oldIndex,
+              newIndex: change.newIndex,
+              doc:
+                docs[
+                  change.type === 'removed' ? change.oldIndex : change.newIndex
+                ] ||
+                // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
+                // contain the removed document. In that case, we'll restore it from `change.doc`:
+                adapter.doc(
+                  change.doc
+                  // {
+                  //   firestoreData: true,
+                  //   environment: a.environment,
+                  //   serverTimestamps: options?.serverTimestamps,
+                  //   ...a.getDocMeta(change.doc)
+                  // }
+                )
+            }))
+          const meta = {
+            changes,
+            size: firebaseSnap.size,
+            empty: firebaseSnap.empty
+          }
+          onResult(docs, meta)
+        },
+        onError
+      )
   })
 }
 
