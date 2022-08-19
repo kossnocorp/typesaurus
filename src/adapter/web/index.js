@@ -135,21 +135,7 @@ class RichCollection {
     assertEnvironment(options?.as)
 
     return new TypesaurusUtils.SubscriptionPromise({
-      get: async () => {
-        // Firestore#getAll doesn't like empty lists
-        if (ids.length === 0) return Promise.resolve([])
-        const firebaseSnap = await admin
-          .firestore()
-          .getAll(...ids.map((id) => this.firebaseDoc(id)))
-        return firebaseSnap.map((firebaseSnap) => {
-          if (!firebaseSnap.exists) {
-            return null
-          }
-          const firestoreData = firebaseSnap.data()
-          const data = firestoreData && wrapData(firestoreData)
-          return new Doc(this, firebaseSnap.id, data)
-        })
-      },
+      get: () => Promise.all(ids.map((id) => this.get(id))),
 
       subscribe: (onResult, onError) => {
         // Firestore#getAll doesn't like empty lists

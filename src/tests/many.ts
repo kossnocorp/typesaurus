@@ -22,7 +22,7 @@ describe('many', () => {
     trees: $.collection<Tree>()
   }))
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await Promise.all([
       db.fruits.set(db.fruits.id('apple'), { color: 'green' }),
       db.fruits.set(db.fruits.id('banana'), { color: 'yellow' }),
@@ -308,6 +308,7 @@ describe('many', () => {
                 db.fruits.update(db.fruits.id('mango'), { color: 'red' })
                 db.fruits.update(db.fruits.id('apple'), { color: 'red' })
               }
+
               if (
                 colorOf(db.fruits.id('mango')) === 'red' &&
                 colorOf(db.fruits.id('apple')) === 'red'
