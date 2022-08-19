@@ -14,6 +14,7 @@ connectFirestoreEmulator(db, 'localhost', 8080)
 
 require('../src/tests/add')
 require('../src/tests/all')
+require('../src/tests/doc')
 
 // import firebase from 'firebase/app'
 // import 'firebase/auth'
