@@ -37,7 +37,7 @@
     "karma-sourcemap-loader": "^0.3.8",
     "karma-webpack": "4",
     "mocha": "^6.2.0",
-    "nanoid": "^3.3.4",
+    "nanoid": "^4.0.0",
     "power-assert": "^1.6.1",
     "prettier": "^2.0.4",
     "puppeteer": "^6.0.0",

@@ -18,6 +18,7 @@ require('../src/tests/doc')
 require('../src/tests/get')
 require('../src/tests/id')
 require('../src/tests/many')
+require('../src/tests/query')
 
 // import firebase from 'firebase/app'
 // import 'firebase/auth'
