@@ -16,7 +16,8 @@ import {
   deleteField,
   getDocs,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  updateDoc
 } from 'firebase/firestore'
 import { TypesaurusUtils } from '../../utils'
 
@@ -85,9 +86,10 @@ class RichCollection {
         }, {})
       : updateData
 
-    return this.firebaseDoc(id)
-      .update(unwrapData(update))
-      .then(() => this.ref(id))
+    return updateDoc(
+      this.firebaseDoc(id),
+      unwrapData(this.firebaseDB, update)
+    ).then(() => this.ref(id))
   }
 
   remove(id) {
@@ -117,11 +119,15 @@ class RichCollection {
       },
 
       subscribe: (onResult, onError) =>
-        doc.onSnapshot((firebaseSnap) => {
-          const data = firebaseSnap.data()
-          if (data) onResult(new Doc(this, id, wrapData(data)))
-          else onResult(null)
-        }, onError)
+        onSnapshot(
+          doc,
+          (firebaseSnap) => {
+            const data = firebaseSnap.data()
+            if (data) onResult(new Doc(this, id, wrapData(data)))
+            else onResult(null)
+          },
+          onError
+        )
     })
   }
 
@@ -170,6 +176,7 @@ class RichCollection {
   adapter() {
     return {
       collection: () => this.firebaseCollection(),
+      db: () => this.firebaseDB,
       doc: (snapshot) => new Doc(this, snapshot.id, wrapData(snapshot.data()))
     }
   }
@@ -414,7 +421,7 @@ export function query(adapter, queries) {
             ? admin.firestore.FieldPath.documentId()
             : field.join('.'),
           filter,
-          unwrapData(value)
+          unwrapData(adapter.db(), value)
         )
         break
       }
@@ -436,7 +443,7 @@ export function query(adapter, queries) {
       methodValues = [cursor.position, []]
       groupedCursors.push(methodValues)
     }
-    methodValues[1].push(unwrapData(cursor.value))
+    methodValues[1].push(unwrapData(adapter.db(), cursor.value))
   })
 
   if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
