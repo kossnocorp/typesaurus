@@ -803,7 +803,7 @@ describe('query', () => {
     }
 
     afterEach(() => {
-      off && off()
+      off?.()
       off = undefined
     })
 

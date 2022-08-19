@@ -17,7 +17,16 @@ import {
   getDocs,
   deleteDoc,
   onSnapshot,
-  updateDoc
+  updateDoc,
+  limit,
+  where,
+  orderBy,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  documentId,
+  query
 } from 'firebase/firestore'
 import { TypesaurusUtils } from '../../utils'
 
@@ -103,7 +112,7 @@ class RichCollection {
 
   query(queries, options) {
     assertEnvironment(options?.as)
-    return query(this.adapter(), queries)
+    return _query(this.adapter(), queries)
   }
 
   get(id, options) {
@@ -365,23 +374,22 @@ function db(schema, nestedPath) {
   )
 }
 
-export function query(adapter, queries) {
+export function _query(adapter, queries) {
   const resolvedQueries = [].concat(queries(queryHelpers()))
-  // Query accumulator, will contain final Firestore query with all the
-  // filters and limits.
-  let firestoreQuery = adapter.collection()
+  const firebaseQueries = []
   let cursors = []
 
   resolvedQueries.forEach((query) => {
     switch (query.type) {
       case 'order': {
         const { field, method, cursors: queryCursors } = query
-        firestoreQuery = firestoreQuery.orderBy(
-          field[0] === '__id__'
-            ? admin.firestore.FieldPath.documentId()
-            : field.join('.'),
-          method
+        firebaseQueries.push(
+          orderBy(
+            field[0] === '__id__' ? documentId() : field.join('.'),
+            method
+          )
         )
+
         if (queryCursors)
           cursors = cursors.concat(
             queryCursors.map(({ type, position, value }) => ({
@@ -400,24 +408,27 @@ export function query(adapter, queries) {
           )
         break
       }
+
       case 'where': {
         const { field, filter, value } = query
-        firestoreQuery = firestoreQuery.where(
-          field[0] === '__id__'
-            ? admin.firestore.FieldPath.documentId()
-            : field.join('.'),
-          filter,
-          unwrapData(adapter.db(), value)
+        firebaseQueries.push(
+          where(
+            field[0] === '__id__' ? documentId() : field.join('.'),
+            filter,
+            unwrapData(adapter.db(), value)
+          )
         )
         break
       }
+
       case 'limit': {
-        const { number } = query
-        firestoreQuery = firestoreQuery.limit(number)
+        firebaseQueries.push(limit(query.number))
         break
       }
     }
-  })
+
+    return firebaseQueries
+  }, [])
 
   let groupedCursors = []
 
@@ -432,14 +443,27 @@ export function query(adapter, queries) {
     methodValues[1].push(unwrapData(adapter.db(), cursor.value))
   })
 
+  const firebaseCursors = []
+
   if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
     groupedCursors.forEach(([method, values]) => {
-      firestoreQuery = firestoreQuery[method](...values)
+      firebaseCursors.push(
+        (method === 'startAt'
+          ? startAt
+          : method === 'startAfter'
+          ? startAfter
+          : method === 'endAt'
+          ? endAt
+          : endBefore)(...values)
+      )
     })
+
+  const firebaseQuery = () =>
+    query(adapter.collection(), ...firebaseQueries, ...firebaseCursors)
 
   return new TypesaurusUtils.SubscriptionPromise({
     get: async () => {
-      const firebaseSnap = await firestoreQuery.get()
+      const firebaseSnap = await getDocs(firebaseQuery())
       return firebaseSnap.docs.map((firebaseSnap) =>
         adapter.doc(
           firebaseSnap
@@ -453,47 +477,60 @@ export function query(adapter, queries) {
       )
     },
 
-    subscribe: (onResult, onError) =>
-      firestoreQuery.onSnapshot((firebaseSnap) => {
-        const docs = firebaseSnap.docs.map((firebaseSnap) =>
-          adapter.doc(
-            firebaseSnap
-            // {
-            //   firestoreData: true,
-            //   environment: a.environment as Environment,
-            //   serverTimestamps: options?.serverTimestamps,
-            //   ...a.getDocMeta(firebaseSnap)
-            // }
+    subscribe: (onResult, onError) => {
+      let q
+      try {
+        q = firebaseQuery()
+      } catch (error) {
+        onError(error)
+        return
+      }
+
+      return onSnapshot(
+        q,
+        (firebaseSnap) => {
+          const docs = firebaseSnap.docs.map((firebaseSnap) =>
+            adapter.doc(
+              firebaseSnap
+              // {
+              //   firestoreData: true,
+              //   environment: a.environment as Environment,
+              //   serverTimestamps: options?.serverTimestamps,
+              //   ...a.getDocMeta(firebaseSnap)
+              // }
+            )
           )
-        )
-        const changes = () =>
-          firebaseSnap.docChanges().map((change) => ({
-            type: change.type,
-            oldIndex: change.oldIndex,
-            newIndex: change.newIndex,
-            doc:
-              docs[
-                change.type === 'removed' ? change.oldIndex : change.newIndex
-              ] ||
-              // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
-              // contain the removed document. In that case, we'll restore it from `change.doc`:
-              adapter.doc(
-                change.doc
-                // {
-                //   firestoreData: true,
-                //   environment: a.environment,
-                //   serverTimestamps: options?.serverTimestamps,
-                //   ...a.getDocMeta(change.doc)
-                // }
-              )
-          }))
-        const meta = {
-          changes,
-          size: firebaseSnap.size,
-          empty: firebaseSnap.empty
-        }
-        onResult(docs, meta)
-      }, onError)
+          const changes = () =>
+            firebaseSnap.docChanges().map((change) => ({
+              type: change.type,
+              oldIndex: change.oldIndex,
+              newIndex: change.newIndex,
+              doc:
+                docs[
+                  change.type === 'removed' ? change.oldIndex : change.newIndex
+                ] ||
+                // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
+                // contain the removed document. In that case, we'll restore it from `change.doc`:
+                adapter.doc(
+                  change.doc
+                  // {
+                  //   firestoreData: true,
+                  //   environment: a.environment,
+                  //   serverTimestamps: options?.serverTimestamps,
+                  //   ...a.getDocMeta(change.doc)
+                  // }
+                )
+            }))
+          const meta = {
+            changes,
+            size: firebaseSnap.size,
+            empty: firebaseSnap.empty
+          }
+          onResult(docs, meta)
+        },
+        onError
+      )
+    }
   })
 }
 
