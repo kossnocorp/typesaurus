@@ -33,7 +33,7 @@ describe('doc', () => {
     })
 
     expect(userDoc).toEqual(
-      (jasmine || expect).objectContaining({
+      (typeof jasmine !== 'undefined' ? jasmine : expect).objectContaining({
         type: 'doc',
         ref: db.users.ref(db.users.id('42')),
         data: { name: 'Sasha', createdAt, birthday }

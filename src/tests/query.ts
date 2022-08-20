@@ -398,6 +398,7 @@ describe('query', () => {
       )
 
       it('allows querying collection groups', async () => {
+        const ownerId = nanoid()
         const sashaRef = db.contacts.ref(sashaId)
         const tatiRef = db.contacts.ref(tatiId)
 
@@ -726,8 +727,8 @@ describe('query', () => {
         shardedCounters: $.collection<Counter>()
       }))
 
-      it('allows to query by documentId', async () => {
-        await Promise.all([
+      beforeAll(() =>
+        Promise.all([
           db.shardedCounters.set(db.shardedCounters.id('draft-0'), { n: 0 }),
           db.shardedCounters.set(db.shardedCounters.id('draft-1'), { n: 0 }),
           db.shardedCounters.set(db.shardedCounters.id('published-0'), {
@@ -741,6 +742,9 @@ describe('query', () => {
           }),
           db.shardedCounters.set(db.shardedCounters.id('suspended-1'), { n: 0 })
         ])
+      )
+
+      it('allows to query by documentId', async () => {
         const docs = await db.shardedCounters.query(($) => [
           $.field($.docId()).moreOrEqual(db.shardedCounters.id('published')),
           $.field($.docId()).less(db.shardedCounters.id('publishee'))
@@ -1626,25 +1630,27 @@ describe('query', () => {
         shardedCounters: $.collection<Counter>()
       }))
 
+      beforeAll(() =>
+        Promise.all([
+          db.shardedCounters.set(db.shardedCounters.id('draft-0'), { n: 0 }),
+          db.shardedCounters.set(db.shardedCounters.id('draft-1'), { n: 0 }),
+          db.shardedCounters.set(db.shardedCounters.id('published-0'), {
+            n: 0
+          }),
+          db.shardedCounters.set(db.shardedCounters.id('published-1'), {
+            n: 0
+          }),
+          db.shardedCounters.set(db.shardedCounters.id('suspended-0'), {
+            n: 0
+          }),
+          db.shardedCounters.set(db.shardedCounters.id('suspended-1'), {
+            n: 0
+          })
+        ])
+      )
+
       it('allows to query by documentId', () =>
         new Promise(async (resolve) => {
-          await Promise.all([
-            db.shardedCounters.set(db.shardedCounters.id('draft-0'), { n: 0 }),
-            db.shardedCounters.set(db.shardedCounters.id('draft-1'), { n: 0 }),
-            db.shardedCounters.set(db.shardedCounters.id('published-0'), {
-              n: 0
-            }),
-            db.shardedCounters.set(db.shardedCounters.id('published-1'), {
-              n: 0
-            }),
-            db.shardedCounters.set(db.shardedCounters.id('suspended-0'), {
-              n: 0
-            }),
-            db.shardedCounters.set(db.shardedCounters.id('suspended-1'), {
-              n: 0
-            })
-          ])
-
           const spy = sinon.spy()
 
           off = db.shardedCounters
@@ -1758,10 +1764,9 @@ describe('query', () => {
       const harryId = db.contacts.id('harry-${ownerId}')
       const ronId = db.contacts.id('ron-${ownerId}')
 
-      beforeEach(() => setLesha())
-
       afterEach(() =>
         Promise.all([
+          setLesha(),
           db.contacts.remove(theoId),
           db.contacts.remove(harryId),
           db.contacts.remove(ronId)
@@ -1774,9 +1779,10 @@ describe('query', () => {
           off = db.contacts
             .query(($) => [
               $.field('ownerId').equal(ownerId),
-              // TODO: Figure out why when a timestamp is used, the order is incorrect
-              // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-              $.field('year').order('asc', $.startAt(1989)),
+              $.field('birthday').order(
+                'asc',
+                $.startAt(new Date(1989, 6, 10))
+              ),
               $.limit(3)
             ])
             .on(async (docs, { changes }) => {
@@ -1835,9 +1841,10 @@ describe('query', () => {
             off = db.contacts
               .query(($) => [
                 $.field('ownerId').equal(ownerId),
-                // TODO: Figure out why when a timestamp is used, the order is incorrect
-                // order('birthday', 'asc', [startAt(new Date(1989, 6, 10))]),
-                $.field('year').order('asc', $.startAt(1989)),
+                $.field('birthday').order(
+                  'asc',
+                  $.startAt(new Date(1989, 6, 10))
+                ),
                 $.limit(3)
               ])
               .on(async (docs) => {
