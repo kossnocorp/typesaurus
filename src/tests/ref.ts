@@ -11,10 +11,14 @@ describe('ref', () => {
 
   it('creates ref object', () => {
     const userRef = db.users.ref(db.users.id('42'))
-    expect(userRef).toEqual({
-      type: 'ref',
-      id: '42',
-      collection: db.users
-    })
+    expect(userRef).toEqual(
+      (typeof jasmine !== 'undefined' ? jasmine : expect).objectContaining({
+        type: 'ref',
+        id: '42'
+      })
+    )
+    expect(userRef.collection.type).toBe('collection')
+    expect(userRef.collection.path).toBe('users')
+    expect('get' in userRef.collection).toBe(true)
   })
 })

@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin'
+import { doc, getFirestore, runTransaction } from 'firebase/firestore'
 import {
   assertEnvironment,
   unwrapData,
@@ -13,7 +13,7 @@ export const transaction = (db, options) => {
     read: (readCallback) => {
       return {
         write: (writeCallback) =>
-          admin.firestore().runTransaction(async (firebaseTransaction) => {
+          runTransaction(getFirestore(), async (firebaseTransaction) => {
             const data = await readCallback(
               transactionReadHelpers(db, firebaseTransaction)
             )
@@ -65,12 +65,13 @@ class ReadCollection {
     this.db = db
     this.path = path
     this.transaction = transaction
+    this.firebaseDB = getFirestore()
   }
 
   async get(id) {
-    const doc = firebaseDoc(this.path, id)
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
     const snapshot = await this.transaction.get(doc)
-    if (!snapshot.exists) return null
+    if (!snapshot.exists()) return null
     return new ReadDoc(
       this,
       id,
@@ -92,18 +93,14 @@ class ReadRef {
 class ReadDoc {
   constructor(collection, id, data) {
     this.type = 'doc'
-    this.environment = 'server'
+    this.environment = 'client'
     this.ref = new ReadRef(collection, id)
     this.data = data
   }
 }
 
-function firebaseDoc(path, id) {
-  return admin.firestore().doc(`${path}/${id}`)
-}
-
-function firebaseCollection(path) {
-  return admin.firestore().collection(path)
+function firebaseDoc(db, path, id) {
+  return doc(db, `${path}/${id}`)
 }
 
 function transactionWriteHelpers(db, transaction, data) {
@@ -160,29 +157,32 @@ class WriteCollection {
     this.path = path
     this.db = db
     this.transaction = transaction
+    this.firebaseDB = getFirestore()
   }
 
   set(id, data) {
     const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.transaction.set(doc, unwrapData(dataToSet))
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    this.transaction.set(doc, unwrapData(this.firebaseDB, dataToSet))
   }
 
   upset(id, data) {
     const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.transaction.set(doc, unwrapData(dataToUpset), { merge: true })
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    this.transaction.set(doc, unwrapData(this.firebaseDB, dataToUpset), {
+      merge: true
+    })
   }
 
   update(id, data) {
     const dataToUpdate =
       typeof data === 'function' ? data(updateHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.transaction.update(doc, unwrapData(dataToUpdate))
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    this.transaction.update(doc, unwrapData(this.firebaseDB, dataToUpdate))
   }
 
   remove(id) {
-    const doc = firebaseCollection(this.path).doc(id)
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
     this.transaction.delete(doc)
   }
 
@@ -222,7 +222,7 @@ class WriteRef {
 class WriteDoc {
   constructor(collection, id, data) {
     this.type = 'doc'
-    this.environment = 'server'
+    this.environment = 'client'
     this.ref = new WriteRef(collection, id)
     this.data = data
   }
