@@ -126,8 +126,11 @@ describe('TypesaurusUtils', () => {
 
         promise.on(() => {})
 
-        expect(() => promise.then(() => {})).rejects.toThrow(
-          "Can't await after subscribing"
+        return new Promise((resolve, reject) =>
+          promise.then(reject, (error) => {
+            expect(error.message).toBe("Can't await after subscribing")
+            resolve(void 0)
+          })
         )
       })
     })
@@ -348,7 +351,7 @@ describe('TypesaurusUtils', () => {
 
         await promise
 
-        expect(() => promise.on(() => {})).toThrow(
+        expect(() => promise.on(() => {})).toThrowError(
           "Can't subscribe after awaiting"
         )
       })

@@ -12,13 +12,12 @@ initializeApp({ apiKey, projectId })
 const db = getFirestore()
 connectFirestoreEmulator(db, 'localhost', 8080)
 
-require('../src/tests/add')
-require('../src/tests/all')
-require('../src/tests/doc')
-require('../src/tests/get')
-require('../src/tests/id')
-require('../src/tests/many')
-require('../src/tests/query')
+const testsContext = require.context(
+  '../src/',
+  true,
+  /(tests\/.+\.ts|\/tests\.ts)$/
+)
+testsContext.keys().forEach(testsContext)
 
 // import firebase from 'firebase/app'
 // import 'firebase/auth'

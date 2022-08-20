@@ -1,14 +1,14 @@
+import { doc, getFirestore, writeBatch } from 'firebase/firestore'
 import {
   assertEnvironment,
   unwrapData,
   updateHelpers,
   writeHelpers
 } from './index'
-import * as admin from 'firebase-admin'
 
 export const batch = (rootDB, options) => {
   assertEnvironment(options?.as)
-  const firebaseBatch = admin.firestore().batch()
+  const firebaseBatch = writeBatch(getFirestore())
   const db = async () => {
     await firebaseBatch.commit()
   }
@@ -49,33 +49,36 @@ class Collection {
     this.db = db
     this.batch = batch
     this.path = path
+    this.firebaseDB = getFirestore()
   }
 
   set(id, data) {
     const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.batch.set(doc, unwrapData(dataToSet))
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    this.batch.set(doc, unwrapData(this.firebaseDB, dataToSet))
   }
 
   upset(id, data) {
     const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.batch.set(doc, unwrapData(dataToUpset), { merge: true })
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    this.batch.set(doc, unwrapData(this.firebaseDB, dataToUpset), {
+      merge: true
+    })
   }
 
   update(id, data) {
     const dataToUpdate =
       typeof data === 'function' ? data(updateHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.batch.update(doc, unwrapData(dataToUpdate))
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    this.batch.update(doc, unwrapData(this.firebaseDB, dataToUpdate))
   }
 
   remove(id) {
-    const doc = firebaseCollection(this.path).doc(id)
+    const doc = firebaseDoc(this.firebaseDB, this.path, id)
     this.batch.delete(doc)
   }
 }
 
-function firebaseCollection(path) {
-  return admin.firestore().collection(path)
+function firebaseDoc(db, path, id) {
+  return doc(db, path, id)
 }

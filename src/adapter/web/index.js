@@ -30,9 +30,9 @@ import {
 } from 'firebase/firestore'
 import { TypesaurusUtils } from '../../utils'
 
-// export { batch } from './batch'
+export { batch } from './batch'
 
-// export { transaction } from './transaction'
+export { transaction } from './transaction'
 
 export { groups } from './groups'
 
@@ -78,9 +78,9 @@ class RichCollection {
 
   upset(id, data, options) {
     assertEnvironment(options?.as)
-    return this.firebaseDoc(id)
-      .set(writeData(data), { merge: true })
-      .then(() => this.ref(id))
+    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB, data), {
+      merge: true
+    }).then(() => this.ref(id))
   }
 
   update(id, data, options) {
