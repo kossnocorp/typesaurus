@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 
 const projectId = process.env.FIREBASE_PROJECT_ID
@@ -9,8 +10,20 @@ if (!projectId || !apiKey)
 
 initializeApp({ apiKey, projectId })
 
-const db = getFirestore()
-connectFirestoreEmulator(db, 'localhost', 8080)
+if (process.env.FIRESTORE_EMULATOR_HOST) {
+  const db = getFirestore()
+  connectFirestoreEmulator(db, 'localhost', 8080)
+} else {
+  const username = process.env.FIREBASE_USERNAME
+  const password = process.env.FIREBASE_PASSWORD
+
+  if (!username || !password)
+    throw new Error('FIREBASE_USERNAME and FIREBASE_PASSWORD must be set')
+
+  const auth = getAuth()
+
+  beforeAll(() => signInWithEmailAndPassword(auth, username, password))
+}
 
 const testsContext = require.context(
   '../src/',
@@ -18,22 +31,3 @@ const testsContext = require.context(
   /(tests\/.+\.ts|\/tests\.ts)$/
 )
 testsContext.keys().forEach(testsContext)
-
-// import firebase from 'firebase/app'
-// import 'firebase/auth'
-// import 'firebase/firestore'
-
-// if (!projectId) throw new Error('FIREBASE_PROJECT_ID must be defined')
-// if (!apiKey) throw new Error('FIREBASE_API_KEY must be defined')
-
-// firebase.initializeApp()
-
-// beforeAll(async () => {
-//   const username = process.env.FIREBASE_USERNAME
-//   const password = process.env.FIREBASE_PASSWORD
-//   if (username && password)
-//     return firebase.auth().signInWithEmailAndPassword(username, password)
-// })
-
-// const testsContext = require.context('../src/', true, /\/tests\.ts$/)
-// testsContext.keys().forEach(testsContext)

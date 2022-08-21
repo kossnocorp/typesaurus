@@ -24,7 +24,7 @@ test-browser-watch:
 test-system: test-system-node test-system-browser
 
 test-system-node:
-	npx jest --env node
+	env GOOGLE_APPLICATION_CREDENTIALS=${CURDIR}/secrets/key.json npx jest --env node
 
 test-system-node-watch:
 	npx jest --env node --watch
