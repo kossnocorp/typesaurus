@@ -33,6 +33,9 @@ module.exports = (config) => {
 
       plugins: [
         new webpack.DefinePlugin({
+          'process.env.FIRESTORE_EMULATOR_HOST': JSON.stringify(
+            process.env.FIRESTORE_EMULATOR_HOST
+          ),
           'process.env.FIREBASE_PROJECT_ID': JSON.stringify(
             process.env.FIREBASE_PROJECT_ID
           ),
