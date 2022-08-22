@@ -492,9 +492,19 @@ export namespace Typesaurus {
   > extends Promise<Result> {
     request: Request
 
-    on(
+    on: SubscriptionPromiseOn<Request, Result, SubscriptionMeta>
+  }
+
+  export interface SubscriptionPromiseOn<
+    Request,
+    Result,
+    SubscriptionMeta = undefined
+  > {
+    (
       callback: SubscriptionPromiseCallback<Result, SubscriptionMeta>
     ): OffSubscriptionWithCatch
+
+    request: Request
   }
 
   export type SubscriptionPromiseCallback<

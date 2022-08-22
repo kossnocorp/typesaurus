@@ -230,6 +230,10 @@ export namespace TypesaurusUtils {
       this.get = get
       this.subscribe = subscribe
       this.subscriptions = { result: [], error: [] }
+      // Bind on, so it can be used as a value
+      this.on = this.on.bind(this)
+      // @ts-ignore
+      this.on.request = request
     }
 
     get [Symbol.toStringTag]() {
