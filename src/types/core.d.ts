@@ -485,8 +485,13 @@ export namespace Typesaurus {
     (result: Doc<ModelPair> | null /*, info: SnapshotInfo<Model> */): void
   }
 
-  export interface SubscriptionPromise<Result, SubscriptionMeta = undefined>
-    extends Promise<Result> {
+  export interface SubscriptionPromise<
+    Request,
+    Result,
+    SubscriptionMeta = undefined
+  > extends Promise<Result> {
+    request: Request
+
     on(
       callback: SubscriptionPromiseCallback<Result, SubscriptionMeta>
     ): OffSubscriptionWithCatch
@@ -503,6 +508,27 @@ export namespace Typesaurus {
     (result: Doc<ModelPair>[]): void
   }
 
+  export interface Request<Kind> {
+    type: 'request'
+    kind: Kind
+    path: string
+    group?: boolean
+  }
+
+  export interface GetRequest extends Request<'get'> {
+    id: string
+  }
+
+  export interface AllRequest extends Request<'all'> {}
+
+  export interface ManyRequest extends Request<'many'> {
+    ids: string
+  }
+
+  export interface QueryRequest extends Request<'many'> {
+    queries: TypesaurusQuery.Query<any>[]
+  }
+
   export interface DocAPI<ModelPair extends ModelPathPair> {
     get<
       Source extends DataSource,
@@ -510,12 +536,10 @@ export namespace Typesaurus {
       Environment extends RuntimeEnvironment
     >(
       options?: ReadOptions<DateStrategy, Environment>
-    ): SubscriptionPromise<EnvironmentDoc<
-      ModelPair,
-      Source,
-      DateStrategy,
-      Environment
-    > | null>
+    ): SubscriptionPromise<
+      GetRequest,
+      EnvironmentDoc<ModelPair, Source, DateStrategy, Environment> | null
+    >
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
@@ -543,6 +567,7 @@ export namespace Typesaurus {
     >(
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
+      AllRequest,
       EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
     >
@@ -555,6 +580,7 @@ export namespace Typesaurus {
       queries: TypesaurusQuery.QueryGetter<ModelPair>,
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
+      QueryRequest,
       EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
     >
@@ -578,12 +604,10 @@ export namespace Typesaurus {
     >(
       id: Id<ModelPair[1] /* Path */>,
       options?: ReadOptions<DateStrategy, Environment>
-    ): SubscriptionPromise<EnvironmentDoc<
-      ModelPair,
-      Source,
-      DateStrategy,
-      Environment
-    > | null>
+    ): SubscriptionPromise<
+      GetRequest,
+      EnvironmentDoc<ModelPair, Source, DateStrategy, Environment> | null
+    >
 
     many<
       Source extends DataSource,
@@ -593,6 +617,7 @@ export namespace Typesaurus {
       ids: Id<ModelPair[1] /* Path */>[],
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
+      ManyRequest,
       Array<EnvironmentDoc<ModelPair, Source, DateStrategy, Environment> | null>
     >
 

@@ -1906,4 +1906,45 @@ describe('query', () => {
         }))
     })
   })
+
+  describe('request', () => {
+    it('exposes the request', () => {
+      const promise = db.contacts.query(($) =>
+        $.field('ownerId').equal(ownerId)
+      )
+      expect(promise.request).toEqual({
+        type: 'request',
+        kind: 'query',
+        path: 'contacts',
+        queries: [
+          {
+            field: ['ownerId'],
+            filter: '==',
+            type: 'where',
+            value: ownerId
+          }
+        ]
+      })
+    })
+
+    it('exposes a group request', () => {
+      const promise = groups(db).contacts.query(($) =>
+        $.field('ownerId').equal(ownerId)
+      )
+      expect(promise.request).toEqual({
+        type: 'request',
+        kind: 'query',
+        path: 'contacts',
+        queries: [
+          {
+            field: ['ownerId'],
+            filter: '==',
+            type: 'where',
+            value: ownerId
+          }
+        ],
+        group: true
+      })
+    })
+  })
 })

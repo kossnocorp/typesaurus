@@ -343,4 +343,17 @@ describe('get', () => {
       // }
     })
   })
+
+  describe('request', () => {
+    it('exposes the request', () => {
+      const id = db.users.id('whatever')
+      const promise = db.users.get(id)
+      expect(promise.request).toEqual({
+        type: 'request',
+        kind: 'get',
+        path: 'users',
+        id
+      })
+    })
+  })
 })

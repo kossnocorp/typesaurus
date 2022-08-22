@@ -1,6 +1,6 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
-import { TypesaurusUtils } from '../../utils'
+import { TypesaurusUtils } from '../../utils/index.ts'
 
 export { batch } from './batch.mjs'
 
@@ -90,6 +90,8 @@ class RichCollection {
     const doc = this.firebaseDoc(id)
 
     return new TypesaurusUtils.SubscriptionPromise({
+      request: request({ kind: 'get', path: this.path, id }),
+
       get: async () => {
         const firebaseSnap = await doc.get()
         const data = firebaseSnap.data()
@@ -109,6 +111,8 @@ class RichCollection {
     assertEnvironment(options?.as)
 
     return new TypesaurusUtils.SubscriptionPromise({
+      request: request({ kind: 'many', path: this.path, ids }),
+
       get: async () => {
         // Firestore#getAll doesn't like empty lists
         if (ids.length === 0) return Promise.resolve([])
@@ -150,7 +154,8 @@ class RichCollection {
   adapter() {
     return {
       collection: () => this.firebaseCollection(),
-      doc: (snapshot) => new Doc(this, snapshot.id, wrapData(snapshot.data()))
+      doc: (snapshot) => new Doc(this, snapshot.id, wrapData(snapshot.data())),
+      request: () => ({ path: this.path })
     }
   }
 
@@ -225,6 +230,8 @@ export function all(adapter) {
   const firebaseCollection = adapter.collection()
 
   return new TypesaurusUtils.SubscriptionPromise({
+    request: request({ kind: 'all', ...adapter.request() }),
+
     get: async () => {
       const snapshot = await firebaseCollection.get()
       return snapshot.docs.map((doc) => adapter.doc(doc))
@@ -418,6 +425,12 @@ export function query(adapter, queries) {
     })
 
   return new TypesaurusUtils.SubscriptionPromise({
+    request: request({
+      kind: 'query',
+      ...adapter.request(),
+      queries: resolvedQueries
+    }),
+
     get: async () => {
       const firebaseSnap = await firestoreQuery.get()
       return firebaseSnap.docs.map((firebaseSnap) =>
@@ -662,4 +675,8 @@ export function nullifyData(data) {
 export function assertEnvironment(environment) {
   if (environment && environment !== 'server')
     throw new Error(`Expected ${environment} environment`)
+}
+
+function request(payload) {
+  return { type: 'request', ...payload }
 }

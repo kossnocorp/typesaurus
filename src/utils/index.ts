@@ -183,7 +183,8 @@ export namespace TypesaurusUtils {
     errorCallback: SubscriptionPromiseErrorCallback
   ) => Typesaurus.OffSubscription
 
-  export interface SubscriptionPromiseProps<Result, SubscriptionMeta> {
+  export interface SubscriptionPromiseProps<Request, Result, SubscriptionMeta> {
+    request: Request
     get: SubscriptionPromiseGet<Result>
     subscribe: SubscriptionPromiseSubscribe<Result, SubscriptionMeta>
   }
@@ -193,8 +194,11 @@ export namespace TypesaurusUtils {
     error: SubscriptionPromiseErrorCallback[]
   }
 
-  export class SubscriptionPromise<Result, SubscriptionMeta = undefined>
-    implements Typesaurus.SubscriptionPromise<Result>
+  export class SubscriptionPromise<
+    Request,
+    Result,
+    SubscriptionMeta = undefined
+  > implements Typesaurus.SubscriptionPromise<Request, Result>
   {
     private result: Result | undefined
 
@@ -215,10 +219,14 @@ export namespace TypesaurusUtils {
       SubscriptionMeta
     >
 
+    request: Request
+
     constructor({
+      request,
       get,
       subscribe
-    }: SubscriptionPromiseProps<Result, SubscriptionMeta>) {
+    }: SubscriptionPromiseProps<Request, Result, SubscriptionMeta>) {
+      this.request = request
       this.get = get
       this.subscribe = subscribe
       this.subscriptions = { result: [], error: [] }
