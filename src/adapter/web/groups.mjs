@@ -32,9 +32,11 @@ class Group {
 
   adapter() {
     return {
-      collection: () => this.firebaseCollection(),
       db: () => this.firebaseDB,
-      doc: (snapshot) => pathToDoc(snapshot.ref.path, wrapData(snapshot.data()))
+      collection: () => this.firebaseCollection(),
+      doc: (snapshot) =>
+        pathToDoc(snapshot.ref.path, wrapData(snapshot.data())),
+      request: () => ({ path: this.name, group: true })
     }
   }
 

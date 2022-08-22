@@ -320,4 +320,19 @@ describe('many', () => {
       })
     })
   })
+
+  describe('request', () => {
+    it('exposes the request', () => {
+      const promise = db.fruits.many([
+        db.fruits.id('apple'),
+        db.fruits.id('banana')
+      ])
+      expect(promise.request).toEqual({
+        type: 'request',
+        kind: 'many',
+        path: 'fruits',
+        ids: [db.fruits.id('apple'), db.fruits.id('banana')]
+      })
+    })
+  })
 })
