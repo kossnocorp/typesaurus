@@ -1,4 +1,5 @@
-import { Id, schema, ServerDate } from '.'
+import { Doc, Id, Ref, schema, ServerDate } from '.'
+import { Typesaurus } from './types/core'
 
 interface Post {
   title: string
@@ -606,6 +607,42 @@ async function sharedIds() {
   const userId = await db.users.id()
 
   db.settings.update(userId, { email: 'hello@example.com' })
+}
+
+async function inferSchema() {
+  type Schema1 = Typesaurus.InferSchema<typeof db>
+
+  assertType<TypeEqual<Schema1['users']['Id'], Id<'users'>>>(true)
+  assertType<TypeEqual<Schema1['users']['Ref'], Ref<User, 'users'>>>(true)
+  assertType<TypeEqual<Schema1['users']['Doc'], Doc<User, 'users'>>>(true)
+
+  interface Settings {
+    email: string
+  }
+
+  const nestedDB = schema(($) => ({
+    users: $.collection<User>().sub({
+      settings: $.collection<Settings>()
+    })
+  }))
+
+  type Schema2 = Typesaurus.InferSchema<typeof nestedDB>
+
+  assertType<
+    TypeEqual<Schema2['users']['settings']['Id'], Id<'users/settings'>>
+  >(true)
+  assertType<
+    TypeEqual<
+      Schema2['users']['settings']['Ref'],
+      Ref<Settings, 'users/settings'>
+    >
+  >(true)
+  assertType<
+    TypeEqual<
+      Schema2['users']['settings']['Doc'],
+      Doc<Settings, 'users/settings'>
+    >
+  >(true)
 }
 
 export function assertType<Type>(value: Type) {}
