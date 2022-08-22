@@ -1,5 +1,5 @@
-import { schema } from '..'
-import type { Typesaurus } from '../types/typesaurus'
+import { Ref, schema } from '..'
+import type { Typesaurus } from '../types/core'
 
 describe('add', () => {
   interface User {
@@ -7,7 +7,7 @@ describe('add', () => {
   }
 
   interface Post {
-    author: Typesaurus.Ref<User, 'users'>
+    author: Ref<User, 'users'>
     text: string
     date?: Date
   }

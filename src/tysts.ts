@@ -1,4 +1,4 @@
-import { schema, ServerDate } from '.'
+import { Id, schema, ServerDate } from '.'
 
 interface Post {
   title: string
@@ -591,6 +591,21 @@ async function update() {
   })
 
   db.posts.update(db.posts.id('doc-id'), ($) => $.field('likes').set(null))
+}
+
+async function sharedIds() {
+  interface Settings {
+    email: string
+  }
+
+  const db = schema(($) => ({
+    users: $.collection<User>(),
+    settings: $.collection<Settings, Id<'users'>>()
+  }))
+
+  const userId = await db.users.id()
+
+  db.settings.update(userId, { email: 'hello@example.com' })
 }
 
 export function assertType<Type>(value: Type) {}
