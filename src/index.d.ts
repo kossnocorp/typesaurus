@@ -2,6 +2,9 @@ import type { Typesaurus } from './types/core'
 
 export const schema: Typesaurus.Function
 
+export type InferSchema<DB extends Typesaurus.DB<any, any>> =
+  Typesaurus.InferSchema<DB>
+
 export type Id<Path extends string> = Typesaurus.Id<Path>
 
 export type Collection<

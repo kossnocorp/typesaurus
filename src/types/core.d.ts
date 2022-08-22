@@ -754,4 +754,18 @@ export namespace Typesaurus {
         : never
       : never
   }
+
+  export type InferSchema<DB extends Typesaurus.DB<any, any>> = {
+    [Path in keyof DB]: DB[Path] extends
+      | RichCollection<infer ModelPair>
+      | NestedRichCollection<infer ModelPair, any>
+      ? {
+          Id: ModelPair[1] /* Id */
+          Ref: Typesaurus.Ref<ModelPair>
+          Doc: Typesaurus.EnvironmentDoc<ModelPair, any, any, any>
+        } & (DB[Path] extends NestedRichCollection<any, infer Schema>
+          ? InferSchema<Schema>
+          : {})
+      : never
+  }
 }
