@@ -14,7 +14,7 @@ export namespace Typesaurus {
 
   export type ModelType = Record<string, any>
 
-  export type ModelPathPair = [ModelType, string]
+  export type ModelPathPair = [ModelType, Id<any>]
 
   /**
    * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
@@ -184,7 +184,7 @@ export namespace Typesaurus {
     extends DocAPI<ModelPair> {
     type: 'ref'
     collection: RichCollection<ModelPair>
-    id: Id<ModelPair[1] /* Path */>
+    id: ModelPair[1] /* Id */
   }
 
   export type ServerDateNullable = 'nullable' | 'present'
@@ -463,7 +463,10 @@ export namespace Typesaurus {
   }
 
   export interface SchemaHelpers {
-    collection<Model extends ModelType>(): PlainCollection<Model>
+    collection<
+      Model extends ModelType,
+      CustomId extends Id<string> | undefined = undefined
+    >(): PlainCollection<Model, CustomId>
   }
 
   export interface OperationOptions<
@@ -599,8 +602,10 @@ export namespace Typesaurus {
   /**
    *
    */
-  export interface RichCollection<ModelPair extends ModelPathPair>
-    extends CollectionAPI<ModelPair> {
+  export interface RichCollection<
+    ModelPair extends ModelPathPair,
+    CustomId extends Id<string> | undefined = undefined
+  > extends CollectionAPI<ModelPair> {
     /** The collection type */
     type: 'collection'
 
@@ -612,7 +617,7 @@ export namespace Typesaurus {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       GetRequest,
@@ -624,7 +629,7 @@ export namespace Typesaurus {
       DateStrategy extends Typesaurus.ServerDateStrategy,
       Environment extends Typesaurus.RuntimeEnvironment
     >(
-      ids: Id<ModelPair[1] /* Path */>[],
+      ids: ModelPair[1] /* Id */[],
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       ManyRequest,
@@ -637,46 +642,46 @@ export namespace Typesaurus {
     ): Promise<Ref<ModelPair>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
     update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: UpdateModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
-    remove(id: Id<ModelPair[1] /* Path */>): Promise<Ref<ModelPair>>
+    remove(id: ModelPair[1] /* Id */): Promise<Ref<ModelPair>>
 
-    ref(id: Id<ModelPair[1] /* Path */>): Ref<ModelPair>
+    ref(id: ModelPair[1] /* Id */): Ref<ModelPair>
 
     doc<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: ModelPair[0] /* Model */
     ): EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>
 
-    id(id: string): Id<ModelPair[1] /* Path */>
+    id(id: string): ModelPair[1] /* Id */
 
-    id(): Promise<Id<ModelPair[1] /* Path */>>
+    id(): Promise<ModelPair[1] /* Id */>
   }
 
   export interface NestedRichCollection<
     ModelPair extends ModelPathPair,
     Schema extends AnyDB
   > extends RichCollection<ModelPair> {
-    (id: Id<ModelPair[1] /* Path */>): Schema
+    (id: ModelPair[1] /* Id */): Schema
     schema: Schema
   }
 
@@ -684,18 +689,22 @@ export namespace Typesaurus {
     | RichCollection<ModelPair>
     | NestedRichCollection<ModelPair, AnyDB>
 
-  export interface PlainCollection<Model extends ModelType> {
+  export interface PlainCollection<
+    Model extends ModelType,
+    CustomId extends Id<string> | undefined = undefined
+  > {
     /** The collection type */
     type: 'collection'
 
     sub<Schema extends PlainSchema>(
       schema: Schema
-    ): NestedPlainCollection<Model, Schema>
+    ): NestedPlainCollection<Model, Schema, CustomId>
   }
 
   export interface NestedPlainCollection<
     _Model extends ModelType,
-    Schema extends PlainSchema
+    Schema extends PlainSchema,
+    _CustomId extends Id<string> | undefined = undefined
   > {
     /** The collection type */
     type: 'collection'
@@ -719,13 +728,29 @@ export namespace Typesaurus {
 
   export type DB<Schema, BasePath extends string | undefined = undefined> = {
     [Path in keyof Schema]: Path extends string
-      ? Schema[Path] extends NestedPlainCollection<infer Model, infer Schema>
+      ? Schema[Path] extends NestedPlainCollection<
+          infer Model,
+          infer Schema,
+          infer CustomId
+        >
         ? NestedRichCollection<
-            [Model, TypesaurusUtils.ComposePath<BasePath, Path>],
+            [
+              Model,
+              CustomId extends Id<any>
+                ? CustomId
+                : Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+            ],
             DB<Schema, TypesaurusUtils.ComposePath<BasePath, Path>>
           >
-        : Schema[Path] extends PlainCollection<infer Model>
-        ? RichCollection<[Model, TypesaurusUtils.ComposePath<BasePath, Path>]>
+        : Schema[Path] extends PlainCollection<infer Model, infer CustomId>
+        ? RichCollection<
+            [
+              Model,
+              CustomId extends Id<any>
+                ? CustomId
+                : Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+            ]
+          >
         : never
       : never
   }

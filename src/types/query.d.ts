@@ -125,9 +125,7 @@ export namespace TypesaurusQuery {
     Parent,
     Key extends keyof Parent | DocId
   > =
-    | (Key extends keyof Parent
-        ? Parent[Key]
-        : Typesaurus.Id<ModelPair[1] /* Path */>) // Field value or id
+    | (Key extends keyof Parent ? Parent[Key] : ModelPair[1]) /* Id */ // Field value or id
     | Typesaurus.Doc<ModelPair> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
@@ -154,37 +152,21 @@ export namespace TypesaurusQuery {
 
   export interface QueryIdField<ModelPair extends Typesaurus.ModelPathPair>
     extends QueryFieldBase<ModelPair, ModelPair[0] /* Model */, DocId> {
-    less(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>
-    ): WhereQuery<ModelPair[0] /* Model */>
+    less(id: ModelPair[1] /* Id */): WhereQuery<ModelPair[0] /* Model */>
 
-    lessOrEqual(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>
-    ): WhereQuery<ModelPair[0] /* Model */>
+    lessOrEqual(id: ModelPair[1] /* Id */): WhereQuery<ModelPair[0] /* Model */>
 
-    equal(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>
-    ): WhereQuery<ModelPair[0] /* Model */>
+    equal(id: ModelPair[1] /* Id */): WhereQuery<ModelPair[0] /* Model */>
 
-    not(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>
-    ): WhereQuery<ModelPair[0] /* Model */>
+    not(id: ModelPair[1] /* Id */): WhereQuery<ModelPair[0] /* Model */>
 
-    more(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>
-    ): WhereQuery<ModelPair[0] /* Model */>
+    more(id: ModelPair[1] /* Id */): WhereQuery<ModelPair[0] /* Model */>
 
-    moreOrEqual(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>
-    ): WhereQuery<ModelPair[0] /* Model */>
+    moreOrEqual(id: ModelPair[1] /* Id */): WhereQuery<ModelPair[0] /* Model */>
 
-    in(
-      ids: Typesaurus.Id<ModelPair[1] /* Path */>[]
-    ): WhereQuery<ModelPair[0] /* Model */>
+    in(ids: ModelPair[1] /* Id */[]): WhereQuery<ModelPair[0] /* Model */>
 
-    notIn(
-      ids: Typesaurus.Id<ModelPair[1] /* Path */>[]
-    ): WhereQuery<ModelPair[0] /* Model */>
+    notIn(ids: ModelPair[1] /* Id */[]): WhereQuery<ModelPair[0] /* Model */>
   }
 
   export interface QueryPrimitiveField<
@@ -237,13 +219,13 @@ export namespace TypesaurusQuery {
 
   export interface QueryHelpers<
     Model extends Typesaurus.ModelType,
-    Path extends string
+    Id extends Typesaurus.Id<any>
   > {
-    field(id: DocId): QueryIdField<[Model, Path]>
+    field(id: DocId): QueryIdField<[Model, Id]>
 
     field<Key extends keyof Model>(
       key: Key
-    ): QueryField<[Model, Path], Model, Key>
+    ): QueryField<[Model, Id], Model, Key>
 
     field<
       Key1 extends keyof Model,
@@ -251,7 +233,7 @@ export namespace TypesaurusQuery {
     >(
       key1: Key1,
       key2: Key2
-    ): QueryField<[Model, Path], TypesaurusUtils.AllRequired<Model>[Key1], Key2>
+    ): QueryField<[Model, Id], TypesaurusUtils.AllRequired<Model>[Key1], Key2>
 
     field<
       Key1 extends keyof Model,
@@ -264,7 +246,7 @@ export namespace TypesaurusQuery {
       key2: Key2,
       key3: Key3
     ): QueryField<
-      [Model, Path],
+      [Model, Id],
       TypesaurusUtils.AllRequired<
         TypesaurusUtils.AllRequired<Model>[Key1]
       >[Key2],
@@ -274,20 +256,20 @@ export namespace TypesaurusQuery {
     limit(to: number): LimitQuery<Model>
 
     startAt<Parent, Key extends keyof Parent | DocId>(
-      value: OrderCursorValue<[Model, Path], Parent, Key>
-    ): OrderCursorStartAt<[Model, Path], Parent, Key>
+      value: OrderCursorValue<[Model, Id], Parent, Key>
+    ): OrderCursorStartAt<[Model, Id], Parent, Key>
 
     startAfter<Parent, Key extends keyof Parent | DocId>(
-      value: OrderCursorValue<[Model, Path], Parent, Key>
-    ): OrderCursorStartAfter<[Model, Path], Parent, Key>
+      value: OrderCursorValue<[Model, Id], Parent, Key>
+    ): OrderCursorStartAfter<[Model, Id], Parent, Key>
 
     endAt<Parent, Key extends keyof Parent | DocId>(
-      value: OrderCursorValue<[Model, Path], Parent, Key>
-    ): OrderCursorEndAt<[Model, Path], Parent, Key>
+      value: OrderCursorValue<[Model, Id], Parent, Key>
+    ): OrderCursorEndAt<[Model, Id], Parent, Key>
 
     endBefore<Parent, Key extends keyof Parent | DocId>(
-      value: OrderCursorValue<[Model, Path], Parent, Key>
-    ): OrderCursorEndBefore<[Model, Path], Parent, Key>
+      value: OrderCursorValue<[Model, Id], Parent, Key>
+    ): OrderCursorEndBefore<[Model, Id], Parent, Key>
 
     docId(): DocId
   }

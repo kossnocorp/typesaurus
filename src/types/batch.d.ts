@@ -44,7 +44,7 @@ export namespace TypesaurusBatch {
     NestedSchema extends Schema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends Collection<ModelPair, Environment> {
-    (id: Typesaurus.Id<ModelPair[1] /* Path */>): NestedSchema
+    (id: ModelPair[1] /* Id */): NestedSchema
   }
 
   /**
@@ -58,21 +58,21 @@ export namespace TypesaurusBatch {
     path: string
 
     set(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     upset(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     update(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: Typesaurus.UpdateModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
-    remove(id: Typesaurus.Id<ModelPair[1] /* Path */>): void
+    remove(id: ModelPair[1] /* Id */): void
   }
 
   export interface Schema<

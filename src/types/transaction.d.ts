@@ -21,7 +21,7 @@ export namespace TypesaurusTransaction {
   > {
     type: 'ref'
     collection: ReadCollection<ModelPair, Environment>
-    id: Typesaurus.Id<ModelPair[1] /* Path */>
+    id: ModelPair[1] /* Id */
   }
 
   /**
@@ -33,7 +33,7 @@ export namespace TypesaurusTransaction {
   > extends DocAPI<ModelPair, Environment> {
     type: 'ref'
     collection: WriteCollection<ModelPair, Environment>
-    id: Typesaurus.Id<ModelPair[1] /* Path */>
+    id: ModelPair[1] /* Id */
   }
 
   export type DocAPI<
@@ -142,7 +142,7 @@ export namespace TypesaurusTransaction {
     NestedSchema extends WriteSchema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends WriteCollection<ModelPair, Environment> {
-    (id: Typesaurus.Id<ModelPair[1] /* Path */>): NestedSchema
+    (id: ModelPair[1] /* Id */): NestedSchema
   }
 
   /**
@@ -156,21 +156,21 @@ export namespace TypesaurusTransaction {
     path: string
 
     set(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     upset(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: Typesaurus.WriteModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     update(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>,
+      id: ModelPair[1] /* Id */,
       data: Typesaurus.UpdateModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
-    remove(id: Typesaurus.Id<ModelPair[1] /* Path */>): void
+    remove(id: ModelPair[1] /* Id */): void
   }
 
   export type AnyReadCollection<
@@ -194,7 +194,7 @@ export namespace TypesaurusTransaction {
     NestedSchema extends ReadSchema<Environment>,
     Environment extends Typesaurus.RuntimeEnvironment | undefined = undefined
   > extends ReadCollection<ModelPair, Environment> {
-    (id: Typesaurus.Id<ModelPair[1] /* Path */>): NestedSchema
+    (id: ModelPair[1] /* Id */): NestedSchema
   }
 
   export interface ReadCollection<
@@ -205,7 +205,7 @@ export namespace TypesaurusTransaction {
     path: string
 
     get(
-      id: Typesaurus.Id<ModelPair[1] /* Path */>
+      id: ModelPair[1] /* Id */
     ): Promise<ReadDoc<ModelPair, Environment> | null>
   }
 
@@ -293,16 +293,30 @@ export namespace TypesaurusTransaction {
     [Path in keyof Schema]: Path extends string
       ? Schema[Path] extends Typesaurus.NestedPlainCollection<
           infer Model,
-          infer Schema
+          infer Schema,
+          infer CustomId
         >
         ? NestedReadCollection<
-            [Model, TypesaurusUtils.ComposePath<BasePath, Path>],
+            [
+              Model,
+              CustomId extends Typesaurus.Id<any>
+                ? CustomId
+                : Typesaurus.Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+            ],
             ReadDB<Schema, Environment>,
             Environment
           >
-        : Schema[Path] extends Typesaurus.PlainCollection<infer Model>
+        : Schema[Path] extends Typesaurus.PlainCollection<
+            infer Model,
+            infer CustomId
+          >
         ? ReadCollection<
-            [Model, TypesaurusUtils.ComposePath<BasePath, Path>],
+            [
+              Model,
+              CustomId extends Typesaurus.Id<any>
+                ? CustomId
+                : Typesaurus.Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+            ],
             Environment
           >
         : never
@@ -317,16 +331,30 @@ export namespace TypesaurusTransaction {
     [Path in keyof Schema]: Path extends string
       ? Schema[Path] extends Typesaurus.NestedPlainCollection<
           infer Model,
-          infer Schema
+          infer Schema,
+          infer CustomId
         >
         ? NestedWriteCollection<
-            [Model, TypesaurusUtils.ComposePath<BasePath, Path>],
+            [
+              Model,
+              CustomId extends Typesaurus.Id<any>
+                ? CustomId
+                : Typesaurus.Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+            ],
             WriteDB<Schema, Environment>,
             Environment
           >
-        : Schema[Path] extends Typesaurus.PlainCollection<infer Model>
+        : Schema[Path] extends Typesaurus.PlainCollection<
+            infer Model,
+            infer CustomId
+          >
         ? WriteCollection<
-            [Model, TypesaurusUtils.ComposePath<BasePath, Path>],
+            [
+              Model,
+              CustomId extends Typesaurus.Id<any>
+                ? CustomId
+                : Typesaurus.Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+            ],
             Environment
           >
         : never

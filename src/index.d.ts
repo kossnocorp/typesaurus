@@ -7,17 +7,17 @@ export type Id<Path extends string> = Typesaurus.Id<Path>
 export type Collection<
   Model extends Typesaurus.ModelType,
   Path extends string
-> = Typesaurus.Collection<[Model, Path]>
+> = Typesaurus.Collection<[Model, Id<Path>]>
 
 export type Ref<
   Model extends Typesaurus.ModelType,
   Path extends string
-> = Typesaurus.Ref<[Model, Path]>
+> = Typesaurus.Ref<[Model, Id<Path>]>
 
 export type Doc<
   Model extends Typesaurus.ModelType,
   Path extends string
-> = Typesaurus.Doc<[Model, Path]>
+> = Typesaurus.Doc<[Model, Id<Path>]>
 
 export type ModelType = Typesaurus.ModelType
 

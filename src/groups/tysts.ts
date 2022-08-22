@@ -137,14 +137,14 @@ async function tysts() {
   // ExtractDBModels
 
   type ExampleAQ30 = TypesaurusGroups.ExtractGroupModels<{
-    books: Typesaurus.RichCollection<[Book, 'books']>
-    orders: Typesaurus.RichCollection<[Order, 'orders']>
+    books: Typesaurus.RichCollection<[Book, Typesaurus.Id<'books'>]>
+    orders: Typesaurus.RichCollection<[Order, Typesaurus.Id<'orders'>]>
   }>
 
   type ResultAQ30 = Assert<
     {
-      books: [Book, 'books']
-      orders: [Order, 'orders']
+      books: [Book, Typesaurus.Id<'books'>]
+      orders: [Order, Typesaurus.Id<'orders'>]
     },
     ExampleAQ30
   >
