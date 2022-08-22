@@ -6,6 +6,7 @@ describe('TypesaurusUtils', () => {
     describe('promise', () => {
       it('allows to specify get function', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe: () => () => {}
         })
@@ -17,6 +18,7 @@ describe('TypesaurusUtils', () => {
       it('calls get function just once', async () => {
         const get = sinon.spy(() => Promise.resolve('It works!'))
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get,
           subscribe: () => () => {}
         })
@@ -30,6 +32,7 @@ describe('TypesaurusUtils', () => {
 
       it('returns then result', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe: () => () => {}
         })
@@ -40,6 +43,7 @@ describe('TypesaurusUtils', () => {
 
       it('allows to catch an error in then', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => {
             throw new Error('It fails!')
           },
@@ -54,6 +58,7 @@ describe('TypesaurusUtils', () => {
 
       it("returns then's catch result", async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => {
             throw new Error('It fails!')
           },
@@ -70,6 +75,7 @@ describe('TypesaurusUtils', () => {
 
       it('allows to catch an error', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => {
             throw new Error('It fails!')
           },
@@ -84,6 +90,7 @@ describe('TypesaurusUtils', () => {
 
       it('returns catch result', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => {
             throw new Error('It fails!')
           },
@@ -97,6 +104,7 @@ describe('TypesaurusUtils', () => {
 
       it('allows to use finally', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe: () => () => {}
         })
@@ -109,6 +117,7 @@ describe('TypesaurusUtils', () => {
 
       it('bypass the result', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe: () => () => {}
         })
@@ -120,6 +129,7 @@ describe('TypesaurusUtils', () => {
 
       it('does not allow using promise after subscribing', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe: () => () => {}
         })
@@ -138,6 +148,7 @@ describe('TypesaurusUtils', () => {
     describe('subscription', () => {
       it('allows to subscribe', () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe: (onResult) => {
             onResult('It works!')
@@ -154,9 +165,12 @@ describe('TypesaurusUtils', () => {
 
       it('allows to get pass meta information', () => {
         const promise = new TypesaurusUtils.SubscriptionPromise<
+          null,
           string,
           { meta: string }
         >({
+          request: null,
+
           get: () => Promise.resolve('It works!'),
 
           subscribe: (onResult, onError) => {
@@ -178,6 +192,7 @@ describe('TypesaurusUtils', () => {
         })
 
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe
         })
@@ -204,6 +219,7 @@ describe('TypesaurusUtils', () => {
         })
 
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe
         })
@@ -223,6 +239,7 @@ describe('TypesaurusUtils', () => {
         })
 
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe
         })
@@ -252,6 +269,7 @@ describe('TypesaurusUtils', () => {
           })
 
           const promise = new TypesaurusUtils.SubscriptionPromise({
+            request: null,
             get: () => Promise.resolve('It works!'),
             subscribe
           })
@@ -267,6 +285,7 @@ describe('TypesaurusUtils', () => {
           })
 
           const promise = new TypesaurusUtils.SubscriptionPromise({
+            request: null,
             get: () => Promise.resolve('It works!'),
             subscribe
           })
@@ -300,6 +319,7 @@ describe('TypesaurusUtils', () => {
           })
 
           const promise = new TypesaurusUtils.SubscriptionPromise({
+            request: null,
             get: () => Promise.resolve('It works!'),
             subscribe
           })
@@ -332,6 +352,7 @@ describe('TypesaurusUtils', () => {
           })
 
           const promise = new TypesaurusUtils.SubscriptionPromise({
+            request: null,
             get: () => Promise.resolve('It works!'),
             subscribe
           })
@@ -345,6 +366,7 @@ describe('TypesaurusUtils', () => {
 
       it('does not allow subscribing after using promise', async () => {
         const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
           get: () => Promise.resolve('It works!'),
           subscribe: () => () => {}
         })
@@ -354,6 +376,38 @@ describe('TypesaurusUtils', () => {
         expect(() => promise.on(() => {})).toThrowError(
           "Can't subscribe after awaiting"
         )
+      })
+
+      it('binds on function', () => {
+        const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: null,
+          get: () => Promise.resolve('It works!'),
+          subscribe: (onResult) => {
+            onResult('It works!')
+            return () => {}
+          }
+        })
+
+        const onResult = sinon.spy()
+        const on = promise.on
+        on(onResult)
+
+        expect(onResult.calledWith('It works!')).toBe(true)
+        expect(onResult.calledOnce).toBe(true)
+      })
+
+      it('exposes request at on function', () => {
+        const promise = new TypesaurusUtils.SubscriptionPromise({
+          request: 'Hello, world!',
+          get: () => Promise.resolve('It works!'),
+          subscribe: (onResult) => {
+            onResult('It works!')
+            return () => {}
+          }
+        })
+
+        // @ts-ignore: I don't know why TS trips, SubscriptionPromiseOn is ok
+        expect(promise.on.request).toBe('Hello, world!')
       })
     })
   })
