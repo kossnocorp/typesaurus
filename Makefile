@@ -37,13 +37,17 @@ test-system-browser-watch:
 
 build:
 	@rm -rf lib
-	@npx tsc --project tsconfig.lib.json
-	@npx prettier "lib/**/*.[jt]s" --write --loglevel silent
+	@env TARGET=mjs npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .mjs --quiet
+	@env TARGET=js npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .js --quiet
+# @env npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts,.js --out-file-extension .js --ignore "src/**/tests.ts" --ignore "src/tests/**/*" --ignore "src/**/tysts.ts" --ignore "src/**/*.d.ts" --quiet
+# @npx prettier "lib/**/*.[jt]s" --write --loglevel silent
+# @cp package.json lib
+# @cp *.md lib
+# @rsync --archive --prune-empty-dirs --exclude '*.ts' --relative src/./ lib
+# @npx tsc --project tsconfig.lib.json --outDir lib/esm --module es2020 --target es2019
+# @cp src/adapter/package.esm.json lib/esm/adapter/package.json
+	@rsync --archive --prune-empty-dirs --include='*.d.ts' --include='*.json' -f 'hide,! */' --relative src/./ lib
 	@cp package.json lib
-	@cp *.md lib
-	@rsync --archive --prune-empty-dirs --exclude '*.ts' --relative src/./ lib
-	@npx tsc --project tsconfig.lib.json --outDir lib/esm --module es2020 --target es2019
-	@cp src/adapter/package.esm.json lib/esm/adapter/package.json
 
 publish: build
 	cd lib && npm publish --access public

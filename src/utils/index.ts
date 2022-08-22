@@ -1,4 +1,4 @@
-import { Typesaurus } from '../types/typesaurus'
+import { Typesaurus } from '../types/core'
 
 export namespace TypesaurusUtils {
   export type ComposePath<
@@ -254,6 +254,7 @@ export namespace TypesaurusUtils {
       return this.resolve().finally(onFinally)
     }
 
+    // @ts-ignore: TODO: fix this
     on(
       callback: Typesaurus.SubscriptionPromiseCallback<Result, SubscriptionMeta>
     ): Typesaurus.OffSubscriptionWithCatch {
@@ -262,9 +263,11 @@ export namespace TypesaurusUtils {
       this.subscriptions.result.push(callback)
 
       if (this.off) {
+        // @ts-ignore: TODO: fix this
         if (this.result) callback(this.result, this.subscriptionMeta)
       } else {
         this.off = this.subscribe(
+          // @ts-ignore: TODO: fix this
           (result, meta) => {
             this.result = result
             this.subscriptionMeta = meta

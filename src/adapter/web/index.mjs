@@ -28,13 +28,13 @@ import {
   documentId,
   query
 } from 'firebase/firestore'
-import { TypesaurusUtils } from '../../utils'
+import { TypesaurusUtils } from '../../utils/index.js'
 
-export { batch } from './batch'
+export { batch } from './batch.mjs'
 
-export { transaction } from './transaction'
+export { transaction } from './transaction.mjs'
 
-export { groups } from './groups'
+export { groups } from './groups.mjs'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())

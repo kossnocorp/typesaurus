@@ -1,4 +1,4 @@
-import type { Typesaurus } from './typesaurus'
+import type { Typesaurus } from './core'
 
 export namespace TypesaurusBatch {
   export interface Function {

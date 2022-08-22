@@ -5,7 +5,7 @@ import {
   updateHelpers,
   wrapData,
   writeHelpers
-} from './index'
+} from './index.mjs'
 
 export const transaction = (db, options) => {
   assertEnvironment(options?.as)

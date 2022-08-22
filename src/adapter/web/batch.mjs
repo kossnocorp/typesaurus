@@ -4,7 +4,7 @@ import {
   unwrapData,
   updateHelpers,
   writeHelpers
-} from './index'
+} from './index.mjs'
 
 export const batch = (rootDB, options) => {
   assertEnvironment(options?.as)
