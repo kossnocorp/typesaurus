@@ -28,7 +28,7 @@ module.exports = (config) => {
       devtool: 'inline-source-map',
 
       resolve: {
-        extensions: ['.json', '.js', '.ts']
+        extensions: ['.json', '.js', '.mjs', '.ts']
       },
 
       plugins: [
@@ -54,7 +54,7 @@ module.exports = (config) => {
       module: {
         rules: [
           {
-            test: /\.[tj]s$/,
+            test: /\.(mjs|js|ts)$/,
             loader: 'babel-loader',
             exclude: /node_modules/
           }
