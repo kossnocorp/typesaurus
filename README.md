@@ -26,9 +26,9 @@ The library is available as an [npm package](https://www.npmjs.com/package/types
 To install Typesaurus run:
 
 ```sh
-npm install typesaurus --save
+npm install typesaurus@7 --save
 # Or using Yarn:
-yarn add typesaurus
+yarn add typesaurus@7
 ```
 
 _Note that Typesaurus requires `firebase` package to work in the web environment and `firebase-admin` to work in Node.js. These packages aren't listed as dependencies,
