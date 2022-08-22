@@ -2,11 +2,11 @@ import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 import { TypesaurusUtils } from '../../utils'
 
-export { batch } from './batch'
+export { batch } from './batch.mjs'
 
-export { transaction } from './transaction'
+export { transaction } from './transaction.mjs'
 
-export { groups } from './groups'
+export { groups } from './groups.mjs'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())

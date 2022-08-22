@@ -1,5 +1,5 @@
 import type { TypesaurusUtils } from '../utils'
-import type { Typesaurus } from './typesaurus'
+import type { Typesaurus } from './core'
 
 export namespace TypesaurusQuery {
   export type DocId = '__id__'
@@ -128,7 +128,7 @@ export namespace TypesaurusQuery {
     | (Key extends keyof Parent
         ? Parent[Key]
         : Typesaurus.Id<ModelPair[1] /* Path */>) // Field value or id
-    | Typesaurus.Doc<ModelPair[0] /* Model */, ModelPair[1] /* Path */> // Will be used to get value for the cursor
+    | Typesaurus.Doc<ModelPair> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
   export type QueryGetter<ModelPair extends Typesaurus.ModelPathPair> = (

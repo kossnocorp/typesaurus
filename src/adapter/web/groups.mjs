@@ -1,5 +1,5 @@
-import { all, pathToDoc, query, wrapData } from './index'
-import * as admin from 'firebase-admin'
+import { collectionGroup, getFirestore } from 'firebase/firestore'
+import { all, pathToDoc, _query, wrapData } from './index.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}
@@ -18,6 +18,7 @@ export const groups = (rootDB) => {
 
 class Group {
   constructor(name) {
+    this.firebaseDB = getFirestore()
     this.name = name
   }
 
@@ -26,17 +27,18 @@ class Group {
   }
 
   query(queries) {
-    return query(this.adapter(), queries)
+    return _query(this.adapter(), queries)
   }
 
   adapter() {
     return {
       collection: () => this.firebaseCollection(),
+      db: () => this.firebaseDB,
       doc: (snapshot) => pathToDoc(snapshot.ref.path, wrapData(snapshot.data()))
     }
   }
 
   firebaseCollection() {
-    return admin.firestore().collectionGroup(this.name)
+    return collectionGroup(this.firebaseDB, this.name)
   }
 }

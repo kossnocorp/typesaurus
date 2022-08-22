@@ -1,31 +1,50 @@
 {
   "name": "typesaurus",
-  "version": "10.0.0-alpha.1",
+  "version": "10.0.0-alpha.2",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
     "Firestore",
     "TypeScript"
   ],
-  "main": "index.js",
-  "module": "esm/index.js",
+  "browser": "./adapter/web",
+  "main": "./adapter/admin/index.js",
+  "module": "./adapter/admin/index.mjs",
+  "exports": {
+    ".": {
+      "require": "./adapter/admin/index.js",
+      "import": "./adapter/admin/index.mjs"
+    },
+    "./batch": {
+      "require": "./adapter/admin/batch.js",
+      "import": "./adapter/admin/batch.mjs"
+    },
+    "./groups": {
+      "require": "./adapter/admin/groups.js",
+      "import": "./adapter/admin/groups.mjs"
+    },
+    "./transaction": {
+      "require": "./adapter/admin/transaction.js",
+      "import": "./adapter/admin/transaction.mjs"
+    }
+  },
   "sideEffects": false,
   "repository": "https://github.com/kossnocorp/typesaurus",
   "author": "Sasha Koss <koss@nocorp.me>",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "@babel/cli": "^7.18.10",
+    "@babel/core": "^7.18.10",
+    "@babel/plugin-transform-modules-commonjs": "^7.18.6",
     "@babel/preset-env": "^7.12.11",
-    "@babel/preset-typescript": "^7.12.7",
+    "@babel/preset-typescript": "^7.18.6",
     "@firebase/rules-unit-testing": "^2.0.2",
     "@types/jest": "^28.1.6",
     "@types/node": "^12.0.4",
     "@types/sinon": "^10.0.13",
     "@types/webpack-env": "^1.16.0",
-    "babel-jest": "^26.6.3",
-    "babel-loader": "^8.2.2",
-    "babel-preset-power-assert": "^3.0.0",
+    "babel-loader": "^8.2.5",
+    "babel-plugin-add-import-extension": "^1.6.0",
     "firebase": "^9.7.0",
     "firebase-admin": "^10.2.0",
     "firebase-tools": "^10.8.0",
@@ -38,7 +57,6 @@
     "karma-webpack": "4",
     "mocha": "^6.2.0",
     "nanoid": "^3.3.4",
-    "power-assert": "^1.6.1",
     "prettier": "^2.0.4",
     "puppeteer": "^6.0.0",
     "sinon": "^14.0.0",

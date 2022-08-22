@@ -4,10 +4,10 @@ process.env.CHROME_BIN = require('puppeteer').executablePath()
 
 module.exports = (config) => {
   config.set({
-    files: ['test/karmaTests.ts'],
+    files: ['tests/karmaTests.ts'],
 
     preprocessors: {
-      'test/karmaTests.ts': ['webpack', 'sourcemap']
+      'tests/karmaTests.ts': ['webpack', 'sourcemap']
     },
 
     frameworks: ['jasmine'],
