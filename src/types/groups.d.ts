@@ -1,13 +1,13 @@
-import type { Typesaurus } from './core'
+import type { TypesaurusCore } from './core'
 import type { TypesaurusUtils } from '../utils'
 
 export namespace TypesaurusGroups {
   export interface Function {
-    <DB extends Typesaurus.DB<any>>(db: DB): Groups<DB>
+    <DB extends TypesaurusCore.DB<any>>(db: DB): Groups<DB>
   }
 
-  export interface Group<ModelPair extends Typesaurus.ModelPathPair>
-    extends Typesaurus.CollectionAPI<ModelPair> {
+  export interface Group<ModelPair extends TypesaurusCore.ModelPathPair>
+    extends TypesaurusCore.CollectionAPI<ModelPair> {
     /** The group type */
     type: 'group'
 
@@ -19,7 +19,7 @@ export namespace TypesaurusGroups {
    * The type flattens the schema and generates groups from nested and
    * root collections.
    */
-  export type Groups<DB extends Typesaurus.DB<any>> =
+  export type Groups<DB extends TypesaurusCore.DB<any>> =
     /**
      * {@link ConstructGroups} here plays a role of merger, each level of nesting
      * returns respective collections and the type creates an object from those,
@@ -37,7 +37,7 @@ export namespace TypesaurusGroups {
     ? {
         [Key in TypesaurusUtils.UnionKeys<Schema>]: Group<
           Schema extends Record<Key, infer Value>
-            ? Value extends Typesaurus.ModelPathPair
+            ? Value extends TypesaurusCore.ModelPathPair
               ? Value
               : never
             : never
@@ -48,29 +48,29 @@ export namespace TypesaurusGroups {
   /**
    * The type extracts schema models from a collections for {@link Groups}.
    */
-  export type ExtractGroupModels<DB extends Typesaurus.DB<any>> = {
+  export type ExtractGroupModels<DB extends TypesaurusCore.DB<any>> = {
     [Path in keyof DB]: DB[Path] extends
-      | Typesaurus.RichCollection<infer ModelPair>
-      | Typesaurus.NestedRichCollection<infer ModelPair, any>
+      | TypesaurusCore.RichCollection<infer ModelPair>
+      | TypesaurusCore.NestedRichCollection<infer ModelPair, any>
       ? ModelPair
       : never
   }
 
-  export type GroupsLevel1<DB extends Typesaurus.DB<any>> =
+  export type GroupsLevel1<DB extends TypesaurusCore.DB<any>> =
     // Get the models for the given (0) level
     ExtractGroupModels<DB>
 
-  export type GroupsLevel2<DB extends Typesaurus.DB<any>> =
+  export type GroupsLevel2<DB extends TypesaurusCore.DB<any>> =
     // Infer the nested (1) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Typesaurus.NestedPlainCollection<any, any>
+      ? Collections extends TypesaurusCore.NestedPlainCollection<any, any>
         ? {
             [Key in TypesaurusUtils.UnionKeys<
               Collections['schema']
             >]: Collections['schema'] extends Record<
               Key,
-              | Typesaurus.RichCollection<infer ModelPair>
-              | Typesaurus.NestedRichCollection<infer ModelPair, any>
+              | TypesaurusCore.RichCollection<infer ModelPair>
+              | TypesaurusCore.NestedRichCollection<infer ModelPair, any>
             >
               ? ModelPair
               : {}
@@ -78,18 +78,18 @@ export namespace TypesaurusGroups {
         : {}
       : {}
 
-  export type GroupsLevel3<DB extends Typesaurus.DB<any>> =
+  export type GroupsLevel3<DB extends TypesaurusCore.DB<any>> =
     // Infer the nested (2) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Typesaurus.NestedRichCollection<any, any>
+      ? Collections extends TypesaurusCore.NestedRichCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Typesaurus.NestedRichCollection<any, any>
+          ? Collections extends TypesaurusCore.NestedRichCollection<any, any>
             ? {
                 [Key in TypesaurusUtils.UnionKeys<
                   Collections['schema']
                 >]: Collections['schema'] extends Record<
                   Key,
-                  Typesaurus.RichCollection<infer ModelPair>
+                  TypesaurusCore.RichCollection<infer ModelPair>
                 >
                   ? ModelPair
                   : {}

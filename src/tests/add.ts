@@ -1,5 +1,5 @@
-import { Ref, schema } from '..'
-import type { Typesaurus } from '../types/core'
+import { schema, Typesaurus } from '..'
+import type { TypesaurusCore } from '../types/core'
 
 describe('add', () => {
   interface User {
@@ -7,7 +7,7 @@ describe('add', () => {
   }
 
   interface Post {
-    author: Ref<User, 'users'>
+    author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Date
   }
@@ -59,8 +59,8 @@ describe('add', () => {
   it('allows to assert environment', async () => {
     interface User {
       name: string
-      createdAt: Typesaurus.ServerDate
-      updatedAt?: Typesaurus.ServerDate
+      createdAt: TypesaurusCore.ServerDate
+      updatedAt?: TypesaurusCore.ServerDate
       birthday: Date
     }
 
@@ -113,8 +113,8 @@ describe('add', () => {
   describe('server dates', () => {
     interface User {
       name: string
-      createdAt: Typesaurus.ServerDate
-      updatedAt?: Typesaurus.ServerDate
+      createdAt: TypesaurusCore.ServerDate
+      updatedAt?: TypesaurusCore.ServerDate
       birthday: Date
     }
 

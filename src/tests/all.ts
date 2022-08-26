@@ -1,5 +1,5 @@
 import sinon from 'sinon'
-import { groups, Ref, schema } from '..'
+import { groups, schema, Typesaurus } from '..'
 
 describe('all', () => {
   interface Book {
@@ -7,10 +7,10 @@ describe('all', () => {
   }
 
   interface Order {
-    book: Ref<Book, 'books'>
+    book: Typesaurus.Ref<Book, 'books'>
     quantity: number
     date?: Date
-    lastUpdate?: Ref<Update, 'orders/updates'>
+    lastUpdate?: Typesaurus.Ref<Update, 'orders/updates'>
   }
 
   interface Update {

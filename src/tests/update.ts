@@ -1,4 +1,4 @@
-import { Id, Ref, schema, ServerDate } from '..'
+import { schema, Typesaurus } from '..'
 
 describe('update', () => {
   interface User {
@@ -10,18 +10,18 @@ describe('update', () => {
   }
 
   interface Post {
-    author: Ref<User, 'users'>
+    author: Typesaurus.Ref<User, 'users'>
     text: string
   }
 
   interface Favorite {
-    userId: Id<'users'>
+    userId: Typesaurus.Id<'users'>
     favorites: string[]
   }
 
   interface Movies {
     title: string
-    likedBy: Ref<User, 'users'>[]
+    likedBy: Typesaurus.Ref<User, 'users'>[]
   }
 
   interface Order {
@@ -40,8 +40,8 @@ describe('update', () => {
 
   interface UserWithDates {
     name: string
-    createdAt: ServerDate
-    updatedAt?: ServerDate
+    createdAt: Typesaurus.ServerDate
+    updatedAt?: Typesaurus.ServerDate
     birthday: Date
   }
 

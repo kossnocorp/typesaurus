@@ -1,6 +1,6 @@
-import { schema, ServerDate, Ref, groups } from '..'
+import { schema, groups, Typesaurus } from '..'
 import type { TypesaurusGroups } from '../types/groups'
-import type { Typesaurus } from '../types/typesaurus'
+import type { TypesaurusCore } from '../types/core'
 
 interface User {
   name: string
@@ -11,7 +11,7 @@ interface User {
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
-  createdAt: ServerDate
+  createdAt: Typesaurus.ServerDate
 }
 
 interface Post {
@@ -23,7 +23,7 @@ interface Post {
 
 interface Account {
   name: string
-  createdAt: ServerDate
+  createdAt: Typesaurus.ServerDate
 
   contacts: {
     email: string
@@ -72,7 +72,7 @@ async function tysts() {
   }
 
   interface Order {
-    book: Ref<Book, 'books'>
+    book: Typesaurus.Ref<Book, 'books'>
     quantity: number
     date?: Date
   }
@@ -137,14 +137,14 @@ async function tysts() {
   // ExtractDBModels
 
   type ExampleAQ30 = TypesaurusGroups.ExtractGroupModels<{
-    books: Typesaurus.RichCollection<[Book, Typesaurus.Id<'books'>]>
-    orders: Typesaurus.RichCollection<[Order, Typesaurus.Id<'orders'>]>
+    books: TypesaurusCore.RichCollection<[Book, TypesaurusCore.Id<'books'>]>
+    orders: TypesaurusCore.RichCollection<[Order, TypesaurusCore.Id<'orders'>]>
   }>
 
   type ResultAQ30 = Assert<
     {
-      books: [Book, Typesaurus.Id<'books'>]
-      orders: [Order, Typesaurus.Id<'orders'>]
+      books: [Book, TypesaurusCore.Id<'books'>]
+      orders: [Order, TypesaurusCore.Id<'orders'>]
     },
     ExampleAQ30
   >

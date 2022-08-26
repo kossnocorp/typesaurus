@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import sinon from 'sinon'
-import { schema, groups, Ref } from '..'
+import { groups, schema, Typesaurus } from '..'
 
 describe('query', () => {
   interface Contact {
@@ -8,14 +8,14 @@ describe('query', () => {
     name: string
     year: number
     birthday: Date
-    lastMessage?: Ref<Message, 'contacts/contactMessages'>
+    lastMessage?: Typesaurus.Ref<Message, 'contacts/contactMessages'>
   }
 
   interface Message {
     ownerId: string
-    author: Ref<Contact, 'contacts'>
+    author: Typesaurus.Ref<Contact, 'contacts'>
     text: string
-    lastReply?: Ref<Reply, 'messages/replies'>
+    lastReply?: Typesaurus.Ref<Reply, 'messages/replies'>
   }
 
   interface Reply {
