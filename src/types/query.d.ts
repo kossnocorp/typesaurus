@@ -1,5 +1,5 @@
 import type { TypesaurusUtils } from '../utils'
-import type { Typesaurus } from './core'
+import type { TypesaurusCore } from './core'
 
 export namespace TypesaurusQuery {
   export type DocId = '__id__'
@@ -33,7 +33,7 @@ export namespace TypesaurusQuery {
     type: 'order'
     field: string[]
     method: OrderDirection
-    cursors: OrderCursors<Typesaurus.ModelPathPair, any, any>
+    cursors: OrderCursors<TypesaurusCore.ModelPathPair, any, any>
   }
 
   export interface WhereQuery<_Model> {
@@ -52,7 +52,7 @@ export namespace TypesaurusQuery {
   }
 
   export type OrderCursors<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
@@ -70,7 +70,7 @@ export namespace TypesaurusQuery {
     | 'endAt'
 
   export type OrderCursorStart<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
@@ -78,19 +78,19 @@ export namespace TypesaurusQuery {
     | OrderCursorStartAfter<ModelPair, Parent, Key>
 
   export interface OrderCursorStartAt<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'startAt'> {}
 
   export interface OrderCursorStartAfter<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'startAfter'> {}
 
   export type OrderCursorEnd<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
@@ -98,19 +98,19 @@ export namespace TypesaurusQuery {
     | OrderCursorEndBefore<ModelPair, Parent, Key>
 
   export interface OrderCursorEndAt<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'endAt'> {}
 
   export interface OrderCursorEndBefore<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'endBefore'> {}
 
   export interface OrderCursor<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId,
     Position extends OrderCursorPosition
@@ -121,20 +121,20 @@ export namespace TypesaurusQuery {
   }
 
   export type OrderCursorValue<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
     | (Key extends keyof Parent ? Parent[Key] : ModelPair[1]) /* Id */ // Field value or id
-    | Typesaurus.Doc<ModelPair> // Will be used to get value for the cursor
+    | TypesaurusCore.Doc<ModelPair> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
-  export type QueryGetter<ModelPair extends Typesaurus.ModelPathPair> = (
+  export type QueryGetter<ModelPair extends TypesaurusCore.ModelPathPair> = (
     $: QueryHelpers<ModelPair[0], ModelPair[1]>
   ) => Query<ModelPair[0] /* Model */> | Query<ModelPair[0] /* Model */>[]
 
   export interface QueryFieldBase<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent | DocId
   > {
@@ -150,7 +150,7 @@ export namespace TypesaurusQuery {
     ): OrderQuery<ModelPair[0] /* Model */>
   }
 
-  export interface QueryIdField<ModelPair extends Typesaurus.ModelPathPair>
+  export interface QueryIdField<ModelPair extends TypesaurusCore.ModelPathPair>
     extends QueryFieldBase<ModelPair, ModelPair[0] /* Model */, DocId> {
     less(id: ModelPair[1] /* Id */): WhereQuery<ModelPair[0] /* Model */>
 
@@ -170,7 +170,7 @@ export namespace TypesaurusQuery {
   }
 
   export interface QueryPrimitiveField<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent
   > extends QueryFieldBase<ModelPair, Parent, Key> {
@@ -192,7 +192,7 @@ export namespace TypesaurusQuery {
   }
 
   export interface QueryArrayField<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent
   > {
@@ -210,7 +210,7 @@ export namespace TypesaurusQuery {
   }
 
   export type QueryField<
-    ModelPair extends Typesaurus.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelPathPair,
     Parent,
     Key extends keyof Parent
   > = Exclude<Parent[Key], undefined> extends Array<any>
@@ -218,8 +218,8 @@ export namespace TypesaurusQuery {
     : QueryPrimitiveField<ModelPair, Parent, Key>
 
   export interface QueryHelpers<
-    Model extends Typesaurus.ModelType,
-    Id extends Typesaurus.Id<any>
+    Model extends TypesaurusCore.ModelType,
+    Id extends TypesaurusCore.Id<any>
   > {
     field(id: DocId): QueryIdField<[Model, Id]>
 

@@ -1,5 +1,5 @@
 import sinon from 'sinon'
-import { Ref, schema, transaction } from '..'
+import { schema, transaction, Typesaurus } from '..'
 
 describe('transaction', () => {
   interface Counter {
@@ -8,7 +8,7 @@ describe('transaction', () => {
   }
 
   interface Post {
-    counter: Ref<Counter, 'counters'>
+    counter: Typesaurus.Ref<Counter, 'counters'>
   }
 
   const db = schema(($) => ({
@@ -33,7 +33,7 @@ describe('transaction', () => {
   })
 
   const plusOne = async (
-    counter: Ref<Counter, 'counters'>,
+    counter: Typesaurus.Ref<Counter, 'counters'>,
     useUpdate?: boolean
   ) =>
     transaction(db)

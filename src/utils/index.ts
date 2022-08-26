@@ -1,4 +1,4 @@
-import { Typesaurus } from '../types/core'
+import { TypesaurusCore } from '../types/core'
 
 export namespace TypesaurusUtils {
   export type ComposePath<
@@ -181,7 +181,7 @@ export namespace TypesaurusUtils {
   export type SubscriptionPromiseSubscribe<Result, SubscriptionMeta> = (
     resultCallback: SubscriptionPromiseResultCallback<Result, SubscriptionMeta>,
     errorCallback: SubscriptionPromiseErrorCallback
-  ) => Typesaurus.OffSubscription
+  ) => TypesaurusCore.OffSubscription
 
   export interface SubscriptionPromiseProps<Request, Result, SubscriptionMeta> {
     request: Request
@@ -198,7 +198,7 @@ export namespace TypesaurusUtils {
     Request,
     Result,
     SubscriptionMeta = undefined
-  > implements Typesaurus.SubscriptionPromise<Request, Result>
+  > implements TypesaurusCore.SubscriptionPromise<Request, Result>
   {
     private result: Result | undefined
 
@@ -268,8 +268,11 @@ export namespace TypesaurusUtils {
 
     // @ts-ignore: TODO: fix this
     on(
-      callback: Typesaurus.SubscriptionPromiseCallback<Result, SubscriptionMeta>
-    ): Typesaurus.OffSubscriptionWithCatch {
+      callback: TypesaurusCore.SubscriptionPromiseCallback<
+        Result,
+        SubscriptionMeta
+      >
+    ): TypesaurusCore.OffSubscriptionWithCatch {
       if (this.promise) throw new Error("Can't subscribe after awaiting")
 
       this.subscriptions.result.push(callback)
@@ -309,7 +312,7 @@ export namespace TypesaurusUtils {
 
       const offWithCatch = (() => {
         off()
-      }) as Typesaurus.OffSubscriptionWithCatch
+      }) as TypesaurusCore.OffSubscriptionWithCatch
 
       offWithCatch.catch = (callback) => {
         if (this.error) callback(this.error)

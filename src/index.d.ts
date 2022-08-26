@@ -1,34 +1,44 @@
-import type { Typesaurus } from './types/core'
+import type { TypesaurusCore } from './types/core'
 
-export const schema: Typesaurus.Function
+export const schema: TypesaurusCore.Function
 
-export type InferSchema<DB extends Typesaurus.DB<any, any>> =
-  Typesaurus.InferSchema<DB>
+export namespace Typesaurus {
+  export type InferSchema<DB extends TypesaurusCore.DB<any, any>> =
+    TypesaurusCore.InferSchema<DB>
 
-export type Id<Path extends string> = Typesaurus.Id<Path>
+  export type NarrowDoc<
+    OriginalDoc extends TypesaurusCore.Doc<[any, any]>,
+    NarrowToModel extends TypesaurusCore.ModelData<any>
+  > = TypesaurusCore.NarrowDoc<OriginalDoc, NarrowToModel>
 
-export type Collection<
-  Model extends Typesaurus.ModelType,
-  Path extends string
-> = Typesaurus.Collection<[Model, Id<Path>]>
+  export type Data<Model extends TypesaurusCore.ModelType> =
+    TypesaurusCore.ModelData<Model>
 
-export type Ref<
-  Model extends Typesaurus.ModelType,
-  Path extends string
-> = Typesaurus.Ref<[Model, Id<Path>]>
+  export type Id<Path extends string> = TypesaurusCore.Id<Path>
 
-export type Doc<
-  Model extends Typesaurus.ModelType,
-  Path extends string
-> = Typesaurus.Doc<[Model, Id<Path>]>
+  export type Collection<
+    Model extends TypesaurusCore.ModelType,
+    Path extends string
+  > = TypesaurusCore.Collection<[Model, Id<Path>]>
 
-export type ModelType = Typesaurus.ModelType
+  export type Ref<
+    Model extends TypesaurusCore.ModelType,
+    Path extends string
+  > = TypesaurusCore.Ref<[Model, Id<Path>]>
 
-export type ServerDateStrategy = Typesaurus.ServerDateStrategy
+  export type Doc<
+    Model extends TypesaurusCore.ModelType,
+    Path extends string
+  > = TypesaurusCore.Doc<[Model, Id<Path>]>
 
-export type RuntimeEnvironment = Typesaurus.RuntimeEnvironment
+  export type ModelType = TypesaurusCore.ModelType
 
-export type ServerDate = Typesaurus.ServerDate
+  export type ServerDateStrategy = TypesaurusCore.ServerDateStrategy
+
+  export type RuntimeEnvironment = TypesaurusCore.RuntimeEnvironment
+
+  export type ServerDate = TypesaurusCore.ServerDate
+}
 
 export { transaction } from './transaction'
 

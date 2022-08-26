@@ -1,10 +1,10 @@
 import type { TypesaurusQuery } from './query'
 import type { TypesaurusUtils } from '../utils'
 
-export namespace Typesaurus {
+export namespace TypesaurusCore {
   export interface Function {
-    <Schema extends Typesaurus.PlainSchema>(
-      getSchema: ($: Typesaurus.SchemaHelpers) => Schema
+    <Schema extends PlainSchema>(
+      getSchema: ($: SchemaHelpers) => Schema
     ): DB<Schema>
   }
 
@@ -141,11 +141,20 @@ export namespace Typesaurus {
     pendingWrites: boolean
   }
 
-  export type ModelNodeData<Model> = AnyModelData<Model, 'present'>
+  export type ModelNodeData<Model extends ModelType> = AnyModelData<
+    Model,
+    'present'
+  >
 
-  export type ModelData<Model> = AnyModelData<Model, ServerDateNullable>
+  export type ModelData<Model extends ModelType> = AnyModelData<
+    Model,
+    ServerDateNullable
+  >
 
-  export type AnyModelData<Model, DateNullable extends ServerDateNullable> = {
+  export type AnyModelData<
+    Model extends ModelType,
+    DateNullable extends ServerDateNullable
+  > = {
     [Key in keyof Model]: ModelField<Model[Key], DateNullable>
   }
 
@@ -626,8 +635,8 @@ export namespace Typesaurus {
 
     many<
       Source extends DataSource,
-      DateStrategy extends Typesaurus.ServerDateStrategy,
-      Environment extends Typesaurus.RuntimeEnvironment
+      DateStrategy extends TypesaurusCore.ServerDateStrategy,
+      Environment extends TypesaurusCore.RuntimeEnvironment
     >(
       ids: ModelPair[1] /* Id */[],
       options?: ReadOptions<DateStrategy, Environment>
@@ -755,17 +764,76 @@ export namespace Typesaurus {
       : never
   }
 
-  export type InferSchema<DB extends Typesaurus.DB<any, any>> = {
+  /**
+   * Infers schema types. Useful to define function arguments that accept
+   * collection doc, ref, id or data.
+   */
+  export type InferSchema<DB extends TypesaurusCore.DB<any, any>> = {
+    /**
+     * Collection types, use `["Id"]`, `["Ref"]` and `["Doc"]` to access common
+     * document types.
+     *
+     * If the collection contains subcollections use its path to access
+     * the subcollection types, i.e. `["comments"]["Id"]`.
+     */
     [Path in keyof DB]: DB[Path] extends
       | RichCollection<infer ModelPair>
       | NestedRichCollection<infer ModelPair, any>
       ? {
+          /**
+           * The documents' id.
+           *
+           * Essentially it's a string, but TypeScript will force you to use
+           * `.toString()` to cast it to `string`.
+           */
           Id: ModelPair[1] /* Id */
-          Ref: Typesaurus.Ref<ModelPair>
-          Doc: Typesaurus.EnvironmentDoc<ModelPair, any, any, any>
+
+          /**
+           * The documents' reference, contains its id and collection.
+           */
+          Ref: TypesaurusCore.Ref<ModelPair>
+
+          /**
+           * The main document object, contains reference with id and collection
+           * and document data.
+           */
+          Doc: TypesaurusCore.EnvironmentDoc<ModelPair, any, any, any>
+
+          /**
+           * The document data
+           */
+          Data: ModelData<ModelPair[0] /* Model */>
+
+          /**
+           * Read result, either doc, `null` (not found) or `undefined`
+           * (the read is not finished/started yet).
+           */
+          Result:
+            | TypesaurusCore.EnvironmentDoc<ModelPair, any, any, any>
+            | null
+            | undefined
         } & (DB[Path] extends NestedRichCollection<any, infer Schema>
           ? InferSchema<Schema>
           : {})
       : never
   }
+
+  /**
+   * Narrows doc type. If your doc has multiple shapes, the type will help you
+   * narrow down data type to a specific type.
+   */
+  export type NarrowDoc<
+    OriginalDoc extends Doc<[any, any]>,
+    NarrowToModel extends ModelData<any>
+  > = OriginalDoc extends Doc<infer ModelPair>
+    ? ModelPair extends [infer OriginalModel, infer OriginalId]
+      ? OriginalModel extends NarrowToModel
+        ? NarrowToModel extends ModelData<any>
+          ? OriginalId extends Id<any>
+            ? Doc<[NarrowToModel, OriginalId]>
+            : never
+          : never
+        : never
+      : never
+    : never
 }

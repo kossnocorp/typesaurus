@@ -1,5 +1,5 @@
-import { Doc, Id, Ref, schema, ServerDate } from '.'
-import { Typesaurus } from './types/core'
+import { schema, Typesaurus } from '.'
+import { TypesaurusCore } from './types/core'
 
 interface Post {
   title: string
@@ -27,7 +27,7 @@ interface Like {
 
 interface Account {
   name: string
-  createdAt: ServerDate
+  createdAt: Typesaurus.ServerDate
 
   contacts: {
     email: string
@@ -73,7 +73,7 @@ interface User {
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
-  createdAt: ServerDate
+  createdAt: Typesaurus.ServerDate
 }
 
 // Flat schema
@@ -89,7 +89,7 @@ async function doc() {
     contacts: {
       email: 'koss@nocorp.me'
     },
-    createdAt: new Date() as ServerDate
+    createdAt: new Date() as Typesaurus.ServerDate
   })
 
   // Runtime environment
@@ -601,7 +601,7 @@ async function sharedIds() {
 
   const db = schema(($) => ({
     users: $.collection<User>(),
-    settings: $.collection<Settings, Id<'users'>>()
+    settings: $.collection<Settings, Typesaurus.Id<'users'>>()
   }))
 
   const userId = await db.users.id()
@@ -610,11 +610,15 @@ async function sharedIds() {
 }
 
 async function inferSchema() {
-  type Schema1 = Typesaurus.InferSchema<typeof db>
+  type Schema1 = TypesaurusCore.InferSchema<typeof db>
 
-  assertType<TypeEqual<Schema1['users']['Id'], Id<'users'>>>(true)
-  assertType<TypeEqual<Schema1['users']['Ref'], Ref<User, 'users'>>>(true)
-  assertType<TypeEqual<Schema1['users']['Doc'], Doc<User, 'users'>>>(true)
+  assertType<TypeEqual<Schema1['users']['Id'], Typesaurus.Id<'users'>>>(true)
+  assertType<TypeEqual<Schema1['users']['Ref'], Typesaurus.Ref<User, 'users'>>>(
+    true
+  )
+  assertType<TypeEqual<Schema1['users']['Doc'], Typesaurus.Doc<User, 'users'>>>(
+    true
+  )
 
   interface Settings {
     email: string
@@ -626,23 +630,55 @@ async function inferSchema() {
     })
   }))
 
-  type Schema2 = Typesaurus.InferSchema<typeof nestedDB>
+  type Schema2 = TypesaurusCore.InferSchema<typeof nestedDB>
 
   assertType<
-    TypeEqual<Schema2['users']['settings']['Id'], Id<'users/settings'>>
+    TypeEqual<
+      Schema2['users']['settings']['Id'],
+      Typesaurus.Id<'users/settings'>
+    >
   >(true)
+
   assertType<
     TypeEqual<
       Schema2['users']['settings']['Ref'],
-      Ref<Settings, 'users/settings'>
+      Typesaurus.Ref<Settings, 'users/settings'>
     >
   >(true)
+
   assertType<
     TypeEqual<
       Schema2['users']['settings']['Doc'],
-      Doc<Settings, 'users/settings'>
+      Typesaurus.Doc<Settings, 'users/settings'>
     >
   >(true)
+}
+
+async function narrowDoc() {
+  interface TwitterAccount {
+    type: 'twitter'
+    screenName: number
+  }
+
+  interface LinkedInAccount {
+    type: 'linkedin'
+    email: string
+  }
+
+  const db = schema(($) => ({
+    accounts: $.collection<TwitterAccount | LinkedInAccount>()
+  }))
+
+  type Schema = TypesaurusCore.InferSchema<typeof db>
+
+  type Result1 = TypesaurusCore.NarrowDoc<
+    Schema['accounts']['Doc'],
+    TwitterAccount
+  >
+
+  assertType<TypeEqual<Result1, Typesaurus.Doc<TwitterAccount, 'accounts'>>>(
+    true
+  )
 }
 
 export function assertType<Type>(value: Type) {}

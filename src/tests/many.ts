@@ -1,10 +1,10 @@
-import { Id, Ref, schema } from '..'
+import { schema, Typesaurus } from '..'
 
 describe('many', () => {
   interface Fruit {
     color: string
-    tree?: Ref<Tree, 'trees'>
-    lastFly?: Ref<Fly, 'fruits/flies'>
+    tree?: Typesaurus.Ref<Tree, 'trees'>
+    lastFly?: Typesaurus.Ref<Fly, 'fruits/flies'>
   }
 
   interface Fly {
@@ -302,7 +302,7 @@ describe('many', () => {
           off = db.fruits
             .many([db.fruits.id('apple'), db.fruits.id('mango')])
             .on((fruits) => {
-              const colorOf = (id: Id<'fruits'>) =>
+              const colorOf = (id: Typesaurus.Id<'fruits'>) =>
                 fruits.find((doc) => doc?.ref.id === id)!.data.color
               if (colorOf(db.fruits.id('mango')) === 'yellow') {
                 db.fruits.update(db.fruits.id('mango'), { color: 'red' })

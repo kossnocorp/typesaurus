@@ -1,10 +1,10 @@
-import { schema, ServerDate } from '..'
+import { schema, Typesaurus } from '..'
 
 describe('doc', () => {
   interface User {
     name: string
-    createdAt: ServerDate
-    updatedAt?: ServerDate
+    createdAt: Typesaurus.ServerDate
+    updatedAt?: Typesaurus.ServerDate
     birthday: Date
   }
 
@@ -24,7 +24,7 @@ describe('doc', () => {
   }))
 
   it('creates doc object', () => {
-    const createdAt = new Date() as ServerDate
+    const createdAt = new Date() as Typesaurus.ServerDate
     const birthday = new Date(1987, 1, 11)
     const userDoc = db.users.doc(db.users.id('42'), {
       name: 'Sasha',
