@@ -1,5 +1,6 @@
-import type { TypesaurusCore } from './core'
 import type { TypesaurusUtils } from '../utils'
+import type { TypesaurusCore } from './core'
+import type { TypesaurusUpdate } from './update'
 
 export namespace TypesaurusTransaction {
   export interface Function {
@@ -53,7 +54,10 @@ export namespace TypesaurusTransaction {
     ): void
 
     update(
-      data: TypesaurusCore.UpdateModelArg<ModelPair[0] /* Model */, Environment>
+      data: TypesaurusUpdate.UpdateModelArg<
+        ModelPair[0] /* Model */,
+        Environment
+      >
     ): void
 
     upset(
@@ -187,7 +191,10 @@ export namespace TypesaurusTransaction {
 
     update(
       id: ModelPair[1] /* Id */,
-      data: TypesaurusCore.UpdateModelArg<ModelPair[0] /* Model */, Environment>
+      data: TypesaurusUpdate.UpdateModelArg<
+        ModelPair[0] /* Model */,
+        Environment
+      >
     ): void
 
     remove(id: ModelPair[1] /* Id */): void

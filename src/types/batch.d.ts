@@ -1,4 +1,5 @@
 import type { TypesaurusCore } from './core'
+import type { TypesaurusUpdate } from './update'
 
 export namespace TypesaurusBatch {
   export interface Function {
@@ -81,7 +82,10 @@ export namespace TypesaurusBatch {
 
     update(
       id: ModelPair[1] /* Id */,
-      data: TypesaurusCore.UpdateModelArg<ModelPair[0] /* Model */, Environment>
+      data: TypesaurusUpdate.UpdateModelArg<
+        ModelPair[0] /* Model */,
+        Environment
+      >
     ): void
 
     remove(id: ModelPair[1] /* Id */): void
