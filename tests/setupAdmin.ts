@@ -2,6 +2,4 @@ import * as admin from 'firebase-admin'
 
 admin.initializeApp()
 
-if (!process.env.FIRESTORE_EMULATOR_HOST) {
-  jest.setTimeout(25000)
-}
+jest.setTimeout(process.env.FIRESTORE_EMULATOR_HOST ? 15000 : 25000)

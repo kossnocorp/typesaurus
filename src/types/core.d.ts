@@ -14,7 +14,7 @@ export namespace TypesaurusCore {
 
   export type ModelType = Record<string, any>
 
-  export type ModelPathPair = [ModelType, Id<any>]
+  export type ModelIdPair = [ModelType, Id<any>]
 
   /**
    * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
@@ -26,7 +26,7 @@ export namespace TypesaurusCore {
    * the change, and the position change.
    */
   export interface DocChange<
-    ModelPair extends ModelPathPair,
+    ModelPair extends ModelIdPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -58,7 +58,7 @@ export namespace TypesaurusCore {
    * `query`.
    */
   export interface SubscriptionListMeta<
-    ModelPair extends ModelPathPair,
+    ModelPair extends ModelIdPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -91,14 +91,14 @@ export namespace TypesaurusCore {
    * The document type. It contains the reference in the DB and the model data.
    */
   export type Doc<
-    ModelPair extends ModelPathPair,
+    ModelPair extends ModelIdPair,
     Source extends DataSource = DataSource,
     DateStrategy extends ServerDateStrategy = ServerDateStrategy,
     Environment extends RuntimeEnvironment = RuntimeEnvironment
   > = EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>
 
   export type EnvironmentDoc<
-    ModelPair extends ModelPathPair,
+    ModelPair extends ModelIdPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -112,7 +112,7 @@ export namespace TypesaurusCore {
     ? ClientDoc<ModelPair, 'database', 'previous'>
     : ClientDoc<ModelPair, Source, DateStrategy>
 
-  export interface ServerDoc<ModelPair extends ModelPathPair>
+  export interface ServerDoc<ModelPair extends ModelIdPair>
     extends DocAPI<ModelPair> {
     type: 'doc'
     ref: Ref<ModelPair>
@@ -124,7 +124,7 @@ export namespace TypesaurusCore {
   }
 
   export interface ClientDoc<
-    ModelPair extends ModelPathPair,
+    ModelPair extends ModelIdPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy
   > extends DocAPI<ModelPair> {
@@ -189,7 +189,7 @@ export namespace TypesaurusCore {
   /**
    * The document reference type.
    */
-  export interface Ref<ModelPair extends ModelPathPair>
+  export interface Ref<ModelPair extends ModelIdPair>
     extends DocAPI<ModelPair> {
     type: 'ref'
     collection: RichCollection<ModelPair>
@@ -493,7 +493,7 @@ export namespace TypesaurusCore {
     catch(callback: SubscriptionErrorCallback): OffSubscription
   }
 
-  export type GetSubscriptionCallback<ModelPair extends ModelPathPair> = {
+  export type GetSubscriptionCallback<ModelPair extends ModelIdPair> = {
     (result: Doc<ModelPair> | null /*, info: SnapshotInfo<Model> */): void
   }
 
@@ -526,7 +526,7 @@ export namespace TypesaurusCore {
     ? (result: Result) => void
     : (result: Result, meta: SubscriptionMeta) => void
 
-  export type ListSubscriptionCallback<ModelPair extends ModelPathPair> = {
+  export type ListSubscriptionCallback<ModelPair extends ModelIdPair> = {
     (result: Doc<ModelPair>[]): void
   }
 
@@ -551,7 +551,7 @@ export namespace TypesaurusCore {
     queries: TypesaurusQuery.Query<any>[]
   }
 
-  export interface DocAPI<ModelPair extends ModelPathPair> {
+  export interface DocAPI<ModelPair extends ModelIdPair> {
     get<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -581,7 +581,7 @@ export namespace TypesaurusCore {
     remove(): Promise<Ref<ModelPair>>
   }
 
-  export interface CollectionAPI<ModelPair extends ModelPathPair> {
+  export interface CollectionAPI<ModelPair extends ModelIdPair> {
     all<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -592,6 +592,19 @@ export namespace TypesaurusCore {
       AllRequest,
       EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
       SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
+    >
+
+    query<
+      Source extends DataSource,
+      DateStrategy extends ServerDateStrategy,
+      Environment extends RuntimeEnvironment
+    >(
+      options?: ReadOptions<DateStrategy, Environment>
+    ): TypesaurusQuery.QueryBuilder<
+      ModelPair,
+      Source,
+      DateStrategy,
+      Environment
     >
 
     query<
@@ -611,10 +624,8 @@ export namespace TypesaurusCore {
   /**
    *
    */
-  export interface RichCollection<
-    ModelPair extends ModelPathPair,
-    CustomId extends Id<string> | undefined = undefined
-  > extends CollectionAPI<ModelPair> {
+  export interface RichCollection<ModelPair extends ModelIdPair>
+    extends CollectionAPI<ModelPair> {
     /** The collection type */
     type: 'collection'
 
@@ -687,14 +698,14 @@ export namespace TypesaurusCore {
   }
 
   export interface NestedRichCollection<
-    ModelPair extends ModelPathPair,
+    ModelPair extends ModelIdPair,
     Schema extends AnyDB
   > extends RichCollection<ModelPair> {
     (id: ModelPair[1] /* Id */): Schema
     schema: Schema
   }
 
-  export type Collection<ModelPair extends ModelPathPair> =
+  export type Collection<ModelPair extends ModelIdPair> =
     | RichCollection<ModelPair>
     | NestedRichCollection<ModelPair, AnyDB>
 

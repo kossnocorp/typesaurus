@@ -82,23 +82,38 @@ describe('query', () => {
     ])
   )
 
-  it('allows to assert environment', async () => {
-    const server = () =>
-      db.contacts.query(($) => $.field('ownerId').equal(ownerId), {
-        as: 'server'
-      })
-    const client = () =>
-      db.contacts.query(($) => $.field('ownerId').equal(ownerId), {
-        as: 'client'
-      })
+  describe('assering environment', () => {
+    it('allows to assert environment', async () => {
+      const server = () =>
+        db.contacts.query(($) => $.field('ownerId').equal(ownerId), {
+          as: 'server'
+        })
+      const client = () =>
+        db.contacts.query(($) => $.field('ownerId').equal(ownerId), {
+          as: 'client'
+        })
 
-    if (typeof window === 'undefined') {
-      await server()
-      expect(client).toThrowError('Expected client environment')
-    } else {
-      await client()
-      expect(server).toThrowError('Expected server environment')
-    }
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+
+    it('allows to assert environment as the builder', async () => {
+      const server = () => db.contacts.query({ as: 'server' })
+      const client = () => db.contacts.query({ as: 'client' })
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
   })
 
   describe('promise', () => {
@@ -148,6 +163,50 @@ describe('query', () => {
         $.field('mapId').equal(mapId),
         $.field('address', 'city').equal('New York')
       ])
+
+      expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
+        'Bagels Tower',
+        'Pizza City'
+      ])
+    })
+
+    it('allows to build query', async () => {
+      interface Location {
+        mapId: string
+        name: string
+        address: { city: string }
+      }
+
+      const db = schema(($) => ({
+        locations: $.collection<Location>()
+      }))
+
+      const mapId = nanoid()
+
+      await Promise.all([
+        db.locations.add({
+          mapId,
+          name: 'Pizza City',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Bagels Tower',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Tacos Cave',
+          address: { city: 'Houston' }
+        })
+      ])
+
+      const $ = db.locations.query()
+
+      $.field('mapId').equal(mapId)
+      $.field('address', 'city').equal('New York')
+
+      const docs = await $.run()
 
       expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
         'Bagels Tower',
@@ -488,6 +547,44 @@ describe('query', () => {
         expect(contacts[0]?.data.lastMessage?.collection.path).toBe(
           `contacts/${contactId}/contactMessages`
         )
+      })
+
+      it('allows to build query', async () => {
+        const ownerId = nanoid()
+        const sashaRef = db.contacts.ref(sashaId)
+        const tatiRef = db.contacts.ref(tatiId)
+
+        await Promise.all([
+          db.contacts(sashaId).contactMessages.add({
+            ownerId,
+            author: sashaRef,
+            text: 'Hello from Sasha!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello from Tati!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello, again!'
+          })
+        ])
+
+        const $ = groups(db).contactMessages.query()
+
+        $.field('ownerId').equal(ownerId)
+
+        const messages = await $.run()
+
+        expect(messages.map((m) => m.data.text).sort()).toEqual([
+          'Hello from Sasha!',
+          'Hello from Tati!',
+          'Hello, again!'
+        ])
       })
     })
 
@@ -915,6 +1012,52 @@ describe('query', () => {
       })
     })
 
+    it('allows to build query', async () => {
+      interface Location {
+        mapId: string
+        name: string
+        address: { city: string }
+      }
+
+      const db = schema(($) => ({
+        locations: $.collection<Location>()
+      }))
+
+      const spy = sinon.spy()
+      const mapId = nanoid()
+
+      await Promise.all([
+        db.locations.add({
+          mapId,
+          name: 'Pizza City',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Bagels Tower',
+          address: { city: 'New York' }
+        }),
+        db.locations.add({
+          mapId,
+          name: 'Tacos Cave',
+          address: { city: 'Houston' }
+        })
+      ])
+
+      const $ = db.locations.query()
+
+      $.field('mapId').equal(mapId)
+      $.field('address', 'city').equal('New York')
+
+      return new Promise((resolve) => {
+        off = $.run().on((docs) => {
+          spy(docs.map(({ data: { name } }) => name).sort())
+          if (spy.calledWithMatch(['Bagels Tower', 'Pizza City']))
+            resolve(void 0)
+        })
+      })
+    })
+
     it('allows to query using in filter', async () => {
       interface Pet {
         ownerId: string
@@ -1308,6 +1451,50 @@ describe('query', () => {
 
               resolve(void 0)
             })
+        })
+      })
+
+      it('allows to build query', async () => {
+        const ownerId = nanoid()
+        const sashaRef = db.contacts.ref(sashaId)
+        const tatiRef = db.contacts.ref(tatiId)
+
+        await Promise.all([
+          db.contacts(sashaId).contactMessages.add({
+            ownerId,
+            author: sashaRef,
+            text: 'Hello from Sasha!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello from Tati!'
+          }),
+
+          db.contacts(tatiId).contactMessages.add({
+            ownerId,
+            author: tatiRef,
+            text: 'Hello, again!'
+          })
+        ])
+
+        const $ = groups(db).contactMessages.query()
+
+        $.field('ownerId').equal(ownerId)
+
+        return new Promise((resolve) => {
+          off = $.run().on(async (messages) => {
+            off?.()
+
+            expect(messages.map((m) => m.data.text).sort()).toEqual([
+              'Hello from Sasha!',
+              'Hello from Tati!',
+              'Hello, again!'
+            ])
+
+            resolve(void 0)
+          })
         })
       })
     })
@@ -1821,7 +2008,7 @@ describe('query', () => {
                   return
                 case 3:
                   expect(docChanges).toEqual([
-                    { type: 'removed', name: 'Theodor' }
+                    { type: 'removed', name: 'Lesha' }
                   ])
                   resolve(void 0)
               }
