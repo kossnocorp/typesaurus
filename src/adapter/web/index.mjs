@@ -1,5 +1,3 @@
-// import * as firestore from '@google-cloud/firestore'
-// import * as admin from 'firebase-admin'
 import {
   doc,
   setDoc,
@@ -111,7 +109,7 @@ class RichCollection {
   }
 
   query(queries, options) {
-    assertEnvironment(options?.as)
+    assertEnvironment(queries?.as || options?.as)
     return _query(this.adapter(), queries)
   }
 
@@ -381,180 +379,202 @@ function db(schema, nestedPath) {
   )
 }
 
-export function _query(adapter, queries) {
-  const resolvedQueries = [].concat(queries(queryHelpers()))
-  const firebaseQueries = []
-  let cursors = []
-
-  resolvedQueries.forEach((query) => {
-    switch (query.type) {
-      case 'order': {
-        const { field, method, cursors: queryCursors } = query
-        firebaseQueries.push(
-          orderBy(
-            field[0] === '__id__' ? documentId() : field.join('.'),
-            method
-          )
-        )
-
-        if (queryCursors)
-          cursors = cursors.concat(
-            queryCursors.map(({ type, position, value }) => ({
-              type,
-              position,
-              value:
-                typeof value === 'object' &&
-                value !== null &&
-                'type' in value &&
-                value.type == 'doc'
-                  ? field[0] === '__id__'
-                    ? value.ref.id
-                    : field.reduce((acc, key) => acc[key], value.data)
-                  : value
-            }))
-          )
-        break
-      }
-
-      case 'where': {
-        const { field, filter, value } = query
-        firebaseQueries.push(
-          where(
-            field[0] === '__id__' ? documentId() : field.join('.'),
-            filter,
-            unwrapData(adapter.db(), value)
-          )
-        )
-        break
-      }
-
-      case 'limit': {
-        firebaseQueries.push(limit(query.number))
-        break
-      }
+export function _query(adapter, maybeQueries) {
+  if (typeof maybeQueries === 'function') {
+    return run([].concat(maybeQueries(queryHelpers())))
+  } else {
+    const queries = []
+    return {
+      ...queryHelpers('builder', queries),
+      run: () => run(queries)
     }
+  }
 
-    return firebaseQueries
-  }, [])
+  function run(queries) {
+    const firebaseQueries = []
+    let cursors = []
 
-  let groupedCursors = []
-
-  cursors.forEach((cursor) => {
-    let methodValues = groupedCursors.find(
-      ([position]) => position === cursor.position
-    )
-    if (!methodValues) {
-      methodValues = [cursor.position, []]
-      groupedCursors.push(methodValues)
-    }
-    methodValues[1].push(unwrapData(adapter.db(), cursor.value))
-  })
-
-  const firebaseCursors = []
-
-  if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
-    groupedCursors.forEach(([method, values]) => {
-      firebaseCursors.push(
-        (method === 'startAt'
-          ? startAt
-          : method === 'startAfter'
-          ? startAfter
-          : method === 'endAt'
-          ? endAt
-          : endBefore)(...values)
-      )
-    })
-
-  const firebaseQuery = () =>
-    query(adapter.collection(), ...firebaseQueries, ...firebaseCursors)
-
-  return new TypesaurusUtils.SubscriptionPromise({
-    request: request({
-      kind: 'query',
-      ...adapter.request(),
-      queries: resolvedQueries
-    }),
-
-    get: async () => {
-      const firebaseSnap = await getDocs(firebaseQuery())
-      return firebaseSnap.docs.map((firebaseSnap) =>
-        adapter.doc(
-          firebaseSnap
-          // {
-          //   firestoreData: true,
-          //   environment: a.environment as Environment,
-          //   serverTimestamps: options?.serverTimestamps,
-          //   ...a.getDocMeta(firebaseSnap)
-          // }
-        )
-      )
-    },
-
-    subscribe: (onResult, onError) => {
-      let q
-      try {
-        q = firebaseQuery()
-      } catch (error) {
-        onError(error)
-        return
-      }
-
-      return onSnapshot(
-        q,
-        (firebaseSnap) => {
-          const docs = firebaseSnap.docs.map((firebaseSnap) =>
-            adapter.doc(
-              firebaseSnap
-              // {
-              //   firestoreData: true,
-              //   environment: a.environment as Environment,
-              //   serverTimestamps: options?.serverTimestamps,
-              //   ...a.getDocMeta(firebaseSnap)
-              // }
+    queries.forEach((query) => {
+      switch (query.type) {
+        case 'order': {
+          const { field, method, cursors: queryCursors } = query
+          firebaseQueries.push(
+            orderBy(
+              field[0] === '__id__' ? documentId() : field.join('.'),
+              method
             )
           )
-          const changes = () =>
-            firebaseSnap.docChanges().map((change) => ({
-              type: change.type,
-              oldIndex: change.oldIndex,
-              newIndex: change.newIndex,
-              doc:
-                docs[
-                  change.type === 'removed' ? change.oldIndex : change.newIndex
-                ] ||
-                // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
-                // contain the removed document. In that case, we'll restore it from `change.doc`:
-                adapter.doc(
-                  change.doc
-                  // {
-                  //   firestoreData: true,
-                  //   environment: a.environment,
-                  //   serverTimestamps: options?.serverTimestamps,
-                  //   ...a.getDocMeta(change.doc)
-                  // }
-                )
-            }))
-          const meta = {
-            changes,
-            size: firebaseSnap.size,
-            empty: firebaseSnap.empty
-          }
-          onResult(docs, meta)
-        },
-        onError
+
+          if (queryCursors)
+            cursors = cursors.concat(
+              queryCursors.map(({ type, position, value }) => ({
+                type,
+                position,
+                value:
+                  typeof value === 'object' &&
+                  value !== null &&
+                  'type' in value &&
+                  value.type == 'doc'
+                    ? field[0] === '__id__'
+                      ? value.ref.id
+                      : field.reduce((acc, key) => acc[key], value.data)
+                    : value
+              }))
+            )
+          break
+        }
+
+        case 'where': {
+          const { field, filter, value } = query
+          firebaseQueries.push(
+            where(
+              field[0] === '__id__' ? documentId() : field.join('.'),
+              filter,
+              unwrapData(adapter.db(), value)
+            )
+          )
+          break
+        }
+
+        case 'limit': {
+          firebaseQueries.push(limit(query.number))
+          break
+        }
+      }
+
+      return firebaseQueries
+    }, [])
+
+    let groupedCursors = []
+
+    cursors.forEach((cursor) => {
+      let methodValues = groupedCursors.find(
+        ([position]) => position === cursor.position
       )
-    }
-  })
+      if (!methodValues) {
+        methodValues = [cursor.position, []]
+        groupedCursors.push(methodValues)
+      }
+      methodValues[1].push(unwrapData(adapter.db(), cursor.value))
+    })
+
+    const firebaseCursors = []
+
+    if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
+      groupedCursors.forEach(([method, values]) => {
+        firebaseCursors.push(
+          (method === 'startAt'
+            ? startAt
+            : method === 'startAfter'
+            ? startAfter
+            : method === 'endAt'
+            ? endAt
+            : endBefore)(...values)
+        )
+      })
+
+    const firebaseQuery = () =>
+      query(adapter.collection(), ...firebaseQueries, ...firebaseCursors)
+
+    return new TypesaurusUtils.SubscriptionPromise({
+      request: request({
+        kind: 'query',
+        ...adapter.request(),
+        queries: queries
+      }),
+
+      get: async () => {
+        const firebaseSnap = await getDocs(firebaseQuery())
+        return firebaseSnap.docs.map((firebaseSnap) =>
+          adapter.doc(
+            firebaseSnap
+            // {
+            //   firestoreData: true,
+            //   environment: a.environment as Environment,
+            //   serverTimestamps: options?.serverTimestamps,
+            //   ...a.getDocMeta(firebaseSnap)
+            // }
+          )
+        )
+      },
+
+      subscribe: (onResult, onError) => {
+        let q
+        try {
+          q = firebaseQuery()
+        } catch (error) {
+          onError(error)
+          return
+        }
+
+        return onSnapshot(
+          q,
+          (firebaseSnap) => {
+            const docs = firebaseSnap.docs.map((firebaseSnap) =>
+              adapter.doc(
+                firebaseSnap
+                // {
+                //   firestoreData: true,
+                //   environment: a.environment as Environment,
+                //   serverTimestamps: options?.serverTimestamps,
+                //   ...a.getDocMeta(firebaseSnap)
+                // }
+              )
+            )
+            const changes = () =>
+              firebaseSnap.docChanges().map((change) => ({
+                type: change.type,
+                oldIndex: change.oldIndex,
+                newIndex: change.newIndex,
+                doc:
+                  docs[
+                    change.type === 'removed'
+                      ? change.oldIndex
+                      : change.newIndex
+                  ] ||
+                  // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
+                  // contain the removed document. In that case, we'll restore it from `change.doc`:
+                  adapter.doc(
+                    change.doc
+                    // {
+                    //   firestoreData: true,
+                    //   environment: a.environment,
+                    //   serverTimestamps: options?.serverTimestamps,
+                    //   ...a.getDocMeta(change.doc)
+                    // }
+                  )
+              }))
+            const meta = {
+              changes,
+              size: firebaseSnap.size,
+              empty: firebaseSnap.empty
+            }
+            onResult(docs, meta)
+          },
+          onError
+        )
+      }
+    })
+  }
 }
 
-function queryHelpers() {
+function queryHelpers(mode = 'helpers', acc) {
+  function processQuery(value) {
+    if (mode === 'helpers') {
+      return value
+    } else {
+      // Builder mode
+      acc.push(value)
+    }
+  }
+
   function where(field, filter, value) {
-    return {
+    return processQuery({
       type: 'where',
       field,
       filter,
       value
-    }
+    })
   }
 
   return {
@@ -570,20 +590,21 @@ function queryHelpers() {
       contains: where.bind(null, field, 'array-contains'),
       containsAny: where.bind(null, field, 'array-contains-any'),
 
-      order: (...args) => ({
-        type: 'order',
-        field,
-        method: typeof args[0] === 'string' ? args[0] : 'asc',
-        cursors:
-          args.length > 1
-            ? args.slice(1)
-            : typeof args[0] === 'object'
-            ? args
-            : undefined
-      })
+      order: (...args) =>
+        processQuery({
+          type: 'order',
+          field,
+          method: typeof args[0] === 'string' ? args[0] : 'asc',
+          cursors:
+            args.length > 1
+              ? args.slice(1)
+              : typeof args[0] === 'object'
+              ? args
+              : undefined
+        })
     }),
 
-    limit: (number) => ({ type: 'limit', number }),
+    limit: (number) => processQuery({ type: 'limit', number }),
 
     startAt: (value) => ({ type: 'cursor', position: 'startAt', value }),
 

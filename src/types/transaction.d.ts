@@ -18,7 +18,7 @@ export namespace TypesaurusTransaction {
    * The document reference type.
    */
   export interface ReadRef<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -32,7 +32,7 @@ export namespace TypesaurusTransaction {
    * The document reference type.
    */
   export interface WriteRef<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -43,7 +43,7 @@ export namespace TypesaurusTransaction {
   }
 
   export type DocAPI<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -67,7 +67,7 @@ export namespace TypesaurusTransaction {
    * The document type. It contains the reference in the DB and the model data.
    */
   export type ReadDoc<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -77,9 +77,7 @@ export namespace TypesaurusTransaction {
     ? ReadClientDoc<ModelPair>
     : ReadServerDoc<ModelPair> | ReadClientDoc<ModelPair>
 
-  export interface ReadServerDoc<
-    ModelPair extends TypesaurusCore.ModelPathPair
-  > {
+  export interface ReadServerDoc<ModelPair extends TypesaurusCore.ModelIdPair> {
     type: 'doc'
     ref: ReadRef<ModelPair, 'server'>
     data: TypesaurusCore.ModelNodeData<ModelPair[0] /* Model */>
@@ -89,9 +87,7 @@ export namespace TypesaurusTransaction {
     pendingWrites?: undefined
   }
 
-  export interface ReadClientDoc<
-    ModelPair extends TypesaurusCore.ModelPathPair
-  > {
+  export interface ReadClientDoc<ModelPair extends TypesaurusCore.ModelIdPair> {
     type: 'doc'
     ref: ReadRef<ModelPair, 'client'>
     data: TypesaurusCore.AnyModelData<ModelPair[0] /* Model */, 'present'>
@@ -105,7 +101,7 @@ export namespace TypesaurusTransaction {
    * The document type. It contains the reference in the DB and the model data.
    */
   export type WriteDoc<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -115,9 +111,8 @@ export namespace TypesaurusTransaction {
     ? WriteClientDoc<ModelPair>
     : WriteServerDoc<ModelPair> | WriteClientDoc<ModelPair>
 
-  export interface WriteServerDoc<
-    ModelPair extends TypesaurusCore.ModelPathPair
-  > extends DocAPI<ModelPair, 'server'> {
+  export interface WriteServerDoc<ModelPair extends TypesaurusCore.ModelIdPair>
+    extends DocAPI<ModelPair, 'server'> {
     type: 'doc'
     ref: WriteRef<ModelPair, 'server'>
     data: TypesaurusCore.ModelNodeData<ModelPair[0] /* Model */>
@@ -127,9 +122,8 @@ export namespace TypesaurusTransaction {
     pendingWrites?: undefined
   }
 
-  export interface WriteClientDoc<
-    ModelPair extends TypesaurusCore.ModelPathPair
-  > extends DocAPI<ModelPair, 'client'> {
+  export interface WriteClientDoc<ModelPair extends TypesaurusCore.ModelIdPair>
+    extends DocAPI<ModelPair, 'client'> {
     type: 'doc'
     ref: WriteRef<ModelPair, 'client'>
     data: TypesaurusCore.AnyModelData<ModelPair[0] /* Model */, 'present'>
@@ -140,7 +134,7 @@ export namespace TypesaurusTransaction {
   }
 
   export type AnyWriteCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -154,13 +148,13 @@ export namespace TypesaurusTransaction {
       | undefined = undefined
   > {
     [CollectionPath: string]: AnyWriteCollection<
-      TypesaurusCore.ModelPathPair,
+      TypesaurusCore.ModelIdPair,
       Environment
     >
   }
 
   export interface NestedWriteCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     NestedSchema extends WriteSchema<Environment>,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
@@ -173,7 +167,7 @@ export namespace TypesaurusTransaction {
    *
    */
   export interface WriteCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -200,7 +194,7 @@ export namespace TypesaurusTransaction {
   }
 
   export type AnyReadCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -214,13 +208,13 @@ export namespace TypesaurusTransaction {
       | undefined = undefined
   > {
     [CollectionPath: string]: AnyReadCollection<
-      TypesaurusCore.ModelPathPair,
+      TypesaurusCore.ModelIdPair,
       Environment
     >
   }
 
   export interface NestedReadCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     NestedSchema extends ReadSchema<Environment>,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
@@ -230,7 +224,7 @@ export namespace TypesaurusTransaction {
   }
 
   export interface ReadCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined

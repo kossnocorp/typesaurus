@@ -39,7 +39,7 @@ export namespace TypesaurusBatch {
   }
 
   export type AnyCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -48,7 +48,7 @@ export namespace TypesaurusBatch {
     | NestedCollection<ModelPair, Schema<Environment>, Environment>
 
   export interface NestedCollection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     NestedSchema extends Schema<Environment>,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
@@ -61,7 +61,7 @@ export namespace TypesaurusBatch {
    *
    */
   export interface Collection<
-    ModelPair extends TypesaurusCore.ModelPathPair,
+    ModelPair extends TypesaurusCore.ModelIdPair,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
