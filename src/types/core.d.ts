@@ -1,6 +1,6 @@
-import type { TypesaurusUtils } from './utils'
-import type { TypesaurusQuery } from './query'
-import type { TypesaurusUpdate } from './update'
+import type { TypesaurusUtils as Utils } from './utils'
+import type { TypesaurusQuery as Query } from './query'
+import type { TypesaurusUpdate as Update } from './update'
 
 export namespace TypesaurusCore {
   export interface Function {
@@ -337,7 +337,7 @@ export namespace TypesaurusCore {
   export type MaybeValueRemove<
     Model,
     Key extends keyof Model
-  > = TypesaurusUtils.RequiredKey<Model, Key> extends true ? never : ValueRemove
+  > = Utils.RequiredKey<Model, Key> extends true ? never : ValueRemove
 
   export type Undefined<T> = T extends undefined ? T : never
 
@@ -430,7 +430,7 @@ export namespace TypesaurusCore {
   }
 
   export interface QueryRequest extends Request<'many'> {
-    queries: TypesaurusQuery.Query<any>[]
+    queries: Query.Query<any>[]
   }
 
   export interface DocAPI<ModelPair extends ModelIdPair> {
@@ -455,7 +455,7 @@ export namespace TypesaurusCore {
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
-    update: TypesaurusUpdate.DocFunction<ModelPair>
+    update: Update.DocFunction<ModelPair>
 
     remove(): Promise<Ref<ModelPair>>
   }
@@ -473,7 +473,7 @@ export namespace TypesaurusCore {
       SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
     >
 
-    query: TypesaurusQuery.Function<ModelPair>
+    query: Query.Function<ModelPair>
   }
 
   /**
@@ -528,7 +528,7 @@ export namespace TypesaurusCore {
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
-    update: TypesaurusUpdate.CollectionFunction<ModelPair>
+    update: Update.CollectionFunction<ModelPair>
 
     remove(id: ModelPair[1] /* Id */): Promise<Ref<ModelPair>>
 
@@ -609,9 +609,9 @@ export namespace TypesaurusCore {
               Model,
               CustomId extends Id<any>
                 ? CustomId
-                : Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+                : Id<Utils.ComposePath<BasePath, Path>>
             ],
-            DB<Schema, TypesaurusUtils.ComposePath<BasePath, Path>>
+            DB<Schema, Utils.ComposePath<BasePath, Path>>
           >
         : Schema[Path] extends PlainCollection<infer Model, infer CustomId>
         ? RichCollection<
@@ -619,7 +619,7 @@ export namespace TypesaurusCore {
               Model,
               CustomId extends Id<any>
                 ? CustomId
-                : Id<TypesaurusUtils.ComposePath<BasePath, Path>>
+                : Id<Utils.ComposePath<BasePath, Path>>
             ]
           >
         : never

@@ -1,13 +1,13 @@
-import type { TypesaurusCore } from './core'
-import type { TypesaurusUtils } from './utils'
+import type { TypesaurusCore as Core } from './core'
+import type { TypesaurusUtils as Utils } from './utils'
 
 export namespace TypesaurusGroups {
   export interface Function {
-    <DB extends TypesaurusCore.DB<any>>(db: DB): Groups<DB>
+    <DB extends Core.DB<any>>(db: DB): Groups<DB>
   }
 
-  export interface Group<ModelPair extends TypesaurusCore.ModelIdPair>
-    extends TypesaurusCore.CollectionAPI<ModelPair> {
+  export interface Group<ModelPair extends Core.ModelIdPair>
+    extends Core.CollectionAPI<ModelPair> {
     /** The group type */
     type: 'group'
 
@@ -19,7 +19,7 @@ export namespace TypesaurusGroups {
    * The type flattens the schema and generates groups from nested and
    * root collections.
    */
-  export type Groups<DB extends TypesaurusCore.DB<any>> =
+  export type Groups<DB extends Core.DB<any>> =
     /**
      * {@link ConstructGroups} here plays a role of merger, each level of nesting
      * returns respective collections and the type creates an object from those,
@@ -35,9 +35,9 @@ export namespace TypesaurusGroups {
     | Schema2
     | Schema3 extends infer Schema
     ? {
-        [Key in TypesaurusUtils.UnionKeys<Schema>]: Group<
+        [Key in Utils.UnionKeys<Schema>]: Group<
           Schema extends Record<Key, infer Value>
-            ? Value extends TypesaurusCore.ModelIdPair
+            ? Value extends Core.ModelIdPair
               ? Value
               : never
             : never
@@ -48,29 +48,29 @@ export namespace TypesaurusGroups {
   /**
    * The type extracts schema models from a collections for {@link Groups}.
    */
-  export type ExtractGroupModels<DB extends TypesaurusCore.DB<any>> = {
+  export type ExtractGroupModels<DB extends Core.DB<any>> = {
     [Path in keyof DB]: DB[Path] extends
-      | TypesaurusCore.RichCollection<infer ModelPair>
-      | TypesaurusCore.NestedRichCollection<infer ModelPair, any>
+      | Core.RichCollection<infer ModelPair>
+      | Core.NestedRichCollection<infer ModelPair, any>
       ? ModelPair
       : never
   }
 
-  export type GroupsLevel1<DB extends TypesaurusCore.DB<any>> =
+  export type GroupsLevel1<DB extends Core.DB<any>> =
     // Get the models for the given (0) level
     ExtractGroupModels<DB>
 
-  export type GroupsLevel2<DB extends TypesaurusCore.DB<any>> =
+  export type GroupsLevel2<DB extends Core.DB<any>> =
     // Infer the nested (1) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends TypesaurusCore.NestedPlainCollection<any, any>
+      ? Collections extends Core.NestedPlainCollection<any, any>
         ? {
-            [Key in TypesaurusUtils.UnionKeys<
+            [Key in Utils.UnionKeys<
               Collections['schema']
             >]: Collections['schema'] extends Record<
               Key,
-              | TypesaurusCore.RichCollection<infer ModelPair>
-              | TypesaurusCore.NestedRichCollection<infer ModelPair, any>
+              | Core.RichCollection<infer ModelPair>
+              | Core.NestedRichCollection<infer ModelPair, any>
             >
               ? ModelPair
               : {}
@@ -78,18 +78,18 @@ export namespace TypesaurusGroups {
         : {}
       : {}
 
-  export type GroupsLevel3<DB extends TypesaurusCore.DB<any>> =
+  export type GroupsLevel3<DB extends Core.DB<any>> =
     // Infer the nested (2) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends TypesaurusCore.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedRichCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends TypesaurusCore.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedRichCollection<any, any>
             ? {
-                [Key in TypesaurusUtils.UnionKeys<
+                [Key in Utils.UnionKeys<
                   Collections['schema']
                 >]: Collections['schema'] extends Record<
                   Key,
-                  TypesaurusCore.RichCollection<infer ModelPair>
+                  Core.RichCollection<infer ModelPair>
                 >
                   ? ModelPair
                   : {}
