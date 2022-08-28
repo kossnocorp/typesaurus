@@ -1,7 +1,30 @@
-import type { TypesaurusUtils } from '../utils'
-import type { TypesaurusCore } from './core'
+import type { TypesaurusUtils as Utils } from '../utils'
+import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusQuery {
+  export interface Function<ModelPair extends Core.ModelIdPair> {
+    <
+      Source extends Core.DataSource,
+      DateStrategy extends Core.ServerDateStrategy,
+      Environment extends Core.RuntimeEnvironment
+    >(
+      queries: TypesaurusQuery.QueryGetter<ModelPair>,
+      options?: Core.ReadOptions<DateStrategy, Environment>
+    ): Core.SubscriptionPromise<
+      Core.QueryRequest,
+      Core.EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
+      Core.SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
+    >
+
+    build<
+      Source extends Core.DataSource,
+      DateStrategy extends Core.ServerDateStrategy,
+      Environment extends Core.RuntimeEnvironment
+    >(
+      options?: Core.ReadOptions<DateStrategy, Environment>
+    ): QueryBuilder<ModelPair, Source, DateStrategy, Environment>
+  }
+
   export type DocId = '__id__'
 
   export type OrderDirection = 'desc' | 'asc'
@@ -33,7 +56,7 @@ export namespace TypesaurusQuery {
     type: 'order'
     field: string[]
     method: OrderDirection
-    cursors: OrderCursors<TypesaurusCore.ModelIdPair, any, any>
+    cursors: OrderCursors<Core.ModelIdPair, any, any>
   }
 
   export interface WhereQuery<_Model> {
@@ -52,7 +75,7 @@ export namespace TypesaurusQuery {
   }
 
   export type OrderCursors<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
@@ -70,7 +93,7 @@ export namespace TypesaurusQuery {
     | 'endAt'
 
   export type OrderCursorStart<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
@@ -78,19 +101,19 @@ export namespace TypesaurusQuery {
     | OrderCursorStartAfter<ModelPair, Parent, Key>
 
   export interface OrderCursorStartAt<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'startAt'> {}
 
   export interface OrderCursorStartAfter<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'startAfter'> {}
 
   export type OrderCursorEnd<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
@@ -98,19 +121,19 @@ export namespace TypesaurusQuery {
     | OrderCursorEndBefore<ModelPair, Parent, Key>
 
   export interface OrderCursorEndAt<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'endAt'> {}
 
   export interface OrderCursorEndBefore<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > extends OrderCursor<ModelPair, Parent, Key, 'endBefore'> {}
 
   export interface OrderCursor<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId,
     Position extends OrderCursorPosition
@@ -121,20 +144,20 @@ export namespace TypesaurusQuery {
   }
 
   export type OrderCursorValue<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId
   > =
     | (Key extends keyof Parent ? Parent[Key] : ModelPair[1]) /* Id */ // Field value or id
-    | TypesaurusCore.Doc<ModelPair> // Will be used to get value for the cursor
+    | Core.Doc<ModelPair> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
-  export type QueryGetter<ModelPair extends TypesaurusCore.ModelIdPair> = (
+  export type QueryGetter<ModelPair extends Core.ModelIdPair> = (
     $: QueryHelpers<ModelPair[0], ModelPair[1]>
   ) => Query<ModelPair[0] /* Model */> | Query<ModelPair[0] /* Model */>[]
 
   export interface QueryFieldBase<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent | DocId,
     OrderQueryResult
@@ -152,7 +175,7 @@ export namespace TypesaurusQuery {
   }
 
   export interface QueryIdField<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     OrderQueryResult,
     WhereQueryResult
   > extends QueryFieldBase<
@@ -179,7 +202,7 @@ export namespace TypesaurusQuery {
   }
 
   export interface QueryPrimitiveField<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent,
     OrderQueryResult,
@@ -221,7 +244,7 @@ export namespace TypesaurusQuery {
   }
 
   export type QueryField<
-    ModelPair extends TypesaurusCore.ModelIdPair,
+    ModelPair extends Core.ModelIdPair,
     Parent,
     Key extends keyof Parent,
     OrderQueryResult,
@@ -241,8 +264,8 @@ export namespace TypesaurusQuery {
    * @internal.
    */
   export interface CommonQueryHelpers<
-    Model extends TypesaurusCore.ModelType,
-    Id extends TypesaurusCore.Id<any>,
+    Model extends Core.ModelType,
+    Id extends Core.Id<any>,
     OrderQueryResult,
     WhereQueryResult,
     LimitQueryResult
@@ -257,13 +280,13 @@ export namespace TypesaurusQuery {
 
     field<
       Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1]
+      Key2 extends keyof Utils.AllRequired<Model>[Key1]
     >(
       key1: Key1,
       key2: Key2
     ): QueryField<
       [Model, Id],
-      TypesaurusUtils.AllRequired<Model>[Key1],
+      Utils.AllRequired<Model>[Key1],
       Key2,
       OrderQueryResult,
       WhereQueryResult
@@ -271,19 +294,15 @@ export namespace TypesaurusQuery {
 
     field<
       Key1 extends keyof Model,
-      Key2 extends keyof TypesaurusUtils.AllRequired<Model>[Key1],
-      Key3 extends keyof TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2]
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
     >(
       key1: Key1,
       key2: Key2,
       key3: Key3
     ): QueryField<
       [Model, Id],
-      TypesaurusUtils.AllRequired<
-        TypesaurusUtils.AllRequired<Model>[Key1]
-      >[Key2],
+      Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2],
       Key3,
       OrderQueryResult,
       WhereQueryResult
@@ -314,8 +333,8 @@ export namespace TypesaurusQuery {
    * Query helpers object avaliable in the `query` function.
    */
   export interface QueryHelpers<
-    Model extends TypesaurusCore.ModelType,
-    Id extends TypesaurusCore.Id<any>
+    Model extends Core.ModelType,
+    Id extends Core.Id<any>
   > extends CommonQueryHelpers<
       Model,
       Id,
@@ -329,10 +348,10 @@ export namespace TypesaurusQuery {
    * and mixed with other code.
    */
   export interface QueryBuilder<
-    ModelPair extends TypesaurusCore.ModelIdPair,
-    Source extends TypesaurusCore.DataSource,
-    DateStrategy extends TypesaurusCore.ServerDateStrategy,
-    Environment extends TypesaurusCore.RuntimeEnvironment
+    ModelPair extends Core.ModelIdPair,
+    Source extends Core.DataSource,
+    DateStrategy extends Core.ServerDateStrategy,
+    Environment extends Core.RuntimeEnvironment
   > extends CommonQueryHelpers<
       ModelPair[0] /* Model */,
       ModelPair[1] /* Path */,
@@ -343,20 +362,10 @@ export namespace TypesaurusQuery {
     /**
      * Runs the built query.
      */
-    run(): TypesaurusCore.SubscriptionPromise<
-      TypesaurusCore.QueryRequest,
-      TypesaurusCore.EnvironmentDoc<
-        ModelPair,
-        Source,
-        DateStrategy,
-        Environment
-      >[],
-      TypesaurusCore.SubscriptionListMeta<
-        ModelPair,
-        Source,
-        DateStrategy,
-        Environment
-      >
+    run(): Core.SubscriptionPromise<
+      Core.QueryRequest,
+      Core.EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
+      Core.SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
     >
   }
 }

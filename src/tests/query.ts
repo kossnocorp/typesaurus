@@ -103,8 +103,8 @@ describe('query', () => {
     })
 
     it('allows to assert environment as the builder', async () => {
-      const server = () => db.contacts.query({ as: 'server' })
-      const client = () => db.contacts.query({ as: 'client' })
+      const server = () => db.contacts.query.build({ as: 'server' })
+      const client = () => db.contacts.query.build({ as: 'client' })
 
       if (typeof window === 'undefined') {
         await server()
@@ -201,7 +201,7 @@ describe('query', () => {
         })
       ])
 
-      const $ = db.locations.query()
+      const $ = db.locations.query.build()
 
       $.field('mapId').equal(mapId)
       $.field('address', 'city').equal('New York')
@@ -574,7 +574,7 @@ describe('query', () => {
           })
         ])
 
-        const $ = groups(db).contactMessages.query()
+        const $ = groups(db).contactMessages.query.build()
 
         $.field('ownerId').equal(ownerId)
 
@@ -1044,7 +1044,7 @@ describe('query', () => {
         })
       ])
 
-      const $ = db.locations.query()
+      const $ = db.locations.query.build()
 
       $.field('mapId').equal(mapId)
       $.field('address', 'city').equal('New York')
@@ -1479,12 +1479,12 @@ describe('query', () => {
           })
         ])
 
-        const $ = groups(db).contactMessages.query()
+        const $ = groups(db).contactMessages.query.build()
 
         $.field('ownerId').equal(ownerId)
 
         return new Promise((resolve) => {
-          off = $.run().on(async (messages) => {
+          off = $.run().on((messages) => {
             off?.()
 
             expect(messages.map((m) => m.data.text).sort()).toEqual([
