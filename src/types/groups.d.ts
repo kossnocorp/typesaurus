@@ -1,5 +1,5 @@
 import type { TypesaurusCore } from './core'
-import type { TypesaurusUtils } from '../utils'
+import type { TypesaurusUtils } from './utils'
 
 export namespace TypesaurusGroups {
   export interface Function {

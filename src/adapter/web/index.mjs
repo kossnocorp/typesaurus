@@ -1,38 +1,36 @@
 import {
-  doc,
-  setDoc,
-  getFirestore,
-  collection,
   addDoc,
-  getDoc,
-  DocumentReference,
-  Timestamp,
-  serverTimestamp,
-  increment,
-  arrayUnion,
   arrayRemove,
-  deleteField,
-  getDocs,
+  arrayUnion,
+  collection,
   deleteDoc,
-  onSnapshot,
-  updateDoc,
-  limit,
-  where,
-  orderBy,
-  startAt,
-  startAfter,
+  deleteField,
+  doc,
+  documentId,
+  DocumentReference,
   endAt,
   endBefore,
-  documentId,
-  query
+  getDoc,
+  getDocs,
+  getFirestore,
+  increment,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  startAfter,
+  startAt,
+  Timestamp,
+  updateDoc,
+  where
 } from 'firebase/firestore'
-import { TypesaurusUtils } from '../../utils/index.ts'
+import { SubscriptionPromise } from '../../sp/index.ts'
 
 export { batch } from './batch.mjs'
-
-export { transaction } from './transaction.mjs'
-
 export { groups } from './groups.mjs'
+export { transaction } from './transaction.mjs'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())
@@ -135,7 +133,7 @@ class RichCollection {
     assertEnvironment(options?.as)
     const doc = this.firebaseDoc(id)
 
-    return new TypesaurusUtils.SubscriptionPromise({
+    return new SubscriptionPromise({
       request: request({ kind: 'get', path: this.path, id }),
 
       get: async () => {
@@ -161,7 +159,7 @@ class RichCollection {
   many(ids, options) {
     assertEnvironment(options?.as)
 
-    return new TypesaurusUtils.SubscriptionPromise({
+    return new SubscriptionPromise({
       request: request({ kind: 'many', path: this.path, ids }),
 
       get: () => Promise.all(ids.map((id) => this.get(id))),
@@ -269,7 +267,7 @@ class Doc {
 export function all(adapter) {
   const firebaseCollection = adapter.collection()
 
-  return new TypesaurusUtils.SubscriptionPromise({
+  return new SubscriptionPromise({
     request: request({ kind: 'all', ...adapter.request() }),
 
     get: async () => {
@@ -500,7 +498,7 @@ export function _query(adapter, queries) {
   const firebaseQuery = () =>
     query(adapter.collection(), ...firebaseQueries, ...firebaseCursors)
 
-  return new TypesaurusUtils.SubscriptionPromise({
+  return new SubscriptionPromise({
     request: request({
       kind: 'query',
       ...adapter.request(),
