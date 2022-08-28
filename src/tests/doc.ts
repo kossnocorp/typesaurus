@@ -1,5 +1,7 @@
 import { schema, Typesaurus } from '..'
 
+const exp = typeof jasmine !== 'undefined' ? jasmine : expect
+
 describe('doc', () => {
   interface User {
     name: string
@@ -33,9 +35,16 @@ describe('doc', () => {
     })
 
     expect(userDoc).toEqual(
-      (typeof jasmine !== 'undefined' ? jasmine : expect).objectContaining({
+      exp.objectContaining({
         type: 'doc',
-        ref: db.users.ref(db.users.id('42')),
+        ref: exp.objectContaining({
+          type: 'ref',
+          id: '42',
+          collection: exp.objectContaining({
+            type: 'collection',
+            path: 'users'
+          })
+        }),
         data: { name: 'Sasha', createdAt, birthday }
       })
     )

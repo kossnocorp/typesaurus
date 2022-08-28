@@ -17,7 +17,31 @@ class RichCollection {
   constructor(path) {
     this.type = 'collection'
     this.path = path
-    this.update.build = this.buildUpdate.bind(this)
+
+    this.update = (id, data, options) => {
+      assertEnvironment(options?.as)
+      const updateData =
+        typeof data === 'function' ? data(updateHelpers()) : data
+      const update = Array.isArray(updateData)
+        ? updateFields(updateData)
+        : updateData
+
+      return this.firebaseDoc(id)
+        .update(unwrapData(update))
+        .then(() => this.ref(id))
+    }
+
+    this.update.build = (id, options) => {
+      assertEnvironment(options?.as)
+      const fields = []
+      return {
+        ...updateHelpers('build', fields),
+        run: () =>
+          this.firebaseDoc(id)
+            .update(unwrapData(updateFields(fields)))
+            .then(() => this.ref(id))
+      }
+    }
 
     this.query = (queries, options) => {
       assertEnvironment(options?.as)
@@ -66,30 +90,6 @@ class RichCollection {
     return this.firebaseDoc(id)
       .set(writeData(data), { merge: true })
       .then(() => this.ref(id))
-  }
-
-  update(id, data, options) {
-    assertEnvironment(options?.as)
-    const updateData = typeof data === 'function' ? data(updateHelpers()) : data
-    const update = Array.isArray(updateData)
-      ? updateFields(updateData)
-      : updateData
-
-    return this.firebaseDoc(id)
-      .update(unwrapData(update))
-      .then(() => this.ref(id))
-  }
-
-  buildUpdate(id, options) {
-    assertEnvironment(options?.as)
-    const fields = []
-    return {
-      ...updateHelpers('build', fields),
-      run: () =>
-        this.firebaseDoc(id)
-          .update(unwrapData(updateFields(fields)))
-          .then(() => this.ref(id))
-    }
   }
 
   async remove(id) {
@@ -190,7 +190,12 @@ class Ref {
     this.type = 'ref'
     this.collection = collection
     this.id = id
-    this.update.build = this.buildUpdate.bind(this)
+
+    this.update = (data, options) =>
+      this.collection.update(this.id, data, options)
+
+    this.update.build = (options) =>
+      this.collection.update.build(this.id, options)
   }
 
   get(options) {
@@ -203,10 +208,6 @@ class Ref {
 
   upset(data, options) {
     return this.collection.upset(this.id, data, options)
-  }
-
-  update(data, options) {
-    return this.collection.update(this.id, data, options)
   }
 
   buildUpdate(data, options) {
@@ -225,7 +226,10 @@ class Doc {
     this.ref = new Ref(collection, id)
     this.data = data
     this.environment = 'server'
-    this.update.build = this.buildUpdate.bind(this)
+
+    this.update = (data, options) => this.ref.update(data, options)
+
+    this.update.build = (options) => this.ref.update.build(options)
   }
 
   get(options) {
@@ -234,14 +238,6 @@ class Doc {
 
   set(data, options) {
     return this.ref.set(data, options)
-  }
-
-  update(data, options) {
-    return this.ref.update(data, options)
-  }
-
-  buildUpdate(data, options) {
-    return this.ref.buildUpdate(data, options)
   }
 
   upset(data, options) {
