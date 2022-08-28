@@ -1,15 +1,33 @@
 module.exports = {
-  presets: [
-    ['@babel/preset-env', { targets: { node: 'current' } }],
-    '@babel/preset-typescript'
-  ],
-  plugins: [
-    [
-      '@babel/plugin-transform-modules-commonjs',
-      { importInterop: 'node', loose: true, strict: true }
-    ],
-    ['babel-plugin-add-import-extension', { extension: process.env.TARGET }]
-  ],
+  presets: ['@babel/preset-typescript'],
+
+  env: {
+    cjs: {
+      presets: [
+        [
+          '@babel/preset-env',
+          { targets: { node: 'current' }, modules: 'commonjs', loose: true }
+        ]
+      ],
+
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          { strict: true, noInterop: true }
+        ],
+        ['babel-plugin-add-import-extension', { extension: 'js' }]
+      ]
+    },
+
+    esm: {
+      presets: [
+        ['@babel/preset-env', { targets: { node: 'current' }, modules: false }]
+      ],
+
+      plugins: [['babel-plugin-add-import-extension', { extension: 'mjs' }]]
+    }
+  },
+
   ignore: [
     'src/**/*.d.ts',
     'src/**/tests.ts',

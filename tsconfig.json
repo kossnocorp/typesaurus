@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDirs": ["src"],
+    "rootDir": "src",
     "declaration": true,
     "target": "es6",
     "module": "NodeNext",
@@ -15,5 +15,6 @@
     "noErrorTruncation": true,
     "allowJs": true
   },
+  "include": ["src/**/*.ts"],
   "exclude": ["lib", "node_modules", "legacy"]
 }

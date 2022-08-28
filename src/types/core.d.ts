@@ -1,4 +1,4 @@
-import type { TypesaurusUtils } from '../utils'
+import type { TypesaurusUtils } from './utils'
 import type { TypesaurusQuery } from './query'
 import type { TypesaurusUpdate } from './update'
 

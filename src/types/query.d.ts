@@ -1,4 +1,4 @@
-import type { TypesaurusUtils as Utils } from '../utils'
+import type { TypesaurusUtils as Utils } from './utils'
 import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusQuery {

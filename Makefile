@@ -37,8 +37,9 @@ test-system-browser-watch:
 
 build:
 	@rm -rf lib
-	@env TARGET=mjs npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .mjs --quiet
-	@env TARGET=js npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .js --quiet
+	@env BABEL_ENV=esm npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .mjs --quiet
+	@env BABEL_ENV=cjs npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .js --quiet
+	@npx tsc -p tsconfig.lib.json
 # @env npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts,.js --out-file-extension .js --ignore "src/**/tests.ts" --ignore "src/tests/**/*" --ignore "src/**/tysts.ts" --ignore "src/**/*.d.ts" --quiet
 # @npx prettier "lib/**/*.[jt]s" --write --loglevel silent
 # @cp package.json lib

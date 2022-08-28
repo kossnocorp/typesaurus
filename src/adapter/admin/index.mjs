@@ -1,6 +1,6 @@
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
-import { TypesaurusUtils } from '../../utils/index.ts'
+import { SubscriptionPromise } from '../../sp/index.ts'
 
 export { batch } from './batch.mjs'
 
@@ -106,7 +106,7 @@ class RichCollection {
     assertEnvironment(options?.as)
     const doc = this.firebaseDoc(id)
 
-    return new TypesaurusUtils.SubscriptionPromise({
+    return new SubscriptionPromise({
       request: request({ kind: 'get', path: this.path, id }),
 
       get: async () => {
@@ -127,7 +127,7 @@ class RichCollection {
   many(ids, options) {
     assertEnvironment(options?.as)
 
-    return new TypesaurusUtils.SubscriptionPromise({
+    return new SubscriptionPromise({
       request: request({ kind: 'many', path: this.path, ids }),
 
       get: async () => {
@@ -252,7 +252,7 @@ class Doc {
 export function all(adapter) {
   const firebaseCollection = adapter.collection()
 
-  return new TypesaurusUtils.SubscriptionPromise({
+  return new SubscriptionPromise({
     request: request({ kind: 'all', ...adapter.request() }),
 
     get: async () => {
@@ -464,7 +464,7 @@ export function query(adapter, queries) {
       firestoreQuery = firestoreQuery[method](...values)
     })
 
-  return new TypesaurusUtils.SubscriptionPromise({
+  return new SubscriptionPromise({
     request: request({
       kind: 'query',
       ...adapter.request(),
