@@ -455,13 +455,7 @@ export namespace TypesaurusCore {
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
-    update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: TypesaurusUpdate.UpdateModelArg<
-        ModelPair[0] /* Model */,
-        Environment
-      >,
-      options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    update: TypesaurusUpdate.DocFunction<ModelPair>
 
     remove(): Promise<Ref<ModelPair>>
   }
@@ -558,14 +552,7 @@ export namespace TypesaurusCore {
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
-    update<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: ModelPair[1] /* Id */,
-      data: TypesaurusUpdate.UpdateModelArg<
-        ModelPair[0] /* Model */,
-        Environment
-      >,
-      options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    update: TypesaurusUpdate.CollectionFunction<ModelPair>
 
     remove(id: ModelPair[1] /* Id */): Promise<Ref<ModelPair>>
 
