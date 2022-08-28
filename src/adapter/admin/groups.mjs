@@ -1,5 +1,5 @@
-import { all, pathToDoc, query, wrapData } from './index.mjs'
 import * as admin from 'firebase-admin'
+import { all, pathToDoc, query, queryHelpers, wrapData } from './index.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}
@@ -19,14 +19,21 @@ export const groups = (rootDB) => {
 class Group {
   constructor(name) {
     this.name = name
+
+    this.query = (queries) =>
+      query(this.adapter(), [].concat(queries(queryHelpers())))
+
+    this.query.build = () => {
+      const queries = []
+      return {
+        ...queryHelpers('builder', queries),
+        run: () => query(this.adapter(), queries)
+      }
+    }
   }
 
   all() {
     return all(this.adapter())
-  }
-
-  query(queries) {
-    return query(this.adapter(), queries)
   }
 
   adapter() {

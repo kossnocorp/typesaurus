@@ -473,31 +473,7 @@ export namespace TypesaurusCore {
       SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
     >
 
-    query<
-      Source extends DataSource,
-      DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment
-    >(
-      options?: ReadOptions<DateStrategy, Environment>
-    ): TypesaurusQuery.QueryBuilder<
-      ModelPair,
-      Source,
-      DateStrategy,
-      Environment
-    >
-
-    query<
-      Source extends DataSource,
-      DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment
-    >(
-      queries: TypesaurusQuery.QueryGetter<ModelPair>,
-      options?: ReadOptions<DateStrategy, Environment>
-    ): SubscriptionPromise<
-      QueryRequest,
-      EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
-      SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
-    >
+    query: TypesaurusQuery.Function<ModelPair>
   }
 
   /**

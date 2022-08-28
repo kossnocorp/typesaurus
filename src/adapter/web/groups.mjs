@@ -1,5 +1,5 @@
 import { collectionGroup, getFirestore } from 'firebase/firestore'
-import { all, pathToDoc, _query, wrapData } from './index.mjs'
+import { all, pathToDoc, _query, queryHelpers, wrapData } from './index.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}
@@ -20,14 +20,21 @@ class Group {
   constructor(name) {
     this.firebaseDB = getFirestore()
     this.name = name
+
+    this.query = (queries) =>
+      _query(this.adapter(), [].concat(queries(queryHelpers())))
+
+    this.query.build = () => {
+      const queries = []
+      return {
+        ...queryHelpers('builder', queries),
+        run: () => _query(this.adapter(), queries)
+      }
+    }
   }
 
   all() {
     return all(this.adapter())
-  }
-
-  query(queries) {
-    return _query(this.adapter(), queries)
   }
 
   adapter() {
