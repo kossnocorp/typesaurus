@@ -199,34 +199,88 @@ describe('update', () => {
     ).toBe(true)
   })
 
-  it('allows to assert environment', async () => {
-    const userId = await db.users.id()
-    await dbWithDates.users.set(userId, ($) => ({
+  it('allows to build update', async () => {
+    const user = await db.users.add({
       name: 'Sasha',
-      createdAt: $.serverDate(),
-      updatedAt: $.serverDate(),
-      birthday: new Date(1987, 1, 11)
-    }))
+      address: { city: 'Omsk' },
+      visits: 0
+    })
+    const { id } = user
 
-    const server = () =>
-      dbWithDates.users.update(
-        userId,
-        { updatedAt: new Date() },
-        { as: 'server' }
-      )
+    const $ = db.users.update.build(id)
+    $.field('name').set('Sasha Koss')
+    $.field('address', 'city').set('Dimitrovgrad')
+    $.field('visits').set($.increment(1))
+    await $.run()
 
-    const client = () =>
-      dbWithDates.users.update(userId, ($) => ({ updatedAt: $.serverDate() }), {
-        as: 'client'
-      })
+    const userFromDB = await user.get()
+    expect(userFromDB?.data).toEqual({
+      name: 'Sasha Koss',
+      address: { city: 'Dimitrovgrad' },
+      visits: 1
+    })
+  })
 
-    if (typeof window === 'undefined') {
-      await server()
-      expect(client).toThrowError('Expected client environment')
-    } else {
-      await client()
-      expect(server).toThrowError('Expected server environment')
-    }
+  describe('assering environment', () => {
+    it('allows to assert environment', async () => {
+      const userId = await db.users.id()
+      await dbWithDates.users.set(userId, ($) => ({
+        name: 'Sasha',
+        createdAt: $.serverDate(),
+        updatedAt: $.serverDate(),
+        birthday: new Date(1987, 1, 11)
+      }))
+
+      const server = () =>
+        dbWithDates.users.update(
+          userId,
+          { updatedAt: new Date() },
+          { as: 'server' }
+        )
+
+      const client = () =>
+        dbWithDates.users.update(
+          userId,
+          ($) => ({ updatedAt: $.serverDate() }),
+          {
+            as: 'client'
+          }
+        )
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
+
+    it('allows to assert environment as the builder', async () => {
+      const userId = await db.users.id()
+      await dbWithDates.users.set(userId, ($) => ({
+        name: 'Sasha',
+        createdAt: $.serverDate(),
+        updatedAt: $.serverDate(),
+        birthday: new Date(1987, 1, 11)
+      }))
+
+      const server = () =>
+        dbWithDates.users.update.build(userId, { as: 'server' })
+
+      const client = () =>
+        dbWithDates.users.update.build(userId, {
+          as: 'client'
+        })
+
+      if (typeof window === 'undefined') {
+        await server()
+        expect(client).toThrowError('Expected client environment')
+      } else {
+        await client()
+        expect(server).toThrowError('Expected server environment')
+      }
+    })
   })
 
   describe('ref', () => {
@@ -239,32 +293,71 @@ describe('update', () => {
       expect(movie?.data).toEqual({ title: 'Better Call Jimmy', likedBy: [] })
     })
 
-    it('allows to assert environment', async () => {
-      const userId = await db.users.id()
-      await dbWithDates.users.set(userId, ($) => ({
-        name: 'Sasha',
-        createdAt: $.serverDate(),
-        updatedAt: $.serverDate(),
-        birthday: new Date(1987, 1, 11)
-      }))
+    it('allows to build update', async () => {
+      const id = await db.movies.id()
+      const movieRef = db.movies.ref(id)
+      await movieRef.set({ title: 'Better Call Saul', likedBy: [] })
 
-      const server = () =>
-        dbWithDates.users
-          .ref(userId)
-          .update({ updatedAt: new Date() }, { as: 'server' })
+      const $ = movieRef.update.build()
+      $.field('title').set('Better Call Jimmy')
+      await $.run()
 
-      const client = () =>
-        dbWithDates.users
-          .ref(userId)
-          .update(($) => ({ updatedAt: $.serverDate() }), { as: 'client' })
+      const movie = await movieRef.get()
+      expect(movie?.data).toEqual({ title: 'Better Call Jimmy', likedBy: [] })
+    })
 
-      if (typeof window === 'undefined') {
-        await server()
-        expect(client).toThrowError('Expected client environment')
-      } else {
-        await client()
-        expect(server).toThrowError('Expected server environment')
-      }
+    describe('assering environment', () => {
+      it('allows to assert environment', async () => {
+        const userId = await db.users.id()
+        await dbWithDates.users.set(userId, ($) => ({
+          name: 'Sasha',
+          createdAt: $.serverDate(),
+          updatedAt: $.serverDate(),
+          birthday: new Date(1987, 1, 11)
+        }))
+
+        const server = () =>
+          dbWithDates.users
+            .ref(userId)
+            .update({ updatedAt: new Date() }, { as: 'server' })
+
+        const client = () =>
+          dbWithDates.users
+            .ref(userId)
+            .update(($) => ({ updatedAt: $.serverDate() }), { as: 'client' })
+
+        if (typeof window === 'undefined') {
+          await server()
+          expect(client).toThrowError('Expected client environment')
+        } else {
+          await client()
+          expect(server).toThrowError('Expected server environment')
+        }
+      })
+
+      it('allows to assert environment as the builder', async () => {
+        const userId = await db.users.id()
+        await dbWithDates.users.set(userId, ($) => ({
+          name: 'Sasha',
+          createdAt: $.serverDate(),
+          updatedAt: $.serverDate(),
+          birthday: new Date(1987, 1, 11)
+        }))
+
+        const server = () =>
+          dbWithDates.users.ref(userId).update.build({ as: 'server' })
+
+        const client = () =>
+          dbWithDates.users.ref(userId).update.build({ as: 'client' })
+
+        if (typeof window === 'undefined') {
+          await server()
+          expect(client).toThrowError('Expected client environment')
+        } else {
+          await client()
+          expect(server).toThrowError('Expected server environment')
+        }
+      })
     })
   })
 
@@ -279,31 +372,73 @@ describe('update', () => {
       expect(movie?.data).toEqual({ title: 'Better Call Jimmy', likedBy: [] })
     })
 
-    it('allows to assert environment', async () => {
-      const userId = await db.users.id()
-      await dbWithDates.users.set(userId, ($) => ({
-        name: 'Sasha',
-        createdAt: $.serverDate(),
-        updatedAt: $.serverDate(),
-        birthday: new Date(1987, 1, 11)
-      }))
+    it('allows to build update', async () => {
+      const id = await db.movies.id()
+      const movieRef = db.movies.ref(id)
+      await movieRef.set({ title: 'Better Call Saul', likedBy: [] })
+      const movieDoc = await movieRef.get()
+      if (!movieDoc) throw new Error('The doc is not found')
 
-      // @ts-ignore: data is not important here
-      const doc = dbWithDates.users.doc(userId, {})
+      const $ = movieDoc.update.build()
+      $.field('title').set('Better Call Jimmy')
+      await $.run()
 
-      const server = () =>
-        doc.update({ updatedAt: new Date() }, { as: 'server' })
+      const movie = await movieRef.get()
+      expect(movie?.data).toEqual({ title: 'Better Call Jimmy', likedBy: [] })
+    })
 
-      const client = () =>
-        doc.update(($) => ({ updatedAt: $.serverDate() }), { as: 'client' })
+    describe('assering environment', () => {
+      it('allows to assert environment', async () => {
+        const userId = await db.users.id()
+        await dbWithDates.users.set(userId, ($) => ({
+          name: 'Sasha',
+          createdAt: $.serverDate(),
+          updatedAt: $.serverDate(),
+          birthday: new Date(1987, 1, 11)
+        }))
 
-      if (typeof window === 'undefined') {
-        await server()
-        expect(client).toThrowError('Expected client environment')
-      } else {
-        await client()
-        expect(server).toThrowError('Expected server environment')
-      }
+        // @ts-ignore: data is not important here
+        const doc = dbWithDates.users.doc(userId, {})
+
+        const server = () =>
+          doc.update({ updatedAt: new Date() }, { as: 'server' })
+
+        const client = () =>
+          doc.update(($) => ({ updatedAt: $.serverDate() }), { as: 'client' })
+
+        if (typeof window === 'undefined') {
+          await server()
+          expect(client).toThrowError('Expected client environment')
+        } else {
+          await client()
+          expect(server).toThrowError('Expected server environment')
+        }
+      })
+
+      it('allows to assert environment as the builder', async () => {
+        const userId = await db.users.id()
+        await dbWithDates.users.set(userId, ($) => ({
+          name: 'Sasha',
+          createdAt: $.serverDate(),
+          updatedAt: $.serverDate(),
+          birthday: new Date(1987, 1, 11)
+        }))
+
+        // @ts-ignore: data is not important here
+        const doc = dbWithDates.users.doc(userId, {})
+
+        const server = () => doc.update.build({ as: 'server' })
+
+        const client = () => doc.update.build({ as: 'client' })
+
+        if (typeof window === 'undefined') {
+          await server()
+          expect(client).toThrowError('Expected client environment')
+        } else {
+          await client()
+          expect(server).toThrowError('Expected server environment')
+        }
+      })
     })
   })
 

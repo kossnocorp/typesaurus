@@ -2,6 +2,54 @@ import type { TypesaurusUtils } from '../utils/index'
 import type { TypesaurusCore } from './core'
 
 export namespace TypesaurusUpdate {
+  export interface CollectionFunction<
+    ModelPair extends TypesaurusCore.ModelIdPair
+  > {
+    <
+      Environment extends
+        | TypesaurusCore.RuntimeEnvironment
+        | undefined = undefined
+    >(
+      id: ModelPair[1] /* Id */,
+      data: TypesaurusUpdate.UpdateModelArg<
+        ModelPair[0] /* Model */,
+        Environment
+      >,
+      options?: TypesaurusCore.OperationOptions<Environment>
+    ): Promise<TypesaurusCore.Ref<ModelPair>>
+
+    build<
+      Environment extends
+        | TypesaurusCore.RuntimeEnvironment
+        | undefined = undefined
+    >(
+      id: ModelPair[1] /* Id */,
+      options?: TypesaurusCore.OperationOptions<Environment>
+    ): Builder<ModelPair>
+  }
+
+  export interface DocFunction<ModelPair extends TypesaurusCore.ModelIdPair> {
+    <
+      Environment extends
+        | TypesaurusCore.RuntimeEnvironment
+        | undefined = undefined
+    >(
+      data: TypesaurusUpdate.UpdateModelArg<
+        ModelPair[0] /* Model */,
+        Environment
+      >,
+      options?: TypesaurusCore.OperationOptions<Environment>
+    ): Promise<TypesaurusCore.Ref<ModelPair>>
+
+    build<
+      Environment extends
+        | TypesaurusCore.RuntimeEnvironment
+        | undefined = undefined
+    >(
+      options?: TypesaurusCore.OperationOptions<Environment>
+    ): Builder<ModelPair>
+  }
+
   /**
    * The update field interface. It contains path to the property and property value.
    */
@@ -11,14 +59,14 @@ export namespace TypesaurusUpdate {
   }
 
   export type UpdateModelArg<
-    Model,
+    Model extends TypesaurusCore.ModelType,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
   > = UpdateModel<Model, Environment> | UpdateModelGetter<Model, Environment>
 
   export type UpdateModelGetter<
-    Model,
+    Model extends TypesaurusCore.ModelType,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -34,7 +82,7 @@ export namespace TypesaurusUpdate {
    * to set special values, sucha as server date, increment, etc.
    */
   export type UpdateModel<
-    Model,
+    Model extends TypesaurusCore.ModelType,
     Environment extends
       | TypesaurusCore.RuntimeEnvironment
       | undefined = undefined
@@ -45,20 +93,27 @@ export namespace TypesaurusUpdate {
     >
   }
 
-  export interface UpdateFieldHelpers<Model, Parent, Key extends keyof Parent> {
+  export interface FieldHelpers<
+    Model extends TypesaurusCore.ModelType,
+    Parent,
+    Key extends keyof Parent,
+    SetResult
+  > {
     set(
       value: TypesaurusCore.WriteValueNullable<
         Parent[Key],
         TypesaurusCore.WriteValue<Parent, Key>
       >
-    ): UpdateField<Model>
+    ): SetResult
   }
 
-  export interface UpdateHelpers<Model>
-    extends TypesaurusCore.WriteHelpers<Model> {
+  export interface CommonHelpers<
+    Model extends TypesaurusCore.ModelType,
+    SetResult
+  > extends TypesaurusCore.WriteHelpers<Model> {
     field<Key1 extends keyof Model>(
       key: Key1
-    ): UpdateFieldHelpers<Model, Model, Key1>
+    ): FieldHelpers<Model, Model, Key1, SetResult>
 
     field<
       Key1 extends keyof Model,
@@ -68,7 +123,12 @@ export namespace TypesaurusUpdate {
       key2: TypesaurusUtils.SafePath2<Model, Key1, Key2> extends true
         ? Key2
         : never
-    ): UpdateFieldHelpers<Model, TypesaurusUtils.AllRequired<Model>[Key1], Key2>
+    ): FieldHelpers<
+      Model,
+      TypesaurusUtils.AllRequired<Model>[Key1],
+      Key2,
+      SetResult
+    >
 
     field<
       Key1 extends keyof Model,
@@ -84,12 +144,13 @@ export namespace TypesaurusUpdate {
       key3: TypesaurusUtils.SafePath3<Model, Key1, Key2, Key3> extends true
         ? Key3
         : never
-    ): UpdateFieldHelpers<
+    ): FieldHelpers<
       Model,
       TypesaurusUtils.AllRequired<
         TypesaurusUtils.AllRequired<Model>[Key1]
       >[Key2],
-      Key3
+      Key3,
+      SetResult
     >
 
     field<
@@ -120,14 +181,23 @@ export namespace TypesaurusUpdate {
       > extends true
         ? Key4
         : never
-    ): UpdateFieldHelpers<
+    ): FieldHelpers<
       Model,
       TypesaurusUtils.AllRequired<
         TypesaurusUtils.AllRequired<
           TypesaurusUtils.AllRequired<Model>[Key1]
         >[Key2]
       >[Key3],
-      Key4
+      Key4,
+      SetResult
     >
+  }
+
+  export interface UpdateHelpers<Model extends TypesaurusCore.ModelType>
+    extends CommonHelpers<Model, UpdateField<Model>> {}
+
+  export interface Builder<ModelPair extends TypesaurusCore.ModelIdPair>
+    extends CommonHelpers<ModelPair[0] /* Model */, void> {
+    run(): Promise<TypesaurusCore.Ref<ModelPair>>
   }
 }

@@ -17,6 +17,7 @@ class RichCollection {
   constructor(path) {
     this.type = 'collection'
     this.path = path
+    this.update.build = this.buildUpdate.bind(this)
   }
 
   id(id) {
@@ -57,17 +58,24 @@ class RichCollection {
     assertEnvironment(options?.as)
     const updateData = typeof data === 'function' ? data(updateHelpers()) : data
     const update = Array.isArray(updateData)
-      ? updateData.reduce((acc, field) => {
-          if (!field) return
-          const { key, value } = field
-          acc[Array.isArray(key) ? key.join('.') : key] = value
-          return acc
-        }, {})
+      ? updateFields(updateData)
       : updateData
 
     return this.firebaseDoc(id)
       .update(unwrapData(update))
       .then(() => this.ref(id))
+  }
+
+  buildUpdate(id, options) {
+    assertEnvironment(options?.as)
+    const fields = []
+    return {
+      ...updateHelpers('build', fields),
+      run: () =>
+        this.firebaseDoc(id)
+          .update(unwrapData(updateFields(fields)))
+          .then(() => this.ref(id))
+    }
   }
 
   async remove(id) {
@@ -173,6 +181,7 @@ class Ref {
     this.type = 'ref'
     this.collection = collection
     this.id = id
+    this.update.build = this.buildUpdate.bind(this)
   }
 
   get(options) {
@@ -191,6 +200,10 @@ class Ref {
     return this.collection.update(this.id, data, options)
   }
 
+  buildUpdate(data, options) {
+    return this.collection.buildUpdate(this.id, data, options)
+  }
+
   async remove() {
     return this.collection.remove(this.id)
   }
@@ -203,6 +216,7 @@ class Doc {
     this.ref = new Ref(collection, id)
     this.data = data
     this.environment = 'server'
+    this.update.build = this.buildUpdate.bind(this)
   }
 
   get(options) {
@@ -215,6 +229,10 @@ class Doc {
 
   update(data, options) {
     return this.ref.update(data, options)
+  }
+
+  buildUpdate(data, options) {
+    return this.ref.buildUpdate(data, options)
   }
 
   upset(data, options) {
@@ -301,14 +319,29 @@ export function writeHelpers() {
   }
 }
 
-export function updateHelpers() {
+export function updateFields(fields) {
+  return fields.reduce((acc, field) => {
+    if (!field) return
+    const { key, value } = field
+    acc[Array.isArray(key) ? key.join('.') : key] = value
+    return acc
+  }, {})
+}
+
+export function updateHelpers(mode = 'helpers', acc) {
+  function processField(value) {
+    if (mode === 'helpers') {
+      return value
+    } else {
+      // Builder mode
+      acc.push(value)
+    }
+  }
+
   return {
     ...writeHelpers(),
     field: (...field) => ({
-      set: (value) => ({
-        key: field,
-        value
-      })
+      set: (value) => processField({ key: field, value })
     })
   }
 }
