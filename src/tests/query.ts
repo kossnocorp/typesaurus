@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import sinon from 'sinon'
 import { groups, schema, Typesaurus } from '..'
 
@@ -30,7 +29,7 @@ describe('query', () => {
     })
   }))
 
-  const ownerId = nanoid()
+  const ownerId = Math.random().toString()
   const leshaId = db.contacts.id(`lesha-${ownerId}`)
   const sashaId = db.contacts.id(`sasha-${ownerId}`)
   const tatiId = db.contacts.id(`tati-${ownerId}`)
@@ -139,7 +138,7 @@ describe('query', () => {
         locations: $.collection<Location>()
       }))
 
-      const mapId = nanoid()
+      const mapId = Math.random().toString()
 
       await Promise.all([
         db.locations.add({
@@ -181,7 +180,7 @@ describe('query', () => {
         locations: $.collection<Location>()
       }))
 
-      const mapId = nanoid()
+      const mapId = Math.random().toString()
 
       await Promise.all([
         db.locations.add({
@@ -227,7 +226,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = nanoid()
+      const blogId = Math.random().toString()
 
       await Promise.all([
         db.posts.add({
@@ -269,7 +268,7 @@ describe('query', () => {
         pets: $.collection<Pet>()
       }))
 
-      const ownerId = nanoid()
+      const ownerId = Math.random().toString()
 
       await Promise.all([
         db.pets.add({
@@ -313,7 +312,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = nanoid()
+      const blogId = Math.random().toString()
 
       await Promise.all([
         db.posts.add({
@@ -388,7 +387,7 @@ describe('query', () => {
 
     describe('subcollection', () => {
       it('works on subcollections', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const messageId = await db.messages.id()
 
         await Promise.all([
@@ -407,7 +406,7 @@ describe('query', () => {
       })
 
       it('expands references', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const messageId = await db.messages.id()
 
         const replyRef = await db.messages(messageId).replies.add({
@@ -457,7 +456,7 @@ describe('query', () => {
       )
 
       it('allows querying collection groups', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const sashaRef = db.contacts.ref(sashaId)
         const tatiRef = db.contacts.ref(tatiId)
 
@@ -519,7 +518,7 @@ describe('query', () => {
       })
 
       it('expands references', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const contactId = await db.contacts.id()
 
         const messageRef = await db.contacts(contactId).contactMessages.add({
@@ -550,7 +549,7 @@ describe('query', () => {
       })
 
       it('allows to build query', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const sashaRef = db.contacts.ref(sashaId)
         const tatiRef = db.contacts.ref(tatiId)
 
@@ -744,7 +743,7 @@ describe('query', () => {
           cities: $.collection<City>()
         }))
 
-        const mapId = nanoid()
+        const mapId = Math.random().toString()
 
         await Promise.all([
           db.cities.add({
@@ -930,7 +929,7 @@ describe('query', () => {
       }))
 
       const spy = sinon.spy()
-      const mapId = nanoid()
+      const mapId = Math.random().toString()
 
       await Promise.all([
         db.locations.add({
@@ -978,7 +977,7 @@ describe('query', () => {
       }))
 
       const spy = sinon.spy()
-      const blogId = nanoid()
+      const blogId = Math.random().toString()
 
       await Promise.all([
         db.posts.add({
@@ -1024,7 +1023,7 @@ describe('query', () => {
       }))
 
       const spy = sinon.spy()
-      const mapId = nanoid()
+      const mapId = Math.random().toString()
 
       await Promise.all([
         db.locations.add({
@@ -1069,7 +1068,7 @@ describe('query', () => {
         pets: $.collection<Pet>()
       }))
 
-      const ownerId = nanoid()
+      const ownerId = Math.random().toString()
       const spy = sinon.spy()
 
       await Promise.all([
@@ -1116,7 +1115,7 @@ describe('query', () => {
         posts: $.collection<Post>()
       }))
 
-      const blogId = nanoid()
+      const blogId = Math.random().toString()
       const spy = sinon.spy()
 
       await Promise.all([
@@ -1212,7 +1211,7 @@ describe('query', () => {
 
     describe('subcollection', () => {
       it('works on subcollections', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const messageId = await db.messages.id()
 
         await Promise.all([
@@ -1238,7 +1237,7 @@ describe('query', () => {
       })
 
       it('expands references', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const messageId = await db.messages.id()
 
         const replyRef = await db.messages(messageId).replies.add({
@@ -1418,7 +1417,7 @@ describe('query', () => {
       })
 
       it('expands references', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const contactId = await db.contacts.id()
 
         const messageRef = await db.contacts(contactId).contactMessages.add({
@@ -1455,7 +1454,7 @@ describe('query', () => {
       })
 
       it('allows to build query', async () => {
-        const ownerId = nanoid()
+        const ownerId = Math.random().toString()
         const sashaRef = db.contacts.ref(sashaId)
         const tatiRef = db.contacts.ref(tatiId)
 
@@ -1712,7 +1711,7 @@ describe('query', () => {
           cities: $.collection<City>()
         }))
 
-        const mapId = nanoid()
+        const mapId = Math.random().toString()
         const spy = sinon.spy()
 
         await Promise.all([

@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import { batch, schema, Typesaurus } from '..'
 
 interface User {
@@ -251,7 +250,7 @@ async function tysts() {
 
   // Nested fields with records
 
-  const postId = nanoid()
+  const postId = Math.random().toString()
 
   $.accounts.update(db.accounts.id('sasha'), ($) =>
     $.field('counters').set({ [postId]: { likes: 5 } })
