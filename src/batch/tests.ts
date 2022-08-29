@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import { schema, batch } from '..'
 
 describe('batch', () => {
@@ -19,7 +18,7 @@ describe('batch', () => {
 
   it('performs batch operations', async () => {
     const $ = batch(db)
-    const id = nanoid()
+    const id = Math.random().toString()
     const sashaId = db.users.id(`${id}-sasha`)
     const tatiId = db.users.id(`${id}-tati`)
     const edId = db.users.id(`${id}-ed`)
@@ -39,7 +38,7 @@ describe('batch', () => {
 
   it('allows set a new document', async () => {
     const $ = batch(db)
-    const id = nanoid()
+    const id = Math.random().toString()
     const sashaId = db.users.id(`${id}-sasha`)
     const tatiId = db.users.id(`${id}-tati`)
     const edId = db.users.id(`${id}-ed`)
@@ -59,7 +58,7 @@ describe('batch', () => {
 
   it('allows upsetting', async () => {
     const $ = batch(db)
-    const id = nanoid()
+    const id = Math.random().toString()
     const sashaId = db.users.id(`${id}-sasha`)
     const tatiId = db.users.id(`${id}-tati`)
     const edId = db.users.id(`${id}-ed`)
@@ -84,7 +83,7 @@ describe('batch', () => {
 
   it('allows updating', async () => {
     const $ = batch(db)
-    const id = nanoid()
+    const id = Math.random().toString()
     const sashaId = db.users.id(`${id}-sasha`)
     const tatiId = db.users.id(`${id}-tati`)
     const edId = db.users.id(`${id}-ed`)
@@ -109,7 +108,7 @@ describe('batch', () => {
 
   it('allows removing', async () => {
     const $ = batch(db)
-    const id = nanoid()
+    const id = Math.random().toString()
     const sashaId = db.users.id(`${id}-sasha`)
     const tatiId = db.users.id(`${id}-tati`)
     const edId = db.users.id(`${id}-ed`)
