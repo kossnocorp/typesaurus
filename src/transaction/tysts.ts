@@ -1,4 +1,4 @@
-import { schema, ServerDate, transaction } from '..'
+import { schema, transaction, Typesaurus } from '..'
 
 interface User {
   name: string
@@ -9,7 +9,7 @@ interface User {
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
-  createdAt: ServerDate
+  createdAt: Typesaurus.ServerDate
 }
 
 interface Post {
@@ -21,7 +21,7 @@ interface Post {
 
 interface Account {
   name: string
-  createdAt: ServerDate
+  createdAt: Typesaurus.ServerDate
 
   contacts: {
     email: string
