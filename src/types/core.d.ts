@@ -15,7 +15,7 @@ export namespace TypesaurusCore {
 
   export type ModelType = Record<string, any>
 
-  export type ModelIdPair = [ModelType, Id<any>]
+  export type ModelIdPair = [ModelType, Id<string>]
 
   /**
    * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.

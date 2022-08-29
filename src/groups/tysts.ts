@@ -1,6 +1,6 @@
 import { schema, groups, Typesaurus } from '..'
-import type { TypesaurusGroups } from '../types/groups'
-import type { TypesaurusCore } from '../types/core'
+import type { TypesaurusGroups as Groups } from '../types/groups'
+import type { TypesaurusCore as Core } from '../types/core'
 
 interface User {
   name: string
@@ -136,80 +136,102 @@ async function tysts() {
 
   // ExtractDBModels
 
-  type ExampleAQ30 = TypesaurusGroups.ExtractGroupModels<{
-    books: TypesaurusCore.RichCollection<[Book, TypesaurusCore.Id<'books'>]>
-    orders: TypesaurusCore.RichCollection<[Order, TypesaurusCore.Id<'orders'>]>
+  type ExampleAQ30 = Groups.ExtractGroupModels<{
+    books: Core.RichCollection<[Book, Core.Id<'books'>]>
+    orders: Core.RichCollection<[Order, Core.Id<'orders'>]>
   }>
 
   type ResultAQ30 = Assert<
     {
-      books: [Book, TypesaurusCore.Id<'books'>]
-      orders: [Order, TypesaurusCore.Id<'orders'>]
+      books: [Book, Core.Id<'books'>]
+      orders: [Order, Core.Id<'orders'>]
     },
     ExampleAQ30
   >
 
-  type ExampleRVD2 = TypesaurusGroups.ExtractGroupModels<Schema3>
+  type ExampleRVD2 = Groups.ExtractGroupModels<Schema3>
 
   type ResultRVD2 = Assert<
     {
-      books: [Book, 'books']
-      orders: [Order, 'orders']
+      books: [Book, Core.Id<'books'>]
+      orders: [Order, Core.Id<'orders'>]
     },
     ExampleRVD2
   >
 
   // ConstructGroups
 
-  type ExampleOSE7 = TypesaurusGroups.ConstructGroups<
-    { books: [number, 'books']; comics: [number, 'comics'] },
-    { books: [string, 'archive/books']; plants: [string, 'plants'] },
-    { plants: [boolean, 'archive/plants'] }
+  type ExampleOSE7 = Groups.ConstructGroups<
+    { books: [Book, Core.Id<'books'>]; comics: [Comic, Core.Id<'comics'>] },
+    {
+      books: [Book, Core.Id<'archive/books'>]
+      plants: [Plant, Core.Id<'plants'>]
+    },
+    { plants: [Plant, Core.Id<'archive/plants'>] }
   >
 
   type ResultOSE7 = Assert<
     {
-      books: TypesaurusGroups.Group<[Book, 'books'] | [Book, 'archive/books']>
-      comics: TypesaurusGroups.Group<[Comic, 'comics']>
-      plants: TypesaurusGroups.Group<
-        [Plant, 'plants'] | [Plant, 'archive/plants']
+      books: Groups.Group<
+        [Book, Core.Id<'books'>] | [Book, Core.Id<'archive/books'>]
+      >
+      comics: Groups.Group<[Comic, Core.Id<'comics'>]>
+      plants: Groups.Group<
+        [Plant, Core.Id<'plants'>] | [Plant, Core.Id<'archive/plants'>]
       >
     },
     ExampleOSE7
   >
 
-  type ExampleFSPP = TypesaurusGroups.ConstructGroups<
-    { books: [Book, 'orders/books']; comics: [Comic, 'comics'] },
-    { books: [Book, 'archive/books']; plants: [Plant, 'archive/plants'] },
-    TypesaurusGroups.ExtractGroupModels<Schema3>
+  type ExampleFSPP = Groups.ConstructGroups<
+    {
+      books: [Book, Core.Id<'orders/books'>]
+      comics: [Comic, Core.Id<'comics'>]
+    },
+    {
+      books: [Book, Core.Id<'archive/books'>]
+      plants: [Plant, Core.Id<'archive/plants'>]
+    },
+    Groups.ExtractGroupModels<Schema3>
   >
 
   type ResultFSPP = Assert<
     {
-      books: TypesaurusGroups.Group<
-        [Book, 'books'] | [Book, 'archive/books'] | [Book, 'orders/books']
+      books: Groups.Group<
+        | [Book, Core.Id<'books'>]
+        | [Book, Core.Id<'archive/books'>]
+        | [Book, Core.Id<'orders/books'>]
       >
-      orders: TypesaurusGroups.Group<[Order, 'orders']>
-      comics: TypesaurusGroups.Group<[Comic, 'comics']>
-      plants: TypesaurusGroups.Group<[Plant, 'archive/plants']>
+      orders: Groups.Group<[Order, Core.Id<'orders'>]>
+      comics: Groups.Group<[Comic, Core.Id<'comics'>]>
+      plants: Groups.Group<[Plant, Core.Id<'archive/plants'>]>
     },
     ExampleFSPP
   >
 
-  type ExampleYHWG = TypesaurusGroups.ConstructGroups<
-    { books: [Book, 'orders/books']; comics: [Comic, 'comics'] },
-    { books: [Book, 'archive/books']; plants: [Plant, 'archive/plants'] } | {},
-    TypesaurusGroups.ExtractGroupModels<Schema3>
+  type ExampleYHWG = Groups.ConstructGroups<
+    {
+      books: [Book, Core.Id<'orders/books'>]
+      comics: [Comic, Core.Id<'comics'>]
+    },
+    | {
+        books: [Book, Core.Id<'archive/books'>]
+        plants: [Plant, Core.Id<'archive/plants'>]
+      }
+    | {},
+    Groups.ExtractGroupModels<Schema3>
   >
 
   type ResultYHWG = Assert<
     {
-      books: TypesaurusGroups.Group<
-        [Book, 'books'] | [Book, 'archive/books'] | [Book, 'orders/books']
+      books: Groups.Group<
+        | [Book, Core.Id<'books'>]
+        | [Book, Core.Id<'archive/books'>]
+        | [Book, Core.Id<'orders/books'>]
       >
-      orders: TypesaurusGroups.Group<[Order, 'orders']>
-      comics: TypesaurusGroups.Group<[Comic, 'comics']>
-      plants: TypesaurusGroups.Group<[Plant, 'archive/plants']>
+      orders: Groups.Group<[Order, Core.Id<'orders'>]>
+      comics: Groups.Group<[Comic, Core.Id<'comics'>]>
+      plants: Groups.Group<[Plant, Core.Id<'archive/plants'>]>
     },
     ExampleYHWG
   >
@@ -218,79 +240,79 @@ async function tysts() {
 
   // Root level
 
-  type Example1PWX = TypesaurusGroups.GroupsLevel1<Schema1>
+  type Example1PWX = Groups.GroupsLevel1<Schema1>
 
   type Result1PWX = Assert<
     {
-      books: [Book, 'books']
-      orders: [Order, 'orders']
+      books: [Book, Core.Id<'books'>]
+      orders: [Order, Core.Id<'orders'>]
     },
     Example1PWX
   >
 
-  type ExampleCCR2 = TypesaurusGroups.GroupsLevel1<Schema2>
+  type ExampleCCR2 = Groups.GroupsLevel1<Schema2>
 
   type ResultCCR2 = Assert<
     {
-      books: [Book, 'books']
-      orders: [Order, 'orders']
+      books: [Book, Core.Id<'books'>]
+      orders: [Order, Core.Id<'orders'>]
     },
     ExampleCCR2
   >
 
-  type ExampleGQLP = TypesaurusGroups.GroupsLevel1<Schema3>
+  type ExampleGQLP = Groups.GroupsLevel1<Schema3>
 
   type ResultGQLP = Assert<
     {
-      books: [Book, 'books']
-      orders: [Order, 'orders']
+      books: [Book, Core.Id<'books'>]
+      orders: [Order, Core.Id<'orders'>]
     },
     ExampleGQLP
   >
 
   // 2nd level
 
-  type ExampleQJGO = TypesaurusGroups.GroupsLevel2<Schema1>
+  type ExampleQJGO = Groups.GroupsLevel2<Schema1>
 
   type ResultQJGO = Assert<{}, ExampleQJGO>
 
-  type ExampleUMAX = TypesaurusGroups.GroupsLevel2<Schema2>
+  type ExampleUMAX = Groups.GroupsLevel2<Schema2>
 
   type ResultUMAX = Assert<
     | {
-        comments: [Comment, 'books/comments']
-        likes: [Like, 'books/likes']
+        comments: [Comment, Core.Id<'books/comments'>]
+        likes: [Like, Core.Id<'books/likes'>]
       }
     | {
-        comments: [OrderComment, 'orders/comments']
+        comments: [OrderComment, Core.Id<'orders/comments'>]
       },
     ExampleUMAX
   >
 
-  type Example4JFS = TypesaurusGroups.GroupsLevel2<Schema3>
+  type Example4JFS = Groups.GroupsLevel2<Schema3>
 
   type Result4JFS = Assert<
     | {
-        comments: [Comment, 'books/comments']
-        likes: [Like, 'books/likes']
+        comments: [Comment, Core.Id<'books/comments'>]
+        likes: [Like, Core.Id<'books/likes'>]
       }
     | {
-        comments: [OrderComment, 'orders/comments']
+        comments: [OrderComment, Core.Id<'orders/comments'>]
       },
     Example4JFS
   >
 
   // 3rd level
 
-  type ExampleMAJN = TypesaurusGroups.GroupsLevel3<Schema1>
+  type ExampleMAJN = Groups.GroupsLevel3<Schema1>
 
   type ResultMAJN = Assert<{}, ExampleMAJN>
 
-  type ExampleWLYA = TypesaurusGroups.GroupsLevel3<Schema2>
+  type ExampleWLYA = Groups.GroupsLevel3<Schema2>
 
   type ResultWLYA = Assert<{}, ExampleWLYA>
 
-  type ExampleXNAT = TypesaurusGroups.GroupsLevel3<Schema3>
+  type ExampleXNAT = Groups.GroupsLevel3<Schema3>
 
   type ResultXNAT = Assert<{ likes: Like } | {}, ExampleXNAT>
 
@@ -298,42 +320,44 @@ async function tysts() {
 
   // Root level
 
-  type Example7DGC = TypesaurusGroups.Groups<Schema1>
+  type Example7DGC = Groups.Groups<Schema1>
 
   type Result7DGC = Assert<
     {
-      books: TypesaurusGroups.Group<[Book, 'books']>
-      orders: TypesaurusGroups.Group<[Order, 'orders']>
+      books: Groups.Group<[Book, Core.Id<'books'>]>
+      orders: Groups.Group<[Order, Core.Id<'orders'>]>
     },
     Example7DGC
   >
 
   // 2nd level
 
-  type ExampleMIAM = TypesaurusGroups.Groups<Schema1>
+  type ExampleMIAM = Groups.Groups<Schema1>
 
   type ResultMIAM = Assert<
     {
-      books: TypesaurusGroups.Group<[Book, 'books']>
-      orders: TypesaurusGroups.Group<[Order, 'orders']>
+      books: Groups.Group<[Book, Core.Id<'books'>]>
+      orders: Groups.Group<[Order, Core.Id<'orders'>]>
     },
     ExampleMIAM
   >
 
   // 3rd level
 
-  type ExampleM7US = TypesaurusGroups.Groups<Schema3>
+  type ExampleM7US = Groups.Groups<Schema3>
 
   type ResultM7US = Assert<
     {
-      books: TypesaurusGroups.Group<[Book, 'books']>
-      comments: TypesaurusGroups.Group<
-        [Comment, 'books/comments'] | [OrderComment, 'orders/comments']
+      books: Groups.Group<[Book, Core.Id<'books'>]>
+      comments: Groups.Group<
+        | [Comment, Core.Id<'books/comments'>]
+        | [OrderComment, Core.Id<'orders/comments'>]
       >
-      likes: TypesaurusGroups.Group<
-        [Like, 'books/likes'] | [Like, 'orders/comments/likes']
+      likes: Groups.Group<
+        | [Like, Core.Id<'books/likes'>]
+        | [Like, Core.Id<'orders/comments/likes'>]
       >
-      orders: TypesaurusGroups.Group<[Order, 'orders']>
+      orders: Groups.Group<[Order, Core.Id<'orders'>]>
     },
     ExampleM7US
   >
