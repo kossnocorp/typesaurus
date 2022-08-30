@@ -100,7 +100,6 @@ async function tysts() {
 
   const db1 = schema(($) => ({
     books: $.collection<Book>(),
-
     orders: $.collection<Order>()
   }))
 
@@ -136,10 +135,7 @@ async function tysts() {
 
   // ExtractDBModels
 
-  type ExampleAQ30 = Groups.ExtractGroupModels<{
-    books: Core.RichCollection<[Book, Core.Id<'books'>]>
-    orders: Core.RichCollection<[Order, Core.Id<'orders'>]>
-  }>
+  type ExampleAQ30 = Groups.ExtractGroupModels<Schema1>
 
   type ResultAQ30 = Assert<
     {
