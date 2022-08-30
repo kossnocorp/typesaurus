@@ -36,10 +36,8 @@ export namespace TypesaurusGroups {
     | Schema3 extends infer Schema
     ? {
         [Key in Utils.UnionKeys<Schema>]: Group<
-          Schema extends Record<Key, infer Value>
-            ? Value extends Core.ModelIdPair
-              ? Value
-              : never
+          Schema extends Record<Key, infer Value extends Core.ModelIdPair>
+            ? Value
             : never
         >
       }
