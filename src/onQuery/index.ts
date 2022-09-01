@@ -1,29 +1,43 @@
-import adaptor from '../adaptor'
-import { Collection } from '../collection'
-import { Cursor, CursorMethod } from '../cursor'
+import adaptor, { FirestoreQuerySnapshot } from '../adaptor'
+import type { Collection } from '../collection'
+import type { Cursor, CursorMethod } from '../cursor'
 import { unwrapData, wrapData } from '../data'
-import { doc, Doc } from '../doc'
+import { AnyDoc, doc } from '../doc'
 import { DocId } from '../docId'
-import { CollectionGroup } from '../group'
-import { LimitQuery } from '../limit'
-import { OrderQuery } from '../order'
+import type { CollectionGroup } from '../group'
 import { pathToRef, ref } from '../ref'
-import { WhereQuery } from '../where'
-import { SnapshotInfo } from '../snapshot'
+import type { SnapshotInfo } from '../snapshot'
+import type {
+  DocOptions,
+  OperationOptions,
+  Query,
+  RealtimeOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { environmentError } from '../_lib/assertEnvironment'
+
+export type OnQueryOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  RealtimeOptions
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
   | FirebaseFirestore.Query
 
-// TODO: Refactor with query
+type OnResult<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = (
+  docs: AnyDoc<Model, Environment, boolean, ServerTimestamps>[],
+  info: SnapshotInfo<Model>
+) => any
 
-/**
- * The query type.
- */
-export type Query<Model, Key extends keyof Model> =
-  | OrderQuery<Model, Key>
-  | WhereQuery<Model>
-  | LimitQuery
+type OnError = (error: Error) => any
 
 /**
  * Subscribes to a collection query built using query objects ({@link order | order}, {@link where | where}, {@link limit | limit}).
@@ -54,11 +68,16 @@ export type Query<Model, Key extends keyof Model> =
  * @param onError - The function is called with error when request fails.
  * @returns Function that unsubscribes the listener from the updates
  */
-export default function onQuery<Model>(
+export function onQuery<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model> | CollectionGroup<Model>,
   queries: Query<Model, keyof Model>[],
-  onResult: (docs: Doc<Model>[], info: SnapshotInfo<Model>) => any,
-  onError?: (err: Error) => any
+  onResult: OnResult<Model, Environment, ServerTimestamps>,
+  onError?: OnError,
+  options?: OnQueryOptions<Environment, ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -70,6 +89,12 @@ export default function onQuery<Model>(
   adaptor()
     .then((a) => {
       if (unsubCalled) return
+
+      const error = environmentError(a, options?.assertEnvironment)
+      if (error) {
+        onError?.(error)
+        return
+      }
 
       const { firestoreQuery, cursors } = queries.reduce(
         (acc, q) => {
@@ -84,6 +109,7 @@ export default function onQuery<Model>(
               )
               if (cursors)
                 acc.cursors = acc.cursors.concat(
+                  // @ts-ignore
                   cursors.map(({ method, value }) => ({
                     method,
                     value:
@@ -151,45 +177,68 @@ export default function onQuery<Model>(
             }, firestoreQuery)
           : firestoreQuery
 
-      firebaseUnsub = paginatedFirestoreQuery.onSnapshot(
-        (firestoreSnap: FirebaseFirestore.QuerySnapshot) => {
-          const docs: Doc<Model>[] = firestoreSnap.docs.map((snap) =>
-            doc(
-              collection.__type__ === 'collectionGroup'
-                ? pathToRef(snap.ref.path)
-                : ref(collection, snap.id),
-              wrapData(a, snap.data()) as Model,
-              a.getDocMeta(snap)
-            )
+      const processResults = (firestoreSnap: FirestoreQuerySnapshot) => {
+        const docs: AnyDoc<
+          Model,
+          Environment,
+          boolean,
+          ServerTimestamps
+        >[] = firestoreSnap.docs.map((snap) =>
+          doc(
+            collection.__type__ === 'collectionGroup'
+              ? pathToRef(snap.ref.path)
+              : ref(collection, snap.id),
+            wrapData(a, a.getDocData(snap, options)) as Model,
+            {
+              firestoreData: true,
+              environment: a.environment as Environment,
+              serverTimestamps: options?.serverTimestamps,
+              ...a.getDocMeta(snap)
+            }
           )
+        )
 
-          const changes = () =>
-            firestoreSnap.docChanges().map((change) => ({
-              type: change.type,
-              oldIndex: change.oldIndex,
-              newIndex: change.newIndex,
-              doc:
-                docs[
-                  change.type === 'removed' ? change.oldIndex : change.newIndex
-                ] ||
-                // If change.type indicates 'removed', sometimes(not all the time) `docs` does not
-                // contain the removed document. In that case, we'll restore it from `change.doc`:
-                doc(
-                  collection.__type__ === 'collectionGroup'
-                    ? pathToRef(change.doc.ref.path)
-                    : ref(collection, change.doc.id),
-                  wrapData(a, change.doc.data()) as Model,
-                  a.getDocMeta(change.doc)
-                )
-            }))
-          onResult(docs, {
-            changes,
-            size: firestoreSnap.size,
-            empty: firestoreSnap.empty
-          })
-        },
-        onError
-      )
+        const changes = () =>
+          firestoreSnap.docChanges().map((change) => ({
+            type: change.type,
+            oldIndex: change.oldIndex,
+            newIndex: change.newIndex,
+            doc:
+              docs[
+                change.type === 'removed' ? change.oldIndex : change.newIndex
+              ] ||
+              // If change.type indicates 'removed', sometimes(not all the time) `docs` does not
+              // contain the removed document. In that case, we'll restore it from `change.doc`:
+              doc(
+                collection.__type__ === 'collectionGroup'
+                  ? pathToRef(change.doc.ref.path)
+                  : ref(collection, change.doc.id),
+                wrapData(a, a.getDocData(change.doc, options)) as Model,
+                {
+                  firestoreData: true,
+                  environment: a.environment,
+                  serverTimestamps: options?.serverTimestamps,
+                  ...a.getDocMeta(change.doc)
+                }
+              )
+          }))
+        onResult(docs, {
+          changes,
+          size: firestoreSnap.size,
+          empty: firestoreSnap.empty
+        })
+      }
+
+      firebaseUnsub =
+        a.environment === 'web'
+          ? paginatedFirestoreQuery.onSnapshot(
+              // @ts-ignore: In the web environment, the first argument might be options
+              { includeMetadataChanges: options?.includeMetadataChanges },
+              processResults,
+              // @ts-ignore
+              onError
+            )
+          : paginatedFirestoreQuery.onSnapshot(processResults, onError)
     })
     .catch(onError)
 

@@ -4,14 +4,24 @@
 
 import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
-import { Metadata } from '../doc'
+import type {
+  DocOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import type { DocumentMetaData } from './types'
 
 export type Adaptor = {
   firestore: admin.firestore.Firestore
   consts: AdaptorConsts
+  environment: RuntimeEnvironment
   getDocMeta: (
     snapshot: admin.firestore.DocumentSnapshot
-  ) => Metadata | undefined
+  ) => DocumentMetaData | {}
+  getDocData: (
+    snapshot: admin.firestore.DocumentSnapshot,
+    options?: DocOptions<ServerTimestampsStrategy>
+  ) => FirestoreDocumentData | undefined
 }
 
 export type AdaptorFirestore = () => admin.firestore.Firestore
@@ -23,10 +33,10 @@ export type AdaptorConsts = {
   FieldValue: typeof admin.firestore.FieldValue
 }
 
-const adminFirestore = () => admin.firestore()
+export const adminFirestore = () => admin.firestore()
 let currentFirestore: AdaptorFirestore = adminFirestore
 
-const adminConsts = {
+export const adminConsts = {
   DocumentReference: admin.firestore.DocumentReference,
   Timestamp: admin.firestore.Timestamp,
   FieldPath: admin.firestore.FieldPath,
@@ -34,11 +44,13 @@ const adminConsts = {
 }
 let currentConsts: AdaptorConsts = adminConsts
 
-export default async function adaptor() {
+export default async function adaptor(): Promise<Adaptor> {
   return {
     firestore: currentFirestore(),
     consts: currentConsts,
-    getDocMeta: (_snapshot: admin.firestore.DocumentSnapshot) => undefined
+    environment: 'node',
+    getDocMeta: () => ({}),
+    getDocData: (snapshot) => snapshot.data()
   }
 }
 
@@ -60,3 +72,9 @@ export type FirestoreTransaction = admin.firestore.Transaction
 // TODO: Use admin reference after they added to firebase-admin
 export type FirestoreOrderByDirection = firestore.OrderByDirection
 export type FirestoreWhereFilterOp = firestore.WhereFilterOp
+export type FirestoreQuerySnapshot<
+  T = FirestoreDocumentData
+> = firestore.QuerySnapshot<T>
+export type FirestoreDocumentSnapshot<
+  T = FirestoreDocumentData
+> = firestore.DocumentSnapshot<T>

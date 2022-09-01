@@ -1,8 +1,29 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { doc, Doc } from '../doc'
+import { AnyDoc, doc } from '../doc'
 import { ref } from '../ref'
+import type {
+  DocOptions,
+  OnMissing,
+  OnMissingOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
+
+export type GetManyOptions<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  OnMissingOptions<Model>
+
+export const defaultOnMissing: OnMissing<any> = (id) => {
+  throw new Error(`Missing document with id ${id}`)
+}
 
 /**
  * Retrieves multiple documents from a collection.
@@ -28,14 +49,21 @@ import { ref } from '../ref'
  *
  * @returns Promise to a list of found documents
  */
-export default async function getMany<Model>(
+export async function getMany<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model>,
   ids: readonly string[],
-  onMissing: ((id: string) => Model) | 'ignore' = (id) => {
-    throw new Error(`Missing document with id ${id}`)
-  }
-): Promise<Doc<Model>[]> {
+  {
+    onMissing = defaultOnMissing,
+    ...options
+  }: GetManyOptions<Model, Environment, ServerTimestamps> = {}
+): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
+
+  assertEnvironment(a, options?.assertEnvironment)
 
   if (ids.length === 0) {
     // Firestore#getAll doesn't like empty lists
@@ -55,18 +83,29 @@ export default async function getMany<Model>(
           return doc(
             ref(collection, firestoreSnap.id),
             onMissing(firestoreSnap.id),
-            a.getDocMeta(firestoreSnap)
+            {
+              firestoreData: true,
+              environment: a.environment,
+              serverTimestamps: options?.serverTimestamps,
+              ...a.getDocMeta(firestoreSnap)
+            }
           )
         }
       }
 
-      const firestoreData = firestoreSnap.data()
+      const firestoreData = a.getDocData(firestoreSnap, options)
       const data = firestoreData && (wrapData(a, firestoreData) as Model)
-      return doc(
-        ref(collection, firestoreSnap.id),
-        data,
-        a.getDocMeta(firestoreSnap)
-      )
+      return doc(ref(collection, firestoreSnap.id), data, {
+        firestoreData: true,
+        environment: a.environment,
+        serverTimestamps: options?.serverTimestamps,
+        ...a.getDocMeta(firestoreSnap)
+      })
     })
-    .filter((doc) => doc != null) as Doc<Model>[]
+    .filter((doc) => doc != null) as AnyDoc<
+    Model,
+    Environment,
+    boolean,
+    ServerTimestamps
+  >[]
 }

@@ -1,10 +1,36 @@
-import adaptor from '../adaptor'
-import { Collection } from '../collection'
+import adaptor, { FirestoreQuerySnapshot } from '../adaptor'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { doc, Doc } from '../doc'
-import { CollectionGroup } from '../group'
+import { AnyDoc, doc } from '../doc'
+import type { CollectionGroup } from '../group'
 import { pathToRef, ref } from '../ref'
-import { SnapshotInfo } from '../snapshot'
+import type { SnapshotInfo } from '../snapshot'
+import type {
+  DocOptions,
+  OperationOptions,
+  RealtimeOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { environmentError } from '../_lib/assertEnvironment'
+
+export type OnAllOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> &
+  OperationOptions<Environment> &
+  RealtimeOptions
+
+type OnResult<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = (
+  docs: AnyDoc<Model, Environment, boolean, ServerTimestamps>[],
+  info: SnapshotInfo<Model>
+) => any
+
+type OnError = (error: Error) => any
 
 /**
  * Subscribes to all documents in a collection.
@@ -30,10 +56,15 @@ import { SnapshotInfo } from '../snapshot'
  * the initial fetch is resolved or the collection updates.
  * @param onError - The function is called with error when request fails.
  */
-export default function onAll<Model>(
+export function onAll<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model> | CollectionGroup<Model>,
-  onResult: (docs: Doc<Model>[], info: SnapshotInfo<Model>) => any,
-  onError?: (error: Error) => any
+  onResult: OnResult<Model, Environment, ServerTimestamps>,
+  onError?: OnError,
+  options?: OnAllOptions<Environment, ServerTimestamps>
 ): () => void {
   let unsubCalled = false
   let firebaseUnsub: () => void
@@ -44,17 +75,25 @@ export default function onAll<Model>(
 
   adaptor().then((a) => {
     if (unsubCalled) return
-    firebaseUnsub = (collection.__type__ === 'collectionGroup'
-      ? a.firestore.collectionGroup(collection.path)
-      : a.firestore.collection(collection.path)
-    ).onSnapshot((firestoreSnap) => {
+
+    const error = environmentError(a, options?.assertEnvironment)
+    if (error) {
+      onError?.(error)
+      return
+    }
+
+    const processResults = (firestoreSnap: FirestoreQuerySnapshot) => {
       const docs = firestoreSnap.docs.map((snap) =>
-        doc<Model>(
+        doc<Model, Environment, boolean, ServerTimestamps>(
           collection.__type__ === 'collectionGroup'
             ? pathToRef(snap.ref.path)
             : ref(collection, snap.id),
-          wrapData(a, snap.data()) as Model,
-          a.getDocMeta(snap)
+          wrapData(a, a.getDocData(snap, options)) as Model,
+          {
+            environment: a.environment as Environment,
+            serverTimestamps: options?.serverTimestamps,
+            ...a.getDocMeta(snap)
+          }
         )
       )
       const changes = () =>
@@ -72,16 +111,38 @@ export default function onAll<Model>(
               collection.__type__ === 'collectionGroup'
                 ? pathToRef(change.doc.ref.path)
                 : ref(collection, change.doc.id),
-              wrapData(a, change.doc.data()) as Model,
-              a.getDocMeta(change.doc)
+              wrapData(a, a.getDocData(change.doc, options)) as Model,
+              {
+                firestoreData: true,
+                environment: a.environment,
+                serverTimestamps: options?.serverTimestamps,
+                ...a.getDocMeta(change.doc)
+              }
             )
         }))
+
       onResult(docs, {
         changes,
         size: firestoreSnap.size,
         empty: firestoreSnap.empty
       })
-    }, onError)
+    }
+
+    const coll =
+      collection.__type__ === 'collectionGroup'
+        ? a.firestore.collectionGroup(collection.path)
+        : a.firestore.collection(collection.path)
+
+    firebaseUnsub =
+      a.environment === 'web'
+        ? coll.onSnapshot(
+            // @ts-ignore: In the web environment, the first argument might be options
+            { includeMetadataChanges: options?.includeMetadataChanges },
+            processResults,
+            // @ts-ignore
+            onError
+          )
+        : coll.onSnapshot(processResults, onError)
   })
 
   return unsub

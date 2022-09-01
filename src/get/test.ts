@@ -1,8 +1,8 @@
 import assert from 'assert'
-import get from '.'
+import { get } from '.'
+import { add } from '../add'
 import { collection } from '../collection'
 import { Ref, ref } from '../ref'
-import add from '../add'
 
 describe('get', () => {
   type User = { name: string }
@@ -19,7 +19,7 @@ describe('get', () => {
   it('allows to get by ref', async () => {
     const user = await add(users, { name: 'Sasha' })
     const userFromDB = await get(user)
-    assert.deepEqual(userFromDB.data, { name: 'Sasha' })
+    assert.deepEqual(userFromDB?.data, { name: 'Sasha' })
   })
 
   it('expands references', async () => {
@@ -29,9 +29,10 @@ describe('get', () => {
       text: 'Hello!'
     })
     const postFromDB = await get(posts, post.id)
-    assert(postFromDB.data.author.__type__ === 'ref')
-    const userFromDB = await get(users, postFromDB.data.author.id)
-    assert.deepEqual(userFromDB.data, { name: 'Sasha' })
+    assert(postFromDB?.data.author.__type__ === 'ref')
+    const userFromDB =
+      postFromDB && (await get(users, postFromDB.data.author.id))
+    assert.deepEqual(userFromDB?.data, { name: 'Sasha' })
   })
 
   it('expands dates', async () => {
@@ -43,6 +44,6 @@ describe('get', () => {
       date
     })
     const postFromDB = await get(posts, post.id)
-    assert(postFromDB.data.date.getTime() === date.getTime())
+    assert(postFromDB?.data.date?.getTime() === date.getTime())
   })
 })

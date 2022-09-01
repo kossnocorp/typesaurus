@@ -1,18 +1,13 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { unwrapData } from '../data'
 import { ref } from '../ref'
-import { AddValue } from '../value'
+import type { OperationOptions, RuntimeEnvironment, WriteModel } from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
-/**
- * Type of the data passed to the set function. It extends the model
- * allowing to set server date field value.
- */
-export type AddModel<Model> = {
-  [Key in keyof Model]:
-    | (Model[Key] extends object ? AddModel<Model[Key]> : Model[Key])
-    | AddValue<Model[Key]>
-}
+export type AddOptions<
+  Environment extends RuntimeEnvironment | undefined
+> = OperationOptions<Environment>
 
 /**
  * Adds a new document with a random id to a collection.
@@ -32,11 +27,18 @@ export type AddModel<Model> = {
  * @param data - The data to add to
  * @returns A promise to the ref
  */
-export default async function add<Model>(
+export async function add<
+  Model,
+  Environment extends RuntimeEnvironment | undefined = undefined
+>(
   collection: Collection<Model>,
-  data: AddModel<Model>
+  data: WriteModel<Model, Environment>,
+  options?: OperationOptions<Environment>
 ) {
   const a = await adaptor()
+
+  assertEnvironment(a, options?.assertEnvironment)
+
   const firebaseDoc = await a.firestore
     .collection(collection.path)
     .add(unwrapData(a, data))

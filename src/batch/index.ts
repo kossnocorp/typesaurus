@@ -1,11 +1,12 @@
 import adaptor, { Adaptor, FirebaseWriteBatch } from '../adaptor'
-import { Collection } from '../collection'
-import { Ref } from '../ref'
+import type { Collection } from '../collection'
 import { unwrapData } from '../data'
-import { UpdateModel } from '../update'
-import { Field } from '../field'
-import { SetModel } from '../set'
-import { UpsetModel } from '../upset'
+import type { Field } from '../field'
+import type { Ref } from '../ref'
+import type { OperationOptions, RuntimeEnvironment, WriteModel } from '../types'
+import type { UpdateModel } from '../update'
+import type { UpsetModel } from '../upset'
+import { assertEnvironment } from '../_lib/assertEnvironment'
 
 /**
  * The batch API object. It unions a set of functions ({@link Batch.set|set},
@@ -14,7 +15,7 @@ import { UpsetModel } from '../upset'
  * the batch counterparts do not return a promise and perform operations only
  * when {@link Batch.commit|commit} function is called.
  */
-export interface Batch {
+export interface Batch<Environment extends RuntimeEnvironment> {
   /**
    * Sets a document to the given data.
    *
@@ -36,7 +37,7 @@ export interface Batch {
    * @param ref - The reference to the document to set
    * @param data - The document data
    */
-  set<Model>(ref: Ref<Model>, data: SetModel<Model>): void
+  set<Model>(ref: Ref<Model>, data: WriteModel<Model, Environment>): void
   /**
    * @param collection - The collection to set document in
    * @param id - The id of the document to set
@@ -45,7 +46,7 @@ export interface Batch {
   set<Model>(
     collection: Collection<Model>,
     id: string,
-    data: SetModel<Model>
+    data: WriteModel<Model, Environment>
   ): void
 
   /**
@@ -69,7 +70,7 @@ export interface Batch {
    * @param ref - The reference to the document to set or update
    * @param data - The document data
    */
-  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model>): void
+  upset<Model>(ref: Ref<Model>, data: UpsetModel<Model, Environment>): void
   /**
    * @param collection - The collection to set or update document in
    * @param id - The id of the document to set or update
@@ -78,7 +79,7 @@ export interface Batch {
   upset<Model>(
     collection: Collection<Model>,
     id: string,
-    data: UpsetModel<Model>
+    data: UpsetModel<Model, Environment>
   ): void
 
   /**
@@ -199,32 +200,29 @@ export interface Batch {
  *
  * @returns The batch API object.
  */
-export function batch(): Batch {
+export function batch<Environment extends RuntimeEnvironment>(
+  options?: OperationOptions<Environment>
+): Batch<Environment> {
   const commands: BatchCommand[] = []
-
-  const firestoreBatch = lazy(async () => {
-    const { firestore } = await adaptor()
-    return firestore.batch()
-  })
 
   function set<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
-    idOrData: string | SetModel<Model>,
-    maybeData?: SetModel<Model>
+    idOrData: string | WriteModel<Model, Environment>,
+    maybeData?: WriteModel<Model, Environment>
   ): void {
     let collection: Collection<Model>
     let id: string
-    let data: SetModel<Model>
+    let data: WriteModel<Model, Environment>
 
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = maybeData as SetModel<Model>
+      data = maybeData as WriteModel<Model, Environment>
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
       id = ref.id
-      data = idOrData as SetModel<Model>
+      data = idOrData as WriteModel<Model, Environment>
     }
 
     commands.push((adaptor, firestoreBatch) => {
@@ -237,22 +235,22 @@ export function batch(): Batch {
 
   function upset<Model>(
     collectionOrRef: Collection<Model> | Ref<Model>,
-    idOrData: string | UpsetModel<Model>,
-    maybeData?: UpsetModel<Model>
+    idOrData: string | UpsetModel<Model, Environment>,
+    maybeData?: UpsetModel<Model, Environment>
   ): void {
     let collection: Collection<Model>
     let id: string
-    let data: UpsetModel<Model>
+    let data: UpsetModel<Model, Environment>
 
     if (collectionOrRef.__type__ === 'collection') {
       collection = collectionOrRef as Collection<Model>
       id = idOrData as string
-      data = maybeData as UpsetModel<Model>
+      data = maybeData as UpsetModel<Model, Environment>
     } else {
       const ref = collectionOrRef as Ref<Model>
       collection = ref.collection
       id = ref.id
-      data = idOrData as UpsetModel<Model>
+      data = idOrData as UpsetModel<Model, Environment>
     }
 
     commands.push((adaptor, firestoreBatch) => {
@@ -288,13 +286,10 @@ export function batch(): Batch {
     commands.push((adaptor, firestoreBatch) => {
       const firebaseDoc = adaptor.firestore.collection(collection.path).doc(id)
       const updateData = Array.isArray(data)
-        ? data.reduce(
-            (acc, { key, value }) => {
-              acc[Array.isArray(key) ? key.join('.') : key] = value
-              return acc
-            },
-            {} as { [key: string]: any }
-          )
+        ? data.reduce((acc, { key, value }) => {
+            acc[Array.isArray(key) ? key.join('.') : key] = value
+            return acc
+          }, {} as { [key: string]: any })
         : data
       // ^ above
       // TODO: Refactor code above because is all the same as in the regular update function
@@ -328,8 +323,10 @@ export function batch(): Batch {
 
   async function commit() {
     const a = await adaptor()
+    assertEnvironment(a, options?.assertEnvironment)
+
     const b = a.firestore.batch()
-    commands.forEach(fn => fn(a, b))
+    commands.forEach((fn) => fn(a, b))
     await b.commit()
   }
 
@@ -337,11 +334,3 @@ export function batch(): Batch {
 }
 
 type BatchCommand = (adaptor: Adaptor, batch: FirebaseWriteBatch) => void
-
-function lazy<Type>(fn: () => Promise<Type>): () => Promise<Type> {
-  let instance: Type | undefined = undefined
-  return async () => {
-    if (instance === undefined) instance = await fn()
-    return instance
-  }
-}

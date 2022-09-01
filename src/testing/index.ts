@@ -1,5 +1,5 @@
 import * as testing from '@firebase/rules-unit-testing'
-import { injectAdaptor } from '../adaptor'
+import { adminConsts, adminFirestore, injectAdaptor } from '../adaptor'
 import { getAll } from '../adaptor/utils'
 
 type App =
@@ -37,6 +37,7 @@ let currentApp: App
  */
 export function injectTestingAdaptor(app: App) {
   setApp(app)
+
   injectAdaptor(
     // TODO: Find a way to fix TS error:
     // @ts-ignore: @firebase/rules-unit-testing and firebase-admin use different types
@@ -46,12 +47,15 @@ export function injectTestingAdaptor(app: App) {
       if (!('getAll' in firestore)) return Object.assign(firestore, { getAll })
       return firestore
     },
-    {
-      DocumentReference: testing.firestore.DocumentReference,
-      Timestamp: testing.firestore.Timestamp,
-      FieldPath: testing.firestore.FieldPath,
-      FieldValue: testing.firestore.FieldValue
-    }
+    // If the testing app was created using initializeAdminApp then use admin constants
+    'instanceId' in app
+      ? adminConsts
+      : {
+          DocumentReference: testing.firestore.DocumentReference,
+          Timestamp: testing.firestore.Timestamp,
+          FieldPath: testing.firestore.FieldPath,
+          FieldValue: testing.firestore.FieldValue
+        }
   )
 }
 

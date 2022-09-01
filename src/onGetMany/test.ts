@@ -1,20 +1,14 @@
-import assert, { rejects } from 'assert'
-import onGetMany from '.'
-import get from '../get'
+import { onGetMany } from '.'
 import { collection } from '../collection'
-import { Ref, ref } from '../ref'
-import add from '../add'
-import update from '../update'
-import sinon from 'sinon'
-import set from '../set'
-import remove from '../remove'
+import { set } from '../set'
+import { update } from '../update'
 
 describe('onGetMany', () => {
   type Fruit = { color: string }
 
   const fruits = collection<Fruit>('fruits')
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await Promise.all([
       set(fruits, 'apple', { color: 'green' }),
       set(fruits, 'banana', { color: 'yellow' }),
@@ -30,39 +24,39 @@ describe('onGetMany', () => {
   })
 
   it('returns nothing when called with empty array', () => {
-    return new Promise(resolve => {
-      off = onGetMany(fruits, [], list => {
+    return new Promise((resolve) => {
+      off = onGetMany(fruits, [], (list) => {
         expect(list.length).toBe(0)
-        resolve()
+        resolve(void 0)
       })
     })
   })
 
   it('allows to get single doc by id', () => {
-    return new Promise(resolve => {
-      off = onGetMany(fruits, ['apple'], fruitsFromDB => {
+    return new Promise((resolve) => {
+      off = onGetMany(fruits, ['apple'], (fruitsFromDB) => {
         expect(fruitsFromDB.length).toBe(1)
         expect(fruitsFromDB[0].__type__).toBe('doc')
         expect(fruitsFromDB[0].data.color).toBe('green')
         expect(fruitsFromDB[0].ref.id).toBe('apple')
         expect(fruitsFromDB[0].ref.collection.path).toBe('fruits')
-        resolve()
+        resolve(void 0)
       })
     })
   })
 
   it('allows to get multiple docs by id', () => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       off = onGetMany(
         fruits,
         ['banana', 'apple', 'banana', 'orange'],
-        fruitsFromDB => {
+        (fruitsFromDB) => {
           expect(fruitsFromDB.length).toBe(4)
           expect(fruitsFromDB[0].ref.id).toBe('banana')
           expect(fruitsFromDB[1].ref.id).toBe('apple')
           expect(fruitsFromDB[2].ref.id).toBe('banana')
           expect(fruitsFromDB[3].ref.id).toBe('orange')
-          resolve()
+          resolve(void 0)
         }
       )
     })
@@ -132,17 +126,18 @@ describe('onGetMany', () => {
         update(fruits, 'mango', { color: 'yellow' })
       })
 
-      return new Promise(resolve => {
-        off = onGetMany(fruits, ['apple', 'mango'], list => {
-          const colorOf = id =>
-            list.find(doc => doc.ref.id === id)!.data.color
+      return new Promise((resolve) => {
+        off = onGetMany(fruits, ['apple', 'mango'], (list) => {
+          const colorOf = (id: string) =>
+            list.find((doc) => doc?.ref.id === id)!.data.color
 
           if (colorOf('mango') === 'yellow') {
             update(fruits, 'mango', { color: 'red' })
             update(fruits, 'apple', { color: 'red' })
           }
+
           if (colorOf('mango') === 'red' && colorOf('apple') === 'red') {
-            resolve()
+            resolve(void 0)
           }
         })
       })

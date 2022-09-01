@@ -1,21 +1,45 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
+import type { Collection } from '../collection'
 import { wrapData } from '../data'
-import { doc, Doc } from '../doc'
+import { AnyDoc, doc, Doc } from '../doc'
 import { ref, Ref } from '../ref'
+import type {
+  DocOptions,
+  OperationOptions,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
+
+export type GetOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> & OperationOptions<Environment>
 
 /**
  * @param ref - The reference to the document
  */
-async function get<Model>(ref: Ref<Model>): Promise<Doc<Model> | null>
+export async function get<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
+  ref: Ref<Model>,
+  options?: GetOptions<Environment, ServerTimestamps>
+): Promise<Doc<Model> | null>
 
 /**
  * @param collection - The collection to get document from
  * @param id - The document id
  */
-async function get<Model>(
+export async function get<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model>,
-  id: string
+  id: string,
+  options?: GetOptions<Environment, ServerTimestamps>
 ): Promise<Doc<Model> | null>
 
 /**
@@ -37,30 +61,50 @@ async function get<Model>(
  *
  * @returns Promise to the document or null if not found
  */
-async function get<Model>(
+export async function get<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  maybeId?: string
-): Promise<Doc<Model> | null> {
+  maybeIdOrOptions?: string | GetOptions<Environment, ServerTimestamps>,
+  maybeOptions?: GetOptions<Environment, ServerTimestamps>
+): Promise<AnyDoc<
+  Model,
+  RuntimeEnvironment,
+  boolean,
+  ServerTimestamps
+> | null> {
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
+  let options: GetOptions<Environment, ServerTimestamps> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
-    id = maybeId as string
+    id = maybeIdOrOptions as string
+    options = maybeOptions
   } else {
     const ref = collectionOrRef as Ref<Model>
     collection = ref.collection
     id = ref.id
+    options = maybeIdOrOptions as
+      | GetOptions<Environment, ServerTimestamps>
+      | undefined
   }
+
+  assertEnvironment(a, options?.assertEnvironment)
 
   const firestoreDoc = a.firestore.collection(collection.path).doc(id)
   const firestoreSnap = await firestoreDoc.get()
-  const firestoreData = firestoreSnap.data()
+  const firestoreData = a.getDocData(firestoreSnap, options)
   const data = firestoreData && (wrapData(a, firestoreData) as Model)
   return data
-    ? doc(ref(collection, id), data, a.getDocMeta(firestoreSnap))
+    ? doc(ref(collection, id), data, {
+        firestoreData: true,
+        environment: a.environment,
+        serverTimestamps: options?.serverTimestamps,
+        ...a.getDocMeta(firestoreSnap)
+      })
     : null
 }
-
-export default get

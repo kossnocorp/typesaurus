@@ -1,16 +1,22 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
-import { UpdateValue } from '../value'
-import { Field } from '../field'
+import type { Collection } from '../collection'
 import { unwrapData } from '../data'
-import { Ref } from '../ref'
+import type { Field, FieldsWithFalsyValues } from '../field'
+import type { Ref } from '../ref'
+import type { OperationOptions, RuntimeEnvironment } from '../types'
+import type { UpdateValue } from '../value'
+import { assertEnvironment } from '../_lib/assertEnvironment'
+
+export type UpdateOptions<
+  Environment extends RuntimeEnvironment | undefined
+> = OperationOptions<Environment>
 
 /**
  * Type of the data passed to the update function. It extends the model
  * making values optional and allow to set value object.
  */
 export type UpdateModel<Model> = {
-  [Key in keyof Model]?: UpdateModel<Model[Key]> | UpdateValue<Model[Key]>
+  [Key in keyof Model]?: UpdateModel<Model[Key]> | UpdateValue<Model, Key>
 }
 
 /**
@@ -18,19 +24,27 @@ export type UpdateModel<Model> = {
  * @param id - the id of the document to update
  * @param data - the document data to update
  */
-async function update<Model>(
+export async function update<
+  Model,
+  Environment extends RuntimeEnvironment | undefined
+>(
   collection: Collection<Model>,
   id: string,
-  data: Field<Model>[]
+  data: FieldsWithFalsyValues<Model>,
+  options?: UpdateOptions<Environment>
 ): Promise<void>
 
 /**
  * @param ref - the reference to the document to set
  * @param data - the document data to update
  */
-async function update<Model>(
+export async function update<
+  Model,
+  Environment extends RuntimeEnvironment | undefined
+>(
   ref: Ref<Model>,
-  data: Field<Model>[]
+  data: Field<Model>[],
+  options?: UpdateOptions<Environment>
 ): Promise<void>
 
 /**
@@ -38,19 +52,27 @@ async function update<Model>(
  * @param id - the id of the document to update
  * @param data - the document data to update
  */
-async function update<Model>(
+export async function update<
+  Model,
+  Environment extends RuntimeEnvironment | undefined
+>(
   collection: Collection<Model>,
   id: string,
-  data: UpdateModel<Model>
+  data: UpdateModel<Model>,
+  options?: UpdateOptions<Environment>
 ): Promise<void>
 
 /**
  * @param ref - the reference to the document to set
  * @param data - the document data to update
  */
-async function update<Model>(
+export async function update<
+  Model,
+  Environment extends RuntimeEnvironment | undefined
+>(
   ref: Ref<Model>,
-  data: UpdateModel<Model>
+  data: UpdateModel<Model>,
+  options?: UpdateOptions<Environment>
 ): Promise<void>
 
 /**
@@ -80,38 +102,47 @@ async function update<Model>(
  *
  * @returns A promise that resolves when the operation is finished
  */
-async function update<Model>(
+export async function update<
+  Model,
+  Environment extends RuntimeEnvironment | undefined
+>(
   collectionOrRef: Collection<Model> | Ref<Model>,
-  idOrData: string | Field<Model>[] | UpdateModel<Model>,
-  maybeData?: Field<Model>[] | UpdateModel<Model>
+  idOrData: string | FieldsWithFalsyValues<Model> | UpdateModel<Model>,
+  maybeDataOrOptions?:
+    | FieldsWithFalsyValues<Model>
+    | UpdateModel<Model>
+    | UpdateOptions<Environment>,
+  maybeOptions?: UpdateOptions<Environment>
 ): Promise<void> {
   const a = await adaptor()
   let collection: Collection<Model>
   let id: string
   let data: UpdateModel<Model>
+  let options: UpdateOptions<Environment> | undefined
 
   if (collectionOrRef.__type__ === 'collection') {
     collection = collectionOrRef as Collection<Model>
     id = idOrData as string
-    data = maybeData as UpdateModel<Model>
+    data = maybeDataOrOptions as UpdateModel<Model>
+    options = maybeOptions!
   } else {
     const ref = collectionOrRef as Ref<Model>
     collection = ref.collection
     id = ref.id
     data = idOrData as UpdateModel<Model>
+    options = maybeDataOrOptions as UpdateOptions<Environment>
   }
+
+  assertEnvironment(a, options?.assertEnvironment)
 
   const firebaseDoc = a.firestore.collection(collection.path).doc(id)
   const updateData = Array.isArray(data)
-    ? data.reduce(
-        (acc, { key, value }) => {
-          acc[Array.isArray(key) ? key.join('.') : key] = value
-          return acc
-        },
-        {} as { [key: string]: any }
-      )
+    ? data.reduce((acc, field) => {
+        if (!field) return
+        const { key, value } = field
+        acc[Array.isArray(key) ? key.join('.') : key] = value
+        return acc
+      }, {} as { [key: string]: any })
     : data
   await firebaseDoc.update(unwrapData(a, updateData))
 }
-
-export default update

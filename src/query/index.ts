@@ -1,28 +1,28 @@
 import adaptor from '../adaptor'
-import { Collection } from '../collection'
-import { doc, Doc } from '../doc'
-import { ref, pathToRef } from '../ref'
-import { WhereQuery } from '../where'
-import { OrderQuery } from '../order'
-import { LimitQuery } from '../limit'
-import { Cursor, CursorMethod } from '../cursor'
-import { wrapData, unwrapData } from '../data'
-import { CollectionGroup } from '../group'
+import type { Collection } from '../collection'
+import type { Cursor, CursorMethod } from '../cursor'
+import { unwrapData, wrapData } from '../data'
+import { AnyDoc, doc } from '../doc'
 import { DocId } from '../docId'
+import type { CollectionGroup } from '../group'
+import { pathToRef, ref } from '../ref'
+import type {
+  DocOptions,
+  OperationOptions,
+  Query,
+  RuntimeEnvironment,
+  ServerTimestampsStrategy
+} from '../types'
+import { assertEnvironment } from '../_lib/assertEnvironment'
+
+export type QueryOptions<
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = DocOptions<ServerTimestamps> & OperationOptions<Environment>
 
 type FirebaseQuery =
   | FirebaseFirestore.CollectionReference
   | FirebaseFirestore.Query
-
-// TODO: Refactor with onQuery
-
-/**
- * The query type.
- */
-export type Query<Model, Key extends keyof Model> =
-  | OrderQuery<Model, Key>
-  | WhereQuery<Model>
-  | LimitQuery
 
 /**
  * Queries passed collection using query objects ({@link order}, {@link where}, {@link limit}).
@@ -50,11 +50,19 @@ export type Query<Model, Key extends keyof Model> =
  * @param queries - The query objects
  * @returns The promise to the query results
  */
-export async function query<Model>(
+export async function query<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model> | CollectionGroup<Model>,
-  queries: Query<Model, keyof Model>[]
-): Promise<Doc<Model>[]> {
+  queries: Query<Model, keyof Model>[],
+  options?: QueryOptions<Environment, ServerTimestamps>
+): Promise<AnyDoc<Model, Environment, boolean, ServerTimestamps>[]> {
   const a = await adaptor()
+
+  assertEnvironment(a, options?.assertEnvironment)
+
   const { firestoreQuery, cursors } = queries.reduce(
     (acc, q) => {
       switch (q.type) {
@@ -68,6 +76,7 @@ export async function query<Model>(
           )
           if (cursors)
             acc.cursors = acc.cursors.concat(
+              // @ts-ignore
               cursors.map(({ method, value }) => ({
                 method,
                 value:
@@ -142,8 +151,13 @@ export async function query<Model>(
       collection.__type__ === 'collectionGroup'
         ? pathToRef(snap.ref.path)
         : ref(collection, snap.id),
-      wrapData(a, snap.data()) as Model,
-      a.getDocMeta(snap)
+      wrapData(a, a.getDocData(snap, options)) as Model,
+      {
+        firestoreData: true,
+        environment: a.environment as Environment,
+        serverTimestamps: options?.serverTimestamps,
+        ...a.getDocMeta(snap)
+      }
     )
   )
 }

@@ -8,13 +8,14 @@ import { Adaptor } from '../adaptor'
  *
  * @param adaptor - the adaptor
  * @param data - the data to convert
+ * @returns the data in Firestore format
  */
 export function unwrapData(adaptor: Adaptor, data: any): any {
   if (data && typeof data === 'object') {
     if (data.__type__ === 'ref') {
       return refToFirestoreDocument(adaptor, data as Ref<any>)
     } else if (data.__type__ === 'value') {
-      const fieldValue = data as UpdateValue<any>
+      const fieldValue = data as UpdateValue<any, any>
       switch (fieldValue.kind) {
         case 'remove':
           return adaptor.consts.FieldValue.delete()
@@ -39,7 +40,7 @@ export function unwrapData(adaptor: Adaptor, data: any): any {
       Array.isArray(data) ? [] : {},
       data
     )
-    Object.keys(unwrappedObject).forEach(key => {
+    Object.keys(unwrappedObject).forEach((key) => {
       unwrappedObject[key] = unwrapData(adaptor, unwrappedObject[key])
     })
     return unwrappedObject
@@ -56,6 +57,7 @@ export function unwrapData(adaptor: Adaptor, data: any): any {
  *
  * @param consts - the adaptor constants
  * @param data - the data to convert
+ * @returns the data in Typesaurus format
  */
 export function wrapData(adaptor: Adaptor, data: unknown) {
   if (data instanceof adaptor.consts.DocumentReference) {
@@ -67,10 +69,29 @@ export function wrapData(adaptor: Adaptor, data: unknown) {
       Array.isArray(data) ? [] : {},
       data
     )
-    Object.keys(wrappedData).forEach(key => {
+    Object.keys(wrappedData).forEach((key) => {
       wrappedData[key] = wrapData(adaptor, wrappedData[key])
     })
     return wrappedData
+  } else {
+    return data
+  }
+}
+
+/**
+ * Deeply replaces all `undefined` values in the data with `null`. It emulates
+ * the Firestore behavior.
+ *
+ * @param data - the data to convert
+ * @returns the data with undefined values replaced with null
+ */
+export function nullifyData(data: any) {
+  if (data && typeof data === 'object' && !(data instanceof Date)) {
+    const newData: typeof data = Array.isArray(data) ? [] : {}
+    for (const key in data) {
+      newData[key] = data[key] === undefined ? null : nullifyData(data[key])
+    }
+    return newData
   } else {
     return data
   }

@@ -1,8 +1,15 @@
-import { Collection } from '../collection'
-import { Doc } from '../doc'
-import onGet from '../onGet'
+import adaptor from '../adaptor'
+import type { Collection } from '../collection'
+import type { AnyDoc } from '../doc'
+import { onGet, OnGetOptions } from '../onGet'
+import type { RuntimeEnvironment, ServerTimestampsStrategy } from '../types'
+import { environmentError } from '../_lib/assertEnvironment'
 
-type OnResult<Model> = (doc: Doc<Model>[]) => any
+type OnResult<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+> = (doc: AnyDoc<Model, Environment, boolean, ServerTimestamps>[]) => any
 
 type OnError = (error: Error) => any
 
@@ -31,36 +38,61 @@ type OnError = (error: Error) => any
  *
  * @returns Function that unsubscribes the listener from the updates
  */
-function onGetMany<Model>(
+export function onGetMany<
+  Model,
+  Environment extends RuntimeEnvironment | undefined,
+  ServerTimestamps extends ServerTimestampsStrategy
+>(
   collection: Collection<Model>,
   ids: readonly string[],
-  onResult: OnResult<Model>,
-  onError?: OnError
+  onResult: OnResult<Model, Environment, ServerTimestamps>,
+  onError?: OnError,
   // onMissing: ((id: string) => Model) | 'ignore' = id => {
   //   throw new Error(`Missing document with id ${id}`)
   // }
+  options?: OnGetOptions<Environment, ServerTimestamps>
 ): () => void {
+  let unsubCalled = false
+  let firebaseUnsub: () => void
+  const unsub = () => {
+    unsubCalled = true
+    firebaseUnsub && firebaseUnsub()
+  }
   let waiting = ids.length
   const result = new Array(ids.length)
 
-  const offs = ids.map((id, idIndex) =>
-    onGet(
-      collection,
-      id,
-      doc => {
-        result[idIndex] = doc
-        if (waiting) waiting--
-        if (waiting === 0) {
-          onResult(result)
-        }
-      },
-      onError
+  adaptor().then((a) => {
+    if (unsubCalled) return
+
+    const error = environmentError(a, options?.assertEnvironment)
+    if (error) {
+      onError?.(error)
+      return
+    }
+
+    if (ids.length === 0) {
+      onResult([])
+      return
+    }
+
+    const offs = ids.map((id, idIndex) =>
+      onGet(
+        collection,
+        id,
+        (doc) => {
+          result[idIndex] = doc
+          if (waiting) waiting--
+          if (waiting === 0) {
+            onResult(result)
+          }
+        },
+        onError,
+        options
+      )
     )
-  )
 
-  if (ids.length === 0) onResult([])
+    firebaseUnsub = () => offs.map((off) => off())
+  })
 
-  return () => offs.map(off => off())
+  return unsub
 }
-
-export default onGetMany

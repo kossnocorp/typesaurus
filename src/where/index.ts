@@ -1,5 +1,6 @@
-import { FirestoreWhereFilterOp } from '../adaptor'
+import type { FirestoreWhereFilterOp } from '../adaptor'
 import { DocId } from '../docId'
+import type { QueryModel } from '../types'
 
 export interface WhereQuery<_Model> {
   type: 'where'
@@ -14,29 +15,29 @@ export type BasicWhereFilter = Exclude<
 >
 
 // Basic filter variation
-function where<Model, Key extends keyof Model>(
+function where<Model, Key extends keyof QueryModel<Model>>(
   field: DocId,
   filter: BasicWhereFilter,
   value: string
 ): WhereQuery<Model>
 // in variation
-function where<Model, Key extends keyof Model>(
+function where<Model, Key extends keyof QueryModel<Model>>(
   field: Key | [Key] | DocId,
   filter: 'in',
   value: string[]
 ): WhereQuery<Model>
 
 // Basic filter variation
-function where<Model, Key extends keyof Model>(
+function where<Model, Key extends keyof QueryModel<Model>>(
   field: Key | [Key],
   filter: BasicWhereFilter,
-  value: Model[Key]
+  value: QueryModel<Model>[Key]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key extends keyof Model,
-  ValueArray extends Model[Key],
+  Key extends keyof QueryModel<Model>,
+  ValueArray extends QueryModel<Model>[Key],
   ValueType extends keyof ValueArray
 >(
   field: Key | [Key],
@@ -44,24 +45,28 @@ function where<
   value: ValueArray[ValueType]
 ): WhereQuery<Model>
 // in variation
-function where<Model, Key extends keyof Model>(
+function where<Model, Key extends keyof QueryModel<Model>>(
   field: Key | [Key],
   filter: 'in',
-  value: Model[Key][]
+  value: QueryModel<Model>[Key][]
 ): WhereQuery<Model>
 
 // Basic filter variation
-function where<Model, Key1 extends keyof Model, Key2 extends keyof Model[Key1]>(
+function where<
+  Model,
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1]
+>(
   field: [Key1, Key2],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2]
+  value: QueryModel<Model>[Key1][Key2]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  ValueArray extends Model[Key1][Key2],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  ValueArray extends QueryModel<Model>[Key1][Key2],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2],
@@ -69,30 +74,34 @@ function where<
   value: ValueArray[ValueType]
 ): WhereQuery<Model>
 // in variation
-function where<Model, Key1 extends keyof Model, Key2 extends keyof Model[Key1]>(
+function where<
+  Model,
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1]
+>(
   field: [Key1, Key2],
   filter: 'in',
-  value: Model[Key1][Key2][]
+  value: QueryModel<Model>[Key1][Key2][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2]
 >(
   field: [Key1, Key2, Key3],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3]
+  value: QueryModel<Model>[Key1][Key2][Key3]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  ValueArray extends Model[Key1][Key2][Key3],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  ValueArray extends QueryModel<Model>[Key1][Key2][Key3],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3],
@@ -102,35 +111,35 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2]
 >(
   field: [Key1, Key2, Key3],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][]
+  value: QueryModel<Model>[Key1][Key2][Key3][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3]
 >(
   field: [Key1, Key2, Key3, Key4],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3][Key4]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  ValueArray extends Model[Key1][Key2][Key3][Key4],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  ValueArray extends QueryModel<Model>[Key1][Key2][Key3][Key4],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3, Key4],
@@ -140,38 +149,38 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3]
 >(
   field: [Key1, Key2, Key3, Key4],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][Key4][]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4]
 >(
   field: [Key1, Key2, Key3, Key4, Key5],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3][Key4][Key5]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  ValueArray extends QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3, Key4, Key5],
@@ -181,41 +190,41 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4]
 >(
   field: [Key1, Key2, Key3, Key4, Key5],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][Key4][Key5][]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  ValueArray extends QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6],
@@ -225,44 +234,46 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  ValueArray extends QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7],
@@ -272,47 +283,51 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][Key7][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  ValueArray extends QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8],
@@ -322,50 +337,60 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][Key7]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
+  value: QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
-  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  ValueArray extends QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9],
@@ -375,53 +400,75 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][]
+  value: QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][]
 ): WhereQuery<Model>
 
 // Basic filter variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
-  Key10 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  Key10 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10],
   filter: BasicWhereFilter,
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10]
+  value: QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10]
 ): WhereQuery<Model>
 // array-contains variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
-  Key10 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
-  ValueArray extends Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10],
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  Key10 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9],
+  ValueArray extends QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10],
   ValueType extends keyof ValueArray
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10],
@@ -431,20 +478,28 @@ function where<
 // in variation
 function where<
   Model,
-  Key1 extends keyof Model,
-  Key2 extends keyof Model[Key1],
-  Key3 extends keyof Model[Key1][Key2],
-  Key4 extends keyof Model[Key1][Key2][Key3],
-  Key5 extends keyof Model[Key1][Key2][Key3][Key4],
-  Key6 extends keyof Model[Key1][Key2][Key3][Key4][Key5],
-  Key7 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6],
-  Key8 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
-  Key9 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
-  Key10 extends keyof Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
+  Key1 extends keyof QueryModel<Model>,
+  Key2 extends keyof QueryModel<Model>[Key1],
+  Key3 extends keyof QueryModel<Model>[Key1][Key2],
+  Key4 extends keyof QueryModel<Model>[Key1][Key2][Key3],
+  Key5 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4],
+  Key6 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5],
+  Key7 extends keyof QueryModel<Model>[Key1][Key2][Key3][Key4][Key5][Key6],
+  Key8 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7],
+  Key9 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8],
+  Key10 extends keyof QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9]
 >(
   field: [Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10],
   filter: 'in',
-  value: Model[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10][]
+  value: QueryModel<
+    Model
+  >[Key1][Key2][Key3][Key4][Key5][Key6][Key7][Key8][Key9][Key10][]
 ): WhereQuery<Model>
 
 /**
