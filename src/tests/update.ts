@@ -221,6 +221,21 @@ describe('update', () => {
     })
   })
 
+  it('works with empty update', async () => {
+    const user = await db.users.add({
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      visits: 0
+    })
+
+    await user.update(() => [])
+    await user.update(() => ({}))
+    await user.update({})
+
+    const $ = user.update.build()
+    await $.run()
+  })
+
   describe('assering environment', () => {
     it('allows to assert environment', async () => {
       const userId = await db.users.id()

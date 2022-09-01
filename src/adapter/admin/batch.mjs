@@ -66,8 +66,11 @@ class Collection {
   update(id, data) {
     const dataToUpdate =
       typeof data === 'function' ? data(updateHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.batch.update(doc, unwrapData(dataToUpdate))
+
+    if (Object.keys(dataToUpdate).length) {
+      const doc = firebaseCollection(this.path).doc(id)
+      this.batch.update(doc, unwrapData(dataToUpdate))
+    }
   }
 
   remove(id) {

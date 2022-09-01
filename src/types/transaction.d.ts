@@ -41,13 +41,13 @@ export namespace TypesaurusTransaction {
     ModelPair extends Core.ModelIdPair,
     Environment extends Core.RuntimeEnvironment | undefined = undefined
   > = {
-    set(data: Core.WriteModelArg<ModelPair[0] /* Model */, Environment>): void
+    set(data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>): void
 
     update(
       data: Update.UpdateModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
-    upset(data: Core.WriteModelArg<ModelPair[0] /* Model */, Environment>): void
+    upset(data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>): void
 
     remove(): void
   }
@@ -151,12 +151,12 @@ export namespace TypesaurusTransaction {
 
     set(
       id: ModelPair[1] /* Id */,
-      data: Core.WriteModelArg<ModelPair[0] /* Model */, Environment>
+      data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     upset(
       id: ModelPair[1] /* Id */,
-      data: Core.WriteModelArg<ModelPair[0] /* Model */, Environment>
+      data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     update(

@@ -77,11 +77,20 @@ interface User {
   createdAt: Typesaurus.ServerDate
 }
 
+interface Organization {
+  counters?: {
+    drafts: number
+    scheduled: number
+    published: number
+  }
+}
+
 // Flat schema
 const db = schema(($) => ({
   users: $.collection<User>(),
   posts: $.collection<Post>(),
-  accounts: $.collection<Account>()
+  accounts: $.collection<Account>(),
+  organizations: $.collection<Organization>()
 }))
 
 async function doc() {
@@ -593,6 +602,24 @@ async function update() {
   })
 
   db.posts.update(db.posts.id('doc-id'), ($) => $.field('likes').set(null))
+
+  // Increment on nested optional values
+
+  db.organizations.update(db.organizations.id('org-id'), ($) => ({
+    counters: {
+      drafts: $.increment(0),
+      scheduled: $.increment(1),
+      published: $.increment(0)
+    }
+  }))
+
+  db.organizations.update(db.organizations.id('org-id'), ($) =>
+    $.field('counters').set({
+      drafts: $.increment(0),
+      scheduled: $.increment(1),
+      published: $.increment(0)
+    })
+  )
 }
 
 async function sharedIds() {

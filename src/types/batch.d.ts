@@ -60,12 +60,12 @@ export namespace TypesaurusBatch {
 
     set(
       id: ModelPair[1] /* Id */,
-      data: Core.WriteModelArg<ModelPair[0] /* Model */, Environment>
+      data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     upset(
       id: ModelPair[1] /* Id */,
-      data: Core.WriteModelArg<ModelPair[0] /* Model */, Environment>
+      data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>
     ): void
 
     update(

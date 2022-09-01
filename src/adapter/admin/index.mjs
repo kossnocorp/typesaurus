@@ -26,9 +26,11 @@ class RichCollection {
         ? updateFields(updateData)
         : updateData
 
-      return this.firebaseDoc(id)
-        .update(unwrapData(update))
-        .then(() => this.ref(id))
+      return (
+        Object.keys(update).length
+          ? this.firebaseDoc(id).update(unwrapData(update))
+          : Promise.resolve()
+      ).then(() => this.ref(id))
     }
 
     this.update.build = (id, options) => {
@@ -36,10 +38,11 @@ class RichCollection {
       const fields = []
       return {
         ...updateHelpers('build', fields),
-        run: () =>
-          this.firebaseDoc(id)
-            .update(unwrapData(updateFields(fields)))
-            .then(() => this.ref(id))
+        run: async () => {
+          if (fields.length)
+            await this.firebaseDoc(id).update(unwrapData(updateFields(fields)))
+          return this.ref(id)
+        }
       }
     }
 
