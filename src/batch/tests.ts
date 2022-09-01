@@ -144,6 +144,16 @@ describe('batch', () => {
     }
   })
 
+  it('works with empty update', async () => {
+    const $ = batch(db)
+    const id = Math.random().toString()
+    const sashaId = db.users.id(`${id}-sasha`)
+    await db.users.set(sashaId, { name: 'Sasha' })
+
+    $.users.update(sashaId, {})
+    await $()
+  })
+
   describe('subcollection', () => {
     it('works on subcollections', async () => {
       const userId = await db.users.id()

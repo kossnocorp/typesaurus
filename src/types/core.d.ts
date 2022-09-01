@@ -209,25 +209,25 @@ export namespace TypesaurusCore {
     __dontUseWillBeUndefined__: true
   }
 
-  export type WriteModelArg<
+  export type SetModelArg<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = WriteModel<Model, Environment> | WriteModelGetter<Model, Environment>
+  > = SetModel<Model, Environment> | SetModelGetter<Model, Environment>
 
   /**
    * Write model getter, accepts helper functions with special value generators
-   * and returns {@link WriteModel}.
+   * and returns {@link SetModel}.
    */
-  export type WriteModelGetter<
+  export type SetModelGetter<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = ($: WriteHelpers<Model>) => WriteModel<Model, Environment>
+  > = ($: WriteHelpers<Model>) => SetModel<Model, Environment>
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
-  export type WriteModel<
+  export type SetModel<
     Model,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = {
@@ -241,19 +241,17 @@ export namespace TypesaurusCore {
     Model,
     Key extends keyof Model,
     Environment extends RuntimeEnvironment | undefined = undefined
-  > = Exclude<Model[Key], undefined> extends ServerDate // First, ensure ServerDate is properly set
-    ? WriteValueServerDate<Model, Key, Environment>
-    : Exclude<Model[Key], undefined> extends Array<infer ItemType>
-    ?
-        | Model[Key]
-        | ValueArrayUnion<ItemType>
-        | ValueArrayRemove<ItemType>
-        | MaybeValueRemove<Model, Key>
-    : Model[Key] extends object // If it's an object, recursively pass through SetModel
-    ? WriteModel<Model[Key], Environment>
-    : Exclude<Model[Key], undefined> extends number
-    ? Model[Key] | ValueIncrement | MaybeValueRemove<Model, Key>
-    : Model[Key] | MaybeValueRemove<Model, Key>
+  > = Exclude<Model[Key], undefined> extends infer Type // Exclude undefined
+    ? Type extends ServerDate // First, ensure ServerDate is properly set
+      ? WriteValueServerDate<Model, Key, Environment>
+      : Type extends Array<infer ItemType>
+      ? WriteValueArray<Model, Key, ItemType>
+      : Type extends object // If it's an object, recursively pass through SetModel
+      ? WriteValueObject<Model, Key, Environment>
+      : Type extends number
+      ? WriteValueNumber<Model, Key>
+      : WriteValueOther<Model, Key>
+    : never
 
   export type WriteValueNullable<OriginType, Value> =
     OriginType extends undefined ? Value | null : Value
@@ -265,6 +263,29 @@ export namespace TypesaurusCore {
   > = Environment extends 'server' // Date can be used only in the server environment
     ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
     : ValueServerDate | MaybeValueRemove<Model, Key>
+
+  export type WriteValueArray<Model, Key extends keyof Model, ItemType> =
+    | Model[Key]
+    | ValueArrayUnion<ItemType>
+    | ValueArrayRemove<ItemType>
+    | MaybeValueRemove<Model, Key>
+
+  export type WriteValueNumber<Model, Key extends keyof Model> =
+    | Model[Key]
+    | ValueIncrement
+    | MaybeValueRemove<Model, Key>
+
+  export type WriteValueOther<Model, Key extends keyof Model> =
+    | Model[Key]
+    | MaybeValueRemove<Model, Key>
+
+  export type WriteValueObject<
+    Model,
+    Key extends keyof Model,
+    Environment extends RuntimeEnvironment | undefined
+  > =
+    | SetModel<Model[Key], Environment> // Even for update, nested objects are passed to set model
+    | MaybeValueRemove<Model, Key>
 
   export type Value<Type> =
     | ValueRemove
@@ -446,12 +467,12 @@ export namespace TypesaurusCore {
     >
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
@@ -512,19 +533,19 @@ export namespace TypesaurusCore {
     >
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: ModelPair[1] /* Id */,
-      data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
       id: ModelPair[1] /* Id */,
-      data: WriteModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair>>
 
