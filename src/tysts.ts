@@ -709,6 +709,16 @@ async function narrowDoc() {
   )
 }
 
+namespace ModelData {
+  // It does not mingle typed id
+
+  type ResultOA8M = TypesaurusCore.ModelData<{
+    helloId: Typesaurus.Id<'hello'>
+  }>
+
+  assertType<TypeEqual<ResultOA8M, { helloId: Typesaurus.Id<'hello'> }>>(true)
+}
+
 namespace ComposePath {
   type Result1 = Assert<
     'users',
