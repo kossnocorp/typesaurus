@@ -168,7 +168,7 @@ export namespace TypesaurusCore {
     ? DateNullable extends 'nullable'
       ? Date | null
       : ModelFieldNullable<Date>
-    : Field extends Date // Stop dates from being processed as an object
+    : Field extends Date | Id<string> // Stop dates & ids from being processed as an object
     ? ModelFieldNullable<Field>
     : Field extends object // If it's an object, recursively pass through ModelData
     ? AnyModelData<Field, DateNullable>
