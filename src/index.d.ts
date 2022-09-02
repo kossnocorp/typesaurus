@@ -2,6 +2,9 @@ import type { TypesaurusCore as Core } from './types/core'
 
 export const schema: Core.Function
 
+// Create alias to later export Typesaurus.Record
+type _Record<Key extends string | number, Type> = Record<Key, Type>
+
 export namespace Typesaurus {
   /**
    * Infers schema types. Useful to define function arguments that accept
@@ -42,6 +45,11 @@ export namespace Typesaurus {
   export type RuntimeEnvironment = Core.RuntimeEnvironment
 
   export type ServerDate = Core.ServerDate
+
+  export type Record<Key extends string | number, Type> = _Record<
+    Key,
+    Type | undefined
+  >
 }
 
 export { transaction } from './transaction'
