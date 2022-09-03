@@ -9,7 +9,7 @@ export namespace TypesaurusCore {
     ): DB<Schema>
   }
 
-  export interface Id<Path extends string> extends String {
+  export type Id<Path extends string> = string & {
     __dontUseWillBeUndefined__: Path
   }
 
