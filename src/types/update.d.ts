@@ -135,6 +135,100 @@ export namespace TypesaurusUpdate {
       Key4,
       SetResult
     >
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4]
+    >(
+      key1: Key1,
+      key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never,
+      key3: Utils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
+        : never,
+      key4: Utils.SafePath4<Model, Key1, Key2, Key3, Key4> extends true
+        ? Key4
+        : never,
+      key5: Utils.SafePath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+        ? Key5
+        : never
+    ): FieldHelpers<
+      Model,
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key5,
+      SetResult
+    >
+
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5]
+    >(
+      key1: Key1,
+      key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never,
+      key3: Utils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
+        : never,
+      key4: Utils.SafePath4<Model, Key1, Key2, Key3, Key4> extends true
+        ? Key4
+        : never,
+      key5: Utils.SafePath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+        ? Key5
+        : never,
+      key6: Utils.SafePath6<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6
+      > extends true
+        ? Key6
+        : never
+    ): FieldHelpers<
+      Model,
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key6,
+      SetResult
+    >
   }
 
   export interface UpdateHelpers<Model extends Core.ModelType>
