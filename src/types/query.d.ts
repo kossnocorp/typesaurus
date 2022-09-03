@@ -261,7 +261,6 @@ export namespace TypesaurusQuery {
 
   /**
    * Common query helpers API with query object result passed as a generic.
-   * @internal.
    */
   export interface CommonQueryHelpers<
     Model extends Core.ModelType,
@@ -270,14 +269,23 @@ export namespace TypesaurusQuery {
     WhereQueryResult,
     LimitQueryResult
   > {
+    /**
+     * Id selector, allows querying by the document id.
+     */
     field(
       id: DocId
     ): QueryIdField<[Model, Id], OrderQueryResult, LimitQueryResult>
 
+    /**
+     * Field selector, allows querying by a specific field.
+     */
     field<Key extends keyof Model>(
       key: Key
     ): QueryField<[Model, Id], Model, Key, OrderQueryResult, WhereQueryResult>
 
+    /**
+     * Field selector, allows querying by a specific field.
+     */
     field<
       Key1 extends keyof Model,
       Key2 extends keyof Utils.AllRequired<Model>[Key1]
@@ -292,6 +300,9 @@ export namespace TypesaurusQuery {
       WhereQueryResult
     >
 
+    /**
+     * Field selector, allows querying by a specific field.
+     */
     field<
       Key1 extends keyof Model,
       Key2 extends keyof Utils.AllRequired<Model>[Key1],
@@ -304,6 +315,433 @@ export namespace TypesaurusQuery {
       [Model, Id],
       Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2],
       Key3,
+      OrderQueryResult,
+      WhereQueryResult
+    >
+
+    /**
+     * Field selector, allows querying by a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4
+    ): QueryField<
+      [Model, Id],
+      Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key4,
+      OrderQueryResult,
+      WhereQueryResult
+    >
+
+    /**
+     * Field selector, allows querying by a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4,
+      key5: Key5
+    ): QueryField<
+      [Model, Id],
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key5,
+      OrderQueryResult,
+      WhereQueryResult
+    >
+
+    /**
+     * Field selector, allows querying by a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4,
+      key5: Key5,
+      key6: Key6
+    ): QueryField<
+      [Model, Id],
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key6,
+      OrderQueryResult,
+      WhereQueryResult
+    >
+
+    /**
+     * Field selector, allows querying by a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4,
+      key5: Key5,
+      key6: Key6,
+      key7: Key7
+    ): QueryField<
+      [Model, Id],
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key7,
+      OrderQueryResult,
+      WhereQueryResult
+    >
+
+    /**
+     * Field selector, allows querying by a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key8 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4,
+      key5: Key5,
+      key6: Key6,
+      key7: Key7,
+      key8: Key8
+    ): QueryField<
+      [Model, Id],
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7],
+      Key8,
+      OrderQueryResult,
+      WhereQueryResult
+    >
+
+    /**
+     * Field selector, allows querying by a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key8 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7],
+      Key9 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >[Key8]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4,
+      key5: Key5,
+      key6: Key6,
+      key7: Key7,
+      key8: Key8,
+      key9: Key9
+    ): QueryField<
+      [Model, Id],
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >[Key8],
+      Key9,
+      OrderQueryResult,
+      WhereQueryResult
+    >
+
+    /**
+     * Field selector, allows querying by a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key8 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7],
+      Key9 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >[Key8],
+      Key10 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8]
+      >[Key9]
+    >(
+      key1: Key1,
+      key2: Key2,
+      key3: Key3,
+      key4: Key4,
+      key5: Key5,
+      key6: Key6,
+      key7: Key7,
+      key8: Key8,
+      key9: Key9,
+      key10: Key10
+    ): QueryField<
+      [Model, Id],
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8]
+      >,
+      Key10,
       OrderQueryResult,
       WhereQueryResult
     >
