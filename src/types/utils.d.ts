@@ -119,21 +119,41 @@ export namespace TypesaurusUtils {
       : false
     : false
 
+  /**
+   * Resolves true if the passed optional path to a field within a nested object
+   * is safe to update, meaning there are no required sibling fields on every
+   * nesting level. It prevents updates from causing data inconsistency.
+   *
+   * This is the 1-lever deep version, see SafeOptionalPathN for more levels.
+   *
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   */
   export type SafeOptionalPath1<
     Model,
     Key1 extends keyof Model
   > = AllOptionalBut<Model, Key1> extends true ? true : false
 
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   *
+   * This is the 2-level deep version of the type.
+   */
   export type SafeOptionalPath2<
     Model,
     Key1 extends keyof Model,
     Key2 extends keyof AllRequired<Model>[Key1]
-  > = SafeOptionalPath1<Model, Key1> extends true
-    ? AllOptionalBut<AllRequired<Model>[Key1], Key2> extends true
+  > = SafeOptionalPath1<Model, Key1> extends true // Check if the path is safe up to this level
+    ? AllOptionalBut<AllRequired<Model>[Key1], Key2> extends true // Checks if there are no required sibling fields
       ? true
       : false
     : false
 
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 3-level deep version of the type.
+   */
   export type SafeOptionalPath3<
     Model,
     Key1 extends keyof Model,
@@ -148,6 +168,12 @@ export namespace TypesaurusUtils {
       : false
     : false
 
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 4-level deep version of the type.
+   */
   export type SafeOptionalPath4<
     Model,
     Key1 extends keyof Model,
@@ -165,6 +191,12 @@ export namespace TypesaurusUtils {
       : false
     : false
 
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 5-level deep version of the type.
+   */
   export type SafeOptionalPath5<
     Model,
     Key1 extends keyof Model,
@@ -182,6 +214,323 @@ export namespace TypesaurusUtils {
           AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
         >[Key4],
         Key5
+      > extends true
+      ? true
+      : false
+    : false
+
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 6-level deep version of the type.
+   */
+  export type SafeOptionalPath6<
+    Model,
+    Key1 extends keyof Model,
+    Key2 extends keyof AllRequired<Model>[Key1],
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
+    Key4 extends keyof AllRequired<
+      AllRequired<AllRequired<Model>[Key1]>[Key2]
+    >[Key3],
+    Key5 extends keyof AllRequired<
+      AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+    >[Key4],
+    Key6 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+      >[Key4]
+    >[Key5]
+  > = SafeOptionalPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+    ? AllOptionalBut<
+        AllRequired<
+          AllRequired<
+            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+          >[Key4]
+        >[Key5],
+        Key6
+      > extends true
+      ? true
+      : false
+    : false
+
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 7-level deep version of the type.
+   */
+  export type SafeOptionalPath7<
+    Model,
+    Key1 extends keyof Model,
+    Key2 extends keyof AllRequired<Model>[Key1],
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
+    Key4 extends keyof AllRequired<
+      AllRequired<AllRequired<Model>[Key1]>[Key2]
+    >[Key3],
+    Key5 extends keyof AllRequired<
+      AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+    >[Key4],
+    Key6 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+      >[Key4]
+    >[Key5],
+    Key7 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+        >[Key4]
+      >[Key5]
+    >[Key6]
+  > = SafeOptionalPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
+    ? AllOptionalBut<
+        AllRequired<
+          AllRequired<
+            AllRequired<
+              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key7
+      > extends true
+      ? true
+      : false
+    : false
+
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 8-level deep version of the type.
+   */
+  export type SafeOptionalPath8<
+    Model,
+    Key1 extends keyof Model,
+    Key2 extends keyof AllRequired<Model>[Key1],
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
+    Key4 extends keyof AllRequired<
+      AllRequired<AllRequired<Model>[Key1]>[Key2]
+    >[Key3],
+    Key5 extends keyof AllRequired<
+      AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+    >[Key4],
+    Key6 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+      >[Key4]
+    >[Key5],
+    Key7 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+        >[Key4]
+      >[Key5]
+    >[Key6],
+    Key8 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<
+            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6]
+    >[Key7]
+  > = SafeOptionalPath7<
+    Model,
+    Key1,
+    Key2,
+    Key3,
+    Key4,
+    Key5,
+    Key6,
+    Key7
+  > extends true
+    ? AllOptionalBut<
+        AllRequired<
+          AllRequired<
+            AllRequired<
+              AllRequired<
+                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7],
+        Key8
+      > extends true
+      ? true
+      : false
+    : false
+
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 9-level deep version of the type.
+   */
+  export type SafeOptionalPath9<
+    Model,
+    Key1 extends keyof Model,
+    Key2 extends keyof AllRequired<Model>[Key1],
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
+    Key4 extends keyof AllRequired<
+      AllRequired<AllRequired<Model>[Key1]>[Key2]
+    >[Key3],
+    Key5 extends keyof AllRequired<
+      AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+    >[Key4],
+    Key6 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+      >[Key4]
+    >[Key5],
+    Key7 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+        >[Key4]
+      >[Key5]
+    >[Key6],
+    Key8 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<
+            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6]
+    >[Key7],
+    Key9 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<
+            AllRequired<
+              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7]
+    >[Key8]
+  > = SafeOptionalPath8<
+    Model,
+    Key1,
+    Key2,
+    Key3,
+    Key4,
+    Key5,
+    Key6,
+    Key7,
+    Key8
+  > extends true
+    ? AllOptionalBut<
+        AllRequired<
+          AllRequired<
+            AllRequired<
+              AllRequired<
+                AllRequired<
+                  AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8],
+        Key9
+      > extends true
+      ? true
+      : false
+    : false
+
+  /**
+   * See {@link SafeOptionalPath1} for the documentation.
+   * See {@link SafeOptionalPath2} for the internal implementation details.
+   *
+   * This is the 10-level deep version of the type.
+   */
+  export type SafeOptionalPath10<
+    Model,
+    Key1 extends keyof Model,
+    Key2 extends keyof AllRequired<Model>[Key1],
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
+    Key4 extends keyof AllRequired<
+      AllRequired<AllRequired<Model>[Key1]>[Key2]
+    >[Key3],
+    Key5 extends keyof AllRequired<
+      AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+    >[Key4],
+    Key6 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+      >[Key4]
+    >[Key5],
+    Key7 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+        >[Key4]
+      >[Key5]
+    >[Key6],
+    Key8 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<
+            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6]
+    >[Key7],
+    Key9 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<
+            AllRequired<
+              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7]
+    >[Key8],
+    Key10 extends keyof AllRequired<
+      AllRequired<
+        AllRequired<
+          AllRequired<
+            AllRequired<
+              AllRequired<
+                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >[Key8]
+    >[Key9]
+  > = SafeOptionalPath9<
+    Model,
+    Key1,
+    Key2,
+    Key3,
+    Key4,
+    Key5,
+    Key6,
+    Key7,
+    Key8,
+    Key9
+  > extends true
+    ? AllOptionalBut<
+        AllRequired<
+          AllRequired<
+            AllRequired<
+              AllRequired<
+                AllRequired<
+                  AllRequired<
+                    AllRequired<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6]
+            >[Key7]
+          >[Key8]
+        >[Key9],
+        Key10
       > extends true
       ? true
       : false
