@@ -58,10 +58,10 @@ interface Account {
 
   counters?: {
     [postId: string]:
-      | undefined
       | {
           likes?: number
         }
+      | undefined
   }
 }
 
@@ -1284,7 +1284,7 @@ namespace SafePath {
   >
 
   type Result13 = Assert<
-    true,
+    false,
     TypesaurusUtils.SafePath3<Example5, 'required', 'optional', 'required'>
   >
 
@@ -1327,6 +1327,72 @@ namespace SafePath {
   type Result19 = Assert<
     true,
     TypesaurusUtils.SafePath3<Example6, 'stats', 'post-id', 'likes'>
+  >
+
+  interface ExampleAY40 {
+    required: {
+      optional1?: {
+        optional1?: string
+        optional2?: string
+      }
+      optional2?: {
+        optional?: string
+        required: string
+      }
+    }
+  }
+
+  type ResultQP8V = Assert<
+    true,
+    TypesaurusUtils.SafePath3<ExampleAY40, 'required', 'optional1', 'optional1'>
+  >
+
+  type ResultAK3B = Assert<
+    true,
+    TypesaurusUtils.SafePath3<ExampleAY40, 'required', 'optional1', 'optional2'>
+  >
+
+  type ResultAXJR = Assert<
+    false,
+    TypesaurusUtils.SafePath3<ExampleAY40, 'required', 'optional2', 'optional'>
+  >
+
+  type Result92GA = Assert<
+    true,
+    TypesaurusUtils.SafePath3<ExampleAY40, 'required', 'optional2', 'required'>
+  >
+
+  interface ExampleLD18 {
+    optional?: {
+      optional1?: {
+        optional1?: string
+        optional2?: string
+      }
+      optional2?: {
+        optional?: string
+        required: string
+      }
+    }
+  }
+
+  type ResultA45H = Assert<
+    true,
+    TypesaurusUtils.SafePath3<ExampleLD18, 'optional', 'optional1', 'optional1'>
+  >
+
+  type Result49SU = Assert<
+    true,
+    TypesaurusUtils.SafePath3<ExampleLD18, 'optional', 'optional1', 'optional2'>
+  >
+
+  type ResultDM3H = Assert<
+    false,
+    TypesaurusUtils.SafePath3<ExampleLD18, 'optional', 'optional2', 'optional'>
+  >
+
+  type ResultTJ32 = Assert<
+    true,
+    TypesaurusUtils.SafePath3<ExampleLD18, 'optional', 'optional2', 'required'>
   >
 
   interface Example7 {
