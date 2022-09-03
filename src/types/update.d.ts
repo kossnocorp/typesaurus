@@ -83,14 +83,14 @@ export namespace TypesaurusUpdate {
   export interface CommonHelpers<Model extends Core.ModelType, SetResult>
     extends Core.WriteHelpers<Model> {
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<Key1 extends keyof Model>(
       key: Key1
     ): FieldHelpers<Model, Model, Key1, SetResult>
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -101,7 +101,7 @@ export namespace TypesaurusUpdate {
     ): FieldHelpers<Model, Utils.AllRequired<Model>[Key1], Key2, SetResult>
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -119,7 +119,7 @@ export namespace TypesaurusUpdate {
     >
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -149,7 +149,7 @@ export namespace TypesaurusUpdate {
     >
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -189,7 +189,7 @@ export namespace TypesaurusUpdate {
     >
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -249,7 +249,7 @@ export namespace TypesaurusUpdate {
     >
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -332,7 +332,7 @@ export namespace TypesaurusUpdate {
     >
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -441,7 +441,7 @@ export namespace TypesaurusUpdate {
     >
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
@@ -579,7 +579,7 @@ export namespace TypesaurusUpdate {
     >
 
     /**
-     * Field selector, allows to update a specific field.
+     * Field selector, allows updating a specific field.
      */
     field<
       Key1 extends keyof Model,
