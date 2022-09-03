@@ -835,33 +835,6 @@ namespace AllOptionalBut {
 }
 
 namespace RequiredPath {
-  interface Example1 {
-    required: string
-    optional?: string
-  }
-
-  type Result1 = Assert<
-    true,
-    TypesaurusUtils.RequiredPath1<Example1, 'required'>
-  >
-
-  type Result2 = Assert<
-    true,
-    TypesaurusUtils.RequiredPath1<Example1, 'optional'>
-  >
-
-  type Result3 = Assert<
-    true,
-    TypesaurusUtils.RequiredPath1<
-      {
-        required1: string
-        required2: string
-        optional?: string
-      },
-      'required1'
-    >
-  >
-
   interface Example2 {
     required: {
       required: string
@@ -875,22 +848,12 @@ namespace RequiredPath {
 
   type Result4 = Assert<
     true,
-    TypesaurusUtils.RequiredPath2<Example2, 'required', 'required'>
-  >
-
-  type Result5 = Assert<
-    true,
-    TypesaurusUtils.RequiredPath2<Example2, 'required', 'optional'>
-  >
-
-  type Result6 = Assert<
-    false,
-    TypesaurusUtils.RequiredPath2<Example2, 'optional', 'required'>
+    TypesaurusUtils.RequiredPath1<Example2, 'required'>
   >
 
   type Result7 = Assert<
     false,
-    TypesaurusUtils.RequiredPath2<Example2, 'optional', 'optional'>
+    TypesaurusUtils.RequiredPath1<Example2, 'optional'>
   >
 
   interface Example3 {
@@ -902,12 +865,7 @@ namespace RequiredPath {
 
   type Result8 = Assert<
     false,
-    TypesaurusUtils.RequiredPath2<Example3, 'optional', 'required'>
-  >
-
-  type Result9 = Assert<
-    false,
-    TypesaurusUtils.RequiredPath2<Example3, 'optional', 'optional'>
+    TypesaurusUtils.RequiredPath1<Example3, 'optional'>
   >
 
   interface Example4 {
@@ -935,42 +893,22 @@ namespace RequiredPath {
 
   type Result10 = Assert<
     true,
-    TypesaurusUtils.RequiredPath3<Example4, 'required', 'required', 'required'>
-  >
-
-  type Result11 = Assert<
-    true,
-    TypesaurusUtils.RequiredPath3<Example4, 'required', 'required', 'optional'>
+    TypesaurusUtils.RequiredPath2<Example4, 'required', 'required'>
   >
 
   type Result12 = Assert<
     false,
-    TypesaurusUtils.RequiredPath3<Example4, 'required', 'optional', 'required'>
-  >
-
-  type Result13 = Assert<
-    false,
-    TypesaurusUtils.RequiredPath3<Example4, 'required', 'optional', 'optional'>
+    TypesaurusUtils.RequiredPath2<Example4, 'required', 'optional'>
   >
 
   type Result14 = Assert<
     false,
-    TypesaurusUtils.RequiredPath3<Example4, 'optional', 'required', 'required'>
-  >
-
-  type Result15 = Assert<
-    false,
-    TypesaurusUtils.RequiredPath3<Example4, 'optional', 'required', 'optional'>
+    TypesaurusUtils.RequiredPath2<Example4, 'optional', 'required'>
   >
 
   type Result16 = Assert<
     false,
-    TypesaurusUtils.RequiredPath3<Example4, 'optional', 'optional', 'required'>
-  >
-
-  type Result17 = Assert<
-    false,
-    TypesaurusUtils.RequiredPath3<Example4, 'optional', 'optional', 'optional'>
+    TypesaurusUtils.RequiredPath2<Example4, 'optional', 'optional'>
   >
 
   interface Example5 {
@@ -986,14 +924,11 @@ namespace RequiredPath {
     }
   }
 
-  type Result18 = Assert<
-    true,
-    TypesaurusUtils.RequiredPath4<Example5, 1, 2, 3, 4>
-  >
+  type Result18 = Assert<true, TypesaurusUtils.RequiredPath3<Example5, 1, 2, 3>>
 
   type Result19 = Assert<
     false,
-    TypesaurusUtils.RequiredPath4<Example5, 1, 2, 'optional', 4>
+    TypesaurusUtils.RequiredPath3<Example5, 1, 2, 'optional'>
   >
 
   interface Example6 {
@@ -1013,12 +948,12 @@ namespace RequiredPath {
 
   type Result20 = Assert<
     true,
-    TypesaurusUtils.RequiredPath5<Example6, 1, 2, 3, 4, 5>
+    TypesaurusUtils.RequiredPath4<Example6, 1, 2, 3, 4>
   >
 
   type Result21 = Assert<
     false,
-    TypesaurusUtils.RequiredPath5<Example6, 1, 2, 3, 'optional', 5>
+    TypesaurusUtils.RequiredPath4<Example6, 1, 2, 3, 'optional'>
   >
 }
 
