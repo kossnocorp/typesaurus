@@ -82,10 +82,16 @@ export namespace TypesaurusUpdate {
 
   export interface CommonHelpers<Model extends Core.ModelType, SetResult>
     extends Core.WriteHelpers<Model> {
+    /**
+     * Field selector, allows to update a specific field.
+     */
     field<Key1 extends keyof Model>(
       key: Key1
     ): FieldHelpers<Model, Model, Key1, SetResult>
 
+    /**
+     * Field selector, allows to update a specific field.
+     */
     field<
       Key1 extends keyof Model,
       Key2 extends keyof Utils.AllRequired<Model>[Key1]
@@ -94,6 +100,9 @@ export namespace TypesaurusUpdate {
       key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never
     ): FieldHelpers<Model, Utils.AllRequired<Model>[Key1], Key2, SetResult>
 
+    /**
+     * Field selector, allows to update a specific field.
+     */
     field<
       Key1 extends keyof Model,
       Key2 extends keyof Utils.AllRequired<Model>[Key1],
@@ -109,6 +118,9 @@ export namespace TypesaurusUpdate {
       SetResult
     >
 
+    /**
+     * Field selector, allows to update a specific field.
+     */
     field<
       Key1 extends keyof Model,
       Key2 extends keyof Utils.AllRequired<Model>[Key1],
@@ -136,6 +148,9 @@ export namespace TypesaurusUpdate {
       SetResult
     >
 
+    /**
+     * Field selector, allows to update a specific field.
+     */
     field<
       Key1 extends keyof Model,
       Key2 extends keyof Utils.AllRequired<Model>[Key1],
@@ -173,6 +188,9 @@ export namespace TypesaurusUpdate {
       SetResult
     >
 
+    /**
+     * Field selector, allows to update a specific field.
+     */
     field<
       Key1 extends keyof Model,
       Key2 extends keyof Utils.AllRequired<Model>[Key1],
@@ -227,6 +245,506 @@ export namespace TypesaurusUpdate {
         >[Key4]
       >[Key5],
       Key6,
+      SetResult
+    >
+
+    /**
+     * Field selector, allows to update a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6]
+    >(
+      key1: Key1,
+      key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never,
+      key3: Utils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
+        : never,
+      key4: Utils.SafePath4<Model, Key1, Key2, Key3, Key4> extends true
+        ? Key4
+        : never,
+      key5: Utils.SafePath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+        ? Key5
+        : never,
+      key6: Utils.SafePath6<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6
+      > extends true
+        ? Key6
+        : never,
+      key7: Utils.SafePath7<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7
+      > extends true
+        ? Key7
+        : never
+    ): FieldHelpers<
+      Model,
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key7,
+      SetResult
+    >
+
+    /**
+     * Field selector, allows to update a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key8 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7]
+    >(
+      key1: Key1,
+      key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never,
+      key3: Utils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
+        : never,
+      key4: Utils.SafePath4<Model, Key1, Key2, Key3, Key4> extends true
+        ? Key4
+        : never,
+      key5: Utils.SafePath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+        ? Key5
+        : never,
+      key6: Utils.SafePath6<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6
+      > extends true
+        ? Key6
+        : never,
+      key7: Utils.SafePath7<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7
+      > extends true
+        ? Key7
+        : never,
+      key8: Utils.SafePath8<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8
+      > extends true
+        ? Key8
+        : never
+    ): FieldHelpers<
+      Model,
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7],
+      Key8,
+      SetResult
+    >
+
+    /**
+     * Field selector, allows to update a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key8 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7],
+      Key9 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >[Key8]
+    >(
+      key1: Key1,
+      key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never,
+      key3: Utils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
+        : never,
+      key4: Utils.SafePath4<Model, Key1, Key2, Key3, Key4> extends true
+        ? Key4
+        : never,
+      key5: Utils.SafePath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+        ? Key5
+        : never,
+      key6: Utils.SafePath6<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6
+      > extends true
+        ? Key6
+        : never,
+      key7: Utils.SafePath7<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7
+      > extends true
+        ? Key7
+        : never,
+      key8: Utils.SafePath8<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8
+      > extends true
+        ? Key8
+        : never,
+      key9: Utils.SafePath9<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8,
+        Key9
+      > extends true
+        ? Key9
+        : never
+    ): FieldHelpers<
+      Model,
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >[Key8],
+      Key9,
+      SetResult
+    >
+
+    /**
+     * Field selector, allows to update a specific field.
+     */
+    field<
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Model>[Key1]
+      >[Key2],
+      Key4 extends keyof Utils.AllRequired<
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      >[Key3],
+      Key5 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+        >[Key3]
+      >[Key4],
+      Key6 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >[Key5],
+      Key7 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >[Key6],
+      Key8 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >[Key7],
+      Key9 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >[Key8],
+      Key10 extends keyof Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8]
+      >[Key9]
+    >(
+      key1: Key1,
+      key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never,
+      key3: Utils.SafePath3<Model, Key1, Key2, Key3> extends true
+        ? Key3
+        : never,
+      key4: Utils.SafePath4<Model, Key1, Key2, Key3, Key4> extends true
+        ? Key4
+        : never,
+      key5: Utils.SafePath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+        ? Key5
+        : never,
+      key6: Utils.SafePath6<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6
+      > extends true
+        ? Key6
+        : never,
+      key7: Utils.SafePath7<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7
+      > extends true
+        ? Key7
+        : never,
+      key8: Utils.SafePath8<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8
+      > extends true
+        ? Key8
+        : never,
+      key9: Utils.SafePath9<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8,
+        Key9
+      > extends true
+        ? Key9
+        : never,
+      key10: Utils.SafePath10<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8,
+        Key9,
+        Key10
+      > extends true
+        ? Key10
+        : never
+    ): FieldHelpers<
+      Model,
+      Utils.AllRequired<
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8]
+      >,
+      Key10,
       SetResult
     >
   }
