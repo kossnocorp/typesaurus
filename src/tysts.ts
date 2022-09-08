@@ -88,11 +88,13 @@ interface Organization {
 interface TextContent {
   type: 'text'
   text: string
+  public?: boolean
 }
 
 interface ImageContent {
   type: 'image'
   src: string
+  public?: boolean
 }
 
 // Flat schema
@@ -785,29 +787,77 @@ async function update() {
 
   // Can't update variable model shape without narrowing
 
-  // @ts-expect-error - can't update varible model collection
   db.content.update(contentId, {
-    type: 'text',
-    text: 'Hello, cruel world!'
+    public: true
   })
+
+  db.content.update(contentId, {
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
+
+  // Build Mode
+
+  const collectionUpdate = db.content.update.build(contentId)
+
+  collectionUpdate.field('public').set(true)
+
+  // @ts-expect-error - can't update non-shared variable model fields
+  collectionUpdate.field('type').set('text')
+
+  // ...via doc
 
   const content = await db.content.get(contentId)
 
-  // @ts-expect-error - update is not a function for variable model
-  content?.update(
-    // Force Prettier to move object to the new line to target expect error tag better
-    {
-      type: 'text',
-      text: 'Hello, cruel world!'
-    }
-  )
+  content?.update({
+    public: true
+  })
+
+  content?.update({
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
 
   if (content?.narrow<TextContent>((data) => data.type === 'text' && data)) {
     // @ts-expect-error - can't update - we narrowed down to text type
     await content.update({ src: 'Nope' })
 
     await content.update({ text: 'Yup' })
+
+    const $ = content.update.build()
+
+    // @ts-expect-error - can't update - we narrowed down to text type
+    $.field('src').set('Nope')
+
+    $.field('text').set('Ok')
   }
+
+  const docUpdate = content?.update.build()
+
+  docUpdate?.field('public').set(true)
+
+  // @ts-expect-error - can't update non-shared variable model fields
+  docUpdate?.field('type').set('text')
+
+  // ...via ref
+
+  const contentRef = await db.content.ref(contentId)
+
+  contentRef?.update({
+    public: true
+  })
+
+  contentRef?.update({
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
+
+  const refUpdate = content?.update.build()
+
+  refUpdate?.field('public').set(true)
+
+  // @ts-expect-error - can't update non-shared variable model fields
+  refUpdate?.field('type').set('text')
 }
 
 async function sharedIds() {
@@ -1837,6 +1887,18 @@ namespace SafePath {
     false,
     TypesaurusUtils.SafePath10<Example11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'optional'>
   > */
+}
+
+namespace SharedShape {
+  type ResultOD83 = TypesaurusUtils.SharedShape<
+    { a: string | number; b: string; c: boolean },
+    {
+      a: string
+      b: string
+    }
+  >
+
+  type Result43J3 = Assert<{ a: string; b: string }, ResultOD83>
 }
 
 type Assert<Type1, _Type2 extends Type1> = true
