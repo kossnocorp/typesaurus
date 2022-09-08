@@ -2,7 +2,10 @@ import type { TypesaurusUtils as Utils } from './utils'
 import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusQuery {
-  export interface Function<ModelPair extends Core.ModelIdPair> {
+  export interface Function<
+    ModelPair extends Core.ModelIdPair,
+    ParentModelPair extends Core.ModelIdPair
+  > {
     <
       Source extends Core.DataSource,
       DateStrategy extends Core.ServerDateStrategy,
@@ -12,8 +15,20 @@ export namespace TypesaurusQuery {
       options?: Core.ReadOptions<DateStrategy, Environment>
     ): Core.SubscriptionPromise<
       Core.QueryRequest,
-      Core.EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
-      Core.SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
+      Core.VariableEnvironmentDoc<
+        ModelPair,
+        ParentModelPair,
+        Source,
+        DateStrategy,
+        Environment
+      >[],
+      Core.SubscriptionListMeta<
+        ModelPair,
+        ParentModelPair,
+        Source,
+        DateStrategy,
+        Environment
+      >
     >
 
     build<
@@ -148,13 +163,13 @@ export namespace TypesaurusQuery {
     Parent,
     Key extends keyof Parent | DocId
   > =
-    | (Key extends keyof Parent ? Parent[Key] : ModelPair[1]) /* Id */ // Field value or id
+    | (Key extends keyof Parent ? Parent[Key] : ModelPair[1]) // Field value or id
     | Core.Doc<ModelPair> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
   export type QueryGetter<ModelPair extends Core.ModelIdPair> = (
     $: QueryHelpers<ModelPair[0], ModelPair[1]>
-  ) => Query<ModelPair[0] /* Model */> | Query<ModelPair[0] /* Model */>[]
+  ) => Query<ModelPair[0]> | Query<ModelPair[0]>[]
 
   export interface QueryFieldBase<
     ModelPair extends Core.ModelIdPair,
@@ -178,27 +193,22 @@ export namespace TypesaurusQuery {
     ModelPair extends Core.ModelIdPair,
     OrderQueryResult,
     WhereQueryResult
-  > extends QueryFieldBase<
-      ModelPair,
-      ModelPair[0] /* Model */,
-      DocId,
-      OrderQueryResult
-    > {
-    less(id: ModelPair[1] /* Id */): WhereQueryResult
+  > extends QueryFieldBase<ModelPair, ModelPair[0], DocId, OrderQueryResult> {
+    less(id: ModelPair[1]): WhereQueryResult
 
-    lessOrEqual(id: ModelPair[1] /* Id */): WhereQueryResult
+    lessOrEqual(id: ModelPair[1]): WhereQueryResult
 
-    equal(id: ModelPair[1] /* Id */): WhereQueryResult
+    equal(id: ModelPair[1]): WhereQueryResult
 
-    not(id: ModelPair[1] /* Id */): WhereQueryResult
+    not(id: ModelPair[1]): WhereQueryResult
 
-    more(id: ModelPair[1] /* Id */): WhereQueryResult
+    more(id: ModelPair[1]): WhereQueryResult
 
-    moreOrEqual(id: ModelPair[1] /* Id */): WhereQueryResult
+    moreOrEqual(id: ModelPair[1]): WhereQueryResult
 
-    in(ids: ModelPair[1] /* Id */[]): WhereQueryResult
+    in(ids: ModelPair[1][]): WhereQueryResult
 
-    notIn(ids: ModelPair[1] /* Id */[]): WhereQueryResult
+    notIn(ids: ModelPair[1][]): WhereQueryResult
   }
 
   export interface QueryPrimitiveField<
@@ -791,7 +801,7 @@ export namespace TypesaurusQuery {
     DateStrategy extends Core.ServerDateStrategy,
     Environment extends Core.RuntimeEnvironment
   > extends CommonQueryHelpers<
-      ModelPair[0] /* Model */,
+      ModelPair[0],
       ModelPair[1] /* Path */,
       void,
       void,

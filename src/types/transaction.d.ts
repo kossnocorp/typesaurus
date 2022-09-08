@@ -22,7 +22,7 @@ export namespace TypesaurusTransaction {
   > {
     type: 'ref'
     collection: ReadCollection<ModelPair, Environment>
-    id: ModelPair[1] /* Id */
+    id: ModelPair[1]
   }
 
   /**
@@ -34,20 +34,18 @@ export namespace TypesaurusTransaction {
   > extends DocAPI<ModelPair, Environment> {
     type: 'ref'
     collection: WriteCollection<ModelPair, Environment>
-    id: ModelPair[1] /* Id */
+    id: ModelPair[1]
   }
 
   export type DocAPI<
     ModelPair extends Core.ModelIdPair,
     Environment extends Core.RuntimeEnvironment | undefined = undefined
   > = {
-    set(data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>): void
+    set(data: Core.SetModelArg<ModelPair[0], Environment>): void
 
-    update(
-      data: Update.UpdateModelArg<ModelPair[0] /* Model */, Environment>
-    ): void
+    update(data: Update.UpdateModelArg<ModelPair[0], Environment>): void
 
-    upset(data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>): void
+    upset(data: Core.SetModelArg<ModelPair[0], Environment>): void
 
     remove(): void
   }
@@ -67,7 +65,7 @@ export namespace TypesaurusTransaction {
   export interface ReadServerDoc<ModelPair extends Core.ModelIdPair> {
     type: 'doc'
     ref: ReadRef<ModelPair, 'server'>
-    data: Core.ModelNodeData<ModelPair[0] /* Model */>
+    data: Core.ModelNodeData<ModelPair[0]>
     environment: 'server'
     source?: undefined
     dateStrategy?: undefined
@@ -77,7 +75,7 @@ export namespace TypesaurusTransaction {
   export interface ReadClientDoc<ModelPair extends Core.ModelIdPair> {
     type: 'doc'
     ref: ReadRef<ModelPair, 'client'>
-    data: Core.AnyModelData<ModelPair[0] /* Model */, 'present'>
+    data: Core.AnyModelData<ModelPair[0], 'present'>
     environment: 'web'
     source: 'database'
     dateStrategy?: undefined
@@ -100,7 +98,7 @@ export namespace TypesaurusTransaction {
     extends DocAPI<ModelPair, 'server'> {
     type: 'doc'
     ref: WriteRef<ModelPair, 'server'>
-    data: Core.ModelNodeData<ModelPair[0] /* Model */>
+    data: Core.ModelNodeData<ModelPair[0]>
     environment: 'server'
     source?: undefined
     dateStrategy?: undefined
@@ -111,7 +109,7 @@ export namespace TypesaurusTransaction {
     extends DocAPI<ModelPair, 'client'> {
     type: 'doc'
     ref: WriteRef<ModelPair, 'client'>
-    data: Core.AnyModelData<ModelPair[0] /* Model */, 'present'>
+    data: Core.AnyModelData<ModelPair[0], 'present'>
     environment: 'web'
     source: 'database'
     dateStrategy?: undefined
@@ -136,7 +134,7 @@ export namespace TypesaurusTransaction {
     NestedSchema extends WriteSchema<Environment>,
     Environment extends Core.RuntimeEnvironment | undefined = undefined
   > extends WriteCollection<ModelPair, Environment> {
-    (id: ModelPair[1] /* Id */): NestedSchema
+    (id: ModelPair[1]): NestedSchema
   }
 
   /**
@@ -150,21 +148,21 @@ export namespace TypesaurusTransaction {
     path: string
 
     set(
-      id: ModelPair[1] /* Id */,
-      data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>
+      id: ModelPair[1],
+      data: Core.SetModelArg<ModelPair[0], Environment>
     ): void
 
     upset(
-      id: ModelPair[1] /* Id */,
-      data: Core.SetModelArg<ModelPair[0] /* Model */, Environment>
+      id: ModelPair[1],
+      data: Core.SetModelArg<ModelPair[0], Environment>
     ): void
 
     update(
-      id: ModelPair[1] /* Id */,
-      data: Update.UpdateModelArg<ModelPair[0] /* Model */, Environment>
+      id: ModelPair[1],
+      data: Update.UpdateModelArg<ModelPair[0], Environment>
     ): void
 
-    remove(id: ModelPair[1] /* Id */): void
+    remove(id: ModelPair[1]): void
   }
 
   export type AnyReadCollection<
@@ -185,7 +183,7 @@ export namespace TypesaurusTransaction {
     NestedSchema extends ReadSchema<Environment>,
     Environment extends Core.RuntimeEnvironment | undefined = undefined
   > extends ReadCollection<ModelPair, Environment> {
-    (id: ModelPair[1] /* Id */): NestedSchema
+    (id: ModelPair[1]): NestedSchema
   }
 
   export interface ReadCollection<
@@ -195,9 +193,7 @@ export namespace TypesaurusTransaction {
     /** The Firestore path */
     path: string
 
-    get(
-      id: ModelPair[1] /* Id */
-    ): Promise<ReadDoc<ModelPair, Environment> | null>
+    get(id: ModelPair[1]): Promise<ReadDoc<ModelPair, Environment> | null>
   }
 
   /**

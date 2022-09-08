@@ -2,34 +2,37 @@ import type { TypesaurusUtils as Utils } from './utils'
 import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusUpdate {
-  export interface CollectionFunction<ModelPair extends Core.ModelIdPair> {
+  export interface CollectionFunction<
+    ModelPair extends Core.ModelIdPair,
+    ParentModelPair extends Core.ModelIdPair
+  > {
     <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
-      id: ModelPair[1] /* Id */,
-      data: TypesaurusUpdate.UpdateModelArg<
-        ModelPair[0] /* Model */,
-        Environment
-      >,
+      id: ModelPair[1],
+      data: TypesaurusUpdate.UpdateModelArg<ModelPair[0], Environment>,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<ModelPair>>
+    ): Promise<Core.Ref<ModelPair, ParentModelPair>>
 
     build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
-      id: ModelPair[1] /* Id */,
+      id: ModelPair[1],
       options?: Core.OperationOptions<Environment>
-    ): Builder<ModelPair>
+    ): Builder<ModelPair, ParentModelPair>
   }
 
-  export interface DocFunction<ModelPair extends Core.ModelIdPair> {
+  export interface DocFunction<
+    ModelPair extends Core.ModelIdPair,
+    ParentModelPair extends Core.ModelIdPair
+  > {
     <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       data: TypesaurusUpdate.UpdateModelArg<
-        ModelPair[0] /* Model */,
+        Core.ResolveModelType<ModelPair[0]>,
         Environment
       >,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<ModelPair>>
+    ): Promise<Core.Ref<ModelPair, ParentModelPair>>
 
     build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       options?: Core.OperationOptions<Environment>
-    ): Builder<ModelPair>
+    ): Builder<ModelPair, ParentModelPair>
   }
 
   /**
@@ -743,7 +746,7 @@ export namespace TypesaurusUpdate {
             >[Key6]
           >[Key7]
         >[Key8]
-      >,
+      >[Key9],
       Key10,
       SetResult
     >
@@ -752,8 +755,10 @@ export namespace TypesaurusUpdate {
   export interface UpdateHelpers<Model extends Core.ModelType>
     extends CommonHelpers<Model, UpdateField<Model>> {}
 
-  export interface Builder<ModelPair extends Core.ModelIdPair>
-    extends CommonHelpers<ModelPair[0] /* Model */, void> {
-    run(): Promise<Core.Ref<ModelPair>>
+  export interface Builder<
+    ModelPair extends Core.ModelIdPair,
+    ParentModelPair extends Core.ModelIdPair
+  > extends CommonHelpers<ModelPair[0], void> {
+    run(): Promise<Core.Ref<ModelPair, ParentModelPair>>
   }
 }

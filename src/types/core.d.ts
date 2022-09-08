@@ -13,7 +13,85 @@ export namespace TypesaurusCore {
     __dontUseWillBeUndefined__: Path
   }
 
-  export type ModelType = Record<string, any>
+  export type ModelType =
+    | ModelObjectType
+    | [ModelObjectType, ModelObjectType]
+    | [ModelObjectType, ModelObjectType, ModelObjectType]
+  // | [ModelObjectType, ModelObjectType, ModelObjectType, ModelObjectType]
+  // | [
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType
+  //   ]
+  // | [
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType
+  //   ]
+  // | [
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType
+  //   ]
+  // | [
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType
+  //   ]
+  // | [
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType
+  //   ]
+  // | [
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType,
+  //     ModelObjectType
+  //   ]
+
+  export type ModelObjectType = object & { length?: never }
+
+  export type ResolveModelType<Model extends ModelType> = Model extends [
+    infer A extends ModelObjectType,
+    infer B extends ModelObjectType,
+    infer C extends ModelObjectType
+  ]
+    ? A | B | C
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType
+      ]
+    ? A | B
+    : Model extends ModelObjectType
+    ? Model
+    : never
 
   export type ModelIdPair = [ModelType, Id<string>]
 
@@ -28,6 +106,8 @@ export namespace TypesaurusCore {
    */
   export interface DocChange<
     ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -36,7 +116,14 @@ export namespace TypesaurusCore {
     readonly type: DocChangeType
 
     /** The document affected by this change. */
-    readonly doc: EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>
+    readonly doc: EnvironmentDoc<
+      ModelPair,
+      ParentModelPair,
+      Narrowed,
+      Source,
+      DateStrategy,
+      Environment
+    >
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -60,6 +147,7 @@ export namespace TypesaurusCore {
    */
   export interface SubscriptionListMeta<
     ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
@@ -69,7 +157,14 @@ export namespace TypesaurusCore {
      * this is the first snapshot, all documents will be in the list as added
      * changes.
      */
-    changes: () => DocChange<ModelPair, Source, DateStrategy, Environment>[]
+    changes: () => DocChange<
+      ModelPair,
+      ParentModelPair,
+      Narrowed,
+      Source,
+      DateStrategy,
+      Environment
+    >[]
 
     /** The number of documents in the QuerySnapshot. */
     readonly size: number
@@ -93,31 +188,113 @@ export namespace TypesaurusCore {
    */
   export type Doc<
     ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string,
     Source extends DataSource = DataSource,
     DateStrategy extends ServerDateStrategy = ServerDateStrategy,
     Environment extends RuntimeEnvironment = RuntimeEnvironment
-  > = EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>
+  > = EnvironmentDoc<
+    ModelPair,
+    ParentModelPair,
+    Narrowed,
+    Source,
+    DateStrategy,
+    Environment
+  >
+
+  export type VariableEnvironmentDoc<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Source extends DataSource,
+    DateStrategy extends ServerDateStrategy,
+    Environment extends RuntimeEnvironment | undefined = undefined
+  > =
+    | (ModelPair[0] extends [
+        infer A extends ModelType,
+        infer B extends ModelType,
+        infer C extends ModelType
+      ]
+        ?
+            | EnvironmentDoc<
+                [A, ModelPair[1]],
+                ParentModelPair,
+                string,
+                Source,
+                DateStrategy,
+                Environment
+              >
+            | EnvironmentDoc<
+                [B, ModelPair[1]],
+                ParentModelPair,
+                string,
+                Source,
+                DateStrategy,
+                Environment
+              >
+            | EnvironmentDoc<
+                [C, ModelPair[1]],
+                ParentModelPair,
+                string,
+                Source,
+                DateStrategy,
+                Environment
+              >
+        : ModelPair[0] extends [
+            infer A extends ModelType,
+            infer B extends ModelType
+          ]
+        ?
+            | EnvironmentDoc<
+                [A, ModelPair[1]],
+                ParentModelPair,
+                string,
+                Source,
+                DateStrategy,
+                Environment
+              >
+            | EnvironmentDoc<
+                [B, ModelPair[1]],
+                ParentModelPair,
+                string,
+                Source,
+                DateStrategy,
+                Environment
+              >
+        : EnvironmentDoc<
+            ModelPair,
+            ParentModelPair,
+            string,
+            Source,
+            DateStrategy,
+            Environment
+          > | null)
+    | null
 
   export type EnvironmentDoc<
     ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy,
     Environment extends RuntimeEnvironment | undefined = undefined
   > = Environment extends 'server'
-    ? ServerDoc<ModelPair>
+    ? ServerDoc<ModelPair, ParentModelPair, Narrowed>
     : Source extends 'database'
-    ? ClientDoc<ModelPair, 'database', DateStrategy>
+    ? ClientDoc<ModelPair, ParentModelPair, Narrowed, 'database', DateStrategy>
     : DateStrategy extends 'estimate'
-    ? ClientDoc<ModelPair, 'database', 'estimate'>
+    ? ClientDoc<ModelPair, ParentModelPair, Narrowed, 'database', 'estimate'>
     : DateStrategy extends 'previous'
-    ? ClientDoc<ModelPair, 'database', 'previous'>
-    : ClientDoc<ModelPair, Source, DateStrategy>
+    ? ClientDoc<ModelPair, ParentModelPair, Narrowed, 'database', 'previous'>
+    : ClientDoc<ModelPair, ParentModelPair, Narrowed, Source, DateStrategy>
 
-  export interface ServerDoc<ModelPair extends ModelIdPair>
-    extends DocAPI<ModelPair> {
+  export interface ServerDoc<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string
+  > extends DocAPI<ModelPair, ParentModelPair, Narrowed> {
     type: 'doc'
-    ref: Ref<ModelPair>
-    data: ModelNodeData<ModelPair[0] /* Model */>
+    ref: Ref<ModelPair, ParentModelPair, Narrowed>
+    data: ModelNodeData<ModelPair[0]>
     environment: 'server'
     source?: undefined
     dateStrategy?: undefined
@@ -126,16 +303,18 @@ export namespace TypesaurusCore {
 
   export interface ClientDoc<
     ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string,
     Source extends DataSource,
     DateStrategy extends ServerDateStrategy
-  > extends DocAPI<ModelPair> {
+  > extends DocAPI<ModelPair, ParentModelPair, Narrowed> {
     type: 'doc'
-    ref: Ref<ModelPair>
+    ref: Ref<ModelPair, ParentModelPair, Narrowed>
     data: Source extends 'database'
-      ? AnyModelData<ModelPair[0] /* Model */, 'present'>
+      ? AnyModelData<ModelPair[0], 'present'>
       : DateStrategy extends 'estimate'
-      ? AnyModelData<ModelPair[0] /* Model */, 'present'>
-      : AnyModelData<ModelPair[0] /* Model */, 'nullable'>
+      ? AnyModelData<ModelPair[0], 'present'>
+      : AnyModelData<ModelPair[0], 'nullable'>
     environment: 'client'
     source: Source
     dateStrategy: DateStrategy
@@ -162,7 +341,7 @@ export namespace TypesaurusCore {
   export type ModelField<
     Field,
     DateNullable extends ServerDateNullable
-  > = Field extends Ref<any>
+  > = Field extends Ref<any, any, any>
     ? ModelFieldNullable<Field>
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
@@ -190,11 +369,14 @@ export namespace TypesaurusCore {
   /**
    * The document reference type.
    */
-  export interface Ref<ModelPair extends ModelIdPair>
-    extends DocAPI<ModelPair> {
+  export interface Ref<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string
+  > extends DocAPI<ModelPair, ParentModelPair, Narrowed> {
     type: 'ref'
-    collection: RichCollection<ModelPair>
-    id: ModelPair[1] /* Id */
+    collection: RichCollection<ModelPair, ParentModelPair, Narrowed>
+    id: ModelPair[1]
   }
 
   export type ServerDateNullable = 'nullable' | 'present'
@@ -396,8 +578,18 @@ export namespace TypesaurusCore {
     catch(callback: SubscriptionErrorCallback): OffSubscription
   }
 
-  export type GetSubscriptionCallback<ModelPair extends ModelIdPair> = {
-    (result: Doc<ModelPair> | null /*, info: SnapshotInfo<Model> */): void
+  export type GetSubscriptionCallback<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string
+  > = {
+    (
+      result: Doc<
+        ModelPair,
+        ParentModelPair,
+        Narrowed
+      > | null /*, info: SnapshotInfo<Model> */
+    ): void
   }
 
   export interface SubscriptionPromise<
@@ -429,8 +621,12 @@ export namespace TypesaurusCore {
     ? (result: Result) => void
     : (result: Result, meta: SubscriptionMeta) => void
 
-  export type ListSubscriptionCallback<ModelPair extends ModelIdPair> = {
-    (result: Doc<ModelPair>[]): void
+  export type ListSubscriptionCallback<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string
+  > = {
+    (result: Doc<ModelPair, ParentModelPair, Narrowed>[]): void
   }
 
   export interface Request<Kind> {
@@ -454,7 +650,11 @@ export namespace TypesaurusCore {
     queries: Query.Query<any>[]
   }
 
-  export interface DocAPI<ModelPair extends ModelIdPair> {
+  export interface DocAPI<
+    ModelPair extends ModelIdPair, // Narrowed model pair, i.e. [User, Id<'users'>]
+    ParentModelPair extends ModelIdPair, // Parent pair, i.e. [[Text, Image], Id<'content'>]
+    Narrowed extends string
+  > {
     get<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -463,25 +663,48 @@ export namespace TypesaurusCore {
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       GetRequest,
-      EnvironmentDoc<ModelPair, Source, DateStrategy, Environment> | null
+      VariableEnvironmentDoc<
+        ModelPair,
+        ParentModelPair,
+        Source,
+        DateStrategy,
+        Environment
+      > | null
     >
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ResolveModelType<ParentModelPair[0]>, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ResolveModelType<ParentModelPair[0]>, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
-    update: Update.DocFunction<ModelPair>
+    update: ParentModelPair[0] extends ModelObjectType
+      ? Update.DocFunction<ModelPair, ParentModelPair>
+      : Narrowed extends 'narrowed'
+      ? Update.DocFunction<ModelPair, ParentModelPair>
+      : never
 
-    remove(): Promise<Ref<ModelPair>>
+    remove(): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
+
+    narrow<ExpectedModel extends ModelType>(
+      fn: DocNarrowFunction<ResolveModelType<ModelPair[0]>, ExpectedModel>
+    ): this is Doc<[ExpectedModel, ModelPair[1]], ParentModelPair, 'narrowed'>
   }
 
-  export interface CollectionAPI<ModelPair extends ModelIdPair> {
+  export type DocNarrowFunction<
+    InputModel extends ModelType,
+    ExpectedModel extends ModelType
+  > = (data: InputModel) => false | ExpectedModel
+
+  export interface CollectionAPI<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string
+  > {
     all<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
@@ -490,18 +713,34 @@ export namespace TypesaurusCore {
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       AllRequest,
-      EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>[],
-      SubscriptionListMeta<ModelPair, Source, DateStrategy, Environment>
+      EnvironmentDoc<
+        ModelPair,
+        ParentModelPair,
+        Narrowed,
+        Source,
+        DateStrategy,
+        Environment
+      >[],
+      SubscriptionListMeta<
+        ModelPair,
+        ParentModelPair,
+        Source,
+        DateStrategy,
+        Environment
+      >
     >
 
-    query: Query.Function<ModelPair>
+    query: Query.Function<ModelPair, ParentModelPair>
   }
 
   /**
    *
    */
-  export interface RichCollection<ModelPair extends ModelIdPair>
-    extends CollectionAPI<ModelPair> {
+  export interface RichCollection<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string
+  > extends CollectionAPI<ModelPair, ParentModelPair, Narrowed> {
     /** The collection type */
     type: 'collection'
 
@@ -513,11 +752,17 @@ export namespace TypesaurusCore {
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: ModelPair[1] /* Id */,
+      id: ModelPair[1],
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       GetRequest,
-      EnvironmentDoc<ModelPair, Source, DateStrategy, Environment> | null
+      VariableEnvironmentDoc<
+        ModelPair,
+        ParentModelPair,
+        Source,
+        DateStrategy,
+        Environment
+      >
     >
 
     many<
@@ -525,61 +770,83 @@ export namespace TypesaurusCore {
       DateStrategy extends TypesaurusCore.ServerDateStrategy,
       Environment extends TypesaurusCore.RuntimeEnvironment
     >(
-      ids: ModelPair[1] /* Id */[],
+      ids: ModelPair[1][],
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       ManyRequest,
-      Array<EnvironmentDoc<ModelPair, Source, DateStrategy, Environment> | null>
+      Array<EnvironmentDoc<
+        ModelPair,
+        ParentModelPair,
+        Narrowed,
+        Source,
+        DateStrategy,
+        Environment
+      > | null>
     >
 
     add<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
+      data: SetModelArg<ResolveModelType<ModelPair[0]>, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
     set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: ModelPair[1] /* Id */,
-      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
+      id: ModelPair[1],
+      data: SetModelArg<ResolveModelType<ParentModelPair[0]>, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
     upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      id: ModelPair[1] /* Id */,
-      data: SetModelArg<ModelPair[0] /* Model */, Environment>,
+      id: ModelPair[1],
+      data: SetModelArg<ResolveModelType<ParentModelPair[0]>, Environment>,
       options?: OperationOptions<Environment>
-    ): Promise<Ref<ModelPair>>
+    ): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
-    update: Update.CollectionFunction<ModelPair>
+    update: ParentModelPair[0] extends ModelObjectType
+      ? Update.CollectionFunction<ModelPair, ParentModelPair>
+      : never
 
-    remove(id: ModelPair[1] /* Id */): Promise<Ref<ModelPair>>
+    remove(id: ModelPair[1]): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
-    ref(id: ModelPair[1] /* Id */): Ref<ModelPair>
+    ref(id: ModelPair[1]): Ref<ModelPair, ParentModelPair, Narrowed>
 
     doc<
       Source extends DataSource,
       DateStrategy extends ServerDateStrategy,
       Environment extends RuntimeEnvironment
     >(
-      id: ModelPair[1] /* Id */,
-      data: ModelPair[0] /* Model */
-    ): EnvironmentDoc<ModelPair, Source, DateStrategy, Environment>
+      id: ModelPair[1],
+      data: ModelPair[0]
+    ): EnvironmentDoc<
+      ModelPair,
+      ParentModelPair,
+      Narrowed,
+      Source,
+      DateStrategy,
+      Environment
+    >
 
-    id(id: string): ModelPair[1] /* Id */
+    id(id: string): ModelPair[1]
 
-    id(): Promise<ModelPair[1] /* Id */>
+    id(): Promise<ModelPair[1]>
   }
 
   export interface NestedRichCollection<
     ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string,
     Schema extends AnyDB
-  > extends RichCollection<ModelPair> {
-    (id: ModelPair[1] /* Id */): Schema
+  > extends RichCollection<ModelPair, ParentModelPair, Narrowed> {
+    (id: ModelPair[1]): Schema
     schema: Schema
   }
 
-  export type Collection<ModelPair extends ModelIdPair> =
-    | RichCollection<ModelPair>
-    | NestedRichCollection<ModelPair, AnyDB>
+  export type Collection<
+    ModelPair extends ModelIdPair,
+    ParentModelPair extends ModelIdPair,
+    Narrowed extends string
+  > =
+    | RichCollection<ModelPair, ParentModelPair, Narrowed>
+    | NestedRichCollection<ModelPair, ParentModelPair, Narrowed, AnyDB>
 
   export interface PlainCollection<
     Model extends ModelType,
@@ -615,7 +882,7 @@ export namespace TypesaurusCore {
   }
 
   export interface AnyDB {
-    [CollectionPath: string]: Collection<any>
+    [CollectionPath: string]: Collection<any, any, any>
   }
 
   export type DB<Schema, BasePath extends string | undefined = undefined> = {
@@ -632,6 +899,13 @@ export namespace TypesaurusCore {
                 ? CustomId
                 : Id<Utils.ComposePath<BasePath, Path>>
             ],
+            [
+              Model,
+              CustomId extends Id<any>
+                ? CustomId
+                : Id<Utils.ComposePath<BasePath, Path>>
+            ],
+            string,
             DB<Schema, Utils.ComposePath<BasePath, Path>>
           >
         : Schema[Path] extends PlainCollection<infer Model, infer CustomId>
@@ -641,7 +915,14 @@ export namespace TypesaurusCore {
               CustomId extends Id<any>
                 ? CustomId
                 : Id<Utils.ComposePath<BasePath, Path>>
-            ]
+            ],
+            [
+              Model,
+              CustomId extends Id<any>
+                ? CustomId
+                : Id<Utils.ComposePath<BasePath, Path>>
+            ],
+            string
           >
         : never
       : never
@@ -660,8 +941,8 @@ export namespace TypesaurusCore {
      * the subcollection types, i.e. `["comments"]["Id"]`.
      */
     [Path in keyof DB]: DB[Path] extends
-      | RichCollection<infer ModelPair>
-      | NestedRichCollection<infer ModelPair, any>
+      | RichCollection<infer ModelPair, infer ParentModelPair, any>
+      | NestedRichCollection<infer ModelPair, infer ParentModelPair, any, any>
       ? {
           /**
            * The documents' id.
@@ -669,33 +950,50 @@ export namespace TypesaurusCore {
            * Essentially it's a string, but TypeScript will force you to use
            * `.toString()` to cast it to `string`.
            */
-          Id: ModelPair[1] /* Id */
+          Id: ModelPair[1]
 
           /**
            * The documents' reference, contains its id and collection.
            */
-          Ref: TypesaurusCore.Ref<ModelPair>
+          Ref: TypesaurusCore.Ref<ModelPair, ParentModelPair, string>
 
           /**
            * The main document object, contains reference with id and collection
            * and document data.
            */
-          Doc: TypesaurusCore.EnvironmentDoc<ModelPair, any, any, any>
+          Doc: TypesaurusCore.EnvironmentDoc<
+            ModelPair,
+            ParentModelPair,
+            string,
+            any,
+            any
+          >
 
           /**
            * The document data
            */
-          Data: ModelData<ModelPair[0] /* Model */>
+          Data: ModelData<ModelPair[0]>
 
           /**
            * Read result, either doc, `null` (not found) or `undefined`
            * (the read is not finished/started yet).
            */
           Result:
-            | TypesaurusCore.EnvironmentDoc<ModelPair, any, any, any>
+            | TypesaurusCore.EnvironmentDoc<
+                ModelPair,
+                ParentModelPair,
+                string,
+                any,
+                any
+              >
             | null
             | undefined
-        } & (DB[Path] extends NestedRichCollection<any, infer Schema>
+        } & (DB[Path] extends NestedRichCollection<
+          any,
+          any,
+          any,
+          infer Schema extends TypesaurusCore.DB<any, any>
+        >
           ? InferSchema<Schema>
           : {})
       : never
@@ -706,14 +1004,18 @@ export namespace TypesaurusCore {
    * narrow down data type to a specific type.
    */
   export type NarrowDoc<
-    OriginalDoc extends Doc<[any, any]>,
+    OriginalDoc extends Doc<[any, any], [any, any], any>,
     NarrowToModel extends ModelData<any>
-  > = OriginalDoc extends Doc<infer ModelPair>
+  > = OriginalDoc extends Doc<
+    infer ModelPair,
+    infer ParentModelPair,
+    infer Narrowed
+  >
     ? ModelPair extends [infer OriginalModel, infer OriginalId]
       ? OriginalModel extends NarrowToModel
         ? NarrowToModel extends ModelData<any>
           ? OriginalId extends Id<any>
-            ? Doc<[NarrowToModel, OriginalId]>
+            ? Doc<[NarrowToModel, OriginalId], ParentModelPair, Narrowed>
             : never
           : never
         : never

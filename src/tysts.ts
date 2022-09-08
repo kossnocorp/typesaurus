@@ -85,12 +85,23 @@ interface Organization {
   }
 }
 
+interface TextContent {
+  type: 'text'
+  text: string
+}
+
+interface ImageContent {
+  type: 'image'
+  src: string
+}
+
 // Flat schema
 const db = schema(($) => ({
   users: $.collection<User>(),
   posts: $.collection<Post>(),
   accounts: $.collection<Account>(),
-  organizations: $.collection<Organization>()
+  organizations: $.collection<Organization>(),
+  content: $.collection<[TextContent, ImageContent]>()
 }))
 
 async function doc() {
@@ -248,6 +259,8 @@ async function query() {
 
   // Runtime environment
 
+  const ads = user.environment
+
   if (user.environment === 'server') {
     user.data.createdAt.getDay()
   } else {
@@ -344,6 +357,59 @@ async function query() {
   await db.accounts.query(($) => $.field('contacts', 'nope').order())
 }
 
+async function add() {
+  // Simple add
+
+  await db.posts.add({
+    title: 'Hello, world!',
+    text: 'Hello!'
+  })
+
+  // Upset with helpers
+
+  await db.users.add(($) => ({
+    name: 'Sasha',
+    contacts: { email: 'koss@nocorp.me' },
+    createdAt: $.serverDate()
+  }))
+
+  await db.users.add(
+    {
+      name: 'Sasha',
+      contacts: { email: 'koss@nocorp.me' },
+      createdAt: new Date()
+    },
+    { as: 'server' }
+  )
+
+  // Nullable fields
+
+  db.posts.add({
+    title: 'Hello, world!',
+    text: 'Hello!',
+    likes: null
+  })
+
+  // Adding to variable collection
+
+  await db.content.add({
+    type: 'text',
+    text: 'Hello, world!'
+  })
+
+  await db.content.add({
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
+
+  await db.content.add({
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error - text is not valid for image
+    text: 'Nope'
+  })
+}
+
 async function set() {
   // Simple set
 
@@ -377,39 +443,68 @@ async function set() {
     text: 'Hello!',
     likes: null
   })
-}
 
-async function add() {
-  // Simple add
+  // Setting to variable collection
 
-  await db.posts.add({
-    title: 'Hello, world!',
-    text: 'Hello!'
+  const contentId = db.content.id('content-id')
+
+  await db.content.set(contentId, {
+    type: 'text',
+    text: 'Hello, world!'
   })
 
-  // Upset with helpers
+  await db.content.set(contentId, {
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
 
-  await db.users.add(($) => ({
-    name: 'Sasha',
-    contacts: { email: 'koss@nocorp.me' },
-    createdAt: $.serverDate()
-  }))
+  await db.content.set(contentId, {
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error - text is not valid for image
+    text: 'Nope'
+  })
 
-  await db.users.add(
-    {
-      name: 'Sasha',
-      contacts: { email: 'koss@nocorp.me' },
-      createdAt: new Date()
-    },
-    { as: 'server' }
-  )
+  // ...via ref
 
-  // Nullable fields
+  const contentRef = db.content.ref(contentId)
 
-  db.posts.add({
-    title: 'Hello, world!',
-    text: 'Hello!',
-    likes: null
+  await contentRef.set({
+    type: 'text',
+    text: 'Hello, world!'
+  })
+
+  await contentRef.set({
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
+
+  await contentRef.set({
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error - text is not valid for image
+    text: 'Nope'
+  })
+
+  // ...via doc
+
+  const contentDoc = await db.content.get(contentId)
+
+  await contentDoc?.set({
+    type: 'text',
+    text: 'Hello, world!'
+  })
+
+  await contentDoc?.set({
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
+
+  await contentDoc?.set({
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error - text is not valid for image
+    text: 'Nope'
   })
 }
 
@@ -445,6 +540,69 @@ async function upset() {
     title: 'Hello, world!',
     text: 'Hello!',
     likes: null
+  })
+
+  // Upsetting to variable collection
+
+  const contentId = db.content.id('content-id')
+
+  await db.content.upset(contentId, {
+    type: 'text',
+    text: 'Hello, world!'
+  })
+
+  await db.content.upset(contentId, {
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
+
+  await db.content.upset(contentId, {
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error - text is not valid for image
+    text: 'Nope'
+  })
+
+  // ...via ref
+
+  const contentRef = db.content.ref(contentId)
+
+  await contentRef.upset({
+    type: 'text',
+    text: 'Hello, world!'
+  })
+
+  await contentRef.upset({
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
+
+  await contentRef.upset({
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error - text is not valid for image
+    text: 'Nope'
+  })
+
+  // ...via doc
+
+  const contentDoc = await db.content.get(contentId)
+
+  await contentDoc?.upset({
+    type: 'text',
+    text: 'Hello, world!'
+  })
+
+  await contentDoc?.upset({
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
+
+  await contentDoc?.upset({
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error - text is not valid for image
+    text: 'Nope'
   })
 }
 
@@ -620,6 +778,36 @@ async function update() {
       published: $.increment(0)
     })
   )
+
+  // Updating to variable collectione
+
+  const contentId = db.content.id('hello-world!')
+
+  // Can't update variable model shape without narrowing
+
+  // @ts-expect-error - can't update varible model collection
+  db.content.update(contentId, {
+    type: 'text',
+    text: 'Hello, cruel world!'
+  })
+
+  const content = await db.content.get(contentId)
+
+  // @ts-expect-error - update is not a function for variable model
+  content?.update(
+    // Force Prettier to move object to the new line to target expect error tag better
+    {
+      type: 'text',
+      text: 'Hello, cruel world!'
+    }
+  )
+
+  if (content?.narrow<TextContent>((data) => data.type === 'text' && data)) {
+    // @ts-expect-error - can't update - we narrowed down to text type
+    await content.update({ src: 'Nope' })
+
+    await content.update({ text: 'Yup' })
+  }
 }
 
 async function sharedIds() {
