@@ -1,10 +1,5 @@
 export namespace TypesaurusUtils {
   /**
-   * Plain object type that excludes arrays.
-   */
-  export type PlainObject = object & { length?: never }
-
-  /**
    * Composes collection path from base path and collection name.
    */
   export type ComposePath<
@@ -1583,6 +1578,110 @@ export namespace TypesaurusUtils {
         Key10
       >
 
+  export type SharedShape<
+    A,
+    B,
+    C = undefined,
+    D = undefined,
+    E = undefined,
+    F = undefined,
+    G = undefined,
+    H = undefined,
+    I = undefined,
+    J = undefined
+  > = C extends undefined
+    ? SharedShape2<A, B>
+    : D extends undefined
+    ? SharedShape3<A, B, C>
+    : E extends undefined
+    ? SharedShape4<A, B, C, D>
+    : F extends undefined
+    ? SharedShape5<A, B, C, D, E>
+    : G extends undefined
+    ? SharedShape6<A, B, C, D, E, F>
+    : H extends undefined
+    ? SharedShape7<A, B, C, D, E, F, G>
+    : I extends undefined
+    ? SharedShape<A, B, C, D, E, F, G, H>
+    : J extends undefined
+    ? SharedShape9<A, B, C, D, E, F, G, H, I>
+    : SharedShape10<A, B, C, D, E, F, G, H, I, J>
+
+  type SharedShape2<A, B> = {
+    [Key in keyof (A | B)]: A[Key] & B[Key]
+  }
+
+  type SharedShape3<A, B, C> = {
+    [Key in keyof (A | B | C)]: A[Key] & B[Key] & C[Key]
+  }
+
+  type SharedShape4<A, B, C, D> = {
+    [Key in keyof (A | B | C | D)]: A[Key] & B[Key] & C[Key] & D[Key]
+  }
+
+  type SharedShape5<A, B, C, D, E> = {
+    [Key in keyof (A | B | C | D | E)]: A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key]
+  }
+
+  type SharedShape6<A, B, C, D, E, F> = {
+    [Key in keyof (A | B | C | D | E | F)]: A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key]
+  }
+
+  type SharedShape7<A, B, C, D, E, F, G> = {
+    [Key in keyof (A | B | C | D | E | F | G)]: A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key] &
+      G[Key]
+  }
+
+  type SharedShape8<A, B, C, D, E, F, G, H> = {
+    [Key in keyof (A | B | C | D | E | F | G | H)]: A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key] &
+      G[Key] &
+      H[Key]
+  }
+
+  type SharedShape9<A, B, C, D, E, F, G, H, I> = {
+    [Key in keyof (A | B | C | D | E | F | G | H | I)]: A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key] &
+      G[Key] &
+      H[Key] &
+      I[Key]
+  }
+
+  type SharedShape10<A, B, C, D, E, F, G, H, I, J> = {
+    [Key in keyof (A | B | C | D | E | F | G | H | I | J)]: A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key] &
+      G[Key] &
+      H[Key] &
+      I[Key] &
+      J[Key]
+  }
+
   // /**
   //  * Creates interfaces union where all fields from all variants are present.
   //  */
@@ -2009,11 +2108,11 @@ export namespace TypesaurusUtils {
   //       UndefinedDifference<J, H> &
   //       UndefinedDifference<J, I>)
 
-  // export type UndefinedDifference<BaseType, ApplyingType> = {
-  //   [Key in Exclude<keyof ApplyingType, keyof BaseType>]?: undefined
-  // }
+  export type UndefinedDifference<BaseType, ApplyingType> = {
+    [Key in Exclude<keyof ApplyingType, keyof BaseType>]?: undefined
+  }
 
-  // export type WholeOrPartial<Type> = Type | { [Key in keyof Type]?: Type[Key] }
+  export type WholeOrPartial<Type> = Type | { [Key in keyof Type]?: Type[Key] }
 
-  // export type WholeOrEmpty<Type> = Type | { [Key in keyof Type]?: undefined }
+  export type WholeOrEmpty<Type> = Type | { [Key in keyof Type]?: undefined }
 }

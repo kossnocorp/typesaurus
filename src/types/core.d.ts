@@ -93,6 +93,21 @@ export namespace TypesaurusCore {
     ? Model
     : never
 
+  export type SharedModelType<Model extends ModelType> = Model extends [
+    infer A extends ModelObjectType,
+    infer B extends ModelObjectType,
+    infer C extends ModelObjectType
+  ]
+    ? Utils.SharedShape3<A, B, C>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType
+      ]
+    ? Utils.SharedShape2<A, B>
+    : Model extends ModelObjectType
+    ? Model
+    : never
+
   export type ModelIdPair = [ModelType, Id<string>]
 
   /**
@@ -682,11 +697,7 @@ export namespace TypesaurusCore {
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
-    update: ParentModelPair[0] extends ModelObjectType
-      ? Update.DocFunction<ModelPair, ParentModelPair>
-      : Narrowed extends 'narrowed'
-      ? Update.DocFunction<ModelPair, ParentModelPair>
-      : never
+    update: Update.DocFunction<ModelPair, ParentModelPair, Narrowed>
 
     remove(): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
@@ -801,9 +812,7 @@ export namespace TypesaurusCore {
       options?: OperationOptions<Environment>
     ): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 
-    update: ParentModelPair[0] extends ModelObjectType
-      ? Update.CollectionFunction<ModelPair, ParentModelPair>
-      : never
+    update: Update.CollectionFunction<ModelPair, ParentModelPair, Narrowed>
 
     remove(id: ModelPair[1]): Promise<Ref<ModelPair, ParentModelPair, Narrowed>>
 

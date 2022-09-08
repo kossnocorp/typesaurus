@@ -12,7 +12,8 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "noErrorTruncation": true,
+    // Enable for debug, but keep disabled after that as it slows down builds a lot
+    // "noErrorTruncation": true,
     "allowJs": true
   },
   "include": ["src/**/*.ts"],

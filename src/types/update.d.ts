@@ -4,35 +4,48 @@ import type { TypesaurusCore as Core } from './core'
 export namespace TypesaurusUpdate {
   export interface CollectionFunction<
     ModelPair extends Core.ModelIdPair,
-    ParentModelPair extends Core.ModelIdPair
+    ParentModelPair extends Core.ModelIdPair,
+    Narrowed extends string
   > {
     <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       id: ModelPair[1],
-      data: TypesaurusUpdate.UpdateModelArg<ModelPair[0], Environment>,
+      data: TypesaurusUpdate.UpdateModelArg<
+        Core.SharedModelType<ModelPair[0]>,
+        Environment
+      >,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<ModelPair, ParentModelPair>>
+    ): Promise<Core.Ref<ModelPair, ParentModelPair, Narrowed>>
 
     build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       id: ModelPair[1],
       options?: Core.OperationOptions<Environment>
-    ): Builder<ModelPair, ParentModelPair>
+    ): Builder<ModelPair, ParentModelPair, Narrowed>
   }
 
   export interface DocFunction<
     ModelPair extends Core.ModelIdPair,
-    ParentModelPair extends Core.ModelIdPair
+    ParentModelPair extends Core.ModelIdPair,
+    Narrowed extends string
   > {
     <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       data: TypesaurusUpdate.UpdateModelArg<
-        Core.ResolveModelType<ModelPair[0]>,
+        Core.SharedModelType<ModelPair[0]>,
         Environment
       >,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<ModelPair, ParentModelPair>>
+    ): Promise<Core.Ref<ModelPair, ParentModelPair, Narrowed>>
 
     build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       options?: Core.OperationOptions<Environment>
-    ): Builder<ModelPair, ParentModelPair>
+    ): Builder<ModelPair, ParentModelPair, Narrowed>
+  }
+
+  export interface Builder<
+    ModelPair extends Core.ModelIdPair,
+    ParentModelPair extends Core.ModelIdPair,
+    Narrowed extends string
+  > extends CommonHelpers<Core.SharedModelType<ModelPair[0]>, void> {
+    run(): Promise<Core.Ref<ModelPair, ParentModelPair, Narrowed>>
   }
 
   /**
@@ -754,11 +767,4 @@ export namespace TypesaurusUpdate {
 
   export interface UpdateHelpers<Model extends Core.ModelType>
     extends CommonHelpers<Model, UpdateField<Model>> {}
-
-  export interface Builder<
-    ModelPair extends Core.ModelIdPair,
-    ParentModelPair extends Core.ModelIdPair
-  > extends CommonHelpers<ModelPair[0], void> {
-    run(): Promise<Core.Ref<ModelPair, ParentModelPair>>
-  }
 }
