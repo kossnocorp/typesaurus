@@ -17,9 +17,9 @@ export namespace Typesaurus {
    * narrow down data type to a specific type.
    */
   export type NarrowDoc<
-    OriginalDoc extends Core.Doc<[any, any]>,
+    OriginalDoc extends Core.Doc<any>,
     NarrowToModel extends Core.ModelData<any>
-  > = Core.NarrowDoc<OriginalDoc, NarrowToModel>
+  > = Core.ReduceDoc<OriginalDoc, NarrowToModel>
 
   export type Data<Model extends Core.ModelType> = Core.ModelData<Model>
 
@@ -27,16 +27,36 @@ export namespace Typesaurus {
 
   export type Collection<
     Model extends Core.ModelType,
-    Path extends string
-  > = Core.Collection<[Model, Id<Path>]>
+    Path extends string,
+    WideModel extends Core.ModelType = Model,
+    Flags extends string = string
+  > = Core.Collection<Def<Model, Path, WideModel, Flags>>
 
-  export type Ref<Model extends Core.ModelType, Path extends string> = Core.Ref<
-    [Model, Id<Path>]
-  >
+  export type Ref<
+    Model extends Core.ModelType,
+    Path extends string,
+    WideModel extends Core.ModelType = Model,
+    Flags extends string = string
+  > = Core.Ref<Def<Model, Path, WideModel, Flags>>
 
-  export type Doc<Model extends Core.ModelType, Path extends string> = Core.Doc<
-    [Model, Id<Path>]
-  >
+  export type Doc<
+    Model extends Core.ModelType,
+    Path extends string,
+    WideModel extends Core.ModelType = Model,
+    Flags extends string = string
+  > = Core.Doc<Def<Model, Path, WideModel, Flags>>
+
+  export type Def<
+    Model extends Core.ModelType,
+    Path extends string,
+    WideModel extends Core.ModelType = Model,
+    Flags extends string = string
+  > = {
+    Model: Model
+    Id: Id<Path>
+    WideModel: WideModel
+    Flags: Flags
+  }
 
   export type ModelType = Core.ModelType
 

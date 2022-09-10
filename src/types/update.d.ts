@@ -2,50 +2,39 @@ import type { TypesaurusUtils as Utils } from './utils'
 import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusUpdate {
-  export interface CollectionFunction<
-    ModelPair extends Core.ModelIdPair,
-    ParentModelPair extends Core.ModelIdPair,
-    Narrowed extends string
-  > {
+  export interface CollectionFunction<Def extends Core.DocDef> {
     <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
-      id: ModelPair[1],
+      id: Def['Id'],
       data: TypesaurusUpdate.UpdateModelArg<
-        Core.SharedModelType<ModelPair[0]>,
+        Core.SharedModelType<Def['Model']>,
         Environment
       >,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<ModelPair, ParentModelPair, Narrowed>>
+    ): Promise<Core.Ref<Def>>
 
     build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
-      id: ModelPair[1],
+      id: Def['Id'],
       options?: Core.OperationOptions<Environment>
-    ): Builder<ModelPair, ParentModelPair, Narrowed>
+    ): Builder<Def>
   }
 
-  export interface DocFunction<
-    ModelPair extends Core.ModelIdPair,
-    ParentModelPair extends Core.ModelIdPair,
-    Narrowed extends string
-  > {
+  export interface DocFunction<Def extends Core.DocDef> {
     <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       data: TypesaurusUpdate.UpdateModelArg<
-        Core.SharedModelType<ModelPair[0]>,
+        Core.SharedModelType<Def['Model']>,
         Environment
       >,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<ModelPair, ParentModelPair, Narrowed>>
+    ): Promise<Core.Ref<Def>>
 
     build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
       options?: Core.OperationOptions<Environment>
-    ): Builder<ModelPair, ParentModelPair, Narrowed>
+    ): Builder<Def>
   }
 
-  export interface Builder<
-    ModelPair extends Core.ModelIdPair,
-    ParentModelPair extends Core.ModelIdPair,
-    Narrowed extends string
-  > extends CommonHelpers<Core.SharedModelType<ModelPair[0]>, void> {
-    run(): Promise<Core.Ref<ModelPair, ParentModelPair, Narrowed>>
+  export interface Builder<Def extends Core.DocDef>
+    extends CommonHelpers<Core.SharedModelType<Def['Model']>, void> {
+    run(): Promise<Core.Ref<Def>>
   }
 
   /**

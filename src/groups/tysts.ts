@@ -139,8 +139,18 @@ async function tysts() {
 
   type ResultAQ30 = Assert<
     {
-      books: [Book, Core.Id<'books'>]
-      orders: [Order, Core.Id<'orders'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }
     },
     ExampleAQ30
   >
@@ -149,8 +159,18 @@ async function tysts() {
 
   type ResultRVD2 = Assert<
     {
-      books: [Book, Core.Id<'books'>]
-      orders: [Order, Core.Id<'orders'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }
     },
     ExampleRVD2
   >
@@ -158,22 +178,74 @@ async function tysts() {
   // ConstructGroups
 
   type ExampleOSE7 = Groups.ConstructGroups<
-    { books: [Book, Core.Id<'books'>]; comics: [Comic, Core.Id<'comics'>] },
     {
-      books: [Book, Core.Id<'archive/books'>]
-      plants: [Plant, Core.Id<'plants'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }
+      comics: {
+        Model: Comic
+        Id: Core.Id<'comics'>
+        WideModel: Comic
+        Flags: string
+      }
     },
-    { plants: [Plant, Core.Id<'archive/plants'>] }
+    {
+      books: {
+        Model: Book
+        Id: Core.Id<'archive/books'>
+        WideModel: Book
+        Flags: string
+      }
+      plants: {
+        Model: Plant
+        Id: Core.Id<'plants'>
+        WideModel: Plant
+        Flags: string
+      }
+    },
+    {
+      plants: {
+        Model: Plant
+        Id: Core.Id<'archive/plants'>
+        WideModel: Plant
+        Flags: string
+      }
+    }
   >
 
   type ResultOSE7 = Assert<
     {
       books: Groups.Group<
-        [Book, Core.Id<'books'>] | [Book, Core.Id<'archive/books'>]
+        | { Model: Book; Id: Core.Id<'books'>; WideModel: Book; Flags: string }
+        | {
+            Model: Book
+            Id: Core.Id<'archive/books'>
+            WideModel: Book
+            Flags: string
+          }
       >
-      comics: Groups.Group<[Comic, Core.Id<'comics'>]>
+      comics: Groups.Group<{
+        Model: Comic
+        Id: Core.Id<'comics'>
+        WideModel: Comic
+        Flags: string
+      }>
       plants: Groups.Group<
-        [Plant, Core.Id<'plants'>] | [Plant, Core.Id<'archive/plants'>]
+        | {
+            Model: Plant
+            Id: Core.Id<'plants'>
+            WideModel: Plant
+            Flags: string
+          }
+        | {
+            Model: Plant
+            Id: Core.Id<'archive/plants'>
+            WideModel: Plant
+            Flags: string
+          }
       >
     },
     ExampleOSE7
@@ -181,12 +253,32 @@ async function tysts() {
 
   type ExampleFSPP = Groups.ConstructGroups<
     {
-      books: [Book, Core.Id<'orders/books'>]
-      comics: [Comic, Core.Id<'comics'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'orders/books'>
+        WideModel: Book
+        Flags: string
+      }
+      comics: {
+        Model: Comic
+        Id: Core.Id<'comics'>
+        WideModel: Comic
+        Flags: string
+      }
     },
     {
-      books: [Book, Core.Id<'archive/books'>]
-      plants: [Plant, Core.Id<'archive/plants'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'archive/books'>
+        WideModel: Book
+        Flags: string
+      }
+      plants: {
+        Model: Plant
+        Id: Core.Id<'archive/plants'>
+        WideModel: Plant
+        Flags: string
+      }
     },
     Groups.ExtractGroupModels<Schema3>
   >
@@ -194,25 +286,70 @@ async function tysts() {
   type ResultFSPP = Assert<
     {
       books: Groups.Group<
-        | [Book, Core.Id<'books'>]
-        | [Book, Core.Id<'archive/books'>]
-        | [Book, Core.Id<'orders/books'>]
+        | { Model: Book; Id: Core.Id<'books'>; WideModel: Book; Flags: string }
+        | {
+            Model: Book
+            Id: Core.Id<'archive/books'>
+            WideModel: Book
+            Flags: string
+          }
+        | {
+            Model: Book
+            Id: Core.Id<'orders/books'>
+            WideModel: Book
+            Flags: string
+          }
       >
-      orders: Groups.Group<[Order, Core.Id<'orders'>]>
-      comics: Groups.Group<[Comic, Core.Id<'comics'>]>
-      plants: Groups.Group<[Plant, Core.Id<'archive/plants'>]>
+      orders: Groups.Group<{
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }>
+      comics: Groups.Group<{
+        Model: Comic
+        Id: Core.Id<'comics'>
+        WideModel: Comic
+        Flags: string
+      }>
+      plants: Groups.Group<{
+        Model: Plant
+        Id: Core.Id<'archive/plants'>
+        WideModel: Plant
+        Flags: string
+      }>
     },
     ExampleFSPP
   >
 
   type ExampleYHWG = Groups.ConstructGroups<
     {
-      books: [Book, Core.Id<'orders/books'>]
-      comics: [Comic, Core.Id<'comics'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'orders/books'>
+        WideModel: Book
+        Flags: string
+      }
+      comics: {
+        Model: Comic
+        Id: Core.Id<'comics'>
+        WideModel: Comic
+        Flags: string
+      }
     },
     | {
-        books: [Book, Core.Id<'archive/books'>]
-        plants: [Plant, Core.Id<'archive/plants'>]
+        books: {
+          Model: Book
+          Id: Core.Id<'archive/books'>
+          WideModel: Book
+          Flags: string
+        }
+        plants: {
+          Model: Plant
+          Id: Core.Id<'archive/plants'>
+          WideModel: Plant
+          Flags: string
+        }
       }
     | {},
     Groups.ExtractGroupModels<Schema3>
@@ -221,13 +358,38 @@ async function tysts() {
   type ResultYHWG = Assert<
     {
       books: Groups.Group<
-        | [Book, Core.Id<'books'>]
-        | [Book, Core.Id<'archive/books'>]
-        | [Book, Core.Id<'orders/books'>]
+        | { Model: Book; Id: Core.Id<'books'>; WideModel: Book; Flags: string }
+        | {
+            Model: Book
+            Id: Core.Id<'archive/books'>
+            WideModel: Book
+            Flags: string
+          }
+        | {
+            Model: Book
+            Id: Core.Id<'orders/books'>
+            WideModel: Book
+            Flags: string
+          }
       >
-      orders: Groups.Group<[Order, Core.Id<'orders'>]>
-      comics: Groups.Group<[Comic, Core.Id<'comics'>]>
-      plants: Groups.Group<[Plant, Core.Id<'archive/plants'>]>
+      orders: Groups.Group<{
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }>
+      comics: Groups.Group<{
+        Model: Comic
+        Id: Core.Id<'comics'>
+        WideModel: Comic
+        Flags: string
+      }>
+      plants: Groups.Group<{
+        Model: Plant
+        Id: Core.Id<'archive/plants'>
+        WideModel: Plant
+        Flags: string
+      }>
     },
     ExampleYHWG
   >
@@ -240,8 +402,18 @@ async function tysts() {
 
   type Result1PWX = Assert<
     {
-      books: [Book, Core.Id<'books'>]
-      orders: [Order, Core.Id<'orders'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }
     },
     Example1PWX
   >
@@ -250,8 +422,18 @@ async function tysts() {
 
   type ResultCCR2 = Assert<
     {
-      books: [Book, Core.Id<'books'>]
-      orders: [Order, Core.Id<'orders'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }
     },
     ExampleCCR2
   >
@@ -260,8 +442,18 @@ async function tysts() {
 
   type ResultGQLP = Assert<
     {
-      books: [Book, Core.Id<'books'>]
-      orders: [Order, Core.Id<'orders'>]
+      books: {
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }
     },
     ExampleGQLP
   >
@@ -276,11 +468,26 @@ async function tysts() {
 
   type ResultUMAX = Assert<
     | {
-        comments: [Comment, Core.Id<'books/comments'>]
-        likes: [Like, Core.Id<'books/likes'>]
+        comments: {
+          Model: Comment
+          Id: Core.Id<'books/comments'>
+          WideModel: Comment
+          Flags: string
+        }
+        likes: {
+          Model: Like
+          Id: Core.Id<'books/likes'>
+          WideModel: Like
+          Flags: string
+        }
       }
     | {
-        comments: [OrderComment, Core.Id<'orders/comments'>]
+        comments: {
+          Model: OrderComment
+          Id: Core.Id<'orders/comments'>
+          WideModel: OrderComment
+          Flags: string
+        }
       },
     ExampleUMAX
   >
@@ -289,11 +496,26 @@ async function tysts() {
 
   type Result4JFS = Assert<
     | {
-        comments: [Comment, Core.Id<'books/comments'>]
-        likes: [Like, Core.Id<'books/likes'>]
+        comments: {
+          Model: Comment
+          Id: Core.Id<'books/comments'>
+          WideModel: Comment
+          Flags: string
+        }
+        likes: {
+          Model: Like
+          Id: Core.Id<'books/likes'>
+          WideModel: Like
+          Flags: string
+        }
       }
     | {
-        comments: [OrderComment, Core.Id<'orders/comments'>]
+        comments: {
+          Model: OrderComment
+          Id: Core.Id<'orders/comments'>
+          WideModel: OrderComment
+          Flags: string
+        }
       },
     Example4JFS
   >
@@ -320,8 +542,18 @@ async function tysts() {
 
   type Result7DGC = Assert<
     {
-      books: Groups.Group<[Book, Core.Id<'books'>]>
-      orders: Groups.Group<[Order, Core.Id<'orders'>]>
+      books: Groups.Group<{
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }>
+      orders: Groups.Group<{
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }>
     },
     Example7DGC
   >
@@ -332,8 +564,18 @@ async function tysts() {
 
   type ResultMIAM = Assert<
     {
-      books: Groups.Group<[Book, Core.Id<'books'>]>
-      orders: Groups.Group<[Order, Core.Id<'orders'>]>
+      books: Groups.Group<{
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }>
+      orders: Groups.Group<{
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }>
     },
     ExampleMIAM
   >
@@ -344,16 +586,46 @@ async function tysts() {
 
   type ResultM7US = Assert<
     {
-      books: Groups.Group<[Book, Core.Id<'books'>]>
+      books: Groups.Group<{
+        Model: Book
+        Id: Core.Id<'books'>
+        WideModel: Book
+        Flags: string
+      }>
       comments: Groups.Group<
-        | [Comment, Core.Id<'books/comments'>]
-        | [OrderComment, Core.Id<'orders/comments'>]
+        | {
+            Model: Comment
+            Id: Core.Id<'books/comments'>
+            WideModel: Comment
+            Flags: string
+          }
+        | {
+            Model: OrderComment
+            Id: Core.Id<'orders/comments'>
+            WideModel: OrderComment
+            Flags: string
+          }
       >
       likes: Groups.Group<
-        | [Like, Core.Id<'books/likes'>]
-        | [Like, Core.Id<'orders/comments/likes'>]
+        | {
+            Model: Like
+            Id: Core.Id<'books/likes'>
+            WideModel: Like
+            Flags: string
+          }
+        | {
+            Model: Like
+            Id: Core.Id<'orders/comments/likes'>
+            WideModel: Like
+            Flags: string
+          }
       >
-      orders: Groups.Group<[Order, Core.Id<'orders'>]>
+      orders: Groups.Group<{
+        Model: Order
+        Id: Core.Id<'orders'>
+        WideModel: Order
+        Flags: string
+      }>
     },
     ExampleM7US
   >
