@@ -6,8 +6,8 @@ export namespace TypesaurusGroups {
     <DB extends Core.DB<any>>(db: DB): Groups<DB>
   }
 
-  export interface Group<ModelPair extends Core.ModelIdPair>
-    extends Core.CollectionAPI<ModelPair> {
+  export interface Group<Def extends Core.DocDef>
+    extends Core.CollectionAPI<Def> {
     /** The group type */
     type: 'group'
 
@@ -36,7 +36,7 @@ export namespace TypesaurusGroups {
     | Schema3 extends infer Schema
     ? {
         [Key in Utils.UnionKeys<Schema>]: Group<
-          Schema extends Record<Key, infer Value extends Core.ModelIdPair>
+          Schema extends Record<Key, infer Value extends Core.DocDef>
             ? Value
             : never
         >
@@ -48,9 +48,9 @@ export namespace TypesaurusGroups {
    */
   export type ExtractGroupModels<DB extends Core.DB<any>> = {
     [Path in keyof DB]: DB[Path] extends
-      | Core.RichCollection<infer ModelPair>
-      | Core.NestedRichCollection<infer ModelPair, any>
-      ? ModelPair
+      | Core.RichCollection<infer Def>
+      | Core.NestedRichCollection<infer Def, any>
+      ? Def
       : never
   }
 
@@ -67,10 +67,10 @@ export namespace TypesaurusGroups {
               Collections['schema']
             >]: Collections['schema'] extends Record<
               Key,
-              | Core.RichCollection<infer ModelPair>
-              | Core.NestedRichCollection<infer ModelPair, any>
+              | Core.RichCollection<infer Def>
+              | Core.NestedRichCollection<infer Def, any>
             >
-              ? ModelPair
+              ? Def
               : {}
           }
         : {}
@@ -87,9 +87,9 @@ export namespace TypesaurusGroups {
                   Collections['schema']
                 >]: Collections['schema'] extends Record<
                   Key,
-                  Core.RichCollection<infer ModelPair>
+                  Core.RichCollection<infer Def>
                 >
-                  ? ModelPair
+                  ? Def
                   : {}
               }
             : {}

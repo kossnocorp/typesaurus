@@ -28,52 +28,49 @@ export namespace TypesaurusBatch {
       infer NestedDB
     >
       ? NestedCollection<Model, BatchDB<NestedDB, Environment>, Environment>
-      : DB[Path] extends Core.RichCollection<infer ModelPair>
-      ? Collection<ModelPair, Environment>
+      : DB[Path] extends Core.RichCollection<infer Def>
+      ? Collection<Def, Environment>
       : never
   }
 
   export type AnyCollection<
-    ModelPair extends Core.ModelIdPair,
+    Def extends Core.DocDef,
     Environment extends Core.RuntimeEnvironment | undefined = undefined
   > =
-    | Collection<ModelPair, Environment>
-    | NestedCollection<ModelPair, Schema<Environment>, Environment>
+    | Collection<Def, Environment>
+    | NestedCollection<Def, Schema<Environment>, Environment>
 
   export interface NestedCollection<
-    ModelPair extends Core.ModelIdPair,
+    Def extends Core.DocDef,
     NestedSchema extends Schema<Environment>,
     Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > extends Collection<ModelPair, Environment> {
-    (id: ModelPair[1]): NestedSchema
+  > extends Collection<Def, Environment> {
+    (id: Def['Id']): NestedSchema
   }
 
   /**
    *
    */
   export interface Collection<
-    ModelPair extends Core.ModelIdPair,
+    Def extends Core.DocDef,
     Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > extends Core.PlainCollection<ModelPair[0]> {
+  > extends Core.PlainCollection<Def['Model']> {
     /** The Firestore path */
     path: string
 
-    set(
-      id: ModelPair[1],
-      data: Core.SetModelArg<ModelPair[0], Environment>
-    ): void
+    set(id: Def['Id'], data: Core.SetModelArg<Def['Model'], Environment>): void
 
     upset(
-      id: ModelPair[1],
-      data: Core.SetModelArg<ModelPair[0], Environment>
+      id: Def['Id'],
+      data: Core.SetModelArg<Def['Model'], Environment>
     ): void
 
     update(
-      id: ModelPair[1],
-      data: Update.UpdateModelArg<ModelPair[0], Environment>
+      id: Def['Id'],
+      data: Update.UpdateModelArg<Def['Model'], Environment>
     ): void
 
-    remove(id: ModelPair[1]): void
+    remove(id: Def['Id']): void
   }
 
   export interface Schema<
