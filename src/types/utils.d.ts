@@ -1608,46 +1608,70 @@ export namespace TypesaurusUtils {
     : SharedShape10<A, B, C, D, E, F, G, H, I, J>
 
   type SharedShape2<A, B> = {
-    [Key in keyof (A | B)]: A[Key] & B[Key]
+    [Key in keyof (A | B) as A[Key] & B[Key] extends never
+      ? never
+      : Key]: A[Key] & B[Key]
   }
 
   type SharedShape3<A, B, C> = {
-    [Key in keyof (A | B | C)]: A[Key] & B[Key] & C[Key]
+    [Key in keyof (A | B | C) as A[Key] & B[Key] & C[Key] extends never
+      ? never
+      : Key]: A[Key] & B[Key] & C[Key]
   }
 
   type SharedShape4<A, B, C, D> = {
-    [Key in keyof (A | B | C | D)]: A[Key] & B[Key] & C[Key] & D[Key]
+    [Key in keyof (A | B | C | D) as A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] extends never
+      ? never
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key]
   }
 
   type SharedShape5<A, B, C, D, E> = {
-    [Key in keyof (A | B | C | D | E)]: A[Key] &
+    [Key in keyof (A | B | C | D | E) as [Key] &
       B[Key] &
       C[Key] &
       D[Key] &
-      E[Key]
+      E[Key] extends never
+      ? never
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key]
   }
 
   type SharedShape6<A, B, C, D, E, F> = {
-    [Key in keyof (A | B | C | D | E | F)]: A[Key] &
+    [Key in keyof (A | B | C | D | E | F) as A[Key] &
       B[Key] &
       C[Key] &
       D[Key] &
       E[Key] &
-      F[Key]
+      F[Key] extends never
+      ? never
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key]
   }
 
   type SharedShape7<A, B, C, D, E, F, G> = {
-    [Key in keyof (A | B | C | D | E | F | G)]: A[Key] &
+    [Key in keyof (A | B | C | D | E | F | G) as A[Key] &
       B[Key] &
       C[Key] &
       D[Key] &
       E[Key] &
       F[Key] &
-      G[Key]
+      G[Key] extends never
+      ? never
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key] & G[Key]
   }
 
   type SharedShape8<A, B, C, D, E, F, G, H> = {
-    [Key in keyof (A | B | C | D | E | F | G | H)]: A[Key] &
+    [Key in keyof (A | B | C | D | E | F | G | H) as A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key] &
+      G[Key] &
+      H[Key] extends never
+      ? never
+      : Key]: A[Key] &
       B[Key] &
       C[Key] &
       D[Key] &
@@ -1658,7 +1682,17 @@ export namespace TypesaurusUtils {
   }
 
   type SharedShape9<A, B, C, D, E, F, G, H, I> = {
-    [Key in keyof (A | B | C | D | E | F | G | H | I)]: A[Key] &
+    [Key in keyof (A | B | C | D | E | F | G | H | I) as A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key] &
+      G[Key] &
+      H[Key] &
+      I[Key] extends never
+      ? never
+      : Key]: A[Key] &
       B[Key] &
       C[Key] &
       D[Key] &
@@ -1670,7 +1704,18 @@ export namespace TypesaurusUtils {
   }
 
   type SharedShape10<A, B, C, D, E, F, G, H, I, J> = {
-    [Key in keyof (A | B | C | D | E | F | G | H | I | J)]: A[Key] &
+    [Key in keyof (A | B | C | D | E | F | G | H | I | J) as A[Key] &
+      B[Key] &
+      C[Key] &
+      D[Key] &
+      E[Key] &
+      F[Key] &
+      G[Key] &
+      H[Key] &
+      I[Key] &
+      J[Key] extends never
+      ? never
+      : Key]: A[Key] &
       B[Key] &
       C[Key] &
       D[Key] &
