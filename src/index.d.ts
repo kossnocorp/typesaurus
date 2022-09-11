@@ -29,28 +29,28 @@ export namespace Typesaurus {
     Model extends Core.ModelType,
     Path extends string,
     WideModel extends Core.ModelType = Model,
-    Flags extends string = string
+    Flags extends Core.DocDefFlags = Core.DocDefFlags
   > = Core.Collection<Def<Model, Path, WideModel, Flags>>
 
   export type Ref<
     Model extends Core.ModelType,
     Path extends string,
     WideModel extends Core.ModelType = Model,
-    Flags extends string = string
+    Flags extends Core.DocDefFlags = Core.DocDefFlags
   > = Core.Ref<Def<Model, Path, WideModel, Flags>>
 
   export type Doc<
     Model extends Core.ModelType,
     Path extends string,
     WideModel extends Core.ModelType = Model,
-    Flags extends string = string
+    Flags extends Core.DocDefFlags = Core.DocDefFlags
   > = Core.Doc<Def<Model, Path, WideModel, Flags>>
 
   export type Def<
     Model extends Core.ModelType,
     Path extends string,
     WideModel extends Core.ModelType = Model,
-    Flags extends string = string
+    Flags extends Core.DocDefFlags = Core.DocDefFlags
   > = {
     Model: Model
     Id: Id<Path>

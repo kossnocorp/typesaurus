@@ -1,5 +1,6 @@
 import { schema, Typesaurus } from '.'
 import type { TypesaurusCore as Core } from './types/core'
+import type { TypesaurusUpdate as Update } from './types/update'
 import type { TypesaurusUtils as Utils } from './types/utils'
 
 interface Post {
@@ -813,16 +814,23 @@ async function update() {
     public: true
   })
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: 'text'
   })
+
+  type Wut = TextContent | ImageContent extends TextContent | ImageContent
+    ? 'yes'
+    : 'nah'
 
   if (content?.reduce<TextContent>((data) => data.type === 'text' && data)) {
     // @ts-expect-error - can't update - we narrowed down to text type
     await content.update({ src: 'Nope' })
 
     await content.update({ text: 'Yup' })
+
+    // type Q = boolean extends true ? 'yes' : 'no'
+    // type C = true extends boolean ? 'yes' : 'no'
 
     const $ = content.update.build()
 
@@ -831,6 +839,8 @@ async function update() {
 
     $.field('text').set('Ok')
   }
+
+  type Asd = Utils.SharedShape2<TextContent, ImageContent>
 
   const docUpdate = content?.update.build()
 
@@ -946,7 +956,7 @@ async function reduceDoc() {
         Model: TwitterAccount
         Id: Core.Id<'accounts'>
         WideModel: [TwitterAccount, LinkedInAccount]
-        Flags: 'reduced'
+        Flags: { Reduced: true }
       }>
     >
   >(true)
@@ -974,7 +984,7 @@ namespace UnionKeys {
   type Result = Assert<'books' | 'comics', Utils.UnionKeys<Example>>
 }
 
-namespace AllRequired {
+namespace UtilsTest {
   type Result1 = Assert<
     {
       required: string
@@ -1311,7 +1321,7 @@ namespace SafeOptionalPath {
   >
 }
 
-namespace SafePath {
+namespace UtilsSafePath {
   interface Example1 {
     required: string
     optional?: string
@@ -1790,3 +1800,1425 @@ export type TypeEqual<T, U> = Exclude<T, U> extends never
     ? true
     : false
   : false
+
+type OK =
+  | {
+      <Key1 extends keyof TextContent>(key: Key1): Update.FieldHelpers<
+        TextContent,
+        TextContent,
+        Key1,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<TextContent>[Key1],
+        Key2,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2],
+        Key3,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<TextContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3],
+        Key4,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<TextContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key5,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<TextContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key6,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<TextContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key7,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key8 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<TextContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never,
+        key8: Utils.SafePath8<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8
+        > extends true
+          ? Key8
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7],
+        Key8,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key8 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7],
+        Key9 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<TextContent>[Key1]
+                    >[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<TextContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never,
+        key8: Utils.SafePath8<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8
+        > extends true
+          ? Key8
+          : never,
+        key9: Utils.SafePath9<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8,
+          Key9
+        > extends true
+          ? Key9
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<TextContent>[Key1]
+                    >[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8],
+        Key9,
+        void
+      >
+      <
+        Key1 extends keyof TextContent,
+        Key2 extends keyof Utils.AllRequired<TextContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<TextContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key8 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<TextContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7],
+        Key9 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<TextContent>[Key1]
+                    >[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8],
+        Key10 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<
+                        Utils.AllRequired<TextContent>[Key1]
+                      >[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6]
+            >[Key7]
+          >[Key8]
+        >[Key9]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<TextContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<TextContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<TextContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never,
+        key8: Utils.SafePath8<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8
+        > extends true
+          ? Key8
+          : never,
+        key9: Utils.SafePath9<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8,
+          Key9
+        > extends true
+          ? Key9
+          : never,
+        key10: Utils.SafePath10<
+          TextContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8,
+          Key9,
+          Key10
+        > extends true
+          ? Key10
+          : never
+      ): Update.FieldHelpers<
+        TextContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<
+                        Utils.AllRequired<TextContent>[Key1]
+                      >[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6]
+            >[Key7]
+          >[Key8]
+        >[Key9],
+        Key10,
+        void
+      >
+    }
+  | {
+      <Key1 extends keyof ImageContent>(key: Key1): Update.FieldHelpers<
+        ImageContent,
+        ImageContent,
+        Key1,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<ImageContent>[Key1],
+        Key2,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2],
+        Key3,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<ImageContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3],
+        Key4,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<ImageContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key5,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<ImageContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key6,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<ImageContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key7,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key8 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<ImageContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never,
+        key8: Utils.SafePath8<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8
+        > extends true
+          ? Key8
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7],
+        Key8,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key8 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7],
+        Key9 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<ImageContent>[Key1]
+                    >[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<ImageContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never,
+        key8: Utils.SafePath8<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8
+        > extends true
+          ? Key8
+          : never,
+        key9: Utils.SafePath9<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8,
+          Key9
+        > extends true
+          ? Key9
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<ImageContent>[Key1]
+                    >[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8],
+        Key9,
+        void
+      >
+      <
+        Key1 extends keyof ImageContent,
+        Key2 extends keyof Utils.AllRequired<ImageContent>[Key1],
+        Key3 extends keyof Utils.AllRequired<
+          Utils.AllRequired<ImageContent>[Key1]
+        >[Key2],
+        Key4 extends keyof Utils.AllRequired<
+          Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+        >[Key3],
+        Key5 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+          >[Key3]
+        >[Key4],
+        Key6 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+            >[Key3]
+          >[Key4]
+        >[Key5],
+        Key7 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+              >[Key3]
+            >[Key4]
+          >[Key5]
+        >[Key6],
+        Key8 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<Utils.AllRequired<ImageContent>[Key1]>[Key2]
+                >[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6]
+        >[Key7],
+        Key9 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<ImageContent>[Key1]
+                    >[Key2]
+                  >[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7]
+        >[Key8],
+        Key10 extends keyof Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<
+                        Utils.AllRequired<ImageContent>[Key1]
+                      >[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6]
+            >[Key7]
+          >[Key8]
+        >[Key9]
+      >(
+        key1: Key1,
+        key2: Utils.SafePath2<ImageContent, Key1, Key2> extends true
+          ? Key2
+          : never,
+        key3: Utils.SafePath3<ImageContent, Key1, Key2, Key3> extends true
+          ? Key3
+          : never,
+        key4: Utils.SafePath4<ImageContent, Key1, Key2, Key3, Key4> extends true
+          ? Key4
+          : never,
+        key5: Utils.SafePath5<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5
+        > extends true
+          ? Key5
+          : never,
+        key6: Utils.SafePath6<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6
+        > extends true
+          ? Key6
+          : never,
+        key7: Utils.SafePath7<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+          ? Key7
+          : never,
+        key8: Utils.SafePath8<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8
+        > extends true
+          ? Key8
+          : never,
+        key9: Utils.SafePath9<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8,
+          Key9
+        > extends true
+          ? Key9
+          : never,
+        key10: Utils.SafePath10<
+          ImageContent,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8,
+          Key9,
+          Key10
+        > extends true
+          ? Key10
+          : never
+      ): Update.FieldHelpers<
+        ImageContent,
+        Utils.AllRequired<
+          Utils.AllRequired<
+            Utils.AllRequired<
+              Utils.AllRequired<
+                Utils.AllRequired<
+                  Utils.AllRequired<
+                    Utils.AllRequired<
+                      Utils.AllRequired<
+                        Utils.AllRequired<ImageContent>[Key1]
+                      >[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6]
+            >[Key7]
+          >[Key8]
+        >[Key9],
+        Key10,
+        void
+      >
+    }

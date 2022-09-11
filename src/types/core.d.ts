@@ -108,6 +108,10 @@ export namespace TypesaurusCore {
     ? Model
     : never
 
+  export interface DocDefFlags {
+    Reduced: boolean
+  }
+
   export type DocDef = {
     Model: ModelType
     Id: Id<string>
@@ -116,7 +120,7 @@ export namespace TypesaurusCore {
      * otherwise it will be equal {@link Model}.
      */
     WideModel: ModelType
-    Flags: string
+    Flags: DocDefFlags
   }
 
   /**
@@ -202,7 +206,7 @@ export namespace TypesaurusCore {
 
   export type ReduceDef<
     Def extends DocDef,
-    ReduceToModel extends Def['WideModel'],
+    ReduceToModel,
     Flags = Def['Flags']
   > = {
     Model: ReduceToModel
@@ -615,14 +619,18 @@ export namespace TypesaurusCore {
     remove(): Promise<Ref<Def>>
 
     reduce<ExpectedModel extends ModelType>(
-      fn: DocNarrowFunction<ResolveModelType<Def['Model']>, ExpectedModel>
-    ): this is Doc<ReduceDef<Def, ExpectedModel, Def['Flags'] | 'reduced'>>
-    // ): this is EnvironmentDoc<
-    //   ReduceDef<Def, ExpectedModel, Def['Flags'] | 'reduced'>,
-    //   Source,
-    //   DateStrategy,
-    //   Environment
-    // >
+      fn: DocNarrowFunction<ResolveModelType<Def['WideModel']>, ExpectedModel>
+    ): this is EnvironmentDoc<
+      {
+        Model: ExpectedModel
+        Id: Def['Id']
+        WideModel: Def['WideModel']
+        Flags: Def['Flags'] & { Reduced: true }
+      },
+      DataSource,
+      ServerDateStrategy,
+      RuntimeEnvironment
+    >
   }
 
   export type DocNarrowFunction<
@@ -666,7 +674,7 @@ export namespace TypesaurusCore {
       options?: ReadOptions<DateStrategy, Environment>
     ): SubscriptionPromise<
       GetRequest,
-      VariableEnvironmentDoc<Def, Source, DateStrategy, Environment>
+      VariableEnvironmentDoc<Def, Source, DateStrategy, Environment> | null
     >
 
     many<
@@ -781,7 +789,7 @@ export namespace TypesaurusCore {
                 ? CustomId
                 : Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
-              Flags: string
+              Flags: DocDefFlags
             },
             DB<Schema, Utils.ComposePath<BasePath, Path>>
           >
@@ -792,7 +800,7 @@ export namespace TypesaurusCore {
               ? CustomId
               : Id<Utils.ComposePath<BasePath, Path>>
             WideModel: Model
-            Flags: string
+            Flags: DocDefFlags
           }>
         : never
       : never
@@ -869,7 +877,515 @@ export namespace TypesaurusCore {
     ReduceToModel extends ModelData<any>
   > = OriginalDoc extends Doc<infer Def extends DocDef>
     ? ReduceToModel extends ResolveModelType<Def['Model']>
-      ? Doc<ReduceDef<Def, ReduceToModel, Def['Flags'] | 'reduced'>>
+      ? Doc<ReduceDef<Def, ReduceToModel, Def['Flags'] & { Reduced: true }>>
       : never
     : never
+
+  interface TextContent {
+    type: 'text'
+    text: string
+    public?: boolean
+  }
+
+  interface ImageContent {
+    type: 'image'
+    src: string
+    public?: boolean
+  }
+
+  class Asa {
+    reduce:
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+      | (<ExpectedModel extends ModelType>(
+          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
+        ) => this is
+          | ServerDoc<{
+              Model: ExpectedModel
+              Id: Id<'content'>
+              WideModel: [TextContent, ImageContent]
+              Flags: DocDefFlags & { Reduced: true }
+            }>
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'estimate'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              'previous'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'cache',
+              'none'
+            >
+          | ClientDoc<
+              {
+                Model: ExpectedModel
+                Id: Id<'content'>
+                WideModel: [TextContent, ImageContent]
+                Flags: DocDefFlags & { Reduced: true }
+              },
+              'database',
+              ServerDateStrategy
+            >)
+  }
+
+  // type C = A extends Doc<infer Ref> ? Ref : never
 }

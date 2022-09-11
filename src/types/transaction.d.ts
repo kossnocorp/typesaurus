@@ -287,7 +287,7 @@ export namespace TypesaurusTransaction {
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
-              Flags: string
+              Flags: Core.DocDefFlags
             },
             ReadDB<Schema, Environment>,
             Environment
@@ -300,7 +300,7 @@ export namespace TypesaurusTransaction {
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
-              Flags: string
+              Flags: Core.DocDefFlags
             },
             Environment
           >
@@ -326,7 +326,7 @@ export namespace TypesaurusTransaction {
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
-              Flags: string
+              Flags: Core.DocDefFlags
             },
             WriteDB<Schema, Environment>,
             Environment
@@ -339,7 +339,7 @@ export namespace TypesaurusTransaction {
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
-              Flags: string
+              Flags: Core.DocDefFlags
             },
             Environment
           >
