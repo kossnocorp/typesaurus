@@ -5,46 +5,42 @@ export namespace TypesaurusBatch {
   export interface Function {
     <
       DB extends Core.DB<any>,
-      Environment extends Core.RuntimeEnvironment | undefined = undefined
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment }
     >(
       db: DB,
       options?: Core.OperationOptions<Environment>
-    ): RootDB<DB, Environment>
+    ): RootDB<DB, Props>
   }
 
   export type RootDB<
     DB extends Core.DB<any>,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = BatchDB<DB, Environment> & {
+    Props extends Core.DocProps
+  > = BatchDB<DB, Props> & {
     (): Promise<void>
   }
 
-  export type BatchDB<
-    DB extends Core.DB<any>,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = {
+  export type BatchDB<DB extends Core.DB<any>, Props extends Core.DocProps> = {
     [Path in keyof DB]: DB[Path] extends Core.NestedRichCollection<
       infer Model,
       infer NestedDB
     >
-      ? NestedCollection<Model, BatchDB<NestedDB, Environment>, Environment>
+      ? NestedCollection<Model, Props, BatchDB<NestedDB, Props>>
       : DB[Path] extends Core.RichCollection<infer Def>
-      ? Collection<Def, Environment>
+      ? Collection<Def, Props>
       : never
   }
 
   export type AnyCollection<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > =
-    | Collection<Def, Environment>
-    | NestedCollection<Def, Schema<Environment>, Environment>
+    Props extends Core.DocProps
+  > = Collection<Def, Props> | NestedCollection<Def, Props, Schema<Props>>
 
   export interface NestedCollection<
     Def extends Core.DocDef,
-    NestedSchema extends Schema<Environment>,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > extends Collection<Def, Environment> {
+    Props extends Core.DocProps,
+    NestedSchema extends Schema<Props>
+  > extends Collection<Def, Props> {
     (id: Def['Id']): NestedSchema
   }
 
@@ -53,29 +49,30 @@ export namespace TypesaurusBatch {
    */
   export interface Collection<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > extends Core.PlainCollection<Def['Model']> {
     /** The Firestore path */
     path: string
 
-    set(id: Def['Id'], data: Core.SetModelArg<Def['Model'], Environment>): void
+    set(
+      id: Def['Id'],
+      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
+    ): void
 
     upset(
       id: Def['Id'],
-      data: Core.SetModelArg<Def['Model'], Environment>
+      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
     ): void
 
     update(
       id: Def['Id'],
-      data: Update.UpdateModelArg<Def['Model'], Environment>
+      data: Update.UpdateModelArg<Core.ResolveModelType<Def['Model']>, Props>
     ): void
 
     remove(id: Def['Id']): void
   }
 
-  export interface Schema<
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > {
-    [CollectionPath: string]: AnyCollection<any, Environment>
+  export interface Schema<Props extends Core.DocProps> {
+    [CollectionPath: string]: AnyCollection<any, Props>
   }
 }

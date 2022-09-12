@@ -118,7 +118,7 @@ async function doc() {
 
   // Runtime environment
 
-  if (user.environment === 'server') {
+  if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -127,7 +127,7 @@ async function doc() {
 
   // Source
 
-  if (user.source === 'database') {
+  if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -136,9 +136,9 @@ async function doc() {
 
   // Server date strategy
 
-  if (user.dateStrategy === 'estimate') {
+  if (user.test({ dateStrategy: 'estimate' })) {
     user.data.createdAt.getDay()
-  } else if (user.dateStrategy === 'previous') {
+  } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -156,7 +156,7 @@ async function get() {
 
   // Runtime environment
 
-  if (user.environment === 'server') {
+  if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -165,7 +165,7 @@ async function get() {
 
   // Source
 
-  if (user.source === 'database') {
+  if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -174,9 +174,9 @@ async function get() {
 
   // Server date strategy
 
-  if (user.dateStrategy === 'estimate') {
+  if (user.test({ dateStrategy: 'estimate' })) {
     user.data.createdAt.getDay()
-  } else if (user.dateStrategy === 'previous') {
+  } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -190,7 +190,7 @@ async function many() {
 
   // Runtime environment
 
-  if (user.environment === 'server') {
+  if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -199,7 +199,7 @@ async function many() {
 
   // Source
 
-  if (user.source === 'database') {
+  if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -208,9 +208,9 @@ async function many() {
 
   // Server date strategy
 
-  if (user.dateStrategy === 'estimate') {
+  if (user.test({ dateStrategy: 'estimate' })) {
     user.data.createdAt.getDay()
-  } else if (user.dateStrategy === 'previous') {
+  } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -224,7 +224,7 @@ async function all() {
 
   // Runtime environment
 
-  if (user.environment === 'server') {
+  if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -233,7 +233,7 @@ async function all() {
 
   // Source
 
-  if (user.source === 'database') {
+  if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -242,9 +242,9 @@ async function all() {
 
   // Server date strategy
 
-  if (user.dateStrategy === 'estimate') {
+  if (user.test({ dateStrategy: 'estimate' })) {
     user.data.createdAt.getDay()
-  } else if (user.dateStrategy === 'previous') {
+  } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -262,9 +262,7 @@ async function query() {
 
   // Runtime environment
 
-  const ads = user.environment
-
-  if (user.environment === 'server') {
+  if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -273,7 +271,7 @@ async function query() {
 
   // Source
 
-  if (user.source === 'database') {
+  if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -282,9 +280,9 @@ async function query() {
 
   // Server date strategy
 
-  if (user.dateStrategy === 'estimate') {
+  if (user.test({ dateStrategy: 'estimate' })) {
     user.data.createdAt.getDay()
-  } else if (user.dateStrategy === 'previous') {
+  } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
     // @ts-expect-error
@@ -792,10 +790,17 @@ async function update() {
     public: true
   })
 
+  db.content.update(contentId, ($) => $.field('public').set(true))
+
   db.content.update(contentId, {
     // @ts-expect-error - can't update non-shared variable model fields
     type: 'text'
   })
+
+  db.content.update(contentId, ($) =>
+    // @ts-expect-error - can't update non-shared variable model fields
+    $.field('type').set('text')
+  )
 
   // Build Mode
 
@@ -814,23 +819,30 @@ async function update() {
     public: true
   })
 
-  // @ts-expect-error - can't update non-shared variable model fields
+  content?.update(($) => $.field('public').set(true))
+
   content?.update({
+    // @ts-expect-error - can't update non-shared variable model fields
     type: 'text'
   })
 
-  type Wut = TextContent | ImageContent extends TextContent | ImageContent
-    ? 'yes'
-    : 'nah'
+  content?.update(($) =>
+    // @ts-expect-error - can't update non-shared variable model fields
+    $.field('type').set('text')
+  )
 
   if (content?.reduce<TextContent>((data) => data.type === 'text' && data)) {
     // @ts-expect-error - can't update - we narrowed down to text type
     await content.update({ src: 'Nope' })
 
+    await content.update(($) =>
+      // @ts-expect-error - can't update - we narrowed down to text type
+      $.field('src').set('Nope')
+    )
+
     await content.update({ text: 'Yup' })
 
-    // type Q = boolean extends true ? 'yes' : 'no'
-    // type C = true extends boolean ? 'yes' : 'no'
+    await content.update(($) => $.field('text').set('Yup'))
 
     const $ = content.update.build()
 
@@ -839,8 +851,6 @@ async function update() {
 
     $.field('text').set('Ok')
   }
-
-  type Asd = Utils.SharedShape2<TextContent, ImageContent>
 
   const docUpdate = content?.update.build()
 
@@ -857,10 +867,26 @@ async function update() {
     public: true
   })
 
+  content?.update(($) => $.field('public').set(true))
+
+  type Asd = Update.UpdateModelArg<
+    TextContent,
+    Core.DocProps & { environment: Core.RuntimeEnvironment }
+  > &
+    Update.UpdateModelArg<
+      ImageContent,
+      Core.DocProps & { environment: Core.RuntimeEnvironment }
+    >
+
   contentRef?.update({
     // @ts-expect-error - can't update non-shared variable model fields
     type: 'text'
   })
+
+  content?.update(($) =>
+    // @ts-expect-error - can't update non-shared variable model fields
+    $.field('type').set('text')
+  )
 
   const refUpdate = content?.update.build()
 
@@ -952,12 +978,15 @@ async function reduceDoc() {
   assertType<
     TypeEqual<
       Result1,
-      Core.Doc<{
-        Model: TwitterAccount
-        Id: Core.Id<'accounts'>
-        WideModel: [TwitterAccount, LinkedInAccount]
-        Flags: { Reduced: true }
-      }>
+      Core.Doc<
+        {
+          Model: TwitterAccount
+          Id: Core.Id<'accounts'>
+          WideModel: [TwitterAccount, LinkedInAccount]
+          Flags: { Reduced: true }
+        },
+        Core.DocProps
+      >
     >
   >(true)
 }
@@ -3222,3 +3251,33 @@ type OK =
         void
       >
     }
+
+interface Dok<Env extends Core.RuntimeEnvironment> {
+  environment: Env
+  data: Env extends 'server' ? string : number
+  test<ThisEnv extends Core.RuntimeEnvironment>(
+    env: ThisEnv
+  ): this is Dok<ThisEnv>
+  assert<ThisEnv extends Core.RuntimeEnvironment>(
+    env: ThisEnv
+  ): asserts this is Dok<ThisEnv>
+}
+
+const asd: Dok<Core.RuntimeEnvironment> = {
+  environment: 'server',
+  data: 'hello',
+  test: () => true,
+  assert: () => void 0
+}
+
+if (asd.environment === 'server') {
+  const d: string = asd.data
+}
+
+if (asd.test('server')) {
+  const d: string = asd.data
+}
+
+function wut(dok: Dok<Core.RuntimeEnvironment>): dok is Dok<'server'> {
+  return true
+}

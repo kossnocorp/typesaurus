@@ -3,26 +3,18 @@ import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusQuery {
   export interface Function<Def extends Core.DocDef> {
-    <
-      Source extends Core.DataSource,
-      DateStrategy extends Core.ServerDateStrategy,
-      Environment extends Core.RuntimeEnvironment
-    >(
+    <Props extends Core.DocProps>(
       queries: TypesaurusQuery.QueryGetter<Def>,
-      options?: Core.ReadOptions<DateStrategy, Environment>
+      options?: Core.ReadOptions<Props>
     ): Core.SubscriptionPromise<
       Core.QueryRequest,
-      Core.VariableEnvironmentDoc<Def, Source, DateStrategy, Environment>[],
-      Core.SubscriptionListMeta<Def, Source, DateStrategy, Environment>
+      Core.VariableDoc<Def, Props>[],
+      Core.SubscriptionListMeta<Def, Props>
     >
 
-    build<
-      Source extends Core.DataSource,
-      DateStrategy extends Core.ServerDateStrategy,
-      Environment extends Core.RuntimeEnvironment
-    >(
-      options?: Core.ReadOptions<DateStrategy, Environment>
-    ): QueryBuilder<Def, Source, DateStrategy, Environment>
+    build<Props extends Core.DocProps>(
+      options?: Core.ReadOptions<Props>
+    ): QueryBuilder<Def, Props>
   }
 
   export type DocId = '__id__'
@@ -146,7 +138,7 @@ export namespace TypesaurusQuery {
     Key extends keyof Parent | DocId
   > =
     | (Key extends keyof Parent ? Parent[Key] : Def['Id']) // Field value or id
-    | Core.Doc<Def> // Will be used to get value for the cursor
+    | Core.Doc<Def, Core.DocProps> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
   export type QueryGetter<Def extends Core.DocDef> = (
@@ -771,17 +763,15 @@ export namespace TypesaurusQuery {
    */
   export interface QueryBuilder<
     Def extends Core.DocDef,
-    Source extends Core.DataSource,
-    DateStrategy extends Core.ServerDateStrategy,
-    Environment extends Core.RuntimeEnvironment
+    Props extends Core.DocProps
   > extends CommonQueryHelpers<Def, void, void, void> {
     /**
      * Runs the built query.
      */
     run(): Core.SubscriptionPromise<
       Core.QueryRequest,
-      Core.EnvironmentDoc<Def, Source, DateStrategy, Environment>[],
-      Core.SubscriptionListMeta<Def, Source, DateStrategy, Environment>
+      Core.Doc<Def, Props>[],
+      Core.SubscriptionListMeta<Def, Props>
     >
   }
 }

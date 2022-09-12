@@ -6,11 +6,12 @@ export namespace TypesaurusTransaction {
   export interface Function {
     <
       Schema extends Core.PlainSchema,
-      Environment extends Core.RuntimeEnvironment | undefined = undefined
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment }
     >(
       db: Core.DB<Schema>,
       options?: Core.OperationOptions<Environment>
-    ): ReadChain<Schema, Environment>
+    ): ReadChain<Schema, Props>
   }
 
   /**
@@ -18,10 +19,10 @@ export namespace TypesaurusTransaction {
    */
   export interface ReadRef<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > {
     type: 'ref'
-    collection: ReadCollection<Def, Environment>
+    collection: ReadCollection<Def, Props>
     id: Def['Id']
   }
 
@@ -30,22 +31,26 @@ export namespace TypesaurusTransaction {
    */
   export interface WriteRef<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > extends DocAPI<Def, Environment> {
+    Props extends Core.DocProps
+  > extends DocAPI<Def, Props> {
     type: 'ref'
-    collection: WriteCollection<Def, Environment>
+    collection: WriteCollection<Def, Props>
     id: Def['Id']
   }
 
-  export type DocAPI<
+  export interface DocAPI<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = {
-    set(data: Core.SetModelArg<Def['Model'], Environment>): void
+    Props extends Core.DocProps
+  > {
+    set(
+      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
+    ): void
 
-    update(data: Update.UpdateModelArg<Def['Model'], Environment>): void
+    update(data: Update.UpdateModelArg<Def['Model'], Props>): void
 
-    upset(data: Core.SetModelArg<Def['Model'], Environment>): void
+    upset(
+      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
+    ): void
 
     remove(): void
   }
@@ -53,87 +58,49 @@ export namespace TypesaurusTransaction {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type ReadDoc<
+  export interface ReadDoc<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = Environment extends 'server'
-    ? ReadServerDoc<Def>
-    : Environment extends 'client'
-    ? ReadClientDoc<Def>
-    : ReadServerDoc<Def> | ReadClientDoc<Def>
-
-  export interface ReadServerDoc<Def extends Core.DocDef> {
+    Props extends Core.DocProps
+  > {
     type: 'doc'
-    ref: ReadRef<Def, 'server'>
-    data: Core.ModelNodeData<Def['Model']>
-    environment: 'server'
-    source?: undefined
-    dateStrategy?: undefined
-    pendingWrites?: undefined
-  }
-
-  export interface ReadClientDoc<Def extends Core.DocDef> {
-    type: 'doc'
-    ref: ReadRef<Def, 'client'>
-    data: Core.AnyModelData<Def['Model'], 'present'>
-    environment: 'web'
-    source: 'database'
-    dateStrategy?: undefined
-    pendingWrites?: undefined
+    ref: ReadRef<Def, Props>
+    data: Props['environment'] extends 'server'
+      ? Core.ModelServerData<Def['Model']>
+      : Core.AnyModelData<Def['Model'], 'present'>
+    props: Props
   }
 
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export type WriteDoc<
+  export interface WriteDoc<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = Environment extends 'server'
-    ? WriteServerDoc<Def>
-    : Environment extends 'client'
-    ? WriteClientDoc<Def>
-    : WriteServerDoc<Def> | WriteClientDoc<Def>
-
-  export interface WriteServerDoc<Def extends Core.DocDef>
-    extends DocAPI<Def, 'server'> {
+    Props extends Core.DocProps
+  > extends DocAPI<Def, Props> {
     type: 'doc'
-    ref: WriteRef<Def, 'server'>
-    data: Core.ModelNodeData<Def['Model']>
-    environment: 'server'
-    source?: undefined
-    dateStrategy?: undefined
-    pendingWrites?: undefined
-  }
-
-  export interface WriteClientDoc<Def extends Core.DocDef>
-    extends DocAPI<Def, 'client'> {
-    type: 'doc'
-    ref: WriteRef<Def, 'client'>
-    data: Core.AnyModelData<Def['Model'], 'present'>
-    environment: 'web'
-    source: 'database'
-    dateStrategy?: undefined
-    pendingWrites?: undefined
+    ref: WriteRef<Def, Props>
+    data: Props['environment'] extends 'server'
+      ? Core.ModelServerData<Def['Model']>
+      : Core.AnyModelData<Def['Model'], 'present'>
+    props: Props
   }
 
   export type AnyWriteCollection<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > =
-    | WriteCollection<Def, Environment>
-    | NestedWriteCollection<Def, WriteSchema<Environment>, Environment>
+    | WriteCollection<Def, Props>
+    | NestedWriteCollection<Def, Props, WriteSchema<Props>>
 
-  export interface WriteSchema<
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > {
-    [CollectionPath: string]: AnyWriteCollection<Core.DocDef, Environment>
+  export interface WriteSchema<Props extends Core.DocProps> {
+    [CollectionPath: string]: AnyWriteCollection<Core.DocDef, Props>
   }
 
   export interface NestedWriteCollection<
     Def extends Core.DocDef,
-    NestedSchema extends WriteSchema<Environment>,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > extends WriteCollection<Def, Environment> {
+    Props extends Core.DocProps,
+    NestedSchema extends WriteSchema<Props>
+  > extends WriteCollection<Def, Props> {
     (id: Def['Id']): NestedSchema
   }
 
@@ -142,21 +109,24 @@ export namespace TypesaurusTransaction {
    */
   export interface WriteCollection<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > extends Core.PlainCollection<Def> {
     /** The Firestore path */
     path: string
 
-    set(id: Def['Id'], data: Core.SetModelArg<Def['Model'], Environment>): void
+    set(
+      id: Def['Id'],
+      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
+    ): void
 
     upset(
       id: Def['Id'],
-      data: Core.SetModelArg<Def['Model'], Environment>
+      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
     ): void
 
     update(
       id: Def['Id'],
-      data: Update.UpdateModelArg<Def['Model'], Environment>
+      data: Update.UpdateModelArg<Def['Model'], Props>
     ): void
 
     remove(id: Def['Id']): void
@@ -164,33 +134,31 @@ export namespace TypesaurusTransaction {
 
   export type AnyReadCollection<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > =
-    | ReadCollection<Def, Environment>
-    | NestedReadCollection<Def, ReadSchema<Environment>, Environment>
+    | ReadCollection<Def, Props>
+    | NestedReadCollection<Def, Props, ReadSchema<Props>>
 
-  export interface ReadSchema<
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > {
-    [CollectionPath: string]: AnyReadCollection<Core.DocDef, Environment>
+  export interface ReadSchema<Props extends Core.DocProps> {
+    [CollectionPath: string]: AnyReadCollection<Core.DocDef, Props>
   }
 
   export interface NestedReadCollection<
     Def extends Core.DocDef,
-    NestedSchema extends ReadSchema<Environment>,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > extends ReadCollection<Def, Environment> {
+    Props extends Core.DocProps,
+    NestedSchema extends ReadSchema<Props>
+  > extends ReadCollection<Def, Props> {
     (id: Def['Id']): NestedSchema
   }
 
   export interface ReadCollection<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > extends Core.PlainCollection<Def> {
     /** The Firestore path */
     path: string
 
-    get(id: Def['Id']): Promise<ReadDoc<Def, Environment> | null>
+    get(id: Def['Id']): Promise<ReadDoc<Def, Props> | null>
   }
 
   /**
@@ -199,9 +167,9 @@ export namespace TypesaurusTransaction {
    */
   export interface ReadHelpers<
     Schema extends Core.PlainSchema,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > {
-    db: ReadDB<Schema, Environment>
+    db: ReadDB<Schema, Props>
   }
 
   /**
@@ -214,30 +182,30 @@ export namespace TypesaurusTransaction {
   export interface WriteHelpers<
     Schema extends Core.PlainSchema,
     ReadResult,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > {
     /** The result of the read function. */
-    data: ReadDocsToWriteDocs<ReadResult>
+    data: ReadDocsToWriteDocs<ReadResult, Props>
 
-    db: WriteDB<Schema, Environment>
+    db: WriteDB<Schema, Props>
   }
 
   export type ReadDocsToWriteDocs<
     Result,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = Result extends ReadDoc<infer Model, Environment>
-    ? WriteDoc<Model, Environment>
+    Props extends Core.DocProps
+  > = Result extends ReadDoc<infer Model, Props>
+    ? WriteDoc<Model, Props>
     : Result extends Record<any, unknown> | Array<unknown>
-    ? { [Key in keyof Result]: ReadDocsToWriteDocs<Result[Key], Environment> }
+    ? { [Key in keyof Result]: ReadDocsToWriteDocs<Result[Key], Props> }
     : Result
 
   export interface ReadChain<
     Schema extends Core.PlainSchema,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > {
     read: <ReadResult>(
-      callback: ReadFunction<Schema, ReadResult, Environment>
-    ) => WriteChain<Schema, ReadResult, Environment>
+      callback: ReadFunction<Schema, ReadResult, Props>
+    ) => WriteChain<Schema, ReadResult, Props>
   }
 
   /**
@@ -246,16 +214,16 @@ export namespace TypesaurusTransaction {
   export type ReadFunction<
     Schema extends Core.PlainSchema,
     ReadResult,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = ($: ReadHelpers<Schema, Environment>) => Promise<ReadResult>
+    Props extends Core.DocProps
+  > = ($: ReadHelpers<Schema, Props>) => Promise<ReadResult>
 
   export interface WriteChain<
     Schema extends Core.PlainSchema,
     ReadResult,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Props extends Core.DocProps
   > {
     write: <WriteResult>(
-      callback: WriteFunction<Schema, ReadResult, WriteResult, Environment>
+      callback: WriteFunction<Schema, ReadResult, WriteResult, Props>
     ) => WriteResult
   }
 
@@ -266,12 +234,12 @@ export namespace TypesaurusTransaction {
     Schema extends Core.PlainSchema,
     ReadResult,
     WriteResult,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = ($: WriteHelpers<Schema, ReadResult, Environment>) => WriteResult
+    Props extends Core.DocProps
+  > = ($: WriteHelpers<Schema, ReadResult, Props>) => WriteResult
 
   export type ReadDB<
     Schema extends Core.PlainSchema,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined,
+    Props extends Core.DocProps,
     BasePath extends string | undefined = undefined
   > = {
     [Path in keyof Schema]: Path extends string
@@ -289,8 +257,8 @@ export namespace TypesaurusTransaction {
               WideModel: Model
               Flags: Core.DocDefFlags
             },
-            ReadDB<Schema, Environment>,
-            Environment
+            Props,
+            ReadDB<Schema, Props>
           >
         : Schema[Path] extends Core.PlainCollection<infer Model, infer CustomId>
         ? ReadCollection<
@@ -302,7 +270,7 @@ export namespace TypesaurusTransaction {
               WideModel: Model
               Flags: Core.DocDefFlags
             },
-            Environment
+            Props
           >
         : never
       : never
@@ -310,7 +278,7 @@ export namespace TypesaurusTransaction {
 
   export type WriteDB<
     Schema extends Core.PlainSchema,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined,
+    Props extends Core.DocProps,
     BasePath extends string | undefined = undefined
   > = {
     [Path in keyof Schema]: Path extends string
@@ -328,8 +296,8 @@ export namespace TypesaurusTransaction {
               WideModel: Model
               Flags: Core.DocDefFlags
             },
-            WriteDB<Schema, Environment>,
-            Environment
+            Props,
+            WriteDB<Schema, Props>
           >
         : Schema[Path] extends Core.PlainCollection<infer Model, infer CustomId>
         ? WriteCollection<
@@ -341,7 +309,7 @@ export namespace TypesaurusTransaction {
               WideModel: Model
               Flags: Core.DocDefFlags
             },
-            Environment
+            Props
           >
         : never
       : never
