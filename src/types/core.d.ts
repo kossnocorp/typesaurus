@@ -13,8 +13,9 @@ export namespace TypesaurusCore {
     __dontUseWillBeUndefined__: Path
   }
 
-  export type ModelType =
-    | ModelObjectType
+  export type ModelType = ModelObjectType | ModelVariableType
+
+  export type ModelVariableType =
     | [ModelObjectType, ModelObjectType]
     | [ModelObjectType, ModelObjectType, ModelObjectType]
   // | [ModelObjectType, ModelObjectType, ModelObjectType, ModelObjectType]
@@ -112,7 +113,7 @@ export namespace TypesaurusCore {
     Reduced: boolean
   }
 
-  export type DocDef = {
+  export interface DocDef {
     Model: ModelType
     Id: Id<string>
     /**
@@ -121,6 +122,13 @@ export namespace TypesaurusCore {
      */
     WideModel: ModelType
     Flags: DocDefFlags
+  }
+
+  export interface DocProps {
+    environment: RuntimeEnvironment
+    source: DataSource
+    dateStrategy: ServerDateStrategy
+    pendingWrites: boolean
   }
 
   /**
@@ -132,17 +140,12 @@ export namespace TypesaurusCore {
    * Doc change information. It contains the type of change, the doc after
    * the change, and the position change.
    */
-  export interface DocChange<
-    Def extends DocDef,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > {
+  export interface DocChange<Def extends DocDef, Props extends DocProps> {
     /** The type of change. */
     readonly type: DocChangeType
 
     /** The document affected by this change. */
-    readonly doc: EnvironmentDoc<Def, Source, DateStrategy, Environment>
+    readonly doc: Doc<Def, Props>
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -166,16 +169,14 @@ export namespace TypesaurusCore {
    */
   export interface SubscriptionListMeta<
     Def extends DocDef,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment | undefined = undefined
+    Props extends DocProps
   > {
     /**
      * Returns an array of the documents changes since the last snapshot. If
      * this is the first snapshot, all documents will be in the list as added
      * changes.
      */
-    changes: () => DocChange<Def, Source, DateStrategy, Environment>[]
+    changes: () => DocChange<Def, Props>[]
 
     /** The number of documents in the QuerySnapshot. */
     readonly size: number
@@ -184,25 +185,13 @@ export namespace TypesaurusCore {
     readonly empty: boolean
   }
 
-  export interface DocOptions<DateStrategy extends ServerDateStrategy> {
-    serverTimestamps?: DateStrategy
+  export interface DocOptions<Props extends DocProps> {
+    serverTimestamps?: Props['dateStrategy']
   }
 
-  export interface ReadOptions<
-    DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > extends DocOptions<DateStrategy>,
-      OperationOptions<Environment> {}
-
-  /**
-   * The document type. It contains the reference in the DB and the model data.
-   */
-  export type Doc<
-    Def extends DocDef,
-    Source extends DataSource = DataSource,
-    DateStrategy extends ServerDateStrategy = ServerDateStrategy,
-    Environment extends RuntimeEnvironment = RuntimeEnvironment
-  > = EnvironmentDoc<Def, Source, DateStrategy, Environment>
+  export interface ReadOptions<Props extends DocProps>
+    extends DocOptions<Props>,
+      OperationOptions<Props['environment']> {}
 
   export type ReduceDef<
     Def extends DocDef,
@@ -215,73 +204,100 @@ export namespace TypesaurusCore {
     Flags: Flags
   }
 
-  export type VariableEnvironmentDoc<
+  // export type VariableDoc<Def extends DocDef, Props extends DocProps> = Doc<
+  //   Def,
+  //   Props
+  // >
+
+  // export type VariableDoc<
+  //   Def extends DocDef,
+  //   Props extends DocProps
+  // > = Def['Model'] extends [
+  //   infer A extends ModelType,
+  //   infer B extends ModelType,
+  //   infer C extends ModelType
+  // ]
+  //   ?
+  //       | Doc<ReduceDef<Def, A>, Props>
+  //       | Doc<ReduceDef<Def, B>, Props>
+  //       | Doc<ReduceDef<Def, C>, Props>
+  //   : Def['Model'] extends [
+  //       infer A extends ModelType,
+  //       infer B extends ModelType
+  //     ]
+  //   ? // ? Doc<ReduceDef<Def, A>, Props> | Doc<ReduceDef<Def, B>, Props>
+  //     | Doc<
+  //           {
+  //             Model: Def['Model']
+  //             Id: Def['Id']
+  //             WideModel: Def['WideModel']
+  //             Flags: Def['Flags'] & { Reduced: A }
+  //           },
+  //           Props
+  //         >
+  //       | Doc<
+  //           {
+  //             Model: Def['Model']
+  //             Id: Def['Id']
+  //             WideModel: Def['WideModel']
+  //             Flags: Def['Flags'] & { Reduced: B }
+  //           },
+  //           Props
+  //         >
+  //   : Doc<Def, Props>
+
+  /**
+   * Variable shape document. This alias is needed to make `reduce` method work.
+   * It tells TypeScript that the doc might be one of the given types.
+   */
+  export type VariableDoc<
     Def extends DocDef,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment | undefined = undefined
+    Props extends DocProps
   > = Def['Model'] extends [
     infer A extends ModelType,
     infer B extends ModelType,
     infer C extends ModelType
   ]
     ?
-        | EnvironmentDoc<ReduceDef<Def, A>, Source, DateStrategy, Environment>
-        | EnvironmentDoc<ReduceDef<Def, B>, Source, DateStrategy, Environment>
-        | EnvironmentDoc<ReduceDef<Def, C>, Source, DateStrategy, Environment>
+        | Doc<ReduceDef<Def, A>, Props>
+        | Doc<ReduceDef<Def, B>, Props>
+        | Doc<ReduceDef<Def, C>, Props>
     : Def['Model'] extends [
         infer A extends ModelType,
         infer B extends ModelType
       ]
-    ?
-        | EnvironmentDoc<ReduceDef<Def, A>, Source, DateStrategy, Environment>
-        | EnvironmentDoc<ReduceDef<Def, B>, Source, DateStrategy, Environment>
-    : EnvironmentDoc<Def, Source, DateStrategy, Environment>
+    ? Doc<ReduceDef<Def, A>, Props> | Doc<ReduceDef<Def, B>, Props>
+    : Doc<Def, Props>
 
-  export type EnvironmentDoc<
-    Def extends DocDef,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > = Environment extends 'server'
-    ? ServerDoc<Def>
-    : Source extends 'database'
-    ? ClientDoc<Def, 'database', DateStrategy>
-    : DateStrategy extends 'estimate'
-    ? ClientDoc<Def, 'database', 'estimate'>
-    : DateStrategy extends 'previous'
-    ? ClientDoc<Def, 'database', 'previous'>
-    : ClientDoc<Def, Source, DateStrategy>
-
-  export interface ServerDoc<Def extends DocDef> extends DocAPI<Def> {
+  /**
+   * The document type. It contains the reference in the DB and the model data.
+   */
+  export interface Doc<Def extends DocDef, Props extends DocProps>
+    extends DocAPI<Def> {
     type: 'doc'
-    ref: Ref<Def>
-    data: ModelNodeData<Def['Model']>
-    environment: 'server'
-    source?: undefined
-    dateStrategy?: undefined
-    pendingWrites?: undefined
-  }
 
-  export interface ClientDoc<
-    Def extends DocDef,
-    Source extends DataSource,
-    DateStrategy extends ServerDateStrategy
-  > extends DocAPI<Def> {
-    type: 'doc'
     ref: Ref<Def>
-    data: Source extends 'database'
+
+    data: Props['environment'] extends 'server'
+      ? ModelServerData<Def['Model']>
+      : Props['source'] extends 'database'
       ? AnyModelData<Def['Model'], 'present'>
-      : DateStrategy extends 'estimate'
+      : Props['dateStrategy'] extends 'estimate' | 'previous'
       ? AnyModelData<Def['Model'], 'present'>
       : AnyModelData<Def['Model'], 'nullable'>
-    environment: 'client'
-    source: Source
-    dateStrategy: DateStrategy
-    pendingWrites: boolean
+
+    props: Props
+
+    test<Props extends Partial<DocProps>>(
+      props: Props
+    ): this is Doc<Def, DocProps & Props>
+
+    assert<Props extends Partial<DocProps>>(
+      props: Props
+    ): asserts this is Doc<Def, DocProps & Props>
   }
 
-  export type ModelNodeData<Model extends ModelType> = AnyModelData<
+  export type ModelServerData<Model extends ModelType> = AnyModelData<
     Model,
     'present'
   >
@@ -348,47 +364,44 @@ export namespace TypesaurusCore {
   }
 
   export type SetModelArg<
-    Model,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > = SetModel<Model, Environment> | SetModelGetter<Model, Environment>
+    Model extends ModelObjectType,
+    Props extends DocProps
+  > = SetModel<Model, Props> | SetModelGetter<Model, Props>
 
   /**
    * Write model getter, accepts helper functions with special value generators
    * and returns {@link SetModel}.
    */
   export type SetModelGetter<
-    Model,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > = ($: WriteHelpers<Model>) => SetModel<Model, Environment>
+    Model extends ModelObjectType,
+    Props extends DocProps
+  > = ($: WriteHelpers<Model>) => SetModel<Model, Props>
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
-  export type SetModel<
-    Model,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > = {
-    [Key in keyof Model]: WriteValueNullable<
-      Model[Key],
-      WriteValue<Model, Key, Environment>
+  export type SetModel<Data, Props extends DocProps> = {
+    [Key in keyof Data]: WriteValueNullable<
+      Data[Key],
+      WriteValue<Data, Key, Props>
     >
   }
 
   export type WriteValue<
-    Model,
-    Key extends keyof Model,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > = Exclude<Model[Key], undefined> extends infer Type // Exclude undefined
+    Data,
+    Key extends keyof Data,
+    Props extends DocProps
+  > = Exclude<Data[Key], undefined> extends infer Type // Exclude undefined
     ? Type extends ServerDate // First, ensure ServerDate is properly set
-      ? WriteValueServerDate<Model, Key, Environment>
+      ? WriteValueServerDate<Data, Key, Props>
       : Type extends Array<infer ItemType>
-      ? WriteValueArray<Model, Key, ItemType>
+      ? WriteValueArray<Data, Key, ItemType>
       : Type extends object // If it's an object, recursively pass through SetModel
-      ? WriteValueObject<Model, Key, Environment>
+      ? WriteValueObject<Data, Key, Props>
       : Type extends number
-      ? WriteValueNumber<Model, Key>
-      : WriteValueOther<Model, Key>
+      ? WriteValueNumber<Data, Key>
+      : WriteValueOther<Data, Key>
     : never
 
   export type WriteValueNullable<OriginType, Value> =
@@ -397,8 +410,8 @@ export namespace TypesaurusCore {
   export type WriteValueServerDate<
     Model,
     Key extends keyof Model,
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > = Environment extends 'server' // Date can be used only in the server environment
+    Props extends DocProps
+  > = Props['environment'] extends 'server' // Date can be used only in the server environment
     ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
     : ValueServerDate | MaybeValueRemove<Model, Key>
 
@@ -420,9 +433,9 @@ export namespace TypesaurusCore {
   export type WriteValueObject<
     Model,
     Key extends keyof Model,
-    Environment extends RuntimeEnvironment | undefined
+    Props extends DocProps
   > =
-    | SetModel<Model[Key], Environment> // Even for update, nested objects are passed to set model
+    | SetModel<Model[Key], Props> // Even for update, nested objects are passed to set model
     | MaybeValueRemove<Model, Key>
 
   export type Value<Type> =
@@ -519,9 +532,7 @@ export namespace TypesaurusCore {
     >(): PlainCollection<Model, CustomId>
   }
 
-  export interface OperationOptions<
-    Environment extends RuntimeEnvironment | undefined = undefined
-  > {
+  export interface OperationOptions<Environment extends RuntimeEnvironment> {
     as?: Environment
   }
 
@@ -532,10 +543,6 @@ export namespace TypesaurusCore {
   export interface OffSubscriptionWithCatch {
     (): void
     catch(callback: SubscriptionErrorCallback): OffSubscription
-  }
-
-  export type GetSubscriptionCallback<Def extends DocDef> = {
-    (result: Doc<Def> | null /*, info: SnapshotInfo<Model> */): void
   }
 
   export interface SubscriptionPromise<
@@ -567,10 +574,6 @@ export namespace TypesaurusCore {
     ? (result: Result) => void
     : (result: Result, meta: SubscriptionMeta) => void
 
-  export type ListSubscriptionCallback<Def extends DocDef> = {
-    (result: Doc<Def>[]): void
-  }
-
   export interface Request<Kind> {
     type: 'request'
     kind: Kind
@@ -593,24 +596,23 @@ export namespace TypesaurusCore {
   }
 
   export interface DocAPI<Def extends DocDef> {
-    get<
-      Source extends DataSource,
-      DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment
-    >(
-      options?: ReadOptions<DateStrategy, Environment>
-    ): SubscriptionPromise<
-      GetRequest,
-      VariableEnvironmentDoc<Def, Source, DateStrategy, Environment> | null
-    >
+    get<Props extends DocProps>(
+      options?: ReadOptions<Props>
+    ): SubscriptionPromise<GetRequest, VariableDoc<Def, Props> | null>
 
-    set<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Environment>,
+    set<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
+      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
-    upset<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Environment>,
+    upset<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
+      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -618,18 +620,17 @@ export namespace TypesaurusCore {
 
     remove(): Promise<Ref<Def>>
 
-    reduce<ExpectedModel extends ModelType>(
-      fn: DocNarrowFunction<ResolveModelType<Def['WideModel']>, ExpectedModel>
-    ): this is EnvironmentDoc<
+    reduce<ReduceToModel extends ModelType>(
+      fn: DocNarrowFunction<ResolveModelType<Def['WideModel']>, ReduceToModel>
+    ): this is Doc<
       {
-        Model: ExpectedModel
+        Model: ReduceToModel
         Id: Def['Id']
         WideModel: Def['WideModel']
         Flags: Def['Flags'] & { Reduced: true }
       },
-      DataSource,
-      ServerDateStrategy,
-      RuntimeEnvironment
+      // ReduceDef<Def, ReduceToModel, Def['Flags'] & { Reduced: true }>,
+      DocProps
     >
   }
 
@@ -639,16 +640,12 @@ export namespace TypesaurusCore {
   > = (data: InputModel) => false | ExpectedModel
 
   export interface CollectionAPI<Def extends DocDef> {
-    all<
-      Source extends DataSource,
-      DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment
-    >(
-      options?: ReadOptions<DateStrategy, Environment>
+    all<Props extends DocProps>(
+      options?: ReadOptions<Props>
     ): SubscriptionPromise<
       AllRequest,
-      EnvironmentDoc<Def, Source, DateStrategy, Environment>[],
-      SubscriptionListMeta<Def, Source, DateStrategy, Environment>
+      Doc<Def, Props>[],
+      SubscriptionListMeta<Def, Props>
     >
 
     query: Query.Function<Def>
@@ -665,44 +662,39 @@ export namespace TypesaurusCore {
     /** The Firestore path */
     path: string
 
-    get<
-      Source extends DataSource,
-      DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment
-    >(
+    get<Props extends DocProps>(
       id: Def['Id'],
-      options?: ReadOptions<DateStrategy, Environment>
-    ): SubscriptionPromise<
-      GetRequest,
-      VariableEnvironmentDoc<Def, Source, DateStrategy, Environment> | null
-    >
+      options?: ReadOptions<Props>
+    ): SubscriptionPromise<GetRequest, VariableDoc<Def, Props> | null>
 
-    many<
-      Source extends DataSource,
-      DateStrategy extends TypesaurusCore.ServerDateStrategy,
-      Environment extends TypesaurusCore.RuntimeEnvironment
-    >(
+    many<Props extends DocProps>(
       ids: Def['Id'][],
-      options?: ReadOptions<DateStrategy, Environment>
-    ): SubscriptionPromise<
-      ManyRequest,
-      Array<EnvironmentDoc<Def, Source, DateStrategy, Environment> | null>
-    >
+      options?: ReadOptions<Props>
+    ): SubscriptionPromise<ManyRequest, Array<Doc<Def, Props> | null>>
 
-    add<Environment extends RuntimeEnvironment | undefined = undefined>(
-      data: SetModelArg<ResolveModelType<Def['Model']>, Environment>,
+    add<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
+      data: SetModelArg<ResolveModelType<Def['Model']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
-    set<Environment extends RuntimeEnvironment | undefined = undefined>(
+    set<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
       id: Def['Id'],
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Environment>,
+      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
-    upset<Environment extends RuntimeEnvironment | undefined = undefined>(
+    upset<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
       id: Def['Id'],
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Environment>,
+      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -712,14 +704,10 @@ export namespace TypesaurusCore {
 
     ref(id: Def['Id']): Ref<Def>
 
-    doc<
-      Source extends DataSource,
-      DateStrategy extends ServerDateStrategy,
-      Environment extends RuntimeEnvironment
-    >(
+    doc<Props extends DocProps>(
       id: Def['Id'],
       data: Def['Model']
-    ): EnvironmentDoc<Def, Source, DateStrategy, Environment>
+    ): Doc<Def, Props>
 
     id(id: string): Def['Id']
 
@@ -839,12 +827,7 @@ export namespace TypesaurusCore {
            * The main document object, contains reference with id and collection
            * and document data.
            */
-          Doc: TypesaurusCore.VariableEnvironmentDoc<
-            Def,
-            DataSource,
-            ServerDateStrategy,
-            RuntimeEnvironment
-          >
+          Doc: TypesaurusCore.VariableDoc<Def, DocProps>
 
           /**
            * The document data
@@ -855,10 +838,7 @@ export namespace TypesaurusCore {
            * Read result, either doc, `null` (not found) or `undefined`
            * (the read is not finished/started yet).
            */
-          Result:
-            | TypesaurusCore.EnvironmentDoc<Def, any, any>
-            | null
-            | undefined
+          Result: Doc<Def, DocProps> | null | undefined
         } & (DB[Path] extends NestedRichCollection<
           any,
           infer Schema extends TypesaurusCore.DB<any, any>
@@ -873,519 +853,17 @@ export namespace TypesaurusCore {
    * reduce down data type to a specific type.
    */
   export type ReduceDoc<
-    OriginalDoc extends Doc<any>,
-    ReduceToModel extends ModelData<any>
-  > = OriginalDoc extends Doc<infer Def extends DocDef>
+    OriginalDoc extends Doc<DocDef, DocProps>,
+    ReduceToModel extends ModelObjectType
+  > = OriginalDoc extends Doc<
+    infer Def extends DocDef,
+    infer Props extends DocProps
+  >
     ? ReduceToModel extends ResolveModelType<Def['Model']>
-      ? Doc<ReduceDef<Def, ReduceToModel, Def['Flags'] & { Reduced: true }>>
+      ? Doc<
+          ReduceDef<Def, ReduceToModel, Def['Flags'] & { Reduced: true }>,
+          Props
+        >
       : never
     : never
-
-  interface TextContent {
-    type: 'text'
-    text: string
-    public?: boolean
-  }
-
-  interface ImageContent {
-    type: 'image'
-    src: string
-    public?: boolean
-  }
-
-  class Asa {
-    reduce:
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-      | (<ExpectedModel extends ModelType>(
-          fn: DocNarrowFunction<TextContent | ImageContent, ExpectedModel>
-        ) => this is
-          | ServerDoc<{
-              Model: ExpectedModel
-              Id: Id<'content'>
-              WideModel: [TextContent, ImageContent]
-              Flags: DocDefFlags & { Reduced: true }
-            }>
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'estimate'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              'previous'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'cache',
-              'none'
-            >
-          | ClientDoc<
-              {
-                Model: ExpectedModel
-                Id: Id<'content'>
-                WideModel: [TextContent, ImageContent]
-                Flags: DocDefFlags & { Reduced: true }
-              },
-              'database',
-              ServerDateStrategy
-            >)
-  }
-
-  // type C = A extends Doc<infer Ref> ? Ref : never
 }

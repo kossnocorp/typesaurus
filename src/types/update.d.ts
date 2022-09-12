@@ -3,37 +3,58 @@ import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusUpdate {
   export interface CollectionFunction<Def extends Core.DocDef> {
-    <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
+    <
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment }
+    >(
       id: Def['Id'],
-      data: TypesaurusUpdate.UpdateModelArg<
-        Core.SharedModelType<Def['Model']>,
-        Environment
+      data: UpdateModelArg<
+        Def['Flags']['Reduced'] extends true
+          ? Core.ResolveModelType<Def['Model']>
+          : Core.SharedModelType<Def['WideModel']>,
+        Props
       >,
       options?: Core.OperationOptions<Environment>
     ): Promise<Core.Ref<Def>>
 
-    build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
+    build<
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment }
+    >(
       id: Def['Id'],
       options?: Core.OperationOptions<Environment>
     ): Builder<Def>
   }
 
   export interface DocFunction<Def extends Core.DocDef> {
-    <Environment extends Core.RuntimeEnvironment | undefined = undefined>(
-      data: TypesaurusUpdate.UpdateModelArg<
-        Core.SharedModelType<Def['Model']>,
-        Environment
+    <
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment }
+    >(
+      data: UpdateModelArg<
+        Def['Flags']['Reduced'] extends true
+          ? Core.ResolveModelType<Def['Model']>
+          : Core.SharedModelType<Def['WideModel']>,
+        Props
       >,
       options?: Core.OperationOptions<Environment>
     ): Promise<Core.Ref<Def>>
 
-    build<Environment extends Core.RuntimeEnvironment | undefined = undefined>(
+    build<
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment }
+    >(
       options?: Core.OperationOptions<Environment>
     ): Builder<Def>
   }
 
   export interface Builder<Def extends Core.DocDef>
-    extends CommonHelpers<Core.SharedModelType<Def['Model']>, void> {
+    extends CommonHelpers<
+      Def['Flags']['Reduced'] extends true
+        ? Core.ResolveModelType<Def['Model']>
+        : Core.SharedModelType<Def['WideModel']>,
+      void
+    > {
     run(): Promise<Core.Ref<Def>>
   }
 
@@ -46,46 +67,46 @@ export namespace TypesaurusUpdate {
   }
 
   export type UpdateModelArg<
-    Model extends Core.ModelType,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
-  > = UpdateModel<Model, Environment> | UpdateModelGetter<Model, Environment>
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
+  > = UpdateModel<Model, Props> | UpdateModelGetter<Model, Props>
 
   export type UpdateModelGetter<
-    Model extends Core.ModelType,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
   > = (
     $: UpdateHelpers<Model>
-  ) =>
-    | UpdateModel<Model, Environment>
-    | UpdateField<Model>
-    | UpdateField<Model>[]
+  ) => UpdateModel<Model, Props> | UpdateField<Model> | UpdateField<Model>[]
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
   export type UpdateModel<
-    Model extends Core.ModelType,
-    Environment extends Core.RuntimeEnvironment | undefined = undefined
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
   > = {
     [Key in keyof Model]?: Core.WriteValueNullable<
       Model[Key],
-      Core.WriteValue<Model, Key, Environment>
+      Core.WriteValue<Model, Key, Props>
     >
   }
 
   export interface FieldHelpers<
-    Model extends Core.ModelType,
+    Model extends Core.ModelObjectType,
     Parent,
     Key extends keyof Parent,
     SetResult
   > {
     set(
-      value: Core.WriteValueNullable<Parent[Key], Core.WriteValue<Parent, Key>>
+      value: Core.WriteValueNullable<
+        Parent[Key],
+        Core.WriteValue<Parent, Key, Core.DocProps>
+      >
     ): SetResult
   }
 
-  export interface CommonHelpers<Model extends Core.ModelType, SetResult>
+  export interface CommonHelpers<Model extends Core.ModelObjectType, SetResult>
     extends Core.WriteHelpers<Model> {
     /**
      * Field selector, allows updating a specific field.
@@ -754,6 +775,6 @@ export namespace TypesaurusUpdate {
     >
   }
 
-  export interface UpdateHelpers<Model extends Core.ModelType>
+  export interface UpdateHelpers<Model extends Core.ModelObjectType>
     extends CommonHelpers<Model, UpdateField<Model>> {}
 }
