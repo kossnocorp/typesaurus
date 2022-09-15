@@ -148,6 +148,29 @@ async function doc() {
   assertType<TypeEqual<typeof user.data.birthdate, Date | undefined | null>>(
     true
   )
+
+  // Variable shape
+
+  const contentId = await db.content.id()
+
+  db.content.doc(contentId, {
+    type: 'image',
+    src: 'https://example.com/image.png'
+  })
+
+  db.content.doc(contentId, {
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error
+    hello: 'world'
+  })
+
+  db.content.doc(contentId, {
+    type: 'image',
+    src: 'https://example.com/image.png',
+    // @ts-expect-error
+    text: 'Nope'
+  })
 }
 
 async function get() {

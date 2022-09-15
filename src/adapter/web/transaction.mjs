@@ -14,11 +14,11 @@ export const transaction = (db, options) => {
       return {
         write: (writeCallback) =>
           runTransaction(getFirestore(), async (firebaseTransaction) => {
-            const data = await readCallback(
+            const result = await readCallback(
               transactionReadHelpers(db, firebaseTransaction)
             )
             return writeCallback(
-              transactionWriteHelpers(db, firebaseTransaction, data)
+              transactionWriteHelpers(db, firebaseTransaction, result)
             )
           })
       }
@@ -103,10 +103,10 @@ function firebaseDoc(db, path, id) {
   return doc(db, `${path}/${id}`)
 }
 
-function transactionWriteHelpers(db, transaction, data) {
+function transactionWriteHelpers(db, transaction, result) {
   return {
     db: writeDB(db, transaction),
-    data: readDocsToWriteDocs(db, transaction, data)
+    result: readDocsToWriteDocs(db, transaction, result)
   }
 }
 
