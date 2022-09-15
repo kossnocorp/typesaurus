@@ -8,7 +8,7 @@ export namespace TypesaurusQuery {
       options?: Core.ReadOptions<Props>
     ): Core.SubscriptionPromise<
       Core.QueryRequest,
-      Core.VariableDoc<Def, Props>[],
+      Core.Doc<Def, Props>[],
       Core.SubscriptionListMeta<Def, Props>
     >
 
