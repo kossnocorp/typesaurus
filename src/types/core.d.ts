@@ -620,18 +620,19 @@ export namespace TypesaurusCore {
 
     remove(): Promise<Ref<Def>>
 
-    reduce<ReduceToModel extends ModelType>(
-      fn: DocNarrowFunction<ResolveModelType<Def['WideModel']>, ReduceToModel>
-    ): this is Doc<
-      {
-        Model: ReduceToModel
-        Id: Def['Id']
-        WideModel: Def['WideModel']
-        Flags: Def['Flags'] & { Reduced: true }
-      },
-      // ReduceDef<Def, ReduceToModel, Def['Flags'] & { Reduced: true }>,
-      DocProps
-    >
+    narrow<NarrowToModel extends ModelType>(
+      fn: DocNarrowFunction<ResolveModelType<Def['WideModel']>, NarrowToModel>
+    ):
+      | Doc<
+          {
+            Model: NarrowToModel
+            Id: Def['Id']
+            WideModel: Def['WideModel']
+            Flags: Def['Flags'] & { Reduced: true }
+          },
+          DocProps
+        >
+      | undefined
   }
 
   export type DocNarrowFunction<
@@ -849,19 +850,24 @@ export namespace TypesaurusCore {
   }
 
   /**
-   * Reduce doc type. If your doc has multiple shapes, the type will help you
-   * reduce down data type to a specific type.
+   * Narrow doc type. If your doc has multiple shapes, the type will help you
+   * narrow down data type to a specific type.
    */
-  export type ReduceDoc<
-    OriginalDoc extends Doc<DocDef, DocProps>,
-    ReduceToModel extends ModelObjectType
-  > = OriginalDoc extends Doc<
+  export type NarrowDoc<
+    OriginalDoc extends VariableDoc<any, any>,
+    NarrowToModel extends ModelObjectType
+  > = OriginalDoc extends VariableDoc<
     infer Def extends DocDef,
     infer Props extends DocProps
   >
-    ? ReduceToModel extends ResolveModelType<Def['Model']>
+    ? NarrowToModel extends ResolveModelType<Def['WideModel']>
       ? Doc<
-          ReduceDef<Def, ReduceToModel, Def['Flags'] & { Reduced: true }>,
+          {
+            Model: NarrowToModel
+            Id: Def['Id']
+            WideModel: Def['WideModel']
+            Flags: Def['Flags'] & { Reduced: true }
+          },
           Props
         >
       : never

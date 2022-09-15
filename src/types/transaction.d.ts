@@ -46,7 +46,14 @@ export namespace TypesaurusTransaction {
       data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
     ): void
 
-    update(data: Update.UpdateModelArg<Def['Model'], Props>): void
+    update(
+      data: Update.UpdateModelArg<
+        Def['Flags']['Reduced'] extends true
+          ? Core.ResolveModelType<Def['Model']>
+          : Core.SharedModelType<Def['WideModel']>,
+        Props
+      >
+    ): void
 
     upset(
       data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
@@ -83,6 +90,23 @@ export namespace TypesaurusTransaction {
       ? Core.ModelServerData<Def['Model']>
       : Core.AnyModelData<Def['Model'], 'present'>
     props: Props
+
+    narrow<NarrowToModel extends Core.ModelType>(
+      fn: Core.DocNarrowFunction<
+        Core.ResolveModelType<Def['WideModel']>,
+        NarrowToModel
+      >
+    ):
+      | WriteDoc<
+          {
+            Model: NarrowToModel
+            Id: Def['Id']
+            WideModel: Def['WideModel']
+            Flags: Def['Flags'] & { Reduced: true }
+          },
+          Props
+        >
+      | undefined
   }
 
   export type AnyWriteCollection<
@@ -126,7 +150,7 @@ export namespace TypesaurusTransaction {
 
     update(
       id: Def['Id'],
-      data: Update.UpdateModelArg<Def['Model'], Props>
+      data: Update.UpdateModelArg<Core.SharedModelType<Def['WideModel']>, Props>
     ): void
 
     remove(id: Def['Id']): void
@@ -185,7 +209,7 @@ export namespace TypesaurusTransaction {
     Props extends Core.DocProps
   > {
     /** The result of the read function. */
-    data: ReadDocsToWriteDocs<ReadResult, Props>
+    result: ReadDocsToWriteDocs<ReadResult, Props>
 
     db: WriteDB<Schema, Props>
   }

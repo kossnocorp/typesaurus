@@ -780,7 +780,7 @@ async function update() {
     })
   )
 
-  // Updating to variable collectione
+  // Updating variable collection
 
   const contentId = db.content.id('hello-world!')
 
@@ -831,25 +831,52 @@ async function update() {
     $.field('type').set('text')
   )
 
-  if (content?.reduce<TextContent>((data) => data.type === 'text' && data)) {
-    // @ts-expect-error - can't update - we narrowed down to text type
-    await content.update({ src: 'Nope' })
+  // Narrowing
 
-    await content.update(($) =>
+  const textContent = content?.narrow<TextContent>(
+    (data) => data.type === 'text' && data
+  )
+
+  if (textContent) {
+    // @ts-expect-error - can't update - we narrowed down to text type
+    await textContent.update({ src: 'Nope' })
+
+    await textContent.update(($) =>
       // @ts-expect-error - can't update - we narrowed down to text type
       $.field('src').set('Nope')
     )
 
-    await content.update({ text: 'Yup' })
+    await textContent.update({ text: 'Yup' })
 
-    await content.update(($) => $.field('text').set('Yup'))
+    await textContent.update(($) => $.field('text').set('Yup'))
 
-    const $ = content.update.build()
+    const textContentUpdate = textContent.update.build()
 
     // @ts-expect-error - can't update - we narrowed down to text type
-    $.field('src').set('Nope')
+    textContentUpdate.field('src').set('Nope')
 
-    $.field('text').set('Ok')
+    textContentUpdate.field('text').set('Ok')
+
+    // ...via ref:
+
+    // @ts-expect-error - can't update - we narrowed down to text type
+    await textContent.ref.update({ src: 'Nope' })
+
+    await textContent.ref.update(($) =>
+      // @ts-expect-error - can't update - we narrowed down to text type
+      $.field('src').set('Nope')
+    )
+
+    await textContent.ref.update({ text: 'Yup' })
+
+    await textContent.ref.update(($) => $.field('text').set('Yup'))
+
+    const textContentRefUpdate = textContent.ref.update.build()
+
+    // @ts-expect-error - can't update - we narrowed down to text type
+    textContentRefUpdate.field('src').set('Nope')
+
+    textContentRefUpdate.field('text').set('Ok')
   }
 
   const docUpdate = content?.update.build()
@@ -956,7 +983,7 @@ async function inferSchema() {
   >(true)
 }
 
-async function reduceDoc() {
+async function narrowDoc() {
   interface TwitterAccount {
     type: 'twitter'
     screenName: number
@@ -973,7 +1000,7 @@ async function reduceDoc() {
 
   type Schema = Core.InferSchema<typeof db>
 
-  type Result1 = Core.ReduceDoc<Schema['accounts']['Doc'], TwitterAccount>
+  type Result1 = Core.NarrowDoc<Schema['accounts']['Doc'], TwitterAccount>
 
   assertType<
     TypeEqual<
@@ -3251,33 +3278,3 @@ type OK =
         void
       >
     }
-
-interface Dok<Env extends Core.RuntimeEnvironment> {
-  environment: Env
-  data: Env extends 'server' ? string : number
-  test<ThisEnv extends Core.RuntimeEnvironment>(
-    env: ThisEnv
-  ): this is Dok<ThisEnv>
-  assert<ThisEnv extends Core.RuntimeEnvironment>(
-    env: ThisEnv
-  ): asserts this is Dok<ThisEnv>
-}
-
-const asd: Dok<Core.RuntimeEnvironment> = {
-  environment: 'server',
-  data: 'hello',
-  test: () => true,
-  assert: () => void 0
-}
-
-if (asd.environment === 'server') {
-  const d: string = asd.data
-}
-
-if (asd.test('server')) {
-  const d: string = asd.data
-}
-
-function wut(dok: Dok<Core.RuntimeEnvironment>): dok is Dok<'server'> {
-  return true
-}

@@ -66,7 +66,7 @@ export namespace TypesaurusBatch {
 
     update(
       id: Def['Id'],
-      data: Update.UpdateModelArg<Core.ResolveModelType<Def['Model']>, Props>
+      data: Update.UpdateModelArg<Core.SharedModelType<Def['WideModel']>, Props>
     ): void
 
     remove(id: Def['Id']): void

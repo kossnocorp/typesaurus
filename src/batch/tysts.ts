@@ -58,10 +58,23 @@ interface Account {
   }
 }
 
+interface TextContent {
+  type: 'text'
+  text: string
+  public?: boolean
+}
+
+interface ImageContent {
+  type: 'image'
+  src: string
+  public?: boolean
+}
+
 const db = schema(($) => ({
   users: $.collection<User>(),
   posts: $.collection<Post>(),
-  accounts: $.collection<Account>()
+  accounts: $.collection<Account>(),
+  content: $.collection<[TextContent, ImageContent]>()
 }))
 
 async function tysts() {
@@ -246,6 +259,26 @@ async function tysts() {
     $.field('nested1Optional', 'nested12Optional').set({
       world: 'World!'
     })
+  )
+
+  // Updating variable collection
+
+  const contentId = db.content.id('hello-world!')
+
+  $.content.update(contentId, {
+    public: true
+  })
+
+  $.content.update(contentId, ($) => $.field('public').set(true))
+
+  $.content.update(contentId, {
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
+
+  $.content.update(contentId, ($) =>
+    // @ts-expect-error - can't update non-shared variable model fields
+    $.field('type').set('text')
   )
 
   // Nested fields with records
