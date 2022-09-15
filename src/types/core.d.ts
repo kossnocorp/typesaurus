@@ -255,7 +255,7 @@ export namespace TypesaurusCore {
 
   export interface DocDef {
     Model: ModelType
-    Id: Id<string>
+    Id: Id<string> | string
     /**
      * If the collection has variable shape, it will contain models tuple,
      * otherwise it will be equal {@link Model}.
@@ -603,7 +603,7 @@ export namespace TypesaurusCore {
   export interface SchemaHelpers {
     collection<
       Model extends ModelType,
-      CustomId extends Id<string> | undefined = undefined
+      CustomId extends Id<string> | string | undefined = undefined
     >(): PlainCollection<Model, CustomId>
   }
 
@@ -804,7 +804,7 @@ export namespace TypesaurusCore {
 
   export interface PlainCollection<
     Model extends ModelType,
-    CustomId extends Id<string> | undefined = undefined
+    CustomId extends Id<string> | string | undefined = undefined
   > {
     /** The collection type */
     type: 'collection'
@@ -817,7 +817,7 @@ export namespace TypesaurusCore {
   export interface NestedPlainCollection<
     _Model extends ModelType,
     Schema extends PlainSchema,
-    _CustomId extends Id<string> | undefined = undefined
+    _CustomId extends Id<string> | string | undefined = undefined
   > {
     /** The collection type */
     type: 'collection'
@@ -849,7 +849,7 @@ export namespace TypesaurusCore {
         ? NestedRichCollection<
             {
               Model: Model
-              Id: CustomId extends Id<any>
+              Id: CustomId extends Id<any> | string
                 ? CustomId
                 : Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
@@ -860,7 +860,7 @@ export namespace TypesaurusCore {
         : Schema[Path] extends PlainCollection<infer Model, infer CustomId>
         ? RichCollection<{
             Model: Model
-            Id: CustomId extends Id<any>
+            Id: CustomId extends Id<any> | string
               ? CustomId
               : Id<Utils.ComposePath<BasePath, Path>>
             WideModel: Model
