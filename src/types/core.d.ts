@@ -125,10 +125,10 @@ export namespace TypesaurusCore {
   }
 
   export interface DocProps {
-    environment: RuntimeEnvironment
-    source: DataSource
-    dateStrategy: ServerDateStrategy
-    pendingWrites: boolean
+    readonly environment: RuntimeEnvironment
+    readonly source: DataSource
+    readonly dateStrategy: ServerDateStrategy
+    readonly pendingWrites: boolean
   }
 
   /**
@@ -193,7 +193,7 @@ export namespace TypesaurusCore {
     extends DocOptions<Props>,
       OperationOptions<Props['environment']> {}
 
-  export type ReduceDef<
+  export type NarrowDef<
     Def extends DocDef,
     ReduceToModel,
     Flags = Def['Flags']
@@ -259,14 +259,14 @@ export namespace TypesaurusCore {
     infer C extends ModelType
   ]
     ?
-        | Doc<ReduceDef<Def, A>, Props>
-        | Doc<ReduceDef<Def, B>, Props>
-        | Doc<ReduceDef<Def, C>, Props>
+        | Doc<NarrowDef<Def, A>, Props>
+        | Doc<NarrowDef<Def, B>, Props>
+        | Doc<NarrowDef<Def, C>, Props>
     : Def['Model'] extends [
         infer A extends ModelType,
         infer B extends ModelType
       ]
-    ? Doc<ReduceDef<Def, A>, Props> | Doc<ReduceDef<Def, B>, Props>
+    ? Doc<NarrowDef<Def, A>, Props> | Doc<NarrowDef<Def, B>, Props>
     : Doc<Def, Props>
 
   /**
@@ -286,7 +286,7 @@ export namespace TypesaurusCore {
       ? AnyModelData<Def['Model'], 'present'>
       : AnyModelData<Def['Model'], 'nullable'>
 
-    props: Props
+    readonly props: Props
 
     test<Props extends Partial<DocProps>>(
       props: Props
@@ -707,8 +707,8 @@ export namespace TypesaurusCore {
 
     doc<Props extends DocProps>(
       id: Def['Id'],
-      data: Def['Model']
-    ): Doc<Def, Props>
+      data: ResolveModelType<Def['WideModel']>
+    ): VariableDoc<Def, Props>
 
     id(id: string): Def['Id']
 

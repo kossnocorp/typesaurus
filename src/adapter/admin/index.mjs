@@ -228,7 +228,12 @@ class Doc {
     this.collection = collection
     this.ref = new Ref(collection, id)
     this.data = data
-    this.environment = 'server'
+    this.props = {
+      environment: 'server',
+      source: 'database',
+      dateStrategy: 'none',
+      pendingWrites: false
+    }
 
     this.update = (data, options) => this.ref.update(data, options)
 
@@ -249,6 +254,17 @@ class Doc {
 
   remove() {
     return this.ref.remove()
+  }
+
+  test(props) {
+    return Object.entries(props).every(
+      ([key, value]) => this.props[key] === value
+    )
+  }
+
+  narrow(cb) {
+    const result = cb(this.data)
+    if (result) return this
   }
 }
 
