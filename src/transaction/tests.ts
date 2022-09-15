@@ -39,12 +39,12 @@ describe('transaction', () => {
     transaction(db)
       .read(($) => $.db.counters.get(counter.id))
       .write(($) => {
-        const newCount = ($.data?.data.count || 0) + 1
+        const newCount = ($.result?.data.count || 0) + 1
         const payload = { count: newCount }
         if (useUpdate) {
-          $.data?.update(payload)
+          $.result?.update(payload)
         } else {
-          $.data?.set(payload)
+          $.result?.set(payload)
         }
         return newCount
       })
@@ -76,12 +76,12 @@ describe('transaction', () => {
     const server = () =>
       transaction(db, { as: 'server' })
         .read(($) => $.db.counters.get(id))
-        .write(($) => $.data?.set({ count: ($.data?.data.count || 0) + 1 }))
+        .write(($) => $.result?.set({ count: ($.result?.data.count || 0) + 1 }))
 
     const client = () =>
       transaction(db, { as: 'client' })
         .read(($) => $.db.counters.get(id))
-        .write(($) => $.data?.set({ count: ($.data?.data.count || 0) + 1 }))
+        .write(($) => $.result?.set({ count: ($.result?.data.count || 0) + 1 }))
 
     if (typeof window === 'undefined') {
       await server()
@@ -99,10 +99,10 @@ describe('transaction', () => {
     return transaction(db)
       .read(($) => $.db.posts.get(postRef.id))
       .write(($) => {
-        expect($.data?.data.counter.type).toBe('ref')
-        expect($.data?.data.counter.collection.type).toBe('collection')
-        expect($.data?.data.counter.collection.path).toBe('counters')
-        expect($.data?.data.counter.collection.get).toBe(undefined)
+        expect($.result?.data.counter.type).toBe('ref')
+        expect($.result?.data.counter.collection.type).toBe('collection')
+        expect($.result?.data.counter.collection.path).toBe('counters')
+        expect($.result?.data.counter.collection.get).toBe(undefined)
       })
   })
 
@@ -115,7 +115,7 @@ describe('transaction', () => {
       await transaction(db)
         .read(($) => $.db.counters.get(counter.id))
         .write(($) =>
-          $.db.counters.set(id, { count: ($.data?.data.count || 0) + 1 })
+          $.db.counters.set(id, { count: ($.result?.data.count || 0) + 1 })
         )
 
       const doc = await counter.get()
@@ -129,7 +129,7 @@ describe('transaction', () => {
 
       await transaction(db)
         .read(($) => $.db.counters.get(counter.id))
-        .write(($) => $.data?.set({ count: ($.data?.data.count || 0) + 1 }))
+        .write(($) => $.result?.set({ count: ($.result?.data.count || 0) + 1 }))
 
       const doc = await counter.get()
       expect(doc?.data.count).toBe(1)
@@ -145,7 +145,7 @@ describe('transaction', () => {
       await transaction(db)
         .read(($) => $.db.counters.get(counter.id))
         .write(($) =>
-          $.db.counters.upset(id, { count: ($.data?.data.count || 0) + 1 })
+          $.db.counters.upset(id, { count: ($.result?.data.count || 0) + 1 })
         )
 
       const doc = await counter.get()
@@ -160,7 +160,9 @@ describe('transaction', () => {
 
       await transaction(db)
         .read(($) => $.db.counters.get(counter.id))
-        .write(($) => $.data?.upset({ count: ($.data?.data.count || 0) + 1 }))
+        .write(($) =>
+          $.result?.upset({ count: ($.result?.data.count || 0) + 1 })
+        )
 
       const doc = await counter.get()
       expect(doc?.data.count).toBe(1)
@@ -181,7 +183,7 @@ describe('transaction', () => {
           .read(($) => $.db.counters.get(counter.id))
           .write(($) =>
             $.db.counters.update(id, {
-              count: ($.data?.data.count || 0) + 1,
+              count: ($.result?.data.count || 0) + 1,
               optional: true
             })
           )
@@ -203,8 +205,8 @@ describe('transaction', () => {
         transaction(db)
           .read(($) => $.db.counters.get(counter.id))
           .write(($) =>
-            $.data?.update({
-              count: ($.data?.data.count || 0) + 1,
+            $.result?.update({
+              count: ($.result?.data.count || 0) + 1,
               optional: true
             })
           )
@@ -237,7 +239,7 @@ describe('transaction', () => {
 
       await transaction(db)
         .read(($) => $.db.counters.get(counter.id))
-        .write(($) => $.data?.remove())
+        .write(($) => $.result?.remove())
 
       const doc = await counter.get()
       expect(doc).toBe(null)
@@ -254,7 +256,7 @@ describe('transaction', () => {
           .read(($) => $.db.posts(postId).counters.get(counterId))
           .write(($) =>
             $.db.posts(postId).counters.set(counterId, {
-              count: ($.data?.data.count || 0) + 1
+              count: ($.result?.data.count || 0) + 1
             })
           )
 

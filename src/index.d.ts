@@ -17,9 +17,9 @@ export namespace Typesaurus {
    * narrow down data type to a specific type.
    */
   export type NarrowDoc<
-    OriginalDoc extends Core.Doc<any>,
+    OriginalDoc extends Core.Doc<Core.DocDef, Core.DocProps>,
     NarrowToModel extends Core.ModelData<any>
-  > = Core.ReduceDoc<OriginalDoc, NarrowToModel>
+  > = Core.NarrowDoc<OriginalDoc, NarrowToModel>
 
   export type Data<Model extends Core.ModelType> = Core.ModelData<Model>
 
@@ -44,7 +44,7 @@ export namespace Typesaurus {
     Path extends string,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags
-  > = Core.Doc<Def<Model, Path, WideModel, Flags>>
+  > = Core.Doc<Def<Model, Path, WideModel, Flags>, Core.DocProps>
 
   export type Def<
     Model extends Core.ModelType,

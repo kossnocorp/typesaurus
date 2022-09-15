@@ -49,7 +49,7 @@ describe('doc', () => {
       })
     )
 
-    expect(userDoc.environment).toBe(
+    expect(userDoc.props.environment).toBe(
       typeof window === 'undefined' ? 'server' : 'client'
     )
   })

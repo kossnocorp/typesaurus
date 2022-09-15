@@ -58,10 +58,23 @@ interface Account {
   }
 }
 
+interface TextContent {
+  type: 'text'
+  text: string
+  public?: boolean
+}
+
+interface ImageContent {
+  type: 'image'
+  src: string
+  public?: boolean
+}
+
 const db = schema(($) => ({
   users: $.collection<User>(),
   posts: $.collection<Post>(),
-  accounts: $.collection<Account>()
+  accounts: $.collection<Account>(),
+  content: $.collection<[TextContent, ImageContent]>()
 }))
 
 async function tysts() {
@@ -69,7 +82,7 @@ async function tysts() {
     .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
       // Access transaction data
-      $.data?.data.contacts.email
+      $.result?.data.contacts.email
 
       // @ts-expect-error - all the data is missing
       $.db.users.set(db.users.id('asd'), {})
@@ -110,7 +123,7 @@ async function tysts() {
     })
     .write(($) => {
       // Converts read doc to write doc
-      $.data?.upset
+      $.result?.upset
     })
 
   // Array
@@ -123,11 +136,11 @@ async function tysts() {
       ])
     )
     .write(($) => {
-      $.data[0]?.data.contacts
-      $.data[0]?.upset
+      $.result[0]?.data.contacts
+      $.result[0]?.upset
 
-      $.data[1]?.data.text
-      $.data[1]?.upset
+      $.result[1]?.data.text
+      $.result[1]?.upset
     })
 
   // Object
@@ -138,11 +151,11 @@ async function tysts() {
       post: await $.db.posts.get(db.posts.id('qwe'))
     }))
     .write(($) => {
-      $.data.user?.data.contacts
-      $.data.user?.upset
+      $.result.user?.data.contacts
+      $.result.user?.upset
 
-      $.data.post?.data.text
-      $.data.post?.upset
+      $.result.post?.data.text
+      $.result.post?.upset
     })
 
   // Deeply nested
@@ -155,11 +168,11 @@ async function tysts() {
       world: [await $.db.posts.get(db.posts.id('qwe'))]
     }))
     .write(($) => {
-      $.data.hello.user?.data.contacts
-      $.data.hello.user?.upset
+      $.result.hello.user?.data.contacts
+      $.result.hello.user?.upset
 
-      $.data.world[0]?.data.text
-      $.data.world[0]?.upset
+      $.result.world[0]?.data.text
+      $.result.world[0]?.upset
     })
 
   // Get multiple documents
@@ -172,8 +185,8 @@ async function tysts() {
       ])
     )
     .write(($) => {
-      $.data[0]?.data.birthdate
-      $.data[1]?.data.title
+      $.result[0]?.data.birthdate
+      $.result[1]?.data.title
     })
 
   // Runtime environement
@@ -181,14 +194,14 @@ async function tysts() {
   transaction(db)
     .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
-      if (!$.data) return
+      if (!$.result) return
 
       // Allows to access environment
-      if ($.data.environment === 'server') {
+      if ($.result.props.environment === 'server') {
       }
 
       // Server dates are always defined
-      $.data.data.createdAt.getDay()
+      $.result.data.createdAt.getDay()
 
       // @ts-expect-error - created at must be a server date
       $.db.users.update(db.users.id('asd'), ($) => ({
@@ -203,10 +216,10 @@ async function tysts() {
   transaction(db, { as: 'server' })
     .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
-      if (!$.data) return
+      if (!$.result) return
 
       // @ts-expect-error
-      if ($.data.environment === 'client') {
+      if ($.result.environment === 'client') {
       }
 
       $.db.users.update(db.users.id('asd'), ($) => ({
@@ -219,17 +232,17 @@ async function tysts() {
   transaction(db)
     .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
-      if (!$.data) return
+      if (!$.result) return
 
       // Simple update
 
-      $.data.update({
+      $.result.update({
         name: 'Alexander'
       })
 
       // Update with helpers
 
-      $.data.update(($) => ({
+      $.result.update(($) => ({
         name: 'Sasha',
         birthdate: $.remove(),
         createdAt: $.serverDate()
@@ -247,7 +260,7 @@ async function tysts() {
       // Enforce required fields
 
       // @ts-expect-error - name is required
-      $.data.update(db.users.id('sasha'), ($) => ({
+      $.result.update(db.users.id('sasha'), ($) => ({
         name: $.remove()
       }))
 
@@ -369,6 +382,104 @@ async function tysts() {
 
       $.db.accounts.update(db.accounts.id('sasha'), ($) =>
         $.field('counters', postId, 'likes').set($.increment(1))
+      )
+    })
+
+  // Variable collection update
+
+  const contentId = db.content.id('asd')
+
+  transaction(db)
+    .read(($) => $.db.content.get(contentId))
+    .write(($) => {
+      if (!$.result) return
+
+      // Can't update variable model shape without narrowing
+
+      $.result.update({
+        public: true
+      })
+
+      $.result.update(($) => $.field('public').set(true))
+
+      $.result.update({
+        // @ts-expect-error - can't update non-shared variable model fields
+        type: 'text'
+      })
+
+      $.result.update(($) =>
+        // @ts-expect-error - can't update non-shared variable model fields
+        $.field('type').set('text')
+      )
+
+      // Narrowing
+
+      const textContent = $.result.narrow<TextContent>(
+        (data) => data.type === 'text' && data
+      )
+
+      if (textContent) {
+        // @ts-expect-error - can't update - we narrowed down to text type
+        textContent.update({ src: 'Nope' })
+
+        textContent.update(($) =>
+          // @ts-expect-error - can't update - we narrowed down to text type
+          $.field('src').set('Nope')
+        )
+
+        textContent.update({ text: 'Yup' })
+
+        textContent.update(($) => $.field('text').set('Yup'))
+
+        // ...via ref:
+
+        // @ts-expect-error - can't update - we narrowed down to text type
+        textContent.ref.update({ src: 'Nope' })
+
+        textContent.ref.update(($) =>
+          // @ts-expect-error - can't update - we narrowed down to text type
+          $.field('src').set('Nope')
+        )
+
+        textContent.ref.update({ text: 'Yup' })
+
+        textContent.ref.update(($) => $.field('text').set('Yup'))
+      }
+
+      // ...via ref:
+
+      $.result.ref.update({
+        public: true
+      })
+
+      $.result.ref.update(($) => $.field('public').set(true))
+
+      $.result.ref.update({
+        // @ts-expect-error - can't update non-shared variable model fields
+        type: 'text'
+      })
+
+      $.result.ref.update(($) =>
+        // @ts-expect-error - can't update non-shared variable model fields
+        $.field('type').set('text')
+      )
+
+      // ...via collection:
+
+      $.db.content.update(contentId, {
+        public: true
+      })
+
+      $.db.content.update(contentId, ($) => $.field('public').set(true))
+
+      $.db.content.update(contentId, {
+        // @ts-expect-error - can't update non-shared variable model fields
+        type: 'text'
+      })
+
+      $.db.content.update(contentId, ($) =>
+        // @ts-expect-error - can't update non-shared variable model fields
+        $.field('type').set('text')
       )
     })
 }
