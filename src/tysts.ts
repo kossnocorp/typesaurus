@@ -98,13 +98,18 @@ interface ImageContent {
   public?: boolean
 }
 
+interface AppStats {
+  users: number
+}
+
 // Flat schema
 const db = schema(($) => ({
   users: $.collection<User>(),
   posts: $.collection<Post>(),
   accounts: $.collection<Account>(),
   organizations: $.collection<Organization>(),
-  content: $.collection<[TextContent, ImageContent]>()
+  content: $.collection<[TextContent, ImageContent]>(),
+  appStats: $.collection<AppStats, 'appStats'>()
 }))
 
 async function doc() {
@@ -171,6 +176,10 @@ async function doc() {
     // @ts-expect-error
     text: 'Nope'
   })
+
+  // Fixed string ids
+
+  db.appStats.doc('appStats', { users: 123 })
 }
 
 async function get() {
