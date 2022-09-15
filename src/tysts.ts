@@ -205,6 +205,35 @@ async function get() {
     // @ts-expect-error
     user.data.createdAt.getDay()
   }
+
+  // Variable shape
+
+  const content = await db.content.get(db.content.id('42'))
+  if (!content) return
+
+  // Can't update variable model shape without narrowing
+
+  content?.update({
+    public: true
+  })
+
+  content?.update({
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
+
+  // Narrowing
+
+  const textContent = content?.narrow<TextContent>(
+    (data) => data.type === 'text' && data
+  )
+
+  if (textContent) {
+    // @ts-expect-error - can't update - we narrowed down to text type
+    await textContent.update({ src: 'Nope' })
+
+    await textContent.update({ text: 'Yup' })
+  }
 }
 
 async function many() {
@@ -238,6 +267,35 @@ async function many() {
   } else {
     // @ts-expect-error
     user.data.createdAt.getDay()
+  }
+
+  // Variable shape
+
+  const [content] = await db.content.query(($) => [])
+  if (!content) return
+
+  // Can't update variable model shape without narrowing
+
+  content?.update({
+    public: true
+  })
+
+  content?.update({
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
+
+  // Narrowing
+
+  const textContent = content?.narrow<TextContent>(
+    (data) => data.type === 'text' && data
+  )
+
+  if (textContent) {
+    // @ts-expect-error - can't update - we narrowed down to text type
+    await textContent.update({ src: 'Nope' })
+
+    await textContent.update({ text: 'Yup' })
   }
 }
 
@@ -277,6 +335,35 @@ async function all() {
   // Simple query
 
   await db.users.all()
+
+  // Variable shape
+
+  const [content] = await db.content.all()
+  if (!content) return
+
+  // Can't update variable model shape without narrowing
+
+  content?.update({
+    public: true
+  })
+
+  content?.update({
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
+
+  // Narrowing
+
+  const textContent = content?.narrow<TextContent>(
+    (data) => data.type === 'text' && data
+  )
+
+  if (textContent) {
+    // @ts-expect-error - can't update - we narrowed down to text type
+    await textContent.update({ src: 'Nope' })
+
+    await textContent.update({ text: 'Yup' })
+  }
 }
 
 async function query() {
@@ -379,6 +466,35 @@ async function query() {
 
   // @ts-expect-error - nope is not a valid field
   await db.accounts.query(($) => $.field('contacts', 'nope').order())
+
+  // Variable shape
+
+  const [content] = await db.content.query(($) => [])
+  if (!content) return
+
+  // Can't update variable model shape without narrowing
+
+  content?.update({
+    public: true
+  })
+
+  content?.update({
+    // @ts-expect-error - can't update non-shared variable model fields
+    type: 'text'
+  })
+
+  // Narrowing
+
+  const textContent = content?.narrow<TextContent>(
+    (data) => data.type === 'text' && data
+  )
+
+  if (textContent) {
+    // @ts-expect-error - can't update - we narrowed down to text type
+    await textContent.update({ src: 'Nope' })
+
+    await textContent.update({ text: 'Yup' })
+  }
 }
 
 async function add() {

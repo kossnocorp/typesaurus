@@ -204,71 +204,6 @@ export namespace TypesaurusCore {
     Flags: Flags
   }
 
-  // export type VariableDoc<Def extends DocDef, Props extends DocProps> = Doc<
-  //   Def,
-  //   Props
-  // >
-
-  // export type VariableDoc<
-  //   Def extends DocDef,
-  //   Props extends DocProps
-  // > = Def['Model'] extends [
-  //   infer A extends ModelType,
-  //   infer B extends ModelType,
-  //   infer C extends ModelType
-  // ]
-  //   ?
-  //       | Doc<ReduceDef<Def, A>, Props>
-  //       | Doc<ReduceDef<Def, B>, Props>
-  //       | Doc<ReduceDef<Def, C>, Props>
-  //   : Def['Model'] extends [
-  //       infer A extends ModelType,
-  //       infer B extends ModelType
-  //     ]
-  //   ? // ? Doc<ReduceDef<Def, A>, Props> | Doc<ReduceDef<Def, B>, Props>
-  //     | Doc<
-  //           {
-  //             Model: Def['Model']
-  //             Id: Def['Id']
-  //             WideModel: Def['WideModel']
-  //             Flags: Def['Flags'] & { Reduced: A }
-  //           },
-  //           Props
-  //         >
-  //       | Doc<
-  //           {
-  //             Model: Def['Model']
-  //             Id: Def['Id']
-  //             WideModel: Def['WideModel']
-  //             Flags: Def['Flags'] & { Reduced: B }
-  //           },
-  //           Props
-  //         >
-  //   : Doc<Def, Props>
-
-  /**
-   * Variable shape document. This alias is needed to make `reduce` method work.
-   * It tells TypeScript that the doc might be one of the given types.
-   */
-  export type VariableDoc<
-    Def extends DocDef,
-    Props extends DocProps
-  > = Def['Model'] extends [
-    infer A extends ModelType,
-    infer B extends ModelType,
-    infer C extends ModelType
-  ]
-    ?
-        | Doc<NarrowDef<Def, A>, Props>
-        | Doc<NarrowDef<Def, B>, Props>
-        | Doc<NarrowDef<Def, C>, Props>
-    : Def['Model'] extends [
-        infer A extends ModelType,
-        infer B extends ModelType
-      ]
-    ? Doc<NarrowDef<Def, A>, Props> | Doc<NarrowDef<Def, B>, Props>
-    : Doc<Def, Props>
-
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
@@ -598,7 +533,7 @@ export namespace TypesaurusCore {
   export interface DocAPI<Def extends DocDef> {
     get<Props extends DocProps>(
       options?: ReadOptions<Props>
-    ): SubscriptionPromise<GetRequest, VariableDoc<Def, Props> | null>
+    ): SubscriptionPromise<GetRequest, Doc<Def, Props> | null>
 
     set<
       Environment extends RuntimeEnvironment,
@@ -666,7 +601,7 @@ export namespace TypesaurusCore {
     get<Props extends DocProps>(
       id: Def['Id'],
       options?: ReadOptions<Props>
-    ): SubscriptionPromise<GetRequest, VariableDoc<Def, Props> | null>
+    ): SubscriptionPromise<GetRequest, Doc<Def, Props> | null>
 
     many<Props extends DocProps>(
       ids: Def['Id'][],
@@ -708,7 +643,7 @@ export namespace TypesaurusCore {
     doc<Props extends DocProps>(
       id: Def['Id'],
       data: ResolveModelType<Def['WideModel']>
-    ): VariableDoc<Def, Props>
+    ): Doc<Def, Props>
 
     id(id: string): Def['Id']
 
@@ -828,7 +763,7 @@ export namespace TypesaurusCore {
            * The main document object, contains reference with id and collection
            * and document data.
            */
-          Doc: TypesaurusCore.VariableDoc<Def, DocProps>
+          Doc: TypesaurusCore.Doc<Def, DocProps>
 
           /**
            * The document data
@@ -854,9 +789,9 @@ export namespace TypesaurusCore {
    * narrow down data type to a specific type.
    */
   export type NarrowDoc<
-    OriginalDoc extends VariableDoc<any, any>,
+    OriginalDoc extends Doc<any, any>,
     NarrowToModel extends ModelObjectType
-  > = OriginalDoc extends VariableDoc<
+  > = OriginalDoc extends Doc<
     infer Def extends DocDef,
     infer Props extends DocProps
   >
