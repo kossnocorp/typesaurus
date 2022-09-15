@@ -18,72 +18,142 @@ export namespace TypesaurusCore {
   export type ModelVariableType =
     | [ModelObjectType, ModelObjectType]
     | [ModelObjectType, ModelObjectType, ModelObjectType]
-  // | [ModelObjectType, ModelObjectType, ModelObjectType, ModelObjectType]
-  // | [
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType
-  //   ]
-  // | [
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType
-  //   ]
-  // | [
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType
-  //   ]
-  // | [
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType
-  //   ]
-  // | [
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType
-  //   ]
-  // | [
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType,
-  //     ModelObjectType
-  //   ]
+    | [ModelObjectType, ModelObjectType, ModelObjectType, ModelObjectType]
+    | [
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType
+      ]
+    | [
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType
+      ]
+    | [
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType
+      ]
+    | [
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType
+      ]
+    | [
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType
+      ]
+    | [
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType,
+        ModelObjectType
+      ]
 
   export type ModelObjectType = object & { length?: never }
 
   export type ResolveModelType<Model extends ModelType> = Model extends [
     infer A extends ModelObjectType,
     infer B extends ModelObjectType,
-    infer C extends ModelObjectType
+    infer C extends ModelObjectType,
+    infer D extends ModelObjectType,
+    infer E extends ModelObjectType,
+    infer F extends ModelObjectType,
+    infer G extends ModelObjectType,
+    infer H extends ModelObjectType,
+    infer I extends ModelObjectType,
+    infer J extends ModelObjectType
   ]
+    ? A | B | C | D | E | F | G | H | I | J
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType,
+        infer H extends ModelObjectType,
+        infer I extends ModelObjectType
+      ]
+    ? A | B | C | D | E | F | G | H | I
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType,
+        infer H extends ModelObjectType
+      ]
+    ? A | B | C | D | E | F | G | H
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType
+      ]
+    ? A | B | C | D | E | F | G
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType
+      ]
+    ? A | B | C | D | E | F
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType
+      ]
+    ? A | B | C | D | E
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType
+      ]
+    ? A | B | C | D
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType
+      ]
     ? A | B | C
     : Model extends [
         infer A extends ModelObjectType,
@@ -97,8 +167,78 @@ export namespace TypesaurusCore {
   export type SharedModelType<Model extends ModelType> = Model extends [
     infer A extends ModelObjectType,
     infer B extends ModelObjectType,
-    infer C extends ModelObjectType
+    infer C extends ModelObjectType,
+    infer D extends ModelObjectType,
+    infer E extends ModelObjectType,
+    infer F extends ModelObjectType,
+    infer G extends ModelObjectType,
+    infer H extends ModelObjectType,
+    infer I extends ModelObjectType,
+    infer J extends ModelObjectType
   ]
+    ? Utils.SharedShape10<A, B, C, D, E, F, G, H, I, J>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType,
+        infer H extends ModelObjectType,
+        infer I extends ModelObjectType
+      ]
+    ? Utils.SharedShape9<A, B, C, D, E, F, G, H, I>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType,
+        infer H extends ModelObjectType
+      ]
+    ? Utils.SharedShape8<A, B, C, D, E, F, G, H>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType
+      ]
+    ? Utils.SharedShape7<A, B, C, D, E, F, G>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType
+      ]
+    ? Utils.SharedShape6<A, B, C, D, E, F>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType
+      ]
+    ? Utils.SharedShape5<A, B, C, D, E>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType
+      ]
+    ? Utils.SharedShape4<A, B, C, D>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType
+      ]
     ? Utils.SharedShape3<A, B, C>
     : Model extends [
         infer A extends ModelObjectType,
