@@ -170,10 +170,10 @@ async function doc() {
     hello: 'world'
   })
 
+  // @ts-expect-error
   db.content.doc(contentId, {
     type: 'image',
     src: 'https://example.com/image.png',
-    // @ts-expect-error
     text: 'Nope'
   })
 
