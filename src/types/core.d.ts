@@ -92,7 +92,7 @@ export namespace TypesaurusCore {
     infer I extends ModelObjectType,
     infer J extends ModelObjectType
   ]
-    ? A | B | C | D | E | F | G | H | I | J
+    ? Utils.Variable<A, B, C, D, E, F, G, H, I, J>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType,
@@ -104,7 +104,7 @@ export namespace TypesaurusCore {
         infer H extends ModelObjectType,
         infer I extends ModelObjectType
       ]
-    ? A | B | C | D | E | F | G | H | I
+    ? Utils.Variable<A, B, C, D, E, F, G, H, I>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType,
@@ -115,7 +115,7 @@ export namespace TypesaurusCore {
         infer G extends ModelObjectType,
         infer H extends ModelObjectType
       ]
-    ? A | B | C | D | E | F | G | H
+    ? Utils.Variable<A, B, C, D, E, F, G, H>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType,
@@ -125,7 +125,7 @@ export namespace TypesaurusCore {
         infer F extends ModelObjectType,
         infer G extends ModelObjectType
       ]
-    ? A | B | C | D | E | F | G
+    ? Utils.Variable<A, B, C, D, E, F, G>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType,
@@ -134,7 +134,7 @@ export namespace TypesaurusCore {
         infer E extends ModelObjectType,
         infer F extends ModelObjectType
       ]
-    ? A | B | C | D | E | F
+    ? Utils.Variable<A, B, C, D, E, F>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType,
@@ -142,25 +142,25 @@ export namespace TypesaurusCore {
         infer D extends ModelObjectType,
         infer E extends ModelObjectType
       ]
-    ? A | B | C | D | E
+    ? Utils.Variable<A, B, C, D, E>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType,
         infer C extends ModelObjectType,
         infer D extends ModelObjectType
       ]
-    ? A | B | C | D
+    ? Utils.Variable<A, B, C, D>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType,
         infer C extends ModelObjectType
       ]
-    ? A | B | C
+    ? Utils.Variable<A, B, C>
     : Model extends [
         infer A extends ModelObjectType,
         infer B extends ModelObjectType
       ]
-    ? A | B
+    ? Utils.Variable<A, B>
     : Model extends [infer A extends ModelObjectType]
     ? A
     : Model extends ModelObjectType
