@@ -23,6 +23,19 @@ export namespace Typesaurus {
 
   export type Data<Model extends Core.ModelType> = Core.ModelData<Model>
 
+  /**
+   * Define custom id passing the collection path string as the generic.
+   *
+   * [Learn more on the docs website](https://typesaurus.com/docs/api/type/id).
+   *
+   * @example
+   * import { schema, Typesaurus } from 'typesaurus'
+   *
+   * const db = schema(($) => {
+   *   organizations: $.collection<Organization>(),
+   *   subscriptions: $.collection<Subscription, Typesaurus.Id<'organizations'>>()
+   * })
+   */
   export type Id<Path extends string> = Core.Id<Path>
 
   export type Collection<

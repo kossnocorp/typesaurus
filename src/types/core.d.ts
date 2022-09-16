@@ -9,6 +9,9 @@ export namespace TypesaurusCore {
     ): DB<Schema>
   }
 
+  /**
+   * Define custom id passing the collection path string as the generic.
+   */
   export type Id<Path extends string> = string & {
     __dontUseWillBeUndefined__: Path
   }
@@ -811,8 +814,29 @@ export namespace TypesaurusCore {
       data: ResolveModelType<Def['WideModel']>
     ): Doc<Def, Props>
 
+    /**
+     * Cast a string to typed document id.
+     *
+     * [Learn more on the docs website](https://typesaurus.com/docs/api/id).
+     *
+     * @param id - the string to cast to the typed document id
+     * @returns typed document id
+     *
+     * @example
+     * const commentId = db.comments.id('t2nNOgoQY8a5vcvWl1yAz26Ue7k2')
+     */
     id(id: string): Def['Id']
 
+    /**
+     * Generate random document id using Firebase.
+     *
+     * [Learn more on the docs website](https://typesaurus.com/docs/api/id).
+     *
+     * @returns promise to random typed document id
+     *
+     * @example
+     * const newCommentId = await db.comments.id()
+     */
     id(): Promise<Def['Id']>
   }
 
@@ -838,8 +862,29 @@ export namespace TypesaurusCore {
   }
 
   export interface CollectionShortcut<Def extends DocDef> {
+    /**
+     * Cast a string to typed document id.
+     *
+     * [Learn more on the docs website](https://typesaurus.com/docs/api/id).
+     *
+     * @param id - the string to cast to the typed document id
+     * @returns typed document id
+     *
+     * @example
+     * const commentId = db.posts.sub.comments.id('t2nNOgoQY8a5vcvWl1yAz26Ue7k2')
+     */
     id(id: string): Def['Id']
 
+    /**
+     * Generate random document id using Firebase.
+     *
+     * [Learn more on the docs website](https://typesaurus.com/docs/api/id).
+     *
+     * @returns promise to random typed document id
+     *
+     * @example
+     * const newCommentId = await db.posts.sub.comments.id()
+     */
     id(): Promise<Def['Id']>
   }
 
