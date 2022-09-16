@@ -264,7 +264,7 @@ describe('transaction', () => {
 
       const doc = await db
         .posts(postId)
-        .counters.get(db.posts(postId).counters.id(counterId.toString()))
+        .counters.get(db.posts.sub.counters.id(counterId.toString()))
 
       expect(doc?.data.count).toBe(3)
     })

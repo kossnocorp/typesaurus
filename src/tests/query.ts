@@ -1371,7 +1371,7 @@ describe('query', () => {
 
       it('allows querying nested subcollection groups', async () => {
         const ownerId = await db.contacts.id()
-        const messageId = await db.contacts(ownerId).contactMessages.id()
+        const messageId = await db.contacts.sub.contactMessages.id()
 
         await Promise.all([
           db.contacts(ownerId).contactMessages(messageId).messagePosts.add({
