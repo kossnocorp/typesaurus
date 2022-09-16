@@ -394,6 +394,8 @@ function db(schema, nestedPath) {
           ? new Proxy(() => {}, {
               get: (_target, prop) => {
                 if (prop === 'schema') return plainCollection.schema
+                else if (prop === 'sub')
+                  return subShortcut(plainCollection.schema)
                 else return collection[prop]
               },
               has(_target, prop) {
@@ -404,6 +406,26 @@ function db(schema, nestedPath) {
             })
           : collection
       return enrichedSchema
+    },
+    {}
+  )
+}
+
+function subShortcut(schema) {
+  return Object.entries(schema).reduce(
+    (shortcutsSchema, [path, schemaCollection]) => {
+      shortcutsSchema[path] = {
+        id(id) {
+          if (id) return id
+          else
+            return Promise.resolve(admin.firestore().collection('any').doc().id)
+        }
+      }
+
+      if ('schema' in schemaCollection)
+        shortcutsSchema[path].sub = subShortcut(schemaCollection.schema)
+
+      return shortcutsSchema
     },
     {}
   )

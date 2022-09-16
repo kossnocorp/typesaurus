@@ -197,7 +197,7 @@ describe('set', () => {
   describe('subcollection', () => {
     it('works on subcollections', async () => {
       const userId = await db.users.id()
-      const orderId = await db.users(userId).orders.id()
+      const orderId = await db.users.sub.orders.id()
       const orderRef = await db
         .users(userId)
         .orders.set(orderId, { title: 'Amazing product' })

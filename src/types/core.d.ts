@@ -821,7 +821,33 @@ export namespace TypesaurusCore {
     Schema extends AnyDB
   > extends RichCollection<Def> {
     (id: Def['Id']): Schema
+
     schema: Schema
+
+    sub: NestedCollectionShortcuts<Schema>
+  }
+
+  export type NestedCollectionShortcuts<Schema extends AnyDB> = {
+    [Path in keyof Schema]: Path extends string
+      ? Schema[Path] extends NestedRichCollection<infer Def, infer Schema>
+        ? NestedCollectionShortcut<Def, Schema>
+        : Schema[Path] extends RichCollection<infer Def>
+        ? CollectionShortcut<Def>
+        : Schema[Path]
+      : never
+  }
+
+  export interface CollectionShortcut<Def extends DocDef> {
+    id(id: string): Def['Id']
+
+    id(): Promise<Def['Id']>
+  }
+
+  export interface NestedCollectionShortcut<
+    Def extends DocDef,
+    Schema extends AnyDB
+  > extends CollectionShortcut<Def> {
+    sub: NestedCollectionShortcuts<Schema>
   }
 
   export type Collection<Def extends DocDef> =

@@ -157,8 +157,8 @@ describe('batch', () => {
   describe('subcollection', () => {
     it('works on subcollections', async () => {
       const userId = await db.users.id()
-      const orderId1 = await db.users(userId).orders.id()
-      const orderId2 = await db.users(userId).orders.id()
+      const orderId1 = await db.users.sub.orders.id()
+      const orderId2 = await db.users.sub.orders.id()
 
       const $ = batch(db)
       $.users(userId).orders.set(orderId1, { title: 'First order' })
