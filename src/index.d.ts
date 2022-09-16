@@ -10,7 +10,7 @@ export namespace Typesaurus {
    * Infers schema types. Useful to define function arguments that accept
    * collection doc, ref, id or data.
    */
-  export type InferSchema<DB extends Core.DB<any, any>> = Core.InferSchema<DB>
+  export type Schema<DB extends Core.DB<any, any>> = Core.InferSchema<DB>
 
   /**
    * Narrows doc type. If your doc has multiple shapes, the type will help you
