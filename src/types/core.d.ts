@@ -16,6 +16,7 @@ export namespace TypesaurusCore {
   export type ModelType = ModelObjectType | ModelVariableType
 
   export type ModelVariableType =
+    | [ModelObjectType]
     | [ModelObjectType, ModelObjectType]
     | [ModelObjectType, ModelObjectType, ModelObjectType]
     | [ModelObjectType, ModelObjectType, ModelObjectType, ModelObjectType]
@@ -160,6 +161,8 @@ export namespace TypesaurusCore {
         infer B extends ModelObjectType
       ]
     ? A | B
+    : Model extends [infer A extends ModelObjectType]
+    ? A
     : Model extends ModelObjectType
     ? Model
     : never
@@ -245,8 +248,31 @@ export namespace TypesaurusCore {
         infer B extends ModelObjectType
       ]
     ? Utils.SharedShape2<A, B>
+    : Model extends [infer A extends ModelObjectType]
+    ? A
     : Model extends ModelObjectType
     ? Model
+    : never
+
+  /**
+   * Concats models into single variable model type. Useful to define and export
+   * variable models ouside of the centraliazed schema definition.
+   */
+  export type ConcatModel<
+    ModelToConcatTo extends ModelType,
+    ModelToConcat extends ModelType
+  > = ModelToConcatTo extends ModelObjectType
+    ? ModelToConcat extends ModelObjectType
+      ? [ModelToConcatTo, ModelToConcat]
+      : ModelToConcat extends ModelVariableType
+      ? [ModelToConcatTo, ...ModelToConcat]
+      : never
+    : ModelToConcatTo extends ModelVariableType
+    ? ModelToConcat extends ModelObjectType
+      ? [...ModelToConcatTo, ModelToConcat]
+      : ModelToConcat extends ModelVariableType
+      ? [...ModelToConcatTo, ...ModelToConcat]
+      : never
     : never
 
   export interface DocDefFlags {

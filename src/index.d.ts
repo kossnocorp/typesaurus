@@ -70,6 +70,15 @@ export namespace Typesaurus {
     Key,
     Type | undefined
   >
+
+  /**
+   * Concats models into single variable model type. Useful to define and export
+   * variable models ouside of the centraliazed schema definition.
+   */
+  export type ConcatModel<
+    ModelToConcatTo extends ModelType,
+    ModelToConcat extends ModelType
+  > = Core.ConcatModel<ModelToConcatTo, ModelToConcat>
 }
 
 export { transaction } from './transaction'
