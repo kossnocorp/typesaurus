@@ -1012,12 +1012,14 @@ export namespace TypesaurusCore {
            * (the read is not finished/started yet).
            */
           Result: Doc<Def, DocProps> | null | undefined
-        } & (DB[Path] extends NestedRichCollection<
-          any,
-          infer Schema extends TypesaurusCore.DB<any, any>
-        >
-          ? InferSchema<Schema>
-          : {})
+
+          sub: DB[Path] extends NestedRichCollection<
+            any,
+            infer Schema extends TypesaurusCore.DB<any, any>
+          >
+            ? InferSchema<Schema>
+            : never
+        }
       : never
   }
 
