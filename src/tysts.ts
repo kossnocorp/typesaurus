@@ -280,7 +280,7 @@ async function many() {
 
   // Variable shape
 
-  const [content] = await db.content.query(($) => [])
+  const [content] = await db.content.query(($) => $.field('type').equal('text'))
   if (!content) return
 
   // Can't update variable model shape without narrowing

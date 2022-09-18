@@ -8,12 +8,7 @@ export namespace TypesaurusUpdate {
       Props extends Core.DocProps & { environment: Environment }
     >(
       id: Def['Id'],
-      data: UpdateModelArg<
-        Def['Flags']['Reduced'] extends true
-          ? Core.ResolveModelType<Def['Model']>
-          : Core.SharedModelType<Def['WideModel']>,
-        Props
-      >,
+      data: UpdateModelArg<Core.DocModel<Def>, Props>,
       options?: Core.OperationOptions<Environment>
     ): Promise<Core.Ref<Def>>
 
@@ -31,12 +26,7 @@ export namespace TypesaurusUpdate {
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment }
     >(
-      data: UpdateModelArg<
-        Def['Flags']['Reduced'] extends true
-          ? Core.ResolveModelType<Def['Model']>
-          : Core.SharedModelType<Def['WideModel']>,
-        Props
-      >,
+      data: UpdateModelArg<Core.DocModel<Def>, Props>,
       options?: Core.OperationOptions<Environment>
     ): Promise<Core.Ref<Def>>
 
