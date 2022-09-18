@@ -83,6 +83,11 @@ export namespace TypesaurusCore {
 
   export type ModelObjectType = object & { length?: never }
 
+  export type DocModel<Def extends DocDef> =
+    Def['Flags']['Reduced'] extends true
+      ? ResolveModelType<Def['Model']>
+      : SharedModelType<Def['WideModel']>
+
   export type ResolveModelType<Model extends ModelType> = Model extends [
     infer A extends ModelObjectType,
     infer B extends ModelObjectType,

@@ -240,6 +240,7 @@ export namespace TypesaurusQuery {
    */
   export interface CommonQueryHelpers<
     Def extends Core.DocDef,
+    Model extends Core.ModelObjectType,
     OrderQueryResult,
     WhereQueryResult,
     LimitQueryResult
@@ -252,22 +253,22 @@ export namespace TypesaurusQuery {
     /**
      * Field selector, allows querying by a specific field.
      */
-    field<Key extends keyof Def['Model']>(
+    field<Key extends keyof Model>(
       key: Key
-    ): QueryField<Def, Def['Model'], Key, OrderQueryResult, WhereQueryResult>
+    ): QueryField<Def, Model, Key, OrderQueryResult, WhereQueryResult>
 
     /**
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1]
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1]
     >(
       key1: Key1,
       key2: Key2
     ): QueryField<
       Def,
-      Utils.AllRequired<Def['Model']>[Key1],
+      Utils.AllRequired<Model>[Key1],
       Key2,
       OrderQueryResult,
       WhereQueryResult
@@ -277,18 +278,16 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
-      >[Key2]
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
+      Key3 extends keyof Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
     >(
       key1: Key1,
       key2: Key2,
       key3: Key3
     ): QueryField<
       Def,
-      Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2],
+      Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2],
       Key3,
       OrderQueryResult,
       WhereQueryResult
@@ -298,13 +297,13 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
       Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
+        Utils.AllRequired<Model>[Key1]
       >[Key2],
       Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3]
     >(
       key1: Key1,
@@ -314,7 +313,7 @@ export namespace TypesaurusQuery {
     ): QueryField<
       Def,
       Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
       Key4,
       OrderQueryResult,
@@ -325,17 +324,17 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
       Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
+        Utils.AllRequired<Model>[Key1]
       >[Key2],
       Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
       Key5 extends keyof Utils.AllRequired<
         Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
         >[Key3]
       >[Key4]
     >(
@@ -348,7 +347,7 @@ export namespace TypesaurusQuery {
       Def,
       Utils.AllRequired<
         Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
         >[Key3]
       >[Key4],
       Key5,
@@ -360,23 +359,23 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
       Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
+        Utils.AllRequired<Model>[Key1]
       >[Key2],
       Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
       Key5 extends keyof Utils.AllRequired<
         Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
         >[Key3]
       >[Key4],
       Key6 extends keyof Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
           >[Key3]
         >[Key4]
       >[Key5]
@@ -392,7 +391,7 @@ export namespace TypesaurusQuery {
       Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
           >[Key3]
         >[Key4]
       >[Key5],
@@ -405,23 +404,23 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
       Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
+        Utils.AllRequired<Model>[Key1]
       >[Key2],
       Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
       Key5 extends keyof Utils.AllRequired<
         Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
         >[Key3]
       >[Key4],
       Key6 extends keyof Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
           >[Key3]
         >[Key4]
       >[Key5],
@@ -429,7 +428,7 @@ export namespace TypesaurusQuery {
         Utils.AllRequired<
           Utils.AllRequired<
             Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
             >[Key3]
           >[Key4]
         >[Key5]
@@ -448,7 +447,7 @@ export namespace TypesaurusQuery {
         Utils.AllRequired<
           Utils.AllRequired<
             Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
             >[Key3]
           >[Key4]
         >[Key5]
@@ -462,23 +461,23 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
       Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
+        Utils.AllRequired<Model>[Key1]
       >[Key2],
       Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
       Key5 extends keyof Utils.AllRequired<
         Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
         >[Key3]
       >[Key4],
       Key6 extends keyof Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
           >[Key3]
         >[Key4]
       >[Key5],
@@ -486,7 +485,7 @@ export namespace TypesaurusQuery {
         Utils.AllRequired<
           Utils.AllRequired<
             Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
             >[Key3]
           >[Key4]
         >[Key5]
@@ -496,7 +495,7 @@ export namespace TypesaurusQuery {
           Utils.AllRequired<
             Utils.AllRequired<
               Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
               >[Key3]
             >[Key4]
           >[Key5]
@@ -518,7 +517,7 @@ export namespace TypesaurusQuery {
           Utils.AllRequired<
             Utils.AllRequired<
               Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
               >[Key3]
             >[Key4]
           >[Key5]
@@ -533,23 +532,23 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
       Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
+        Utils.AllRequired<Model>[Key1]
       >[Key2],
       Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
       Key5 extends keyof Utils.AllRequired<
         Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
         >[Key3]
       >[Key4],
       Key6 extends keyof Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
           >[Key3]
         >[Key4]
       >[Key5],
@@ -557,7 +556,7 @@ export namespace TypesaurusQuery {
         Utils.AllRequired<
           Utils.AllRequired<
             Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
             >[Key3]
           >[Key4]
         >[Key5]
@@ -567,7 +566,7 @@ export namespace TypesaurusQuery {
           Utils.AllRequired<
             Utils.AllRequired<
               Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
               >[Key3]
             >[Key4]
           >[Key5]
@@ -579,7 +578,7 @@ export namespace TypesaurusQuery {
             Utils.AllRequired<
               Utils.AllRequired<
                 Utils.AllRequired<
-                  Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
                 >[Key3]
               >[Key4]
             >[Key5]
@@ -604,7 +603,7 @@ export namespace TypesaurusQuery {
             Utils.AllRequired<
               Utils.AllRequired<
                 Utils.AllRequired<
-                  Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
                 >[Key3]
               >[Key4]
             >[Key5]
@@ -620,23 +619,23 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Def['Model'],
-      Key2 extends keyof Utils.AllRequired<Def['Model']>[Key1],
+      Key1 extends keyof Model,
+      Key2 extends keyof Utils.AllRequired<Model>[Key1],
       Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Def['Model']>[Key1]
+        Utils.AllRequired<Model>[Key1]
       >[Key2],
       Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
       Key5 extends keyof Utils.AllRequired<
         Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
         >[Key3]
       >[Key4],
       Key6 extends keyof Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
           >[Key3]
         >[Key4]
       >[Key5],
@@ -644,7 +643,7 @@ export namespace TypesaurusQuery {
         Utils.AllRequired<
           Utils.AllRequired<
             Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
             >[Key3]
           >[Key4]
         >[Key5]
@@ -654,7 +653,7 @@ export namespace TypesaurusQuery {
           Utils.AllRequired<
             Utils.AllRequired<
               Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
               >[Key3]
             >[Key4]
           >[Key5]
@@ -666,7 +665,7 @@ export namespace TypesaurusQuery {
             Utils.AllRequired<
               Utils.AllRequired<
                 Utils.AllRequired<
-                  Utils.AllRequired<Utils.AllRequired<Def['Model']>[Key1]>[Key2]
+                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
                 >[Key3]
               >[Key4]
             >[Key5]
@@ -680,9 +679,7 @@ export namespace TypesaurusQuery {
               Utils.AllRequired<
                 Utils.AllRequired<
                   Utils.AllRequired<
-                    Utils.AllRequired<
-                      Utils.AllRequired<Def['Model']>[Key1]
-                    >[Key2]
+                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
                   >[Key3]
                 >[Key4]
               >[Key5]
@@ -710,9 +707,7 @@ export namespace TypesaurusQuery {
               Utils.AllRequired<
                 Utils.AllRequired<
                   Utils.AllRequired<
-                    Utils.AllRequired<
-                      Utils.AllRequired<Def['Model']>[Key1]
-                    >[Key2]
+                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
                   >[Key3]
                 >[Key4]
               >[Key5]
@@ -752,6 +747,7 @@ export namespace TypesaurusQuery {
   export interface QueryHelpers<Def extends Core.DocDef>
     extends CommonQueryHelpers<
       Def,
+      Core.ResolveModelType<Def['Model']>,
       OrderQuery<Def['Model']>,
       WhereQuery<Def['Model']>,
       LimitQuery<Def['Model']>
@@ -764,7 +760,13 @@ export namespace TypesaurusQuery {
   export interface QueryBuilder<
     Def extends Core.DocDef,
     Props extends Core.DocProps
-  > extends CommonQueryHelpers<Def, void, void, void> {
+  > extends CommonQueryHelpers<
+      Def,
+      Core.ResolveModelType<Def['Model']>,
+      void,
+      void,
+      void
+    > {
     /**
      * Runs the built query.
      */
