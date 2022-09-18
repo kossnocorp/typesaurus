@@ -388,12 +388,12 @@ export namespace TypesaurusCore {
     ref: Ref<Def>
 
     data: Props['environment'] extends 'server'
-      ? ModelServerData<Def['Model']>
+      ? ModelServerData<ResolveModelType<Def['Model']>>
       : Props['source'] extends 'database'
-      ? AnyModelData<Def['Model'], 'present'>
+      ? AnyModelData<ResolveModelType<Def['Model']>, 'present'>
       : Props['dateStrategy'] extends 'estimate' | 'previous'
-      ? AnyModelData<Def['Model'], 'present'>
-      : AnyModelData<Def['Model'], 'nullable'>
+      ? AnyModelData<ResolveModelType<Def['Model']>, 'present'>
+      : AnyModelData<ResolveModelType<Def['Model']>, 'nullable'>
 
     readonly props: Props
 
@@ -406,18 +406,18 @@ export namespace TypesaurusCore {
     ): asserts this is Doc<Def, DocProps & Props>
   }
 
-  export type ModelServerData<Model extends ModelType> = AnyModelData<
+  export type ModelServerData<Model extends ModelObjectType> = AnyModelData<
     Model,
     'present'
   >
 
-  export type ModelData<Model extends ModelType> = AnyModelData<
+  export type ModelData<Model extends ModelObjectType> = AnyModelData<
     Model,
     ServerDateNullable
   >
 
   export type AnyModelData<
-    Model extends ModelType,
+    Model extends ModelObjectType,
     DateNullable extends ServerDateNullable
   > = {
     [Key in keyof Model]: ModelField<Model[Key], DateNullable>
@@ -988,11 +988,15 @@ export namespace TypesaurusCore {
       | RichCollection<infer Def>
       | NestedRichCollection<infer Def, any>
       ? {
+          Def: Def
+
           /**
            * The documents' id.
            *
            * Essentially it's a string, but TypeScript will force you to use
            * `.toString()` to cast it to `string`.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/id).
            */
           Id: Def['Id']
 
@@ -1007,10 +1011,16 @@ export namespace TypesaurusCore {
            */
           Doc: TypesaurusCore.Doc<Def, DocProps>
 
+          Model: ResolveModelType<Def['Model']>
+
           /**
-           * The document data
+           * The document data. It differs from the interface used to define
+           * the collection by Firestore nuances such as undefined turned into
+           * nulls, and nullable dates. A variable model is also resolved.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/data).
            */
-          Data: ModelData<Def['Model']>
+          Data: ModelData<ResolveModelType<Def['Model']>>
 
           /**
            * Read result, either doc, `null` (not found) or `undefined`
