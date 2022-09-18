@@ -158,7 +158,7 @@ async function doc() {
 
   const contentId = await db.content.id()
 
-  db.content.doc(contentId, {
+  const contentDoc = db.content.doc(contentId, {
     type: 'image',
     src: 'https://example.com/image.png'
   })
@@ -176,6 +176,20 @@ async function doc() {
     src: 'https://example.com/image.png',
     text: 'Nope'
   })
+
+  if (contentDoc.data.type === 'image') {
+    contentDoc.data.src
+
+    if (typeof contentDoc.data.text === 'string')
+      // @ts-expect-error - text is never
+      contentDoc.data.text.length
+  } else {
+    contentDoc.data.text
+
+    if (typeof contentDoc.data.src === 'string')
+      // @ts-expect-error - src is never
+      contentDoc.data.src.length
+  }
 
   // Fixed string ids
 

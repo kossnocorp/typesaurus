@@ -21,7 +21,17 @@ export namespace Typesaurus {
     NarrowToModel extends Core.ModelData<any>
   > = Core.NarrowDoc<OriginalDoc, NarrowToModel>
 
-  export type Data<Model extends Core.ModelType> = Core.ModelData<Model>
+  export type Def<
+    Model extends Core.ModelType,
+    Path extends string,
+    WideModel extends Core.ModelType = Model,
+    Flags extends Core.DocDefFlags = Core.DocDefFlags
+  > = {
+    Model: Model
+    Id: Id<Path>
+    WideModel: WideModel
+    Flags: Flags
+  }
 
   /**
    * Define custom id passing the collection path string as the generic.
@@ -59,17 +69,11 @@ export namespace Typesaurus {
     Flags extends Core.DocDefFlags = Core.DocDefFlags
   > = Core.Doc<Def<Model, Path, WideModel, Flags>, Core.DocProps>
 
-  export type Def<
-    Model extends Core.ModelType,
-    Path extends string,
-    WideModel extends Core.ModelType = Model,
-    Flags extends Core.DocDefFlags = Core.DocDefFlags
-  > = {
-    Model: Model
-    Id: Id<Path>
-    WideModel: WideModel
-    Flags: Flags
-  }
+  export type Model<Model extends Core.ModelType> = Core.ResolveModelType<Model>
+
+  export type Data<Model extends Core.ModelType> = Core.ModelData<
+    Core.ResolveModelType<Model>
+  >
 
   export type ModelType = Core.ModelType
 
