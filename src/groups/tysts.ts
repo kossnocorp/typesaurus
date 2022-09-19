@@ -133,6 +133,34 @@ async function tysts() {
 
   type Schema3 = typeof db3
 
+  const dbDeep = schema(($) => ({
+    orders: $.collection<Order>().sub({
+      comments: $.collection<OrderComment>().sub({
+        likes: $.collection<Like>().sub({
+          orders: $.collection<Order>().sub({
+            comments: $.collection<OrderComment>().sub({
+              likes: $.collection<Like>().sub({
+                orders: $.collection<Order>().sub({
+                  comments: $.collection<OrderComment>().sub({
+                    likes: $.collection<Like>().sub({
+                      orders: $.collection<Order>().sub({
+                        comments: $.collection<OrderComment>().sub({
+                          likes: $.collection<Like>().sub({})
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  }))
+
+  type SchemaDeep = typeof dbDeep
+
   // ExtractDBModels
 
   type ExampleAQ30 = Groups.ExtractGroupModels<Schema1>
@@ -213,7 +241,14 @@ async function tysts() {
         WideModel: Plant
         Flags: Core.DocDefFlags
       }
-    }
+    },
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
   >
 
   type ResultOSE7 = Assert<
@@ -285,7 +320,14 @@ async function tysts() {
         Flags: Core.DocDefFlags
       }
     },
-    Groups.ExtractGroupModels<Schema3>
+    Groups.ExtractGroupModels<Schema3>,
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
   >
 
   type ResultFSPP = Assert<
@@ -362,7 +404,14 @@ async function tysts() {
         }
       }
     | {},
-    Groups.ExtractGroupModels<Schema3>
+    Groups.ExtractGroupModels<Schema3>,
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
   >
 
   type ResultYHWG = Assert<
@@ -547,7 +596,130 @@ async function tysts() {
 
   type ExampleXNAT = Groups.GroupsLevel3<Schema3>
 
-  type ResultXNAT = Assert<{ likes: Like } | {}, ExampleXNAT>
+  type ResultXNAT = Assert<
+    | {}
+    | {
+        likes: {
+          Model: Like
+          Id: Core.Id<'books/likes'>
+          WideModel: Like
+          Flags: Core.DocDefFlags
+        }
+      },
+    ExampleXNAT
+  >
+
+  // 4th level
+
+  type ExampleU2YD = Groups.GroupsLevel4<SchemaDeep>
+
+  type ResultU2YD = Assert<
+    {
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders/comments/likes/orders'>
+        WideModel: Order
+        Flags: Core.DocDefFlags
+      }
+    },
+    ExampleU2YD
+  >
+
+  // 5th level
+
+  type ExampleOSD3 = Groups.GroupsLevel5<SchemaDeep>
+
+  type ResultOSD3 = Assert<
+    {
+      comments: {
+        Model: OrderComment
+        Id: Core.Id<'orders/comments/likes/orders/comments'>
+        WideModel: OrderComment
+        Flags: Core.DocDefFlags
+      }
+    },
+    ExampleOSD3
+  >
+
+  // 6th level
+
+  type ExamplePWN8 = Groups.GroupsLevel6<SchemaDeep>
+
+  type ResultPWN8 = Assert<
+    {
+      likes: {
+        Model: Like
+        Id: Core.Id<'orders/comments/likes/orders/comments/likes'>
+        WideModel: Like
+        Flags: Core.DocDefFlags
+      }
+    },
+    ExamplePWN8
+  >
+
+  // 7th level
+
+  type ExampleAI23 = Groups.GroupsLevel7<SchemaDeep>
+
+  type ResultAI23 = Assert<
+    {
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders'>
+        WideModel: Order
+        Flags: Core.DocDefFlags
+      }
+    },
+    ExampleAI23
+  >
+
+  // 8th level
+
+  type Example37JA = Groups.GroupsLevel8<SchemaDeep>
+
+  type Result37JA = Assert<
+    {
+      comments: {
+        Model: OrderComment
+        Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders/comments'>
+        WideModel: OrderComment
+        Flags: Core.DocDefFlags
+      }
+    },
+    Example37JA
+  >
+
+  // 9th level
+
+  type ExampleIAP9 = Groups.GroupsLevel9<SchemaDeep>
+
+  type ResultIAP9 = Assert<
+    {
+      likes: {
+        Model: Like
+        Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders/comments/likes'>
+        WideModel: Like
+        Flags: Core.DocDefFlags
+      }
+    },
+    ExampleIAP9
+  >
+
+  // 10th level
+
+  type ExampleNMS8 = Groups.GroupsLevel10<SchemaDeep>
+
+  type ResultNMS8 = Assert<
+    {
+      orders: {
+        Model: Order
+        Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders/comments/likes/orders'>
+        WideModel: Order
+        Flags: Core.DocDefFlags
+      }
+    },
+    ExampleNMS8
+  >
 
   // Groups
 
