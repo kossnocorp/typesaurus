@@ -14,7 +14,7 @@ export namespace TypesaurusQuery {
 
     build<Props extends Core.DocProps>(
       options?: Core.ReadOptions<Props>
-    ): QueryBuilder<Def, Props>
+    ): Builder<Def, Props>
   }
 
   export type DocId = '__id__'
@@ -757,10 +757,8 @@ export namespace TypesaurusQuery {
    * Query builder works like regular query helpers, but the run can be delayed
    * and mixed with other code.
    */
-  export interface QueryBuilder<
-    Def extends Core.DocDef,
-    Props extends Core.DocProps
-  > extends CommonQueryHelpers<
+  export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
+    extends CommonQueryHelpers<
       Def,
       Core.ResolveModelType<Def['Model']>,
       void,

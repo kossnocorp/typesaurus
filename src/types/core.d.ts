@@ -1028,6 +1028,22 @@ export namespace TypesaurusCore {
            */
           Result: Doc<Def, DocProps> | null | undefined
 
+          /**
+           * Query builder type allows to abstract query building login into
+           * functions by accepting it as an argument.
+           *
+           * [Learn more on the docs website](http://localhost:3000/docs/api/type/query-builder).
+           */
+          QueryBuilder: Query.Builder<Def, DocProps>
+
+          /**
+           * Update builder type allows to abstract update building login into
+           * functions by accepting it as an argument.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/http://localhost:3000/docs/api/type/update-builder).
+           */
+          UpdateBuilder: Update.Builder<Def>
+
           sub: DB[Path] extends NestedRichCollection<
             any,
             infer Schema extends TypesaurusCore.DB<any, any>
