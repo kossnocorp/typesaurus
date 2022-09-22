@@ -29,8 +29,12 @@ import {
 import { SubscriptionPromise } from '../../sp/index.ts'
 
 export { batch } from './batch.mjs'
+
 export { groups } from './groups.mjs'
+
 export { transaction } from './transaction.mjs'
+
+export { retry } from './../../retry/index.mjs'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())

@@ -129,12 +129,16 @@ export class SubscriptionPromise<Request, Result, SubscriptionMeta = undefined>
       const index = this.subscriptions.result.indexOf(callback)
       if (index !== -1) this.subscriptions.result.splice(index, 1)
 
+      // If no more subscriptions, unsubscribe and clean up results
       if (
         !this.subscriptions.result.length &&
         !this.subscriptions.error.length
       ) {
         this.off?.()
         this.off = undefined
+        this.result = undefined
+        this.subscriptionMeta = undefined
+        this.error = undefined
       }
     }
 
@@ -142,12 +146,12 @@ export class SubscriptionPromise<Request, Result, SubscriptionMeta = undefined>
       off()
     }) as TypesaurusCore.OffSubscriptionWithCatch
 
-    offWithCatch.catch = (callback) => {
-      if (this.error) callback(this.error)
-      this.subscriptions.error.push(callback)
+    offWithCatch.catch = (errorCallback) => {
+      if (this.error) errorCallback(this.error)
+      this.subscriptions.error.push(errorCallback)
 
       return () => {
-        const index = this.subscriptions.error.indexOf(callback)
+        const index = this.subscriptions.error.indexOf(errorCallback)
         if (index !== -1) this.subscriptions.error.splice(index, 1)
 
         off()

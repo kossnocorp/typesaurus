@@ -8,6 +8,8 @@ export { transaction } from './transaction.mjs'
 
 export { groups } from './groups.mjs'
 
+export { retry } from './../../retry/index.mjs'
+
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())
   return db(schema)
