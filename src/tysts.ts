@@ -432,12 +432,46 @@ async function query() {
     $.limit(1)
   ])
 
-  // Server datea
+  // Server date
 
   await db.accounts.query(($) => $.field('createdAt').equal(new Date()))
 
   await db.accounts.query(($) =>
     $.field('createdAt').order('asc', $.startAt(new Date()))
+  )
+
+  // Cursors
+
+  await db.users.query(($) => $.field('name').order($.startAt('Sasha')))
+
+  await db.users.query(($) => $.field('name').order($.endAt('Sasha')))
+
+  await db.users.query(($) =>
+    $.field('name').order([$.startAt('Sasha'), $.endAt('Tati')])
+  )
+
+  await db.users.query(($) =>
+    // @ts-expect-error - can't use start cursor after end cursor
+    $.field('name').order([$.endAt('Tati'), $.startAt('Sasha')])
+  )
+
+  const nameCursor: string | undefined = 'hello'
+  const useCursor = false
+
+  await db.users.query(($) =>
+    $.field('name').order(nameCursor && $.startAt(nameCursor))
+  )
+
+  await db.users.query(($) =>
+    $.field('name').order(useCursor && $.startAt('Sasha'))
+  )
+
+  await db.users.query(($) =>
+    $.field('name').order(useCursor ? $.startAt('Sasha') : undefined)
+  )
+
+  await db.users.query(($) =>
+    $.field('name').order(nameCursor ? [$.startAfter(nameCursor)] : [])
   )
 
   // Subscription
