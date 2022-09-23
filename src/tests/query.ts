@@ -780,7 +780,7 @@ describe('query', () => {
       it('allows to combine cursors', async () => {
         const docs = await db.contacts.query(($) => [
           $.field('ownerId').equal(ownerId),
-          $.field('year').order('asc', $.startAt(1989), $.endAt(1989)),
+          $.field('year').order('asc', [$.startAt(1989), $.endAt(1989)]),
           $.limit(2)
         ])
         expect(docs.map(({ data: { name } }) => name)).toEqual(['Tati'])
@@ -876,11 +876,10 @@ describe('query', () => {
 
       it('allows cursors to use documentId', async () => {
         const docs = await db.shardedCounters.query(($) => [
-          $.field($.docId()).order(
-            'asc',
+          $.field($.docId()).order('asc', [
             $.startAt(db.shardedCounters.id('draft-1')),
             $.endAt(db.shardedCounters.id('published-1'))
-          )
+          ])
         ])
         expect(docs.length).toBe(3)
         expect(docs[0]?.ref.id).toBe(`draft-1`)
@@ -1760,7 +1759,7 @@ describe('query', () => {
           off = db.contacts
             .query(($) => [
               $.field('ownerId').equal(ownerId),
-              $.field('year').order('asc', $.startAt(1989), $.endAt(1989)),
+              $.field('year').order('asc', [$.startAt(1989), $.endAt(1989)]),
               $.limit(2)
             ])
             .on((docs) => {
@@ -1907,11 +1906,10 @@ describe('query', () => {
           const spy = sinon.spy()
           off = db.shardedCounters
             .query(($) => [
-              $.field($.docId()).order(
-                'asc',
+              $.field($.docId()).order('asc', [
                 $.startAt(db.shardedCounters.id('draft-1')),
                 $.endAt(db.shardedCounters.id('published-1'))
-              )
+              ])
             ])
             .on((docs) => {
               spy(docs.map((doc) => doc.ref.id))

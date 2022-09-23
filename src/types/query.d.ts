@@ -71,9 +71,14 @@ export namespace TypesaurusQuery {
     Parent,
     Key extends keyof Parent | DocId
   > =
+    | OrderCursorsEmpty // Enable conditional cursors
+    | OrderCursorStart<Def, Parent, Key>
     | [OrderCursorStart<Def, Parent, Key>]
+    | OrderCursorEnd<Def, Parent, Key>
     | [OrderCursorEnd<Def, Parent, Key>]
     | [OrderCursorStart<Def, Parent, Key>, OrderCursorEnd<Def, Parent, Key>]
+
+  export type OrderCursorsEmpty = undefined | '' | false | []
 
   export type OrderCursorPosition =
     | 'startAt'
@@ -152,12 +157,12 @@ export namespace TypesaurusQuery {
     OrderQueryResult
   > {
     // With cursors
-    order(...cursors: OrderCursors<Def, Parent, Key> | []): OrderQueryResult
+    order(cursors?: OrderCursors<Def, Parent, Key> | []): OrderQueryResult
 
     // With method and cursors
     order(
       method: OrderDirection,
-      ...cursors: OrderCursors<Def, Parent, Key> | []
+      cursors?: OrderCursors<Def, Parent, Key> | []
     ): OrderQueryResult
   }
 
