@@ -57,7 +57,7 @@ class RichCollection {
 
       return updateDoc(
         this.firebaseDoc(id),
-        unwrapData(this.firebaseDB, update)
+        unwrapData(this.firebaseDB, update, true)
       ).then(() => this.ref(id))
     }
 
@@ -69,7 +69,7 @@ class RichCollection {
         run: () =>
           updateDoc(
             this.firebaseDoc(id),
-            unwrapData(this.firebaseDB, updateFields(fields))
+            unwrapData(this.firebaseDB, updateFields(fields), true)
           ).then(() => this.ref(id))
       }
     }
@@ -106,15 +106,16 @@ class RichCollection {
     assertEnvironment(options?.as)
     return addDoc(
       this.firebaseCollection(),
-      writeData(this.firebaseDB, data)
+      writeData(this.firebaseDB, data, 'initial')
     ).then((firebaseRef) => this.ref(firebaseRef.id))
   }
 
   set(id, data, options) {
     assertEnvironment(options?.as)
-    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB, data)).then(
-      () => this.ref(id)
-    )
+    return setDoc(
+      this.firebaseDoc(id),
+      writeData(this.firebaseDB, data, 'initial')
+    ).then(() => this.ref(id))
   }
 
   upset(id, data, options) {
@@ -333,10 +334,11 @@ export function all(adapter) {
   })
 }
 
-export function writeData(db, data) {
+export function writeData(db, data, write = true) {
   return unwrapData(
     db,
-    typeof data === 'function' ? data(writeHelpers()) : data
+    typeof data === 'function' ? data(writeHelpers()) : data,
+    write
   )
 }
 
@@ -650,17 +652,16 @@ export function queryHelpers(mode = 'helpers', acc) {
       contains: where.bind(null, field, 'array-contains'),
       containsAny: where.bind(null, field, 'array-contains-any'),
 
-      order: (...args) =>
+      order: (maybeMethod, maybeCursors) =>
         processQuery({
           type: 'order',
           field,
-          method: typeof args[0] === 'string' ? args[0] : 'asc',
-          cursors:
-            args.length > 1
-              ? args.slice(1)
-              : typeof args[0] === 'object'
-              ? args
-              : undefined
+          method: typeof maybeMethod === 'string' ? maybeMethod : 'asc',
+          cursors: maybeCursors
+            ? [].concat(maybeCursors)
+            : maybeMethod && typeof maybeMethod !== 'string'
+            ? [].concat(maybeMethod)
+            : undefined
         })
     }),
 
@@ -715,7 +716,7 @@ export function pathToDoc(path, data) {
  * @param data - the data to convert
  * @returns the data in Firestore format
  */
-export function unwrapData(db, data) {
+export function unwrapData(db, data, write) {
   if (data && typeof data === 'object') {
     if (data.type === 'ref') {
       return refToFirestoreDocument(db, data)
@@ -729,10 +730,10 @@ export function unwrapData(db, data) {
           return increment(fieldValue.number)
 
         case 'arrayUnion':
-          return arrayUnion(...unwrapData(db, fieldValue.values))
+          return arrayUnion(...unwrapData(db, fieldValue.values, write))
 
         case 'arrayRemove':
-          return arrayRemove(...unwrapData(db, fieldValue.values))
+          return arrayRemove(...unwrapData(db, fieldValue.values, write))
 
         case 'serverDate':
           return serverTimestamp()
@@ -744,12 +745,14 @@ export function unwrapData(db, data) {
     const unwrappedObject = Object.assign(Array.isArray(data) ? [] : {}, data)
 
     Object.keys(unwrappedObject).forEach((key) => {
-      unwrappedObject[key] = unwrapData(db, unwrappedObject[key])
+      if (unwrappedObject[key] === undefined && write === 'initial')
+        delete unwrappedObject[key]
+      else unwrappedObject[key] = unwrapData(db, unwrappedObject[key], write)
     })
 
     return unwrappedObject
   } else if (data === undefined) {
-    return null
+    return write === true ? deleteField() : null
   } else {
     return data
   }

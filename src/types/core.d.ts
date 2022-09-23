@@ -491,7 +491,7 @@ export namespace TypesaurusCore {
    * to set special values, sucha as server date, increment, etc.
    */
   export type SetModel<Data, Props extends DocProps> = {
-    [Key in keyof Data]: WriteValueNullable<
+    [Key in keyof Data]: MaybeWriteValueUndefined<
       Data[Key],
       WriteValue<Data, Key, Props>
     >
@@ -513,8 +513,8 @@ export namespace TypesaurusCore {
       : WriteValueOther<Data, Key>
     : never
 
-  export type WriteValueNullable<OriginType, Value> =
-    OriginType extends undefined ? Value | null : Value
+  export type MaybeWriteValueUndefined<OriginType, Value> =
+    OriginType extends undefined ? Value | undefined : Value
 
   export type WriteValueServerDate<
     Model,
