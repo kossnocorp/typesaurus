@@ -294,7 +294,7 @@ async function many() {
 
   // Variable shape
 
-  const [content] = await db.content.query(($) => $.field('type').equal('text'))
+  const [content] = await db.content.many([db.content.id('42')])
   if (!content) return
 
   // Can't update variable model shape without narrowing
@@ -431,6 +431,14 @@ async function query() {
     $.field('name').order(),
     $.limit(1)
   ])
+
+  // Server datea
+
+  await db.accounts.query(($) => $.field('createdAt').equal(new Date()))
+
+  await db.accounts.query(($) =>
+    $.field('createdAt').order('asc', $.startAt(new Date()))
+  )
 
   // Subscription
 

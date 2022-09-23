@@ -137,7 +137,7 @@ export namespace TypesaurusQuery {
     Parent,
     Key extends keyof Parent | DocId
   > =
-    | (Key extends keyof Parent ? Parent[Key] : Def['Id']) // Field value or id
+    | (Key extends keyof Parent ? QueryFieldValue<Parent[Key]> : Def['Id']) // Field value or id
     | Core.Doc<Def, Core.DocProps> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
@@ -190,21 +190,21 @@ export namespace TypesaurusQuery {
     OrderQueryResult,
     WhereQueryResult
   > extends QueryFieldBase<Def, Parent, Key, OrderQueryResult> {
-    less(field: Parent[Key]): WhereQueryResult
+    less(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
 
-    lessOrEqual(field: Parent[Key]): WhereQueryResult
+    lessOrEqual(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
 
-    equal(field: Parent[Key]): WhereQueryResult
+    equal(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
 
-    not(field: Parent[Key]): WhereQueryResult
+    not(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
 
-    more(field: Parent[Key]): WhereQueryResult
+    more(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
 
-    moreOrEqual(field: Parent[Key]): WhereQueryResult
+    moreOrEqual(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
 
-    in(fields: Parent[Key][]): WhereQueryResult
+    in(fields: QueryFieldValue<Parent[Key]>[]): WhereQueryResult
 
-    notIn(fields: Parent[Key][]): WhereQueryResult
+    notIn(fields: QueryFieldValue<Parent[Key]>[]): WhereQueryResult
   }
 
   export interface QueryArrayField<
@@ -214,13 +214,13 @@ export namespace TypesaurusQuery {
   > {
     contains(
       field: Exclude<Parent[Key], undefined> extends Array<infer ItemType>
-        ? ItemType
+        ? QueryFieldValue<ItemType>
         : never
     ): WhereQueryResult
 
     containsAny(
       field: Exclude<Parent[Key], undefined> extends Array<any>
-        ? Parent[Key]
+        ? QueryFieldValue<Parent[Key]>
         : never
     ): WhereQueryResult
   }
@@ -234,6 +234,13 @@ export namespace TypesaurusQuery {
   > = Exclude<Parent[Key], undefined> extends Array<any>
     ? QueryArrayField<Parent, Key, WhereQueryResult>
     : QueryPrimitiveField<Def, Parent, Key, OrderQueryResult, WhereQueryResult>
+
+  export type QueryFieldValue<Value> = Exclude<
+    Value,
+    undefined
+  > extends Core.ServerDate
+    ? Exclude<Value, Core.ServerDate> | Date
+    : Value
 
   /**
    * Common query helpers API with query object result passed as a generic.
