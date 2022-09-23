@@ -9,7 +9,7 @@ describe('upset', () => {
   interface Post {
     author: Typesaurus.Ref<User, 'users'>
     text: string
-    date?: Typesaurus.ServerDate
+    date?: Typesaurus.ServerDate | undefined
   }
 
   interface Order {
@@ -124,6 +124,17 @@ describe('upset', () => {
     expect(
       dateFromDB!.getTime() <= now && dateFromDB!.getTime() > now - 10000
     ).toBe(true)
+  })
+
+  it('removes undefineds', async () => {
+    const userRef = db.users.ref(db.users.id('42'))
+    const postRef = await db.posts.upset(await db.posts.id(), {
+      author: userRef,
+      text: 'Hello!',
+      date: undefined
+    })
+    const postFromDB = await postRef.get()
+    expect(postFromDB?.data.date).toBe(undefined)
   })
 
   it('allows incrementing values', async () => {

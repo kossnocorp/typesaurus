@@ -12,6 +12,7 @@ describe('update', () => {
   interface Post {
     author: Typesaurus.Ref<User, 'users'>
     text: string
+    date?: Date | undefined
   }
 
   interface Favorite {
@@ -126,6 +127,18 @@ describe('update', () => {
     const postFromDB = await db.posts.get(postId)
     const userFromDB = postFromDB && (await postFromDB.data.author.get())
     expect(userFromDB?.data.name).toBe('Tati')
+  })
+
+  it('removes undefineds', async () => {
+    const userRef = db.users.ref(db.users.id('42'))
+    const postRef = await db.posts.add({
+      author: userRef,
+      text: 'Hello!',
+      date: new Date()
+    })
+    await postRef.update({ date: undefined })
+    const postFromDB = await postRef.get()
+    expect(postFromDB?.data.date).toBe(undefined)
   })
 
   it('allows removing values', async () => {

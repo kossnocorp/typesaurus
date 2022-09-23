@@ -8,7 +8,7 @@ describe('set', () => {
   interface Post {
     author: Typesaurus.Ref<User, 'users'>
     text: string
-    date?: Date
+    date?: Date | undefined
   }
 
   interface Order {
@@ -65,6 +65,17 @@ describe('set', () => {
     await db.posts.set(postId, { author: userRef, text: 'Hello!', date })
     const postFromDB = await db.posts.get(postId)
     expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
+  })
+
+  it('removes undefineds', async () => {
+    const userRef = db.users.ref(db.users.id('42'))
+    const postRef = await db.posts.set(await db.posts.id(), {
+      author: userRef,
+      text: 'Hello!',
+      date: undefined
+    })
+    const postFromDB = await postRef.get()
+    expect(postFromDB?.data.date).toBe(undefined)
   })
 
   it('allows to assert environment', async () => {
