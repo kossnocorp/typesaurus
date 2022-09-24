@@ -393,7 +393,7 @@ export namespace TypesaurusCore {
       ? AnyModelData<ResolveModelType<Def['Model']>, 'present'>
       : Props['dateStrategy'] extends 'estimate' | 'previous'
       ? AnyModelData<ResolveModelType<Def['Model']>, 'present'>
-      : AnyModelData<ResolveModelType<Def['Model']>, 'nullable'>
+      : AnyModelData<ResolveModelType<Def['Model']>, 'missing'>
 
     readonly props: Props
 
@@ -413,31 +413,31 @@ export namespace TypesaurusCore {
 
   export type ModelData<Model extends ModelObjectType> = AnyModelData<
     Model,
-    ServerDateNullable
+    ServerDateMissing
   >
 
   export type AnyModelData<
     Model extends ModelObjectType,
-    DateNullable extends ServerDateNullable
+    DateMissing extends ServerDateMissing
   > = {
-    [Key in keyof Model]: ModelField<Model[Key], DateNullable>
+    [Key in keyof Model]: ModelField<Model[Key], DateMissing>
   }
 
   export type ModelField<
     Field,
-    DateNullable extends ServerDateNullable
+    DateMissing extends ServerDateMissing
   > = Field extends Ref<any>
     ? MaybeModelFieldUndefined<Field>
     : Field extends ServerDate // Process server dates
-    ? DateNullable extends 'nullable'
+    ? DateMissing extends 'missing'
       ? Date | undefined
       : MaybeModelFieldUndefined<Date>
     : Field extends Date | Id<string> // Stop dates & ids from being processed as an object
     ? MaybeModelFieldUndefined<Field>
     : Field extends Array<infer ItemType extends undefined | infer _Other>
-    ? Array<ModelField<Exclude<ItemType, undefined>, DateNullable> | null>
+    ? Array<ModelField<Exclude<ItemType, undefined>, DateMissing> | null>
     : Field extends object // If it's an object, recursively pass through ModelData
-    ? AnyModelData<Field, DateNullable>
+    ? AnyModelData<Field, DateMissing>
     : MaybeModelFieldUndefined<Field>
 
   export type MaybeModelFieldUndefined<Type> = Type extends undefined
@@ -462,7 +462,7 @@ export namespace TypesaurusCore {
     id: Def['Id']
   }
 
-  export type ServerDateNullable = 'nullable' | 'present'
+  export type ServerDateMissing = 'missing' | 'present'
 
   export type ServerDateStrategy = 'estimate' | 'previous' | 'none'
 

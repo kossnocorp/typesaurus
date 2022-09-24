@@ -67,7 +67,7 @@ describe('doc', () => {
     )
   })
 
-  it('converts all undefined to null', async () => {
+  it('converts undefined in lists to null', async () => {
     const doc = db.libraries.doc(await db.libraries.id(), {
       books: {
         '1984': {
@@ -97,10 +97,10 @@ describe('doc', () => {
           title: '1984',
           attributes: {
             hopeless: true,
-            resolution: null
+            resolution: undefined
           }
         },
-        'this-bright-future': null
+        'this-bright-future': undefined
       },
       returned: [
         null,
@@ -108,7 +108,7 @@ describe('doc', () => {
           title: 'Brave New World',
           attributes: {
             hopeless: true,
-            resolution: null
+            resolution: undefined
           }
         }
       ]

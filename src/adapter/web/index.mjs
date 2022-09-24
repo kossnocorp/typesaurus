@@ -786,7 +786,7 @@ export function wrapData(data, ref = pathToRef) {
   }
 }
 /**
- * Deeply replaces all `undefined` values in the data with `null`. It emulates
+ * Deeply replaces `undefined` values in the arrays with `null`. It emulates
  * the Firestore behavior.
  *
  * @param data - the data to convert
@@ -794,9 +794,11 @@ export function wrapData(data, ref = pathToRef) {
  */
 export function nullifyData(data) {
   if (data && typeof data === 'object' && !(data instanceof Date)) {
-    const newData = Array.isArray(data) ? [] : {}
+    const isArray = Array.isArray(data)
+    const newData = isArray ? [] : {}
     for (const key in data) {
-      newData[key] = data[key] === undefined ? null : nullifyData(data[key])
+      newData[key] =
+        isArray && data[key] === undefined ? null : nullifyData(data[key])
     }
     return newData
   } else {
