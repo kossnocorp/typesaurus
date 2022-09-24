@@ -10,6 +10,7 @@ describe('add', () => {
     author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Date | undefined
+    tags?: (string | undefined)[]
   }
 
   interface Order {
@@ -65,6 +66,17 @@ describe('add', () => {
     })
     const postFromDB = await postRef.get()
     expect(postFromDB?.data.date).toBe(undefined)
+  })
+
+  it('converts undefineds in arrays to nulls', async () => {
+    const userRef = db.users.ref(db.users.id('42'))
+    const postRef = await db.posts.add({
+      author: userRef,
+      text: 'Hello!',
+      tags: ['hello', undefined, 'world']
+    })
+    const postFromDB = await postRef.get()
+    expect(postFromDB?.data.tags).toEqual(['hello', null, 'world'])
   })
 
   it('allows to assert environment', async () => {

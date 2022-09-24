@@ -8,6 +8,7 @@ interface Post {
   text: string
   likeIds?: string[]
   likes?: number
+  tags?: Array<string | undefined>
 }
 
 interface Update {
@@ -150,9 +151,7 @@ async function doc() {
     user.data.createdAt.getDay()
   }
 
-  assertType<TypeEqual<typeof user.data.birthdate, Date | undefined | null>>(
-    true
-  )
+  assertType<TypeEqual<typeof user.data.birthdate, Date | undefined>>(true)
 
   // Variable shape
 
@@ -194,6 +193,17 @@ async function doc() {
   // Fixed string ids
 
   db.appStats.doc('appStats', { users: 123 })
+
+  // Nullable
+
+  const postDoc = await db.posts.get(db.posts.id('doc-id'))
+  if (postDoc) {
+    assertType<TypeEqual<typeof postDoc.data.likes, undefined | number>>(true)
+
+    assertType<
+      TypeEqual<typeof postDoc.data.tags, undefined | Array<string | null>>
+    >(true)
+  }
 }
 
 async function get() {
@@ -592,6 +602,14 @@ async function add() {
   db.posts.add({
     title: 'Hello, world!',
     text: 'Hello!',
+    likes: undefined,
+    tags: ['hello', null, undefined, 'world']
+  })
+
+  db.posts.add({
+    title: 'Hello, world!',
+    text: 'Hello!',
+    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
@@ -646,6 +664,14 @@ async function set() {
   db.posts.set(db.posts.id('doc-id'), {
     title: 'Hello, world!',
     text: 'Hello!',
+    likes: undefined,
+    tags: ['hello', null, undefined, 'world']
+  })
+
+  db.posts.set(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!',
+    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
@@ -744,6 +770,14 @@ async function upset() {
   db.posts.upset(db.posts.id('doc-id'), {
     title: 'Hello, world!',
     text: 'Hello!',
+    likes: undefined,
+    tags: ['hello', null, undefined, 'world']
+  })
+
+  db.posts.upset(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!',
+    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
@@ -961,10 +995,27 @@ async function update() {
   // Nullable fields
 
   db.posts.update(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!',
+    likes: undefined,
+    tags: ['hello', null, undefined, 'world']
+  })
+
+  db.posts.update(db.posts.id('doc-id'), {
+    title: 'Hello, world!',
+    text: 'Hello!',
+    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
-  db.posts.update(db.posts.id('doc-id'), ($) => $.field('likes').set(null))
+  db.posts.update(db.posts.id('doc-id'), ($) => [
+    $.field('likes').set(undefined),
+    $.field('tags').set(['hello', null, undefined, 'world']),
+    // $.field('tags', 4).set(null), // TODO
+    // $.field('tags', 4).set(undefined), // TODO
+    // @ts-expect-error - can't set null to undefined
+    $.field('likes').set(null)
+  ])
 
   // Increment on nested optional values
 

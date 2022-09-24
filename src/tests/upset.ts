@@ -10,6 +10,7 @@ describe('upset', () => {
     author: Typesaurus.Ref<User, 'users'>
     text: string
     date?: Typesaurus.ServerDate | undefined
+    tags?: (string | undefined)[]
   }
 
   interface Order {
@@ -135,6 +136,17 @@ describe('upset', () => {
     })
     const postFromDB = await postRef.get()
     expect(postFromDB?.data.date).toBe(undefined)
+  })
+
+  it('converts undefineds in arrays to nulls', async () => {
+    const userRef = db.users.ref(db.users.id('42'))
+    const postRef = await db.posts.upset(await db.posts.id(), {
+      author: userRef,
+      text: 'Hello!',
+      tags: ['hello', undefined, 'world']
+    })
+    const postFromDB = await postRef.get()
+    expect(postFromDB?.data.tags).toEqual(['hello', null, 'world'])
   })
 
   it('allows incrementing values', async () => {
