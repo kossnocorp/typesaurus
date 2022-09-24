@@ -427,19 +427,21 @@ export namespace TypesaurusCore {
     Field,
     DateNullable extends ServerDateNullable
   > = Field extends Ref<any>
-    ? ModelFieldNullable<Field>
+    ? MaybeModelFieldUndefined<Field>
     : Field extends ServerDate // Process server dates
     ? DateNullable extends 'nullable'
-      ? Date | null
-      : ModelFieldNullable<Date>
+      ? Date | undefined
+      : MaybeModelFieldUndefined<Date>
     : Field extends Date | Id<string> // Stop dates & ids from being processed as an object
-    ? ModelFieldNullable<Field>
+    ? MaybeModelFieldUndefined<Field>
+    : Field extends Array<infer ItemType extends undefined | infer _Other>
+    ? Array<ModelField<Exclude<ItemType, undefined>, DateNullable> | null>
     : Field extends object // If it's an object, recursively pass through ModelData
     ? AnyModelData<Field, DateNullable>
-    : ModelFieldNullable<Field>
+    : MaybeModelFieldUndefined<Field>
 
-  export type ModelFieldNullable<Type> = Type extends undefined
-    ? Type | null
+  export type MaybeModelFieldUndefined<Type> = Type extends undefined
+    ? Type | undefined
     : Type
 
   export type ResolvedWebServerDate<
@@ -497,6 +499,14 @@ export namespace TypesaurusCore {
     >
   }
 
+  export type SetArray<Data extends Array<any>, Props extends DocProps> = {
+    [Key in keyof Data]: Data extends Array<
+      infer _ItemType extends undefined | infer _Other
+    > // Undefineds in arrays become nulls, so we can accept null as well
+      ? WriteValue<Data, Key, Props> | null
+      : WriteValue<Data, Key, Props>
+  }
+
   export type WriteValue<
     Data,
     Key extends keyof Data,
@@ -505,7 +515,7 @@ export namespace TypesaurusCore {
     ? Type extends ServerDate // First, ensure ServerDate is properly set
       ? WriteValueServerDate<Data, Key, Props>
       : Type extends Array<infer ItemType>
-      ? WriteValueArray<Data, Key, ItemType>
+      ? WriteValueArray<Data, Key, ItemType, Props>
       : Type extends object // If it's an object, recursively pass through SetModel
       ? WriteValueObject<Data, Key, Props>
       : Type extends number
@@ -524,8 +534,13 @@ export namespace TypesaurusCore {
     ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
     : ValueServerDate | MaybeValueRemove<Model, Key>
 
-  export type WriteValueArray<Model, Key extends keyof Model, ItemType> =
-    | Model[Key]
+  export type WriteValueArray<
+    Model,
+    Key extends keyof Model,
+    ItemType,
+    Props extends DocProps
+  > =
+    | SetArray<Array<ItemType>, Props> // Even for update, nested objects are passed to set array
     | ValueArrayUnion<ItemType>
     | ValueArrayRemove<ItemType>
     | MaybeValueRemove<Model, Key>

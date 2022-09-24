@@ -714,12 +714,17 @@ export function unwrapData(data, write) {
       return firestore.Timestamp.fromDate(data)
     }
 
-    const unwrappedObject = Object.assign(Array.isArray(data) ? [] : {}, data)
+    const isArray = Array.isArray(data)
+    const unwrappedObject = Object.assign(isArray ? [] : {}, data)
 
     Object.keys(unwrappedObject).forEach((key) => {
-      if (unwrappedObject[key] === undefined && write === 'initial')
+      if (isArray && unwrappedObject[key] === undefined) {
+        unwrappedObject[key] = null
+      } else if (unwrappedObject[key] === undefined && write === 'initial') {
         delete unwrappedObject[key]
-      else unwrappedObject[key] = unwrapData(unwrappedObject[key], write)
+      } else {
+        unwrappedObject[key] = unwrapData(unwrappedObject[key], write)
+      }
     })
 
     return unwrappedObject
