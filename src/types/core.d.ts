@@ -434,8 +434,10 @@ export namespace TypesaurusCore {
       : MaybeModelFieldUndefined<Date>
     : Field extends Date | Id<string> // Stop dates & ids from being processed as an object
     ? MaybeModelFieldUndefined<Field>
-    : Field extends Array<infer ItemType extends undefined | infer _Other>
-    ? Array<ModelField<Exclude<ItemType, undefined>, DateMissing> | null>
+    : Field extends Array<infer ItemType>
+    ? undefined extends ItemType
+      ? Array<ModelField<Exclude<ItemType, undefined>, DateMissing> | null>
+      : Array<ModelField<Exclude<ItemType, undefined>, DateMissing>>
     : Field extends object // If it's an object, recursively pass through ModelData
     ? AnyModelData<Field, DateMissing>
     : MaybeModelFieldUndefined<Field>
@@ -451,7 +453,7 @@ export namespace TypesaurusCore {
     ? Date
     : DateStrategy extends 'estimate' | 'previous' // Or when the estimate or previous strategy were used
     ? Date
-    : Date | null
+    : Date | undefined
 
   /**
    * The document reference type.
@@ -500,11 +502,11 @@ export namespace TypesaurusCore {
   }
 
   export type SetArray<Data extends Array<any>, Props extends DocProps> = {
-    [Key in keyof Data]: Data extends Array<
-      infer _ItemType extends undefined | infer _Other
-    > // Undefineds in arrays become nulls, so we can accept null as well
-      ? WriteValue<Data, Key, Props> | null
-      : WriteValue<Data, Key, Props>
+    [Key in keyof Data]: Data extends Array<infer ItemType>
+      ? undefined extends ItemType
+        ? WriteValue<Data, Key, Props> | null // Undefineds in arrays become nulls, so we can accept null as well
+        : WriteValue<Data, Key, Props>
+      : never
   }
 
   export type WriteValue<

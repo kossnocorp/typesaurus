@@ -198,6 +198,10 @@ async function doc() {
 
   const postDoc = await db.posts.get(db.posts.id('doc-id'))
   if (postDoc) {
+    assertType<TypeEqual<typeof postDoc.data.likeIds, undefined | string[]>>(
+      true
+    )
+
     assertType<TypeEqual<typeof postDoc.data.likes, undefined | number>>(true)
 
     assertType<
