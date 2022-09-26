@@ -1,8 +1,16 @@
 import { schema } from '..'
 import { SubscriptionPromise } from '../sp/index'
-import { silence, retry } from './index'
+import { silence, retry, resolved } from './index'
 
 describe('helpers', () => {
+  interface User {
+    name: string
+  }
+
+  const db = schema(($) => ({
+    users: $.collection<User>()
+  }))
+
   describe('retry', () => {
     it('allows to retry subscriptions', () =>
       new Promise(async (resolve, reject) => {
@@ -141,15 +149,19 @@ describe('helpers', () => {
   })
 
   describe('silence', () => {
-    interface User {
-      name: string
-    }
-
-    const db = schema(($) => ({
-      users: $.collection<User>()
-    }))
-
     it('allows to silence a promise', async () =>
       silence(db.users.update(await db.users.id(), { name: 'Sasha' })))
+  })
+
+  describe('resolved', () => {
+    it('returns true if the doc is defined or null', () => {
+      expect(
+        resolved(db.users.doc(db.users.id('user-id'), { name: 'Sasha' }))
+      ).toBe(true)
+
+      expect(resolved(null)).toBe(true)
+
+      expect(resolved(undefined)).toBe(false)
+    })
   })
 })

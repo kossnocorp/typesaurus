@@ -55,3 +55,7 @@ export function retry(on, options) {
 export function silence(promise) {
   return promise.catch(() => {})
 }
+
+export function resolved(doc) {
+  return !!doc || doc === null
+}

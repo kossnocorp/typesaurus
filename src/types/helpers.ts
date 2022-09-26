@@ -16,4 +16,10 @@ export namespace TypesaurusHelpers {
   export interface SilenceFunction {
     <Result>(promise: Promise<Result>): Promise<Result | void>
   }
+
+  export interface ResolvedFunction {
+    <Doc extends Core.Doc<any, any>>(
+      doc: Doc | null | undefined
+    ): doc is Doc | null
+  }
 }
