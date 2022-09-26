@@ -1,10 +1,12 @@
-export const retry = (on, retry) => {
+export const retry = (on, options) => {
+  if (options?.bypass) return on
+
   const retryOn = (callback) => {
     let spOff
     let timer
     let errorCb
 
-    const retryPattern = (retry || defaultRetryPattern).concat([])
+    const retryPattern = (options?.pattern || defaultRetryPattern).concat([])
 
     function subscribe() {
       spOff = on(callback).catch((error) => {
