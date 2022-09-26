@@ -36,6 +36,8 @@ export { transaction } from './transaction.mjs'
 
 export { retry } from './../../retry/index.mjs'
 
+export * from './../../helpers/index.mjs'
+
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())
   return db(schema)
