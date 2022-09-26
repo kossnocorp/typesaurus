@@ -574,6 +574,11 @@ async function query() {
 
     await textContent.update({ text: 'Yup' })
   }
+
+  // Empty query
+
+  const emptyQuery = db.accounts.query(($) => undefined)
+  assertType<TypeEqual<typeof emptyQuery, undefined>>(true)
 }
 
 async function add() {

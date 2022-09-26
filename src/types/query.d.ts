@@ -3,14 +3,27 @@ import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusQuery {
   export interface Function<Def extends Core.DocDef> {
-    <Props extends Core.DocProps>(
-      queries: TypesaurusQuery.QueryGetter<Def>,
+    <
+      Props extends Core.DocProps,
+      Getter extends TypesaurusQuery.QueryGetter<Def>
+    >(
+      queries: Getter,
       options?: Core.ReadOptions<Props>
-    ): Core.SubscriptionPromise<
-      Core.QueryRequest,
-      Core.Doc<Def, Props>[],
-      Core.SubscriptionListMeta<Def, Props>
-    >
+    ): Getter extends ($: QueryHelpers<Def>) => infer Result
+      ? Result extends QueryEmpty
+        ? // Enable empty query to signal that the query is not ready. It allows
+          // wrappers like Typesaurus React to know that it's not ready
+          // to perform, e.g., when a dependency fetch is in progress or
+          // the user is not authenticated. Since it's a function,
+          // it's impossible towrap the query into a check because the check
+          // will be invalid inside the function.
+          undefined
+        : Core.SubscriptionPromise<
+            Core.QueryRequest,
+            Core.Doc<Def, Props>[],
+            Core.SubscriptionListMeta<Def, Props>
+          >
+      : never
 
     build<Props extends Core.DocProps>(
       options?: Core.ReadOptions<Props>
@@ -78,7 +91,7 @@ export namespace TypesaurusQuery {
     | [OrderCursorEnd<Def, Parent, Key>]
     | [OrderCursorStart<Def, Parent, Key>, OrderCursorEnd<Def, Parent, Key>]
 
-  export type OrderCursorsEmpty = undefined | '' | false | []
+  export type OrderCursorsEmpty = undefined | null | '' | false | []
 
   export type OrderCursorPosition =
     | 'startAt'
@@ -148,7 +161,9 @@ export namespace TypesaurusQuery {
 
   export type QueryGetter<Def extends Core.DocDef> = (
     $: QueryHelpers<Def>
-  ) => Query<Def['Model']> | Query<Def['Model']>[]
+  ) => Query<Def['Model']> | Query<Def['Model']>[] | QueryEmpty
+
+  export type QueryEmpty = undefined | null | '' | false
 
   export interface QueryFieldBase<
     Def extends Core.DocDef,
