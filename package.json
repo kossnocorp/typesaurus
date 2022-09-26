@@ -27,9 +27,9 @@
       "require": "./adapter/admin/transaction.js",
       "import": "./adapter/admin/transaction.mjs"
     },
-    "./retry": {
-      "require": "./retry/index.js",
-      "import": "./retry/index.mjs"
+    "./helpers": {
+      "require": "./helpers/index.js",
+      "import": "./helpers/index.mjs"
     }
   },
   "sideEffects": false,
