@@ -1230,15 +1230,6 @@ async function update() {
 
   content?.update(($) => $.field('public').set(true))
 
-  type Asd = Update.UpdateModelArg<
-    TextContent,
-    Core.DocProps & { environment: Core.RuntimeEnvironment }
-  > &
-    Update.UpdateModelArg<
-      ImageContent,
-      Core.DocProps & { environment: Core.RuntimeEnvironment }
-    >
-
   contentRef?.update({
     // @ts-expect-error - can't update non-shared variable model fields
     type: 'text'
@@ -1255,6 +1246,28 @@ async function update() {
 
   // @ts-expect-error - can't update non-shared variable model fields
   refUpdate?.field('type').set('text')
+
+  // Empty update
+
+  const userId = db.users.id('user-id')
+
+  db.users.update(userId, () => undefined)
+  db.users.update(userId, () => '')
+  db.users.update(userId, () => null)
+  const emptyUpdate1 = db.users.update(userId, () => undefined)
+
+  assertType<TypeEqual<typeof emptyUpdate1, undefined>>(true)
+
+  db.users.get(userId).then((user) => {
+    if (!user) return
+
+    user.update(() => undefined)
+    user.update(() => '')
+    user.update(() => null)
+    const emptyUpdate2 = user.update(() => undefined)
+
+    assertType<TypeEqual<typeof emptyUpdate2, undefined>>(true)
+  })
 }
 
 async function sharedIds() {
