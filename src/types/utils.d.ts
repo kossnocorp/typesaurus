@@ -1,5 +1,10 @@
 export namespace TypesaurusUtils {
   /**
+   * Falsy type.
+   */
+  export type Falsy = undefined | null | '' | false
+
+  /**
    * Composes collection path from base path and collection name.
    */
   export type ComposePath<

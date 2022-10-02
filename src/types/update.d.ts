@@ -5,12 +5,13 @@ export namespace TypesaurusUpdate {
   export interface CollectionFunction<Def extends Core.DocDef> {
     <
       Environment extends Core.RuntimeEnvironment,
-      Props extends Core.DocProps & { environment: Environment }
+      Props extends Core.DocProps & { environment: Environment },
+      Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
     >(
       id: Def['Id'],
-      data: UpdateModelArg<Core.DocModel<Def>, Props>,
+      data: Arg,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<Def>>
+    ): Result<Def, Environment, Props, Arg>
 
     build<
       Environment extends Core.RuntimeEnvironment,
@@ -24,11 +25,12 @@ export namespace TypesaurusUpdate {
   export interface DocFunction<Def extends Core.DocDef> {
     <
       Environment extends Core.RuntimeEnvironment,
-      Props extends Core.DocProps & { environment: Environment }
+      Props extends Core.DocProps & { environment: Environment },
+      Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
     >(
-      data: UpdateModelArg<Core.DocModel<Def>, Props>,
+      data: Arg,
       options?: Core.OperationOptions<Environment>
-    ): Promise<Core.Ref<Def>>
+    ): Result<Def, Environment, Props, Arg>
 
     build<
       Environment extends Core.RuntimeEnvironment,
@@ -37,6 +39,26 @@ export namespace TypesaurusUpdate {
       options?: Core.OperationOptions<Environment>
     ): Builder<Def>
   }
+
+  /**
+   * Update function (as collection, doc or ref method) result. It allows to
+   * pass an object or function that returns an object or array of field
+   * updates.
+   *
+   * The function also allows returning a falsy value, enabling conditionals
+   * inside the function that wouldn't be otherwise possible. A condition before
+   * the update wouldn't work as the check would be invalid inside the function.
+   */
+  export type Result<
+    Def extends Core.DocDef,
+    Environment extends Core.RuntimeEnvironment,
+    Props extends Core.DocProps & { environment: Environment },
+    Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
+  > = Arg extends ($: UpdateHelpers<Core.DocModel<Def>>) => infer Result
+    ? Result extends Utils.Falsy
+      ? undefined
+      : Promise<Core.Ref<Def>>
+    : Promise<Core.Ref<Def>>
 
   export interface Builder<Def extends Core.DocDef>
     extends CommonHelpers<
@@ -66,7 +88,11 @@ export namespace TypesaurusUpdate {
     Props extends Core.DocProps
   > = (
     $: UpdateHelpers<Model>
-  ) => UpdateModel<Model, Props> | UpdateField<Model> | UpdateField<Model>[]
+  ) =>
+    | UpdateModel<Model, Props>
+    | UpdateField<Model>
+    | UpdateField<Model>[]
+    | Utils.Falsy
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
