@@ -10,7 +10,7 @@ export namespace TypesaurusQuery {
     >(
       queries: Getter,
       options?: Core.ReadOptions<Environment, Props>
-    ): Getter extends ($: QueryHelpers<Def>) => infer Result
+    ): Getter extends ($: Helpers<Def>) => infer Result
       ? Result extends Utils.Falsy
         ? // Enable empty query to signal that the query is not ready. It allows
           // wrappers like Typesaurus React to know that it's not ready
@@ -164,7 +164,7 @@ export namespace TypesaurusQuery {
     | undefined // Indicates the start of the query
 
   export type QueryGetter<Def extends Core.DocDef> = (
-    $: QueryHelpers<Def>
+    $: Helpers<Def>
   ) =>
     | Query<Def['Model']>
     | Array<Query<Def['Model']> | Utils.Falsy>
@@ -776,7 +776,7 @@ export namespace TypesaurusQuery {
   /**
    * Query helpers object avaliable in the `query` function.
    */
-  export interface QueryHelpers<Def extends Core.DocDef>
+  export interface Helpers<Def extends Core.DocDef>
     extends CommonQueryHelpers<
       Def,
       Core.ResolveModelType<Def['Model']>,

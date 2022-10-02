@@ -1063,17 +1063,41 @@ export namespace TypesaurusCore {
            * Query builder type allows to abstract query building login into
            * functions by accepting it as an argument.
            *
-           * [Learn more on the docs website](http://localhost:3000/docs/api/type/query-builder).
+           * Unlike QueryHelpers, QueryBuilder can be used asynchronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/query-builder).
            */
           QueryBuilder: Query.Builder<Def, DocProps>
+
+          /**
+           * Query helpers type allows to abstract query building login into
+           * functions by accepting it as an argument.
+           *
+           * Unlike QueryBuilder, QueryHelpers must be used syncronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/query-helpers).
+           */
+          QueryHelpers: Query.Helpers<Def>
 
           /**
            * Update builder type allows to abstract update building login into
            * functions by accepting it as an argument.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/http://localhost:3000/docs/api/type/update-builder).
+           * Unlike UpdateHelpers, UpdateBuilder can be used asynchronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/update-builder).
            */
           UpdateBuilder: Update.Builder<Def, DocProps>
+
+          /**
+           * Update helpers type allows to abstract update building login into
+           * functions by accepting it as an argument.
+           *
+           * Unlike UpdateBuilder, UpdateHelpers must be used syncronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/update-helpers).
+           */
+          UpdateHelpers: Update.Helpers<Def, DocProps>
 
           sub: DB[Path] extends NestedRichCollection<
             any,

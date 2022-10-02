@@ -53,7 +53,7 @@ export namespace TypesaurusUpdate {
     Def extends Core.DocDef,
     Props extends Core.DocProps,
     Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
-  > = Arg extends ($: UpdateHelpers<Core.DocModel<Def>, Props>) => infer Result
+  > = Arg extends ($: Helpers<Core.DocModel<Def>, Props>) => infer Result
     ? Result extends Utils.Falsy
       ? undefined
       : Promise<Core.Ref<Def>>
@@ -87,7 +87,7 @@ export namespace TypesaurusUpdate {
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps
   > = (
-    $: UpdateHelpers<Model, Props>
+    $: Helpers<Model, Props>
   ) =>
     | UpdateModel<Model, Props>
     | UpdateField<Model>
@@ -794,7 +794,7 @@ export namespace TypesaurusUpdate {
     >
   }
 
-  export interface UpdateHelpers<
+  export interface Helpers<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps
   > extends CommonHelpers<Model, Props, UpdateField<Model>> {}
