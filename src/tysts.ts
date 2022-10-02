@@ -243,6 +243,30 @@ async function get() {
     user.data.createdAt.getDay()
   }
 
+  // Reading as server
+
+  db.users.get(db.users.id('sasha')).then((user) => {
+    if (!user) return
+    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+  })
+
+  db.users.get(db.users.id('sasha'), { as: 'server' }).then((user) => {
+    if (!user) return
+    assertType<TypeEqual<Date, typeof user.data.createdAt>>(true)
+  })
+
+  // ...via doc
+
+  user.get().then((user) => {
+    if (!user) return
+    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+  })
+
+  user.get({ as: 'server' }).then((user) => {
+    if (!user) return
+    assertType<TypeEqual<Date, typeof user.data.createdAt>>(true)
+  })
+
   // Variable shape
 
   const content = await db.content.get(db.content.id('42'))
@@ -306,6 +330,20 @@ async function many() {
     user.data.createdAt.getDay()
   }
 
+  // Reading as server
+
+  db.users.many([db.users.id('sasha')]).then((users) => {
+    const user = users[0]
+    if (!user) return
+    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+  })
+
+  db.users.many([db.users.id('sasha')], { as: 'server' }).then((users) => {
+    const user = users[0]
+    if (!user) return
+    assertType<TypeEqual<Date, typeof user.data.createdAt>>(true)
+  })
+
   // Variable shape
 
   const [content] = await db.content.many([db.content.id('42')])
@@ -368,6 +406,20 @@ async function all() {
     // @ts-expect-error
     user.data.createdAt.getDay()
   }
+
+  // Reading as server
+
+  db.users.all().then((users) => {
+    const user = users[0]
+    if (!user) return
+    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+  })
+
+  db.users.all({ as: 'server' }).then((users) => {
+    const user = users[0]
+    if (!user) return
+    assertType<TypeEqual<Date, typeof user.data.createdAt>>(true)
+  })
 
   // Simple query
 
@@ -435,6 +487,24 @@ async function query() {
     // @ts-expect-error
     user.data.createdAt.getDay()
   }
+
+  // Querying as server
+
+  db.users
+    .query(($) => $.field('name').equal('Sasha'))
+    .then((users) => {
+      const user = users[0]
+      if (!user) return
+      assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+    })
+
+  db.users
+    .query(($) => $.field('name').equal('Sasha'), { as: 'server' })
+    .then((users) => {
+      const user = users[0]
+      if (!user) return
+      assertType<TypeEqual<Date, typeof user.data.createdAt>>(true)
+    })
 
   // Basic query
 
