@@ -91,7 +91,7 @@ export namespace TypesaurusUpdate {
   ) =>
     | UpdateModel<Model, Props>
     | UpdateField<Model>
-    | UpdateField<Model>[]
+    | Array<UpdateField<Model> | Utils.Falsy>
     | Utils.Falsy
 
   /**

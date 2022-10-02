@@ -2,7 +2,7 @@ export namespace TypesaurusUtils {
   /**
    * Falsy type.
    */
-  export type Falsy = undefined | null | '' | false
+  export type Falsy = undefined | null | '' | false | 0
 
   /**
    * Composes collection path from base path and collection name.

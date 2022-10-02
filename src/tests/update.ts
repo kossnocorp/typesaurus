@@ -256,12 +256,61 @@ describe('update', () => {
       visits: 0
     })
 
+    await db.users.update(user.id, () => [])
+    await db.users.update(user.id, () => ({}))
+    await db.users.update(user.id, {})
+
     await user.update(() => [])
     await user.update(() => ({}))
     await user.update({})
 
     const $ = user.update.build()
     await $.run()
+  })
+
+  it('works with falsy update', async () => {
+    const user = await db.users.add({
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      visits: 0
+    })
+
+    expect(db.users.update(user.id, () => undefined)).toBeUndefined()
+    expect(db.users.update(user.id, () => null)).toBeUndefined()
+    expect(db.users.update(user.id, () => false)).toBeUndefined()
+    expect(db.users.update(user.id, () => '')).toBeUndefined()
+    expect(db.users.update(user.id, () => 0)).toBeUndefined()
+
+    expect(user.update(() => undefined)).toBeUndefined()
+    expect(user.update(() => null)).toBeUndefined()
+    expect(user.update(() => false)).toBeUndefined()
+    expect(user.update(() => '')).toBeUndefined()
+    expect(user.update(() => 0)).toBeUndefined()
+  })
+
+  it('filter outs falsy updates', async () => {
+    const user = await db.users.add({
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      visits: 0
+    })
+
+    await user.update(($) => [
+      $.field('name').set('Sasha Koss'),
+      undefined,
+      null,
+      false,
+      '',
+      0
+    ])
+
+    const userFromDB = await user.get()
+
+    expect(userFromDB?.data).toEqual({
+      name: 'Sasha Koss',
+      address: { city: 'Omsk' },
+      visits: 0
+    })
   })
 
   describe('assering environment', () => {
