@@ -1073,7 +1073,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/http://localhost:3000/docs/api/type/update-builder).
            */
-          UpdateBuilder: Update.Builder<Def>
+          UpdateBuilder: Update.Builder<Def, DocProps>
 
           sub: DB[Path] extends NestedRichCollection<
             any,

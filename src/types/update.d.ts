@@ -11,7 +11,7 @@ export namespace TypesaurusUpdate {
       id: Def['Id'],
       data: Arg,
       options?: Core.OperationOptions<Environment>
-    ): Result<Def, Environment, Props, Arg>
+    ): Result<Def, Props, Arg>
 
     build<
       Environment extends Core.RuntimeEnvironment,
@@ -19,7 +19,7 @@ export namespace TypesaurusUpdate {
     >(
       id: Def['Id'],
       options?: Core.OperationOptions<Environment>
-    ): Builder<Def>
+    ): Builder<Def, Props>
   }
 
   export interface DocFunction<Def extends Core.DocDef> {
@@ -30,14 +30,14 @@ export namespace TypesaurusUpdate {
     >(
       data: Arg,
       options?: Core.OperationOptions<Environment>
-    ): Result<Def, Environment, Props, Arg>
+    ): Result<Def, Props, Arg>
 
     build<
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment }
     >(
       options?: Core.OperationOptions<Environment>
-    ): Builder<Def>
+    ): Builder<Def, Props>
   }
 
   /**
@@ -51,20 +51,20 @@ export namespace TypesaurusUpdate {
    */
   export type Result<
     Def extends Core.DocDef,
-    Environment extends Core.RuntimeEnvironment,
-    Props extends Core.DocProps & { environment: Environment },
+    Props extends Core.DocProps,
     Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
-  > = Arg extends ($: UpdateHelpers<Core.DocModel<Def>>) => infer Result
+  > = Arg extends ($: UpdateHelpers<Core.DocModel<Def>, Props>) => infer Result
     ? Result extends Utils.Falsy
       ? undefined
       : Promise<Core.Ref<Def>>
     : Promise<Core.Ref<Def>>
 
-  export interface Builder<Def extends Core.DocDef>
+  export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
     extends CommonHelpers<
       Def['Flags']['Reduced'] extends true
         ? Core.ResolveModelType<Def['Model']>
         : Core.SharedModelType<Def['WideModel']>,
+      Props,
       void
     > {
     run(): Promise<Core.Ref<Def>>
@@ -87,7 +87,7 @@ export namespace TypesaurusUpdate {
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps
   > = (
-    $: UpdateHelpers<Model>
+    $: UpdateHelpers<Model, Props>
   ) =>
     | UpdateModel<Model, Props>
     | UpdateField<Model>
@@ -109,7 +109,7 @@ export namespace TypesaurusUpdate {
   }
 
   export interface FieldHelpers<
-    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps,
     Parent,
     Key extends keyof Parent,
     SetResult
@@ -117,19 +117,22 @@ export namespace TypesaurusUpdate {
     set(
       value: Core.MaybeWriteValueUndefined<
         Parent[Key],
-        Core.WriteValue<Parent, Key, Core.DocProps>
+        Core.WriteValue<Parent, Key, Props>
       >
     ): SetResult
   }
 
-  export interface CommonHelpers<Model extends Core.ModelObjectType, SetResult>
-    extends Core.WriteHelpers<Model> {
+  export interface CommonHelpers<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps,
+    SetResult
+  > extends Core.WriteHelpers<Model> {
     /**
      * Field selector, allows updating a specific field.
      */
     field<Key1 extends keyof Model>(
       key: Key1
-    ): FieldHelpers<Model, Model, Key1, SetResult>
+    ): FieldHelpers<Props, Model, Key1, SetResult>
 
     /**
      * Field selector, allows updating a specific field.
@@ -140,7 +143,7 @@ export namespace TypesaurusUpdate {
     >(
       key1: Key1,
       key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never
-    ): FieldHelpers<Model, Utils.AllRequired<Model>[Key1], Key2, SetResult>
+    ): FieldHelpers<Props, Utils.AllRequired<Model>[Key1], Key2, SetResult>
 
     /**
      * Field selector, allows updating a specific field.
@@ -154,7 +157,7 @@ export namespace TypesaurusUpdate {
       key2: Utils.SafePath2<Model, Key1, Key2> extends true ? Key2 : never,
       key3: Utils.SafePath3<Model, Key1, Key2, Key3> extends true ? Key3 : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2],
       Key3,
       SetResult
@@ -182,7 +185,7 @@ export namespace TypesaurusUpdate {
         ? Key4
         : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<
         Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
       >[Key3],
@@ -220,7 +223,7 @@ export namespace TypesaurusUpdate {
         ? Key5
         : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
@@ -278,7 +281,7 @@ export namespace TypesaurusUpdate {
         ? Key6
         : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
@@ -359,7 +362,7 @@ export namespace TypesaurusUpdate {
         ? Key7
         : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
@@ -466,7 +469,7 @@ export namespace TypesaurusUpdate {
         ? Key8
         : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
@@ -602,7 +605,7 @@ export namespace TypesaurusUpdate {
         ? Key9
         : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
@@ -770,7 +773,7 @@ export namespace TypesaurusUpdate {
         ? Key10
         : never
     ): FieldHelpers<
-      Model,
+      Props,
       Utils.AllRequired<
         Utils.AllRequired<
           Utils.AllRequired<
@@ -791,6 +794,8 @@ export namespace TypesaurusUpdate {
     >
   }
 
-  export interface UpdateHelpers<Model extends Core.ModelObjectType>
-    extends CommonHelpers<Model, UpdateField<Model>> {}
+  export interface UpdateHelpers<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
+  > extends CommonHelpers<Model, Props, UpdateField<Model>> {}
 }
