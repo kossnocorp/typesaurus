@@ -959,6 +959,32 @@ async function update() {
     likeIds: $.arrayRemove('like-id')
   }))
 
+  // Update as server
+
+  await db.users.update(
+    db.users.id('sasha'),
+    { createdAt: new Date() },
+    { as: 'server' }
+  )
+
+  await db.users.update(
+    db.users.id('sasha'),
+    () => ({ createdAt: new Date() }),
+    { as: 'server' }
+  )
+
+  await db.users.update(
+    db.users.id('sasha'),
+    ($) => $.field('createdAt').set(new Date()),
+    { as: 'server' }
+  )
+
+  const updateAsBuild = db.users.update.build(db.users.id('sasha'), {
+    as: 'server'
+  })
+
+  updateAsBuild.field('createdAt').set(new Date())
+
   // Enforce required fields
 
   // @ts-expect-error - name is required
