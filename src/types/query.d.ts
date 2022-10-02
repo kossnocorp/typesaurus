@@ -165,7 +165,10 @@ export namespace TypesaurusQuery {
 
   export type QueryGetter<Def extends Core.DocDef> = (
     $: QueryHelpers<Def>
-  ) => Query<Def['Model']> | Query<Def['Model']>[] | Utils.Falsy
+  ) =>
+    | Query<Def['Model']>
+    | Array<Query<Def['Model']> | Utils.Falsy>
+    | Utils.Falsy
 
   export interface QueryFieldBase<
     Def extends Core.DocDef,

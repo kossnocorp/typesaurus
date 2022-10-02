@@ -649,6 +649,17 @@ async function query() {
 
   const emptyQuery = db.accounts.query(($) => undefined)
   assertType<TypeEqual<typeof emptyQuery, undefined>>(true)
+
+  // Empty query fields
+
+  db.users.query(($) => [
+    $.field('name').equal('Sasha'),
+    undefined,
+    null,
+    false,
+    '',
+    0
+  ])
 }
 
 async function add() {
@@ -1268,6 +1279,15 @@ async function update() {
 
     assertType<TypeEqual<typeof emptyUpdate2, undefined>>(true)
   })
+
+  // Empty update fields
+
+  db.users.update(userId, ($) => [
+    $.field('name').set('Sasha'),
+    undefined,
+    '',
+    null
+  ])
 }
 
 async function sharedIds() {

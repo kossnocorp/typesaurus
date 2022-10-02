@@ -51,6 +51,8 @@ class RichCollection {
       assertEnvironment(options?.as)
       const updateData =
         typeof data === 'function' ? data(updateHelpers()) : data
+      if (!updateData) return
+
       const update = Array.isArray(updateData)
         ? updateFields(updateData)
         : updateData
@@ -76,7 +78,12 @@ class RichCollection {
 
     this.query = (queries, options) => {
       assertEnvironment(options?.as)
-      return _query(this.adapter(), [].concat(queries(queryHelpers())))
+      const queriesResult = queries(queryHelpers())
+      if (!queriesResult) return
+      return _query(
+        this.adapter(),
+        [].concat(queriesResult).filter((q) => !!q)
+      )
     }
 
     this.query.build = (options) => {
@@ -370,7 +377,7 @@ export function writeHelpers() {
 
 export function updateFields(fields) {
   return fields.reduce((acc, field) => {
-    if (!field) return
+    if (!field) return acc
     const { key, value } = field
     acc[Array.isArray(key) ? key.join('.') : key] = value
     return acc

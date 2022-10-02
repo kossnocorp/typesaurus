@@ -81,6 +81,14 @@ describe('query', () => {
     ])
   )
 
+  it('returns undefined if the result is falsy', async () => {
+    expect(db.contacts.query(() => undefined)).toBeUndefined()
+    expect(db.contacts.query(() => null)).toBeUndefined()
+    expect(db.contacts.query(() => false)).toBeUndefined()
+    expect(db.contacts.query(() => '')).toBeUndefined()
+    expect(db.contacts.query(() => 0)).toBeUndefined()
+  })
+
   describe('assering environment', () => {
     it('allows to assert environment', async () => {
       const server = () =>
@@ -383,6 +391,22 @@ describe('query', () => {
       ])
       expect(docs.length).toBe(1)
       expect(docs[0]?.data.name).toBe('Sasha')
+    })
+
+    it('filter outs falsy queries', async () => {
+      const docs = await db.contacts.query(($) => [
+        $.field('ownerId').equal(ownerId),
+        undefined,
+        null,
+        false,
+        '',
+        0
+      ])
+      expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
+        'Lesha',
+        'Sasha',
+        'Tati'
+      ])
     })
 
     describe('subcollection', () => {
@@ -1495,6 +1519,23 @@ describe('query', () => {
           })
         })
       })
+    })
+
+    it('filter outs falsy queries', (done) => {
+      const spy = sinon.spy()
+      off = db.contacts
+        .query(($) => [
+          $.field('ownerId').equal(ownerId),
+          undefined,
+          null,
+          false,
+          '',
+          0
+        ])
+        .on((docs) => {
+          spy(docs.map(({ data: { name } }) => name).sort())
+          if (spy.calledWithMatch(['Lesha', 'Sasha', 'Tati'])) done()
+        })
     })
 
     describe('ordering', () => {

@@ -125,7 +125,6 @@ describe('helpers', () => {
 
     it('allows to bypass retry', () =>
       new Promise(async (resolve, reject) => {
-        const now = Date.now()
         let counter = 0
 
         const sp = new SubscriptionPromise({
@@ -144,7 +143,7 @@ describe('helpers', () => {
         })
 
         // @ts-ignore - make SubscriptionPromise plain JS
-        retry(sp.on, { bypass: true })(reject).catch(resolve)
+        retry(sp.on, { bypass: true })(reject).catch(() => resolve())
       }))
   })
 
