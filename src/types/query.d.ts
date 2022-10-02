@@ -4,11 +4,12 @@ import type { TypesaurusCore as Core } from './core'
 export namespace TypesaurusQuery {
   export interface Function<Def extends Core.DocDef> {
     <
-      Props extends Core.DocProps,
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment },
       Getter extends TypesaurusQuery.QueryGetter<Def>
     >(
       queries: Getter,
-      options?: Core.ReadOptions<Props>
+      options?: Core.ReadOptions<Environment, Props>
     ): Getter extends ($: QueryHelpers<Def>) => infer Result
       ? Result extends QueryEmpty
         ? // Enable empty query to signal that the query is not ready. It allows
@@ -25,8 +26,11 @@ export namespace TypesaurusQuery {
           >
       : never
 
-    build<Props extends Core.DocProps>(
-      options?: Core.ReadOptions<Props>
+    build<
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment }
+    >(
+      options?: Core.ReadOptions<Environment, Props>
     ): Builder<Def, Props>
   }
 

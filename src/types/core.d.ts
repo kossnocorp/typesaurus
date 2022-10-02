@@ -363,9 +363,11 @@ export namespace TypesaurusCore {
     serverTimestamps?: Props['dateStrategy']
   }
 
-  export interface ReadOptions<Props extends DocProps>
-    extends DocOptions<Props>,
-      OperationOptions<Props['environment']> {}
+  export interface ReadOptions<
+    Environment extends RuntimeEnvironment,
+    Props extends DocProps & { environment: Environment }
+  > extends DocOptions<Props>,
+      OperationOptions<Environment> {}
 
   export type NarrowDef<
     Def extends DocDef,
@@ -722,8 +724,11 @@ export namespace TypesaurusCore {
   }
 
   export interface DocAPI<Def extends DocDef> {
-    get<Props extends DocProps>(
-      options?: ReadOptions<Props>
+    get<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
+      options?: ReadOptions<Environment, Props>
     ): SubscriptionPromise<GetRequest, Doc<Def, Props> | null>
 
     set<
@@ -767,8 +772,11 @@ export namespace TypesaurusCore {
   > = (data: InputModel) => false | ExpectedModel
 
   export interface CollectionAPI<Def extends DocDef> {
-    all<Props extends DocProps>(
-      options?: ReadOptions<Props>
+    all<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
+      options?: ReadOptions<Environment, Props>
     ): SubscriptionPromise<
       AllRequest,
       Doc<Def, Props>[],
@@ -789,14 +797,20 @@ export namespace TypesaurusCore {
     /** The Firestore path */
     path: string
 
-    get<Props extends DocProps>(
+    get<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
       id: Def['Id'],
-      options?: ReadOptions<Props>
+      options?: ReadOptions<Environment, Props>
     ): SubscriptionPromise<GetRequest, Doc<Def, Props> | null>
 
-    many<Props extends DocProps>(
+    many<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
       ids: Def['Id'][],
-      options?: ReadOptions<Props>
+      options?: ReadOptions<Environment, Props>
     ): SubscriptionPromise<ManyRequest, Array<Doc<Def, Props> | null>>
 
     add<
