@@ -1080,6 +1080,15 @@ export namespace TypesaurusCore {
           QueryHelpers: Query.Helpers<Def>
 
           /**
+           * Write helpers type allows to abstract write building (for add, set
+           * and upset methods) login into functions by accepting it as
+           * an argument.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/write-helpers).
+           */
+          WriteHelpers: WriteHelpers<Def['Model']>
+
+          /**
            * Update builder type allows to abstract update building login into
            * functions by accepting it as an argument.
            *
