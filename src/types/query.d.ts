@@ -6,7 +6,7 @@ export namespace TypesaurusQuery {
     <
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
-      Getter extends TypesaurusQuery.QueryGetter<Def>
+      Getter extends TypesaurusQuery.Getter<Def>
     >(
       queries: Getter,
       options?: Core.ReadOptions<Environment, Props>
@@ -32,6 +32,49 @@ export namespace TypesaurusQuery {
     >(
       options?: Core.ReadOptions<Environment, Props>
     ): Builder<Def, Props>
+  }
+
+  export type Data<Model extends Core.ModelType> =
+    | Query<Model>
+    | Array<Query<Model> | Utils.Falsy>
+    | Utils.Falsy
+
+  export type Getter<Def extends Core.DocDef> = (
+    $: Helpers<Def>
+  ) => Data<Def['Model']>
+
+  /**
+   * Query helpers object avaliable in the `query` function.
+   */
+  export interface Helpers<Def extends Core.DocDef>
+    extends CommonQueryHelpers<
+      Def,
+      Core.ResolveModelType<Def['Model']>,
+      OrderQuery<Def['Model']>,
+      WhereQuery<Def['Model']>,
+      LimitQuery<Def['Model']>
+    > {}
+
+  /**
+   * Query builder works like regular query helpers, but the run can be delayed
+   * and mixed with other code.
+   */
+  export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
+    extends CommonQueryHelpers<
+      Def,
+      Core.ResolveModelType<Def['Model']>,
+      void,
+      void,
+      void
+    > {
+    /**
+     * Runs the built query.
+     */
+    run(): Core.SubscriptionPromise<
+      Core.QueryRequest,
+      Core.Doc<Def, Props>[],
+      Core.SubscriptionListMeta<Def, Props>
+    >
   }
 
   export type DocId = '__id__'
@@ -162,13 +205,6 @@ export namespace TypesaurusQuery {
     | (Key extends keyof Parent ? QueryFieldValue<Parent[Key]> : Def['Id']) // Field value or id
     | Core.Doc<Def, Core.DocProps> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
-
-  export type QueryGetter<Def extends Core.DocDef> = (
-    $: Helpers<Def>
-  ) =>
-    | Query<Def['Model']>
-    | Array<Query<Def['Model']> | Utils.Falsy>
-    | Utils.Falsy
 
   export interface QueryFieldBase<
     Def extends Core.DocDef,
@@ -771,39 +807,5 @@ export namespace TypesaurusQuery {
     ): OrderCursorEndBefore<Def, Parent, Key>
 
     docId(): DocId
-  }
-
-  /**
-   * Query helpers object avaliable in the `query` function.
-   */
-  export interface Helpers<Def extends Core.DocDef>
-    extends CommonQueryHelpers<
-      Def,
-      Core.ResolveModelType<Def['Model']>,
-      OrderQuery<Def['Model']>,
-      WhereQuery<Def['Model']>,
-      LimitQuery<Def['Model']>
-    > {}
-
-  /**
-   * Query builder works like regular query helpers, but the run can be delayed
-   * and mixed with other code.
-   */
-  export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
-    extends CommonQueryHelpers<
-      Def,
-      Core.ResolveModelType<Def['Model']>,
-      void,
-      void,
-      void
-    > {
-    /**
-     * Runs the built query.
-     */
-    run(): Core.SubscriptionPromise<
-      Core.QueryRequest,
-      Core.Doc<Def, Props>[],
-      Core.SubscriptionListMeta<Def, Props>
-    >
   }
 }

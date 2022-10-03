@@ -478,32 +478,43 @@ export namespace TypesaurusCore {
     __dontUseWillBeUndefined__: true
   }
 
-  export type SetModelArg<
-    Model extends ModelObjectType,
-    Props extends DocProps
-  > = SetModel<Model, Props> | SetModelGetter<Model, Props>
-
-  /**
-   * Write model getter, accepts helper functions with special value generators
-   * and returns {@link SetModel}.
-   */
-  export type SetModelGetter<
-    Model extends ModelObjectType,
-    Props extends DocProps
-  > = ($: WriteHelpers<Model>) => SetModel<Model, Props>
+  export type WriteArg<Model extends ModelObjectType, Props extends DocProps> =
+    | WriteData<Model, Props>
+    | WriteGetter<Model, Props>
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
-  export type SetModel<Data, Props extends DocProps> = {
-    [Key in keyof Data]: MaybeWriteValueUndefined<
-      Data[Key],
-      WriteValue<Data, Key, Props>
+  export type WriteData<Model, Props extends DocProps> = {
+    [Key in keyof Model]: MaybeWriteValueUndefined<
+      Model[Key],
+      WriteValue<Model, Key, Props>
     >
   }
 
-  export type SetArray<Data extends Array<any>, Props extends DocProps> = {
+  /**
+   * Write model getter, accepts helper functions with special value generators
+   * and returns {@link WriteData}.
+   */
+  export type WriteGetter<
+    Model extends ModelObjectType,
+    Props extends DocProps
+  > = ($: WriteHelpers<Model>) => WriteData<Model, Props>
+
+  export interface WriteHelpers<_Model> {
+    serverDate(): ValueServerDate
+
+    remove(): ValueRemove
+
+    increment(value: number): ValueIncrement
+
+    arrayUnion<Type>(values: Type | Type[]): ValueArrayUnion<Type>
+
+    arrayRemove<Type>(values: Type | Type[]): ValueArrayRemove<Type>
+  }
+
+  export type WriteArray<Data extends Array<any>, Props extends DocProps> = {
     [Key in keyof Data]: Data extends Array<infer ItemType>
       ? undefined extends ItemType
         ? WriteValue<Data, Key, Props> | null // Undefineds in arrays become nulls, so we can accept null as well
@@ -544,7 +555,7 @@ export namespace TypesaurusCore {
     ItemType,
     Props extends DocProps
   > =
-    | SetArray<Array<ItemType>, Props> // Even for update, nested objects are passed to set array
+    | WriteArray<Array<ItemType>, Props> // Even for update, nested objects are passed to set array
     | ValueArrayUnion<ItemType>
     | ValueArrayRemove<ItemType>
     | MaybeValueRemove<Model, Key>
@@ -563,7 +574,7 @@ export namespace TypesaurusCore {
     Key extends keyof Model,
     Props extends DocProps
   > =
-    | SetModel<Model[Key], Props> // Even for update, nested objects are passed to set model
+    | WriteData<Model[Key], Props> // Even for update, nested objects are passed to set model
     | MaybeValueRemove<Model, Key>
 
   export type Value<Type> =
@@ -640,18 +651,6 @@ export namespace TypesaurusCore {
   > = Utils.RequiredKey<Model, Key> extends true ? never : ValueRemove
 
   export type Undefined<T> = T extends undefined ? T : never
-
-  export interface WriteHelpers<_Model> {
-    serverDate(): ValueServerDate
-
-    remove(): ValueRemove
-
-    increment(value: number): ValueIncrement
-
-    arrayUnion<Type>(values: Type | Type[]): ValueArrayUnion<Type>
-
-    arrayRemove<Type>(values: Type | Type[]): ValueArrayRemove<Type>
-  }
 
   export interface SchemaHelpers {
     collection<
@@ -735,7 +734,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment }
     >(
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -743,7 +742,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment }
     >(
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -817,7 +816,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment }
     >(
-      data: SetModelArg<ResolveModelType<Def['Model']>, Props>,
+      data: WriteArg<ResolveModelType<Def['Model']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -826,7 +825,7 @@ export namespace TypesaurusCore {
       Props extends DocProps & { environment: Environment }
     >(
       id: Def['Id'],
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -835,7 +834,7 @@ export namespace TypesaurusCore {
       Props extends DocProps & { environment: Environment }
     >(
       id: Def['Id'],
-      data: SetModelArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -1019,6 +1018,19 @@ export namespace TypesaurusCore {
       | RichCollection<infer Def>
       | NestedRichCollection<infer Def, any>
       ? {
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#sub).
+           */
+          sub: DB[Path] extends NestedRichCollection<
+            any,
+            infer Schema extends TypesaurusCore.DB<any, any>
+          >
+            ? InferSchema<Schema>
+            : never
+
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#def).
+           */
           Def: Def
 
           /**
@@ -1027,21 +1039,28 @@ export namespace TypesaurusCore {
            * Essentially it's a string, but TypeScript will force you to use
            * `.toString()` to cast it to `string`.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/id).
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#id).
            */
           Id: Def['Id']
 
           /**
            * The documents' reference, contains its id and collection.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#ref).
            */
           Ref: TypesaurusCore.Ref<Def>
 
           /**
            * The main document object, contains reference with id and collection
            * and document data.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#doc).
            */
           Doc: TypesaurusCore.Doc<Def, DocProps>
 
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#model).
+           */
           Model: ResolveModelType<Def['Model']>
 
           /**
@@ -1049,42 +1068,39 @@ export namespace TypesaurusCore {
            * the collection by Firestore nuances such as undefined turned into
            * nulls, and nullable dates. A variable model is also resolved.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/data).
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#data).
            */
           Data: ModelData<ResolveModelType<Def['Model']>>
 
           /**
            * Read result, either doc, `null` (not found) or `undefined`
            * (the read is not finished/started yet).
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#result).
            */
           Result: Doc<Def, DocProps> | null | undefined
 
           /**
-           * Query builder type allows to abstract query building login into
-           * functions by accepting it as an argument.
-           *
-           * Unlike QueryHelpers, QueryBuilder can be used asynchronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/query-builder).
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
            */
-          QueryBuilder: Query.Builder<Def, DocProps>
+          WriteArg: WriteArg<ResolveModelType<Def['Model']>, DocProps>
 
           /**
-           * Query helpers type allows to abstract query building login into
-           * functions by accepting it as an argument.
-           *
-           * Unlike QueryBuilder, QueryHelpers must be used syncronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/query-helpers).
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
            */
-          QueryHelpers: Query.Helpers<Def>
+          WriteData: WriteData<ResolveModelType<Def['Model']>, DocProps>
+
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
+           */
+          WriteGetter: WriteGetter<ResolveModelType<Def['Model']>, DocProps>
 
           /**
            * Write helpers type allows to abstract write building (for add, set
            * and upset methods) login into functions by accepting it as
            * an argument.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/write-helpers).
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-helpers).
            */
           WriteHelpers: WriteHelpers<Def['Model']>
 
@@ -1094,9 +1110,24 @@ export namespace TypesaurusCore {
            *
            * Unlike UpdateHelpers, UpdateBuilder can be used asynchronously.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/update-builder).
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-builder).
            */
           UpdateBuilder: Update.Builder<Def, DocProps>
+
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
+           */
+          UpdateArg: Update.Arg<ResolveModelType<Def['Model']>, DocProps>
+
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
+           */
+          UpdateData: Update.Data<ResolveModelType<Def['Model']>, DocProps>
+
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
+           */
+          UpdateGetter: Update.Getter<ResolveModelType<Def['Model']>, DocProps>
 
           /**
            * Update helpers type allows to abstract update building login into
@@ -1104,16 +1135,39 @@ export namespace TypesaurusCore {
            *
            * Unlike UpdateBuilder, UpdateHelpers must be used syncronously.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/update-helpers).
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-helpers).
            */
           UpdateHelpers: Update.Helpers<Def, DocProps>
 
-          sub: DB[Path] extends NestedRichCollection<
-            any,
-            infer Schema extends TypesaurusCore.DB<any, any>
-          >
-            ? InferSchema<Schema>
-            : never
+          /**
+           * Query builder type allows to abstract query building login into
+           * functions by accepting it as an argument.
+           *
+           * Unlike QueryHelpers, QueryBuilder can be used asynchronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-builder).
+           */
+          QueryBuilder: Query.Builder<Def, DocProps>
+
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-data).
+           */
+          QueryData: Query.Data<Def>
+
+          /**
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-getter).
+           */
+          QueryGetter: Query.Getter<Def>
+
+          /**
+           * Query helpers type allows to abstract query building login into
+           * functions by accepting it as an argument.
+           *
+           * Unlike QueryBuilder, QueryHelpers must be used syncronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-helpers).
+           */
+          QueryHelpers: Query.Helpers<Def>
         }
       : never
   }
