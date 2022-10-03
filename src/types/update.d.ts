@@ -6,7 +6,7 @@ export namespace TypesaurusUpdate {
     <
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
-      Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
+      Arg extends TypesaurusUpdate.Arg<Core.DocModel<Def>, Props>
     >(
       id: Def['Id'],
       data: Arg,
@@ -26,7 +26,7 @@ export namespace TypesaurusUpdate {
     <
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
-      Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
+      Arg extends TypesaurusUpdate.Arg<Core.DocModel<Def>, Props>
     >(
       data: Arg,
       options?: Core.OperationOptions<Environment>
@@ -52,12 +52,55 @@ export namespace TypesaurusUpdate {
   export type Result<
     Def extends Core.DocDef,
     Props extends Core.DocProps,
-    Arg extends UpdateModelArg<Core.DocModel<Def>, Props>
+    Arg extends TypesaurusUpdate.Arg<Core.DocModel<Def>, Props>
   > = Arg extends ($: Helpers<Core.DocModel<Def>, Props>) => infer Result
     ? Result extends Utils.Falsy
       ? undefined
       : Promise<Core.Ref<Def>>
     : Promise<Core.Ref<Def>>
+
+  /**
+   * The update field interface. It contains path to the property and property value.
+   */
+  export interface UpdateField<_Model> {
+    key: string | string[]
+    value: any
+  }
+
+  export type Arg<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
+  > = Data<Model, Props> | Getter<Model, Props>
+
+  /**
+   * Type of the data passed to write functions. It extends the model allowing
+   * to set special values, sucha as server date, increment, etc.
+   */
+  export type Data<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
+  > = {
+    [Key in keyof Model]?: Core.MaybeWriteValueUndefined<
+      Model[Key],
+      Core.WriteValue<Model, Key, Props>
+    >
+  }
+
+  export type Getter<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
+  > = (
+    $: Helpers<Model, Props>
+  ) =>
+    | Data<Model, Props>
+    | UpdateField<Model>
+    | Array<UpdateField<Model> | Utils.Falsy>
+    | Utils.Falsy
+
+  export interface Helpers<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps
+  > extends CommonHelpers<Model, Props, UpdateField<Model>> {}
 
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
     extends CommonHelpers<
@@ -68,44 +111,6 @@ export namespace TypesaurusUpdate {
       void
     > {
     run(): Promise<Core.Ref<Def>>
-  }
-
-  /**
-   * The update field interface. It contains path to the property and property value.
-   */
-  export interface UpdateField<_Model> {
-    key: string | string[]
-    value: any
-  }
-
-  export type UpdateModelArg<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps
-  > = UpdateModel<Model, Props> | UpdateModelGetter<Model, Props>
-
-  export type UpdateModelGetter<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps
-  > = (
-    $: Helpers<Model, Props>
-  ) =>
-    | UpdateModel<Model, Props>
-    | UpdateField<Model>
-    | Array<UpdateField<Model> | Utils.Falsy>
-    | Utils.Falsy
-
-  /**
-   * Type of the data passed to write functions. It extends the model allowing
-   * to set special values, sucha as server date, increment, etc.
-   */
-  export type UpdateModel<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps
-  > = {
-    [Key in keyof Model]?: Core.MaybeWriteValueUndefined<
-      Model[Key],
-      Core.WriteValue<Model, Key, Props>
-    >
   }
 
   export interface FieldHelpers<
@@ -793,9 +798,4 @@ export namespace TypesaurusUpdate {
       SetResult
     >
   }
-
-  export interface Helpers<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps
-  > extends CommonHelpers<Model, Props, UpdateField<Model>> {}
 }

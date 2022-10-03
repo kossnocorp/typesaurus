@@ -42,12 +42,10 @@ export namespace TypesaurusTransaction {
     Def extends Core.DocDef,
     Props extends Core.DocProps
   > {
-    set(
-      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
-    ): void
+    set(data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>): void
 
     update(
-      data: Update.UpdateModelArg<
+      data: Update.Arg<
         Def['Flags']['Reduced'] extends true
           ? Core.ResolveModelType<Def['Model']>
           : Core.SharedModelType<Def['WideModel']>,
@@ -55,9 +53,7 @@ export namespace TypesaurusTransaction {
       >
     ): void
 
-    upset(
-      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
-    ): void
+    upset(data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>): void
 
     remove(): void
   }
@@ -140,17 +136,17 @@ export namespace TypesaurusTransaction {
 
     set(
       id: Def['Id'],
-      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
+      data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>
     ): void
 
     upset(
       id: Def['Id'],
-      data: Core.SetModelArg<Core.ResolveModelType<Def['Model']>, Props>
+      data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>
     ): void
 
     update(
       id: Def['Id'],
-      data: Update.UpdateModelArg<Core.SharedModelType<Def['WideModel']>, Props>
+      data: Update.Arg<Core.SharedModelType<Def['WideModel']>, Props>
     ): void
 
     remove(id: Def['Id']): void
