@@ -48,7 +48,9 @@ module.exports = (config) => {
           'process.env.FIREBASE_PASSWORD': JSON.stringify(
             process.env.FIREBASE_PASSWORD
           )
-        })
+        }),
+
+        new webpack.IgnorePlugin({ resourceRegExp: /firebase-admin/ })
       ],
 
       module: {

@@ -1,6 +1,7 @@
 import type { TypesaurusUtils as Utils } from './utils'
 import type { TypesaurusQuery as Query } from './query'
 import type { TypesaurusUpdate as Update } from './update'
+import type { TypesaurusFirebase as Firebase } from './firebase'
 
 export namespace TypesaurusCore {
   export interface Function {
@@ -843,6 +844,8 @@ export namespace TypesaurusCore {
     remove(id: Def['Id']): Promise<Ref<Def>>
 
     ref(id: Def['Id']): Ref<Def>
+
+    doc<Props extends DocProps>(snapshot: Firebase.Snapshot): Doc<Def, Props>
 
     doc<Props extends DocProps>(
       id: Def['Id'],
