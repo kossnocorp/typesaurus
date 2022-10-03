@@ -836,6 +836,58 @@ describe('query', () => {
           'Lesha'
         ])
       })
+
+      it('allows to pass falsy cursors', async () => {
+        expect(
+          (
+            await db.contacts.query(($) => [
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc', undefined),
+              $.limit(2)
+            ])
+          ).map(({ data: { name } }) => name)
+        ).toEqual(['Sasha', 'Tati'])
+
+        expect(
+          (
+            await db.contacts.query(($) => [
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc', [null]),
+              $.limit(2)
+            ])
+          ).map(({ data: { name } }) => name)
+        ).toEqual(['Sasha', 'Tati'])
+
+        expect(
+          (
+            await db.contacts.query(($) => [
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc', [null, '']),
+              $.limit(2)
+            ])
+          ).map(({ data: { name } }) => name)
+        ).toEqual(['Sasha', 'Tati'])
+
+        expect(
+          (
+            await db.contacts.query(($) => [
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc', [$.startAfter(1987), 0]),
+              $.limit(2)
+            ])
+          ).map(({ data: { name } }) => name)
+        ).toEqual(['Tati', 'Lesha'])
+
+        expect(
+          (
+            await db.contacts.query(($) => [
+              $.field('ownerId').equal(ownerId),
+              $.field('year').order('asc', ['', $.endBefore(1989)]),
+              $.limit(2)
+            ])
+          ).map(({ data: { name } }) => name)
+        ).toEqual(['Sasha'])
+      })
     })
 
     describe('docId', () => {
