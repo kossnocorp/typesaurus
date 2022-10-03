@@ -1,4 +1,3 @@
-import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 import { SubscriptionPromise } from '../../sp/index.ts'
 
@@ -707,26 +706,26 @@ export function unwrapData(data, write) {
       const fieldValue = data
       switch (fieldValue.kind) {
         case 'remove':
-          return firestore.FieldValue.delete()
+          return admin.firestore.FieldValue.delete()
 
         case 'increment':
-          return firestore.FieldValue.increment(fieldValue.number)
+          return admin.firestore.FieldValue.increment(fieldValue.number)
 
         case 'arrayUnion':
-          return firestore.FieldValue.arrayUnion(
+          return admin.firestore.FieldValue.arrayUnion(
             ...unwrapData(fieldValue.values, write)
           )
 
         case 'arrayRemove':
-          return firestore.FieldValue.arrayRemove(
+          return admin.firestore.FieldValue.arrayRemove(
             ...unwrapData(fieldValue.values, write)
           )
 
         case 'serverDate':
-          return firestore.FieldValue.serverTimestamp()
+          return admin.firestore.FieldValue.serverTimestamp()
       }
     } else if (data instanceof Date) {
-      return firestore.Timestamp.fromDate(data)
+      return admin.firestore.Timestamp.fromDate(data)
     }
 
     const isArray = Array.isArray(data)
@@ -744,7 +743,7 @@ export function unwrapData(data, write) {
 
     return unwrappedObject
   } else if (data === undefined) {
-    return write === true ? firestore.FieldValue.delete() : null
+    return write === true ? admin.firestore.FieldValue.delete() : null
   } else {
     return data
   }
@@ -758,9 +757,9 @@ export function unwrapData(data, write) {
  * @returns the data in Typesaurus format
  */
 export function wrapData(data, ref = pathToRef) {
-  if (data instanceof firestore.DocumentReference) {
+  if (data instanceof admin.firestore.DocumentReference) {
     return ref(data.path)
-  } else if (data instanceof firestore.Timestamp) {
+  } else if (data instanceof admin.firestore.Timestamp) {
     return data.toDate()
   } else if (data && typeof data === 'object') {
     const wrappedData = Object.assign(Array.isArray(data) ? [] : {}, data)
