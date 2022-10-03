@@ -115,6 +115,29 @@ describe('doc', () => {
     })
   })
 
+  it('creates doc from Firebase snapshot', async () => {
+    const userRef = await db.users.add(($) => ({
+      name: 'Sasha',
+      createdAt: $.serverDate(),
+      birthday: new Date(1987, 1, 11)
+    }))
+
+    const path = `users/${userRef.id}`
+    let snapshot
+
+    if (typeof window === 'undefined') {
+      const admin = (await import('firebase-admin')).default
+      snapshot = await admin.firestore().doc(path).get()
+    } else {
+      const { getDoc, doc, getFirestore } = await import('firebase/firestore')
+      snapshot = await getDoc(doc(getFirestore(), path))
+    }
+
+    const user = db.users.doc(snapshot)
+    expect(user.data.createdAt).toBeInstanceOf(Date)
+    expect(user.data.birthday.getFullYear()).toBe(1987)
+  })
+
   describe('test', () => {
     const contentDoc = db.content.doc(db.content.id('42'), {
       type: 'text',

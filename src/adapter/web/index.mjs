@@ -106,7 +106,11 @@ class RichCollection {
   }
 
   doc(id, data) {
-    return new Doc(this, id, nullifyData(data))
+    if (!data && 'id' in id && 'data' in id && typeof id.data === 'function') {
+      return this.doc(id.id, wrapData(id.data()))
+    } else {
+      return new Doc(this, id, nullifyData(data))
+    }
   }
 
   add(data, options) {
