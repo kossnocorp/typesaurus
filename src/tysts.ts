@@ -558,6 +558,52 @@ async function query() {
     $.field('name').order(nameCursor ? [$.startAfter(nameCursor)] : [])
   )
 
+  // Falsy cursors
+
+  await db.users.query(($) =>
+    $.field('name').order(nameCursor && $.startAfter(nameCursor))
+  )
+
+  await db.users.query(($) => [
+    $.field('name').order(undefined),
+    $.field('name').order(null),
+    $.field('name').order(false),
+    $.field('name').order(''),
+    $.field('name').order(0)
+  ])
+
+  await db.users.query(($) => [
+    $.field('name').order([undefined]),
+    $.field('name').order([null]),
+    $.field('name').order([false]),
+    $.field('name').order(['']),
+    $.field('name').order([0])
+  ])
+
+  await db.users.query(($) => [
+    $.field('name').order([undefined, $.endAt('Sasha')]),
+    $.field('name').order([null, $.endAt('Sasha')]),
+    $.field('name').order([false, $.endAt('Sasha')]),
+    $.field('name').order(['', $.endAt('Sasha')]),
+    $.field('name').order([0, $.endAt('Sasha')])
+  ])
+
+  await db.users.query(($) => [
+    $.field('name').order([$.startAt('Sasha'), undefined]),
+    $.field('name').order([$.startAt('Sasha'), null]),
+    $.field('name').order([$.startAt('Sasha'), false]),
+    $.field('name').order([$.startAt('Sasha'), '']),
+    $.field('name').order([$.startAt('Sasha'), 0])
+  ])
+
+  await db.users.query(($) => [
+    $.field('name').order([undefined, undefined]),
+    $.field('name').order([null, null]),
+    $.field('name').order([false, false]),
+    $.field('name').order(['', '']),
+    $.field('name').order([0, 0])
+  ])
+
   // Subscription
 
   const offQuery = db.users

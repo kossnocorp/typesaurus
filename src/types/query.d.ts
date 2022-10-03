@@ -131,12 +131,15 @@ export namespace TypesaurusQuery {
     Parent,
     Key extends keyof Parent | DocId
   > =
-    | OrderCursorsEmpty // Enable conditional cursors
+    | Utils.Falsy
     | OrderCursorStart<Def, Parent, Key>
-    | [OrderCursorStart<Def, Parent, Key>]
+    | [OrderCursorStart<Def, Parent, Key> | Utils.Falsy]
     | OrderCursorEnd<Def, Parent, Key>
-    | [OrderCursorEnd<Def, Parent, Key>]
-    | [OrderCursorStart<Def, Parent, Key>, OrderCursorEnd<Def, Parent, Key>]
+    | [OrderCursorEnd<Def, Parent, Key> | Utils.Falsy]
+    | [
+        OrderCursorStart<Def, Parent, Key> | Utils.Falsy,
+        OrderCursorEnd<Def, Parent, Key> | Utils.Falsy
+      ]
 
   export type OrderCursorsEmpty = undefined | null | '' | false | []
 

@@ -464,19 +464,23 @@ export function query(adapter, queries) {
 
         if (queryCursors)
           cursors = cursors.concat(
-            queryCursors.map(({ type, position, value }) => ({
-              type,
-              position,
-              value:
-                typeof value === 'object' &&
-                value !== null &&
-                'type' in value &&
-                value.type == 'doc'
-                  ? field[0] === '__id__'
-                    ? value.ref.id
-                    : field.reduce((acc, key) => acc[key], value.data)
-                  : value
-            }))
+            queryCursors.reduce((acc, cursor) => {
+              if (!cursor) return acc
+              const { type, position, value } = cursor
+              return acc.concat({
+                type,
+                position,
+                value:
+                  typeof value === 'object' &&
+                  value !== null &&
+                  'type' in value &&
+                  value.type == 'doc'
+                    ? field[0] === '__id__'
+                      ? value.ref.id
+                      : field.reduce((acc, key) => acc[key], value.data)
+                    : value
+              })
+            }, [])
           )
         break
       }
