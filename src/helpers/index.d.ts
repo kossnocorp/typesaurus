@@ -1,4 +1,4 @@
-import { TypesaurusHelpers as Helpers } from '../types/helpers'
+import type { TypesaurusHelpers as Helpers } from '../types/helpers'
 
 export const retry: Helpers.RetryFunction
 
