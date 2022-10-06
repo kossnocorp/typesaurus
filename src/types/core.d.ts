@@ -872,6 +872,12 @@ export namespace TypesaurusCore {
      * const newCommentId = await db.comments.id()
      */
     id(): Promise<Def['Id']>
+
+    configure(config: CollectionConfig): void
+  }
+
+  export interface CollectionConfig {
+    path?: string
   }
 
   export interface NestedRichCollection<
