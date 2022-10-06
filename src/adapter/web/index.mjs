@@ -202,6 +202,10 @@ class RichCollection {
     })
   }
 
+  configure(config) {
+    if (config.path) this.path = config.path
+  }
+
   adapter() {
     return {
       db: () => this.firebaseDB,
