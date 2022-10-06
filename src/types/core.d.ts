@@ -430,24 +430,20 @@ export namespace TypesaurusCore {
     Field,
     DateMissing extends ServerDateMissing
   > = Field extends Ref<any>
-    ? MaybeModelFieldUndefined<Field>
+    ? Field
     : Field extends ServerDate // Process server dates
     ? DateMissing extends 'missing'
       ? Date | undefined
-      : MaybeModelFieldUndefined<Date>
+      : Date
     : Field extends Date | Id<string> // Stop dates & ids from being processed as an object
-    ? MaybeModelFieldUndefined<Field>
+    ? Field
     : Field extends Array<infer ItemType>
     ? undefined extends ItemType
       ? Array<ModelField<Exclude<ItemType, undefined>, DateMissing> | null>
       : Array<ModelField<Exclude<ItemType, undefined>, DateMissing>>
     : Field extends object // If it's an object, recursively pass through ModelData
     ? AnyModelData<Field, DateMissing>
-    : MaybeModelFieldUndefined<Field>
-
-  export type MaybeModelFieldUndefined<Type> = Type extends undefined
-    ? Type | undefined
-    : Type
+    : Field
 
   export type ResolvedWebServerDate<
     FromCache extends boolean,
