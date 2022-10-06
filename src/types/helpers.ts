@@ -1,4 +1,4 @@
-import { TypesaurusCore as Core } from './core'
+import type { TypesaurusCore as Core } from './core'
 
 export namespace TypesaurusHelpers {
   export interface RetryOptions {
