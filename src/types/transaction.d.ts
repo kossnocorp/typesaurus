@@ -271,20 +271,20 @@ export namespace TypesaurusTransaction {
         ? NestedReadCollection<
             {
               Model: Model
-              Id: CustomId extends Core.Id<any>
+              Id: CustomId extends Core.Id<any> | string
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
               Flags: Core.DocDefFlags
             },
             Props,
-            ReadDB<Schema, Props>
+            ReadDB<Schema, Props, Utils.ComposePath<BasePath, Path>>
           >
         : Schema[Path] extends Core.PlainCollection<infer Model, infer CustomId>
         ? ReadCollection<
             {
               Model: Model
-              Id: CustomId extends Core.Id<any>
+              Id: CustomId extends Core.Id<any> | string
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
@@ -310,20 +310,20 @@ export namespace TypesaurusTransaction {
         ? NestedWriteCollection<
             {
               Model: Model
-              Id: CustomId extends Core.Id<any>
+              Id: CustomId extends Core.Id<any> | string
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
               Flags: Core.DocDefFlags
             },
             Props,
-            WriteDB<Schema, Props>
+            WriteDB<Schema, Props, Utils.ComposePath<BasePath, Path>>
           >
         : Schema[Path] extends Core.PlainCollection<infer Model, infer CustomId>
         ? WriteCollection<
             {
               Model: Model
-              Id: CustomId extends Core.Id<any>
+              Id: CustomId extends Core.Id<any> | string
                 ? CustomId
                 : Core.Id<Utils.ComposePath<BasePath, Path>>
               WideModel: Model
