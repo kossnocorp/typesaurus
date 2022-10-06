@@ -249,7 +249,7 @@ describe('transaction', () => {
   describe('subcollection', () => {
     it('works on subcollections', async () => {
       const postId = await db.posts.id()
-      const counterId = await db.counters.id()
+      const counterId = await db.posts.sub.counters.id()
 
       const plus = async () =>
         transaction(db)
