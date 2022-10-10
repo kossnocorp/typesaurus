@@ -762,7 +762,6 @@ async function add() {
   db.posts.add({
     title: 'Hello, world!',
     text: 'Hello!',
-    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
@@ -824,7 +823,6 @@ async function set() {
   db.posts.set(db.posts.id('doc-id'), {
     title: 'Hello, world!',
     text: 'Hello!',
-    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
@@ -930,7 +928,6 @@ async function upset() {
   db.posts.upset(db.posts.id('doc-id'), {
     title: 'Hello, world!',
     text: 'Hello!',
-    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
@@ -1183,17 +1180,15 @@ async function update() {
   db.posts.update(db.posts.id('doc-id'), {
     title: 'Hello, world!',
     text: 'Hello!',
-    // @ts-expect-error - can't set null to undefined
     likes: null
   })
 
   db.posts.update(db.posts.id('doc-id'), ($) => [
     $.field('likes').set(undefined),
-    $.field('tags').set(['hello', null, undefined, 'world']),
+    $.field('likes').set(null),
+    $.field('tags').set(['hello', null, undefined, 'world'])
     // $.field('tags', 4).set(null), // TODO
     // $.field('tags', 4).set(undefined), // TODO
-    // @ts-expect-error - can't set null to undefined
-    $.field('likes').set(null)
   ])
 
   // Increment on nested optional values
@@ -1508,6 +1503,54 @@ namespace Data {
         e?: { f: string | undefined | null } | null
         g: Array<number | undefined | null>
         h: { i: Array<Array<string | undefined | null>> }
+      }
+    >
+  >(true)
+
+  // Write data
+
+  type ResultORMN = Core.WriteData<
+    {
+      a?: string
+      b: number | undefined
+      e?: { f: string | undefined }
+      g: Array<number | undefined>
+      h: { i?: Array<string | undefined> }
+    },
+    Core.DocProps
+  >
+
+  assertType<
+    TypeEqual<ResultORMN['a'], string | undefined | null | Core.ValueRemove>
+  >(true)
+  assertType<
+    TypeEqual<ResultORMN['b'], number | undefined | null | Core.ValueIncrement>
+  >(true)
+  assertType<
+    TypeEqual<
+      ResultORMN['e'],
+      { f: string | undefined | null } | undefined | null | Core.ValueRemove
+    >
+  >(true)
+  assertType<
+    TypeEqual<
+      ResultORMN['g'],
+      | Array<number | undefined | null>
+      | Core.ValueArrayUnion<number | undefined | null>
+      | Core.ValueArrayRemove<number | undefined | null>
+    >
+  >(true)
+  assertType<
+    TypeEqual<
+      ResultORMN['h'],
+      {
+        i?:
+          | Array<string | undefined | null>
+          | Core.ValueArrayUnion<string | undefined | null>
+          | Core.ValueArrayRemove<string | undefined | null>
+          | Core.ValueRemove
+          | undefined
+          | null
       }
     >
   >(true)

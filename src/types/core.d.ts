@@ -420,7 +420,7 @@ export namespace TypesaurusCore {
     Model extends ModelObjectType,
     DateMissing extends ServerDateMissing
   > = {
-    [Key in keyof Model]: DataFieldNullable<DataField<Model[Key], DateMissing>>
+    [Key in keyof Model]: DataField<Model[Key], DateMissing>
   }
 
   export type DataField<
@@ -481,17 +481,6 @@ export namespace TypesaurusCore {
     | WriteGetter<Model, Props>
 
   /**
-   * Type of the data passed to write functions. It extends the model allowing
-   * to set special values, sucha as server date, increment, etc.
-   */
-  export type WriteData<Model, Props extends DocProps> = {
-    [Key in keyof Model]: MaybeWriteValueUndefined<
-      Model[Key],
-      WriteValue<Model, Key, Props>
-    >
-  }
-
-  /**
    * Write model getter, accepts helper functions with special value generators
    * and returns {@link WriteData}.
    */
@@ -512,34 +501,36 @@ export namespace TypesaurusCore {
     arrayRemove<Type>(values: Type | Type[]): ValueArrayRemove<Type>
   }
 
-  export type WriteArray<Data extends Array<any>, Props extends DocProps> = {
-    [Key in keyof Data]: Data extends Array<infer ItemType>
-      ? undefined extends ItemType
-        ? WriteValue<Data, Key, Props> | null // Undefineds in arrays become nulls, so we can accept null as well
-        : WriteValue<Data, Key, Props>
-      : never
+  /**
+   * Type of the data passed to write functions. It extends the model allowing
+   * to set special values, sucha as server date, increment, etc.
+   */
+  export type WriteData<Model, Props extends DocProps> = {
+    [Key in keyof Model]: WriteField<Model, Key, Props>
   }
 
-  export type WriteValue<
+  export type WriteField<
     Data,
     Key extends keyof Data,
     Props extends DocProps
   > = Exclude<Data[Key], undefined> extends infer Type // Exclude undefined
     ? Type extends ServerDate // First, ensure ServerDate is properly set
-      ? WriteValueServerDate<Data, Key, Props>
+      ? WriteFieldNullify<Data[Key], WriteFieldServerDate<Data, Key, Props>>
       : Type extends Array<infer ItemType>
-      ? WriteValueArray<Data, Key, ItemType, Props>
+      ? WriteFieldNullify<Data[Key], WriteFieldArray<Data, Key, ItemType>>
       : Type extends object // If it's an object, recursively pass through SetModel
-      ? WriteValueObject<Data, Key, Props>
+      ? WriteFieldNullify<Data[Key], WriteFieldObject<Data, Key, Props>>
       : Type extends number
-      ? WriteValueNumber<Data, Key>
-      : WriteValueOther<Data, Key>
+      ? WriteFieldNullify<Data[Key], WriteFieldNumber<Data, Key>>
+      : WriteFieldNullify<Data[Key], WriteFieldOther<Data, Key>>
     : never
 
-  export type MaybeWriteValueUndefined<OriginType, Value> =
-    OriginType extends undefined ? Value | undefined : Value
+  export type WriteFieldNullify<
+    OriginType,
+    Value = OriginType
+  > = OriginType extends undefined ? Value | undefined | null : Value
 
-  export type WriteValueServerDate<
+  export type WriteFieldServerDate<
     Model,
     Key extends keyof Model,
     Props extends DocProps
@@ -547,27 +538,56 @@ export namespace TypesaurusCore {
     ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
     : ValueServerDate | MaybeValueRemove<Model, Key>
 
-  export type WriteValueArray<
-    Model,
-    Key extends keyof Model,
-    ItemType,
-    Props extends DocProps
-  > =
-    | WriteArray<Array<ItemType>, Props> // Even for update, nested objects are passed to set array
-    | ValueArrayUnion<ItemType>
-    | ValueArrayRemove<ItemType>
+  export type WriteFieldArray<Model, Key extends keyof Model, ItemType> =
+    | WriteArray<Array<ItemType>>
+    | ValueArrayUnion<WriteFieldNullify<ItemType, WriteArrayItem<ItemType>>>
+    | ValueArrayRemove<WriteFieldNullify<ItemType, WriteArrayItem<ItemType>>>
     | MaybeValueRemove<Model, Key>
 
-  export type WriteValueNumber<Model, Key extends keyof Model> =
+  export type WriteArray<Data extends Array<any>> = Data extends Array<
+    infer ItemType
+  >
+    ? Array<DataFieldNullable<WriteArrayItem<ItemType>>>
+    : never
+
+  export type WriteArrayItem<Item> = Item extends Ref<any>
+    ? DataFieldNullable<Item>
+    : Item extends ServerDate // No server dates are allowed in arrays
+    ? never
+    : Item extends Date | Id<string> // Stop dates & ids from being processed as an object
+    ? DataFieldNullable<Item>
+    : Item extends Array<any>
+    ? never // No arrays are allowed inside an array
+    : Item extends object // If it's an object, recursively pass through ModelData
+    ? WriteArrayObject<Item>
+    : DataFieldNullable<Item>
+
+  export type WriteArrayObject<Data extends object & { length?: never }> = {
+    [Key in keyof Data]: DataFieldNullable<WriteArrayObjectField<Data[Key]>>
+  }
+
+  export type WriteArrayObjectField<Field> = Field extends Ref<any>
+    ? DataFieldNullable<Field>
+    : Field extends ServerDate // No server dates are allowed in arrays
+    ? never
+    : Field extends Date | Id<string> // Stop dates & ids from being processed as an object
+    ? DataFieldNullable<Field>
+    : Field extends Array<any>
+    ? WriteArray<Field>
+    : Field extends object // If it's an object, recursively pass through ModelData
+    ? WriteArrayObject<Field>
+    : DataFieldNullable<Field>
+
+  export type WriteFieldNumber<Model, Key extends keyof Model> =
     | Model[Key]
     | ValueIncrement
     | MaybeValueRemove<Model, Key>
 
-  export type WriteValueOther<Model, Key extends keyof Model> =
+  export type WriteFieldOther<Model, Key extends keyof Model> =
     | Model[Key]
     | MaybeValueRemove<Model, Key>
 
-  export type WriteValueObject<
+  export type WriteFieldObject<
     Model,
     Key extends keyof Model,
     Props extends DocProps
