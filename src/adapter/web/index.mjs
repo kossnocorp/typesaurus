@@ -27,14 +27,13 @@ import {
   where
 } from 'firebase/firestore'
 import { SubscriptionPromise } from '../../sp/index.ts'
+import { data } from '../../data/index.mjs'
 
-export { batch } from './batch.mjs'
-
-export { groups } from './groups.mjs'
-
-export { transaction } from './transaction.mjs'
-
+export * from './batch.mjs'
+export * from './transaction.mjs'
+export * from './groups.mjs'
 export * from './../../helpers/index.mjs'
+export * from './../../data/index.mjs'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())
@@ -105,11 +104,11 @@ class RichCollection {
     return new Ref(this, id)
   }
 
-  doc(id, data) {
-    if (!data && 'id' in id && 'data' in id && typeof id.data === 'function') {
+  doc(id, value) {
+    if (!value && 'id' in id && 'data' in id && typeof id.data === 'function') {
       return this.doc(id.id, wrapData(id.data()))
     } else {
-      return new Doc(this, id, nullifyData(data))
+      return new Doc(this, id, data(value))
     }
   }
 
@@ -800,26 +799,6 @@ export function wrapData(data, ref = pathToRef) {
       wrappedData[key] = wrapData(wrappedData[key], ref)
     })
     return wrappedData
-  } else {
-    return data
-  }
-}
-/**
- * Deeply replaces `undefined` values in the arrays with `null`. It emulates
- * the Firestore behavior.
- *
- * @param data - the data to convert
- * @returns the data with undefined values replaced with null
- */
-export function nullifyData(data) {
-  if (data && typeof data === 'object' && !(data instanceof Date)) {
-    const isArray = Array.isArray(data)
-    const newData = isArray ? [] : {}
-    for (const key in data) {
-      newData[key] =
-        isArray && data[key] === undefined ? null : nullifyData(data[key])
-    }
-    return newData
   } else {
     return data
   }
