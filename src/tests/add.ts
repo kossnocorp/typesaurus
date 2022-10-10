@@ -57,25 +57,16 @@ describe('add', () => {
     expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
   })
 
-  it('removes undefineds', async () => {
+  it('converts undefineds to nulls', async () => {
     const userRef = db.users.ref(db.users.id('42'))
     const postRef = await db.posts.add({
       author: userRef,
       text: 'Hello!',
-      date: undefined
-    })
-    const postFromDB = await postRef.get()
-    expect(postFromDB?.data.date).toBe(undefined)
-  })
-
-  it('converts undefineds in arrays to nulls', async () => {
-    const userRef = db.users.ref(db.users.id('42'))
-    const postRef = await db.posts.add({
-      author: userRef,
-      text: 'Hello!',
+      date: undefined,
       tags: ['hello', undefined, 'world']
     })
     const postFromDB = await postRef.get()
+    expect(postFromDB?.data.date).toEqual(null)
     expect(postFromDB?.data.tags).toEqual(['hello', null, 'world'])
   })
 
