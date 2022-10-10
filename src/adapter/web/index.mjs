@@ -58,7 +58,7 @@ class RichCollection {
 
       return updateDoc(
         this.firebaseDoc(id),
-        unwrapData(this.firebaseDB, update, true)
+        unwrapData(this.firebaseDB, update)
       ).then(() => this.ref(id))
     }
 
@@ -70,7 +70,7 @@ class RichCollection {
         run: () =>
           updateDoc(
             this.firebaseDoc(id),
-            unwrapData(this.firebaseDB, updateFields(fields), true)
+            unwrapData(this.firebaseDB, updateFields(fields))
           ).then(() => this.ref(id))
       }
     }
@@ -116,16 +116,15 @@ class RichCollection {
     assertEnvironment(options?.as)
     return addDoc(
       this.firebaseCollection(),
-      writeData(this.firebaseDB, data, 'initial')
+      writeData(this.firebaseDB, data)
     ).then((firebaseRef) => this.ref(firebaseRef.id))
   }
 
   set(id, data, options) {
     assertEnvironment(options?.as)
-    return setDoc(
-      this.firebaseDoc(id),
-      writeData(this.firebaseDB, data, 'initial')
-    ).then(() => this.ref(id))
+    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB, data)).then(
+      () => this.ref(id)
+    )
   }
 
   upset(id, data, options) {
@@ -348,11 +347,10 @@ export function all(adapter) {
   })
 }
 
-export function writeData(db, data, write = true) {
+export function writeData(db, data) {
   return unwrapData(
     db,
-    typeof data === 'function' ? data(writeHelpers()) : data,
-    write
+    typeof data === 'function' ? data(writeHelpers()) : data
   )
 }
 
@@ -734,7 +732,7 @@ export function pathToDoc(path, data) {
  * @param data - the data to convert
  * @returns the data in Firestore format
  */
-export function unwrapData(db, data, write) {
+export function unwrapData(db, data) {
   if (data && typeof data === 'object') {
     if (data.type === 'ref') {
       return refToFirestoreDocument(db, data)
@@ -748,10 +746,10 @@ export function unwrapData(db, data, write) {
           return increment(fieldValue.number)
 
         case 'arrayUnion':
-          return arrayUnion(...unwrapData(db, fieldValue.values, write))
+          return arrayUnion(...unwrapData(db, fieldValue.values))
 
         case 'arrayRemove':
-          return arrayRemove(...unwrapData(db, fieldValue.values, write))
+          return arrayRemove(...unwrapData(db, fieldValue.values))
 
         case 'serverDate':
           return serverTimestamp()
@@ -764,18 +762,12 @@ export function unwrapData(db, data, write) {
     const unwrappedObject = Object.assign(isArray ? [] : {}, data)
 
     Object.keys(unwrappedObject).forEach((key) => {
-      if (isArray && unwrappedObject[key] === undefined) {
-        unwrappedObject[key] = null
-      } else if (unwrappedObject[key] === undefined && write === 'initial') {
-        delete unwrappedObject[key]
-      } else {
-        unwrappedObject[key] = unwrapData(db, unwrappedObject[key], write)
-      }
+      unwrappedObject[key] = unwrapData(db, unwrappedObject[key])
     })
 
     return unwrappedObject
   } else if (data === undefined) {
-    return write === true ? deleteField() : null
+    return null
   } else {
     return data
   }

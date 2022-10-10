@@ -90,14 +90,14 @@ class RichCollection {
   add(data, options) {
     assertEnvironment(options?.as)
     return this.firebaseCollection()
-      .add(writeData(data, 'initial'))
+      .add(writeData(data))
       .then((firebaseRef) => this.ref(firebaseRef.id))
   }
 
   set(id, data, options) {
     assertEnvironment(options?.as)
     return this.firebaseDoc(id)
-      .set(writeData(data, 'initial'))
+      .set(writeData(data))
       .then(() => this.ref(id))
   }
 
@@ -330,11 +330,8 @@ export function all(adapter) {
   })
 }
 
-export function writeData(data, write = true) {
-  return unwrapData(
-    typeof data === 'function' ? data(writeHelpers()) : data,
-    write
-  )
+export function writeData(data) {
+  return unwrapData(typeof data === 'function' ? data(writeHelpers()) : data)
 }
 
 export function writeHelpers() {
@@ -701,7 +698,7 @@ export function pathToDoc(path, data) {
  * @param data - the data to convert
  * @returns the data in Firestore format
  */
-export function unwrapData(data, write) {
+export function unwrapData(data) {
   if (data && typeof data === 'object') {
     if (data.type === 'ref') {
       return refToFirestoreDocument(data)
@@ -716,12 +713,12 @@ export function unwrapData(data, write) {
 
         case 'arrayUnion':
           return admin.firestore.FieldValue.arrayUnion(
-            ...unwrapData(fieldValue.values, write)
+            ...unwrapData(fieldValue.values)
           )
 
         case 'arrayRemove':
           return admin.firestore.FieldValue.arrayRemove(
-            ...unwrapData(fieldValue.values, write)
+            ...unwrapData(fieldValue.values)
           )
 
         case 'serverDate':
@@ -735,18 +732,12 @@ export function unwrapData(data, write) {
     const unwrappedObject = Object.assign(isArray ? [] : {}, data)
 
     Object.keys(unwrappedObject).forEach((key) => {
-      if (isArray && unwrappedObject[key] === undefined) {
-        unwrappedObject[key] = null
-      } else if (unwrappedObject[key] === undefined && write === 'initial') {
-        delete unwrappedObject[key]
-      } else {
-        unwrappedObject[key] = unwrapData(unwrappedObject[key], write)
-      }
+      unwrappedObject[key] = unwrapData(unwrappedObject[key])
     })
 
     return unwrappedObject
   } else if (data === undefined) {
-    return write === true ? admin.firestore.FieldValue.delete() : null
+    return null
   } else {
     return data
   }

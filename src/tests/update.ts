@@ -130,19 +130,7 @@ describe('update', () => {
     expect(userFromDB?.data.name).toBe('Tati')
   })
 
-  it('removes undefineds', async () => {
-    const userRef = db.users.ref(db.users.id('42'))
-    const postRef = await db.posts.add({
-      author: userRef,
-      text: 'Hello!',
-      date: new Date()
-    })
-    await postRef.update({ date: undefined })
-    const postFromDB = await postRef.get()
-    expect(postFromDB?.data.date).toBe(undefined)
-  })
-
-  it('converts undefineds in arrays to nulls', async () => {
+  it('converts undefineds to nulls', async () => {
     const userRef = db.users.ref(db.users.id('42'))
     const postRef = await db.posts.add({
       author: userRef,
@@ -150,9 +138,11 @@ describe('update', () => {
       date: new Date()
     })
     await postRef.update({
+      date: undefined,
       tags: ['hello', undefined, 'world']
     })
     const postFromDB = await postRef.get()
+    expect(postFromDB?.data.date).toEqual(null)
     expect(postFromDB?.data.tags).toEqual(['hello', null, 'world'])
   })
 
