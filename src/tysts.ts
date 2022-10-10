@@ -151,7 +151,9 @@ async function doc() {
     user.data.createdAt.getDay()
   }
 
-  assertType<TypeEqual<typeof user.data.birthdate, Date | undefined>>(true)
+  assertType<TypeEqual<typeof user.data.birthdate, Date | undefined | null>>(
+    true
+  )
 
   // Variable shape
 
@@ -198,14 +200,19 @@ async function doc() {
 
   const postDoc = await db.posts.get(db.posts.id('doc-id'))
   if (postDoc) {
-    assertType<TypeEqual<typeof postDoc.data.likeIds, undefined | string[]>>(
+    assertType<
+      TypeEqual<typeof postDoc.data.likeIds, string[] | undefined | null>
+    >(true)
+
+    assertType<TypeEqual<typeof postDoc.data.likes, number | undefined | null>>(
       true
     )
 
-    assertType<TypeEqual<typeof postDoc.data.likes, undefined | number>>(true)
-
     assertType<
-      TypeEqual<typeof postDoc.data.tags, undefined | Array<string | null>>
+      TypeEqual<
+        typeof postDoc.data.tags,
+        Array<string | undefined | null> | undefined | null
+      >
     >(true)
   }
 }
@@ -247,7 +254,9 @@ async function get() {
 
   db.users.get(db.users.id('sasha')).then((user) => {
     if (!user) return
-    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+    assertType<TypeEqual<Date | undefined | null, typeof user.data.createdAt>>(
+      true
+    )
   })
 
   db.users.get(db.users.id('sasha'), { as: 'server' }).then((user) => {
@@ -259,7 +268,9 @@ async function get() {
 
   user.get().then((user) => {
     if (!user) return
-    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+    assertType<TypeEqual<Date | undefined | null, typeof user.data.createdAt>>(
+      true
+    )
   })
 
   user.get({ as: 'server' }).then((user) => {
@@ -335,7 +346,9 @@ async function many() {
   db.users.many([db.users.id('sasha')]).then((users) => {
     const user = users[0]
     if (!user) return
-    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+    assertType<TypeEqual<Date | undefined | null, typeof user.data.createdAt>>(
+      true
+    )
   })
 
   db.users.many([db.users.id('sasha')], { as: 'server' }).then((users) => {
@@ -412,7 +425,9 @@ async function all() {
   db.users.all().then((users) => {
     const user = users[0]
     if (!user) return
-    assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+    assertType<TypeEqual<Date | undefined | null, typeof user.data.createdAt>>(
+      true
+    )
   })
 
   db.users.all({ as: 'server' }).then((users) => {
@@ -495,7 +510,9 @@ async function query() {
     .then((users) => {
       const user = users[0]
       if (!user) return
-      assertType<TypeEqual<Date | undefined, typeof user.data.createdAt>>(true)
+      assertType<
+        TypeEqual<Date | undefined | null, typeof user.data.createdAt>
+      >(true)
     })
 
   db.users
@@ -1460,11 +1477,40 @@ async function narrowDoc() {
 namespace Data {
   // It does not mingle typed id
 
-  type ResultOA8M = Core.Data<{
-    helloId: Typesaurus.Id<'hello'>
-  }>
+  type ResultOA8M = Core.Data<
+    {
+      helloId: Typesaurus.Id<'hello'>
+    },
+    'present'
+  >
 
   assertType<TypeEqual<ResultOA8M, { helloId: Typesaurus.Id<'hello'> }>>(true)
+
+  // It converts undefineds to nulls
+
+  type ResultSLK3 = Core.Data<
+    {
+      a?: string
+      b: number | undefined
+      e?: { f: string | undefined }
+      g: Array<number | undefined>
+      h: { i: Array<Array<string | undefined>> }
+    },
+    'present'
+  >
+
+  assertType<
+    TypeEqual<
+      ResultSLK3,
+      {
+        a?: string | null
+        b: number | undefined | null
+        e?: { f: string | undefined | null } | null
+        g: Array<number | undefined | null>
+        h: { i: Array<Array<string | undefined | null>> }
+      }
+    >
+  >(true)
 }
 
 namespace ModelToConcat {

@@ -393,10 +393,10 @@ export namespace TypesaurusCore {
     data: Props['environment'] extends 'server'
       ? ServerData<ResolveModelType<Def['Model']>>
       : Props['source'] extends 'database'
-      ? AnyData<ResolveModelType<Def['Model']>, 'present'>
+      ? Data<ResolveModelType<Def['Model']>, 'present'>
       : Props['dateStrategy'] extends 'estimate' | 'previous'
-      ? AnyData<ResolveModelType<Def['Model']>, 'present'>
-      : AnyData<ResolveModelType<Def['Model']>, 'missing'>
+      ? Data<ResolveModelType<Def['Model']>, 'present'>
+      : Data<ResolveModelType<Def['Model']>, 'missing'>
 
     readonly props: Props
 
@@ -409,41 +409,42 @@ export namespace TypesaurusCore {
     ): asserts this is Doc<Def, DocProps & Props>
   }
 
-  export type ServerData<Model extends ModelObjectType> = AnyData<
-    Model,
-    'present'
-  >
+  export type ServerData<Model extends ModelObjectType> = Data<Model, 'present'>
 
-  export type Data<Model extends ModelObjectType> = AnyData<
+  export type AnyData<Model extends ModelObjectType> = Data<
     Model,
     ServerDateMissing
   >
 
-  export type AnyData<
+  export type Data<
     Model extends ModelObjectType,
     DateMissing extends ServerDateMissing
   > = {
-    [Key in keyof Model]: DataField<Model[Key], DateMissing>
+    [Key in keyof Model]: DataFieldNullable<DataField<Model[Key], DateMissing>>
   }
 
   export type DataField<
     Field,
     DateMissing extends ServerDateMissing
   > = Field extends Ref<any>
-    ? Field
+    ? DataFieldNullable<Field>
     : Field extends ServerDate // Process server dates
     ? DateMissing extends 'missing'
-      ? Date | undefined
-      : Date
+      ? Date | undefined | null
+      : DataFieldNullable<Date>
     : Field extends Date | Id<string> // Stop dates & ids from being processed as an object
-    ? Field
+    ? DataFieldNullable<Field>
     : Field extends Array<infer ItemType>
-    ? undefined extends ItemType
-      ? Array<DataField<Exclude<ItemType, undefined>, DateMissing> | null>
-      : Array<DataField<Exclude<ItemType, undefined>, DateMissing>>
+    ? DataFieldNullable<
+        Array<DataField<DataFieldNullable<ItemType>, DateMissing>>
+      >
     : Field extends object // If it's an object, recursively pass through ModelData
-    ? AnyData<Field, DateMissing>
-    : Field
+    ? Data<Field, DateMissing>
+    : DataFieldNullable<Field>
+
+  export type DataFieldNullable<Type> = Type extends undefined
+    ? Type | null
+    : Type
 
   export type ResolvedWebServerDate<
     FromCache extends boolean,
@@ -1075,7 +1076,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#data).
            */
-          Data: Data<ResolveModelType<Def['Model']>>
+          Data: AnyData<ResolveModelType<Def['Model']>>
 
           /**
            * Read result, either doc, `null` (not found) or `undefined`

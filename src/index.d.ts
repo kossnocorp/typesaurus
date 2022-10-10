@@ -24,7 +24,7 @@ export namespace Typesaurus {
    */
   export type NarrowDoc<
     OriginalDoc extends Core.Doc<Core.DocDef, Core.DocProps>,
-    NarrowToModel extends Core.Data<any>
+    NarrowToModel extends Core.AnyData<any>
   > = Core.NarrowDoc<OriginalDoc, NarrowToModel>
 
   export type Def<
@@ -77,7 +77,7 @@ export namespace Typesaurus {
 
   export type Model<Model extends Core.ModelType> = Core.ResolveModelType<Model>
 
-  export type Data<Model extends Core.ModelType> = Core.Data<
+  export type Data<Model extends Core.ModelType> = Core.AnyData<
     Core.ResolveModelType<Model>
   >
 
