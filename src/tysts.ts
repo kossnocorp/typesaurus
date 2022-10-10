@@ -1457,10 +1457,10 @@ async function narrowDoc() {
   >(true)
 }
 
-namespace ModelData {
+namespace Data {
   // It does not mingle typed id
 
-  type ResultOA8M = Core.ModelData<{
+  type ResultOA8M = Core.Data<{
     helloId: Typesaurus.Id<'hello'>
   }>
 

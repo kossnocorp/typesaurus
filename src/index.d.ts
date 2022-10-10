@@ -1,5 +1,11 @@
 import type { TypesaurusCore as Core } from './types/core'
 
+export * from './transaction'
+export * from './groups'
+export * from './batch'
+export * from './helpers'
+export * from './data'
+
 export const schema: Core.Function
 
 // Create alias to later export Typesaurus.Record
@@ -18,7 +24,7 @@ export namespace Typesaurus {
    */
   export type NarrowDoc<
     OriginalDoc extends Core.Doc<Core.DocDef, Core.DocProps>,
-    NarrowToModel extends Core.ModelData<any>
+    NarrowToModel extends Core.Data<any>
   > = Core.NarrowDoc<OriginalDoc, NarrowToModel>
 
   export type Def<
@@ -71,7 +77,7 @@ export namespace Typesaurus {
 
   export type Model<Model extends Core.ModelType> = Core.ResolveModelType<Model>
 
-  export type Data<Model extends Core.ModelType> = Core.ModelData<
+  export type Data<Model extends Core.ModelType> = Core.Data<
     Core.ResolveModelType<Model>
   >
 
@@ -97,11 +103,3 @@ export namespace Typesaurus {
     ModelToConcat extends ModelType
   > = Core.ConcatModel<ModelToConcatTo, ModelToConcat>
 }
-
-export { transaction } from './transaction'
-
-export { groups } from './groups'
-
-export { batch } from './batch'
-
-export * from './helpers'

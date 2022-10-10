@@ -30,6 +30,10 @@
     "./helpers": {
       "require": "./helpers/index.js",
       "import": "./helpers/index.mjs"
+    },
+    "./data": {
+      "require": "./data/index.js",
+      "import": "./data/index.mjs"
     }
   },
   "sideEffects": false,
