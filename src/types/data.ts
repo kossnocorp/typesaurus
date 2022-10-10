@@ -7,7 +7,7 @@ export namespace TypesaurusData {
       DateMissing extends Core.ServerDateMissing
     >(
       data: Model
-    ): Core.AnyData<Model, DateMissing>
+    ): Core.Data<Model, DateMissing>
   }
 
   export interface SilenceFunction {
