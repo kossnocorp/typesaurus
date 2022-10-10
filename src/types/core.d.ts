@@ -391,12 +391,12 @@ export namespace TypesaurusCore {
     ref: Ref<Def>
 
     data: Props['environment'] extends 'server'
-      ? ModelServerData<ResolveModelType<Def['Model']>>
+      ? ServerData<ResolveModelType<Def['Model']>>
       : Props['source'] extends 'database'
-      ? AnyModelData<ResolveModelType<Def['Model']>, 'present'>
+      ? AnyData<ResolveModelType<Def['Model']>, 'present'>
       : Props['dateStrategy'] extends 'estimate' | 'previous'
-      ? AnyModelData<ResolveModelType<Def['Model']>, 'present'>
-      : AnyModelData<ResolveModelType<Def['Model']>, 'missing'>
+      ? AnyData<ResolveModelType<Def['Model']>, 'present'>
+      : AnyData<ResolveModelType<Def['Model']>, 'missing'>
 
     readonly props: Props
 
@@ -409,24 +409,24 @@ export namespace TypesaurusCore {
     ): asserts this is Doc<Def, DocProps & Props>
   }
 
-  export type ModelServerData<Model extends ModelObjectType> = AnyModelData<
+  export type ServerData<Model extends ModelObjectType> = AnyData<
     Model,
     'present'
   >
 
-  export type ModelData<Model extends ModelObjectType> = AnyModelData<
+  export type Data<Model extends ModelObjectType> = AnyData<
     Model,
     ServerDateMissing
   >
 
-  export type AnyModelData<
+  export type AnyData<
     Model extends ModelObjectType,
     DateMissing extends ServerDateMissing
   > = {
-    [Key in keyof Model]: ModelField<Model[Key], DateMissing>
+    [Key in keyof Model]: DataField<Model[Key], DateMissing>
   }
 
-  export type ModelField<
+  export type DataField<
     Field,
     DateMissing extends ServerDateMissing
   > = Field extends Ref<any>
@@ -439,10 +439,10 @@ export namespace TypesaurusCore {
     ? Field
     : Field extends Array<infer ItemType>
     ? undefined extends ItemType
-      ? Array<ModelField<Exclude<ItemType, undefined>, DateMissing> | null>
-      : Array<ModelField<Exclude<ItemType, undefined>, DateMissing>>
+      ? Array<DataField<Exclude<ItemType, undefined>, DateMissing> | null>
+      : Array<DataField<Exclude<ItemType, undefined>, DateMissing>>
     : Field extends object // If it's an object, recursively pass through ModelData
-    ? AnyModelData<Field, DateMissing>
+    ? AnyData<Field, DateMissing>
     : Field
 
   export type ResolvedWebServerDate<
@@ -1075,7 +1075,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#data).
            */
-          Data: ModelData<ResolveModelType<Def['Model']>>
+          Data: Data<ResolveModelType<Def['Model']>>
 
           /**
            * Read result, either doc, `null` (not found) or `undefined`

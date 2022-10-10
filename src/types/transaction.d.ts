@@ -68,8 +68,8 @@ export namespace TypesaurusTransaction {
     type: 'doc'
     ref: ReadRef<Def, Props>
     data: Props['environment'] extends 'server'
-      ? Core.ModelServerData<Core.ResolveModelType<Def['Model']>>
-      : Core.AnyModelData<Core.ResolveModelType<Def['Model']>, 'present'>
+      ? Core.ServerData<Core.ResolveModelType<Def['Model']>>
+      : Core.AnyData<Core.ResolveModelType<Def['Model']>, 'present'>
     props: Props
   }
 
@@ -83,8 +83,8 @@ export namespace TypesaurusTransaction {
     type: 'doc'
     ref: WriteRef<Def, Props>
     data: Props['environment'] extends 'server'
-      ? Core.ModelServerData<Core.ResolveModelType<Def['Model']>>
-      : Core.AnyModelData<Core.ResolveModelType<Def['Model']>, 'present'>
+      ? Core.ServerData<Core.ResolveModelType<Def['Model']>>
+      : Core.AnyData<Core.ResolveModelType<Def['Model']>, 'present'>
     props: Props
 
     narrow<NarrowToModel extends Core.ModelType>(
