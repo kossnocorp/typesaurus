@@ -737,7 +737,7 @@ export function unwrapData(data) {
 
     return unwrappedObject
   } else if (data === undefined) {
-    return null
+    return '%%undefined%%'
   } else {
     return data
   }
@@ -761,6 +761,8 @@ export function wrapData(data, ref = pathToRef) {
       wrappedData[key] = wrapData(wrappedData[key], ref)
     })
     return wrappedData
+  } else if (typeof data === 'string' && data === '%%undefined%%') {
+    return undefined
   } else {
     return data
   }

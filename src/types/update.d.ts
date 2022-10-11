@@ -80,7 +80,7 @@ export namespace TypesaurusUpdate {
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps
   > = {
-    [Key in keyof Model]?: Core.WriteFieldNullify<
+    [Key in keyof Model]?: Core.WriteFieldMaybeUndefined<
       Model[Key],
       Core.WriteField<Model, Key, Props>
     >
@@ -120,7 +120,7 @@ export namespace TypesaurusUpdate {
     SetResult
   > {
     set(
-      value: Core.WriteFieldNullify<
+      value: Core.WriteFieldMaybeUndefined<
         Parent[Key],
         Core.WriteField<Parent, Key, Props>
       >
