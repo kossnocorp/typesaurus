@@ -57,7 +57,7 @@ describe('add', () => {
     expect(postFromDB?.data.date?.getTime()).toBe(date.getTime())
   })
 
-  it('converts undefineds to nulls', async () => {
+  it('preserves undefineds', async () => {
     const userRef = db.users.ref(db.users.id('42'))
     const postRef = await db.posts.add({
       author: userRef,
@@ -66,8 +66,8 @@ describe('add', () => {
       tags: ['hello', undefined, 'world']
     })
     const postFromDB = await postRef.get()
-    expect(postFromDB?.data.date).toEqual(null)
-    expect(postFromDB?.data.tags).toEqual(['hello', null, 'world'])
+    expect(postFromDB?.data.date).toEqual(undefined)
+    expect(postFromDB?.data.tags).toEqual(['hello', undefined, 'world'])
   })
 
   it('allows to assert environment', async () => {
