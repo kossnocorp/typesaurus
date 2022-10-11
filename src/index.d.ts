@@ -4,7 +4,6 @@ export * from './transaction'
 export * from './groups'
 export * from './batch'
 export * from './helpers'
-export * from './data'
 
 export const schema: Core.Function
 
