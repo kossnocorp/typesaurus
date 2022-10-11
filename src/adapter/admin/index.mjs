@@ -1,12 +1,10 @@
 import * as admin from 'firebase-admin'
 import { SubscriptionPromise } from '../../sp/index.ts'
-import { data } from '../../data/index.mjs'
 
 export * from './batch.mjs'
 export * from './transaction.mjs'
 export * from './groups.mjs'
 export * from './../../helpers/index.mjs'
-export * from './../../data/index.mjs'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())
@@ -83,7 +81,7 @@ class RichCollection {
     if (!value && 'id' in id && 'data' in id && typeof id.data === 'function') {
       return this.doc(id.id, wrapData(id.data()))
     } else {
-      return new Doc(this, id, data(value))
+      return new Doc(this, id, value)
     }
   }
 
