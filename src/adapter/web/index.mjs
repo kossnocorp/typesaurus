@@ -32,7 +32,6 @@ export * from './batch.mjs'
 export * from './transaction.mjs'
 export * from './groups.mjs'
 export * from './../../helpers/index.mjs'
-export * from './../../data/index.mjs'
 
 export function schema(getSchema) {
   const schema = getSchema(schemaHelpers())
@@ -53,6 +52,8 @@ class RichCollection {
 
       const update = Array.isArray(updateData)
         ? updateFields(updateData)
+        : updateData instanceof UpdateField
+        ? updateFields([updateData])
         : updateData
 
       return updateDoc(
@@ -388,6 +389,13 @@ export function updateFields(fields) {
   }, {})
 }
 
+class UpdateField {
+  constructor(key, value) {
+    this.key = key
+    this.value = value
+  }
+}
+
 export function updateHelpers(mode = 'helpers', acc) {
   function processField(value) {
     if (mode === 'helpers') {
@@ -401,7 +409,7 @@ export function updateHelpers(mode = 'helpers', acc) {
   return {
     ...writeHelpers(),
     field: (...field) => ({
-      set: (value) => processField({ key: field, value })
+      set: (value) => processField(new UpdateField(field, value))
     })
   }
 }

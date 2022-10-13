@@ -106,6 +106,18 @@ describe('update', () => {
     })
   })
 
+  it('allows updating single field', async () => {
+    const user = await db.users.add({
+      name: 'Sasha',
+      address: { city: 'Omsk' },
+      visits: 0
+    })
+    const { id } = user
+    await db.users.update(id, ($) => $.field('visits').set($.increment(1)))
+    const userFromDB = await user.get()
+    expect(userFromDB?.data.visits).toBe(1)
+  })
+
   it('supports references', async () => {
     const userId1 = await db.users.id()
     const userId2 = await db.users.id()
