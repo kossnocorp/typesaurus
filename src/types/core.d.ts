@@ -1073,7 +1073,7 @@ export namespace TypesaurusCore {
           Ref: TypesaurusCore.Ref<Def>
 
           /**
-           * The main document object, contains reference with id and collection
+           * The document instance, contains reference with id and collection
            * and document data.
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#doc).
@@ -1092,7 +1092,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#data).
            */
-          Data: AnyData<ResolveModelType<Def['Model']>>
+          Data: Data<ResolveModelType<Def['Model']>, ServerDateMissing>
 
           /**
            * Read result, either doc, `null` (not found) or `undefined`
@@ -1190,6 +1190,138 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-helpers).
            */
           QueryHelpers: Query.Helpers<Def>
+
+          /**
+           * The server version of Doc, where the server dates are always
+           * resolved (not-null).
+           *
+           * The document instance, contains reference with id and collection
+           * and document data.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#server-doc).
+           */
+          ServerDoc: TypesaurusCore.Doc<
+            Def,
+            DocProps & { environment: 'server' }
+          >
+
+          /**
+           * The server version of Data, where the server dates are always
+           * resolved (not-null).
+           *
+           * The document data. It differs from the interface used to define
+           * the collection by Firestore nuances such as undefined turned into
+           * nulls, and nullable dates. A variable model is also resolved.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#server-data).
+           */
+          ServerData: ServerData<ResolveModelType<Def['Model']>>
+
+          /**
+           * The server version of Result, where the server dates are always
+           * resolved (not-null).
+           *
+           * Read result, either doc, `null` (not found) or `undefined`
+           * (the read is not finished/started yet).
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#result).
+           */
+          ServerResult: Doc<Def, DocProps> | null | undefined
+
+          /**
+           * The server version of WriteArg, where the Date can be used
+           * in place of a server date.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
+           */
+          ServerWriteArg: WriteArg<ResolveModelType<Def['Model']>, DocProps>
+
+          /**
+           * The server version of WriteData, where the Date can be used
+           * in place of a server date.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
+           */
+          ServerWriteData: WriteData<
+            ResolveModelType<Def['Model']>,
+            DocProps & { environment: 'server' }
+          >
+
+          /**
+           * The server version of WriteGetter, where the Date can be used
+           * in place of a server date.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
+           */
+          ServerWriteGetter: WriteGetter<
+            ResolveModelType<Def['Model']>,
+            DocProps & { environment: 'server' }
+          >
+
+          /**
+           * The server version of UpdateBuilder, where the Date can be used
+           * in place of a server date.
+           *
+           * Update builder type allows to abstract update building login into
+           * functions by accepting it as an argument.
+           *
+           * Unlike UpdateHelpers, UpdateBuilder can be used asynchronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-builder).
+           */
+          ServerUpdateBuilder: Update.Builder<
+            Def,
+            DocProps & { environment: 'server' }
+          >
+
+          /**
+           * The server version of UpdateArg, where the Date can be used
+           * in place of a server date.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
+           */
+          ServerUpdateArg: Update.Arg<
+            ResolveModelType<Def['Model']>,
+            DocProps & { environment: 'server' }
+          >
+
+          /**
+           * The server version of UpdateData, where the Date can be used
+           * in place of a server date.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
+           */
+          ServerUpdateData: Update.Data<
+            ResolveModelType<Def['Model']>,
+            DocProps & { environment: 'server' }
+          >
+
+          /**
+           * The server version of UpdateGetter, where the Date can be used
+           * in place of a server date.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
+           */
+          ServerUpdateGetter: Update.Getter<
+            ResolveModelType<Def['Model']>,
+            DocProps & { environment: 'server' }
+          >
+
+          /**
+           * The server version of UpdateHelpers, where the Date can be used
+           * in place of a server date.
+           *
+           * Update helpers type allows to abstract update building login into
+           * functions by accepting it as an argument.
+           *
+           * Unlike UpdateBuilder, UpdateHelpers must be used syncronously.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-helpers).
+           */
+          ServerUpdateHelpers: Update.Helpers<
+            Def,
+            DocProps & { environment: 'server' }
+          >
         }
       : never
   }
