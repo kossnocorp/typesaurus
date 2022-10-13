@@ -24,6 +24,8 @@ class RichCollection {
 
       const update = Array.isArray(updateData)
         ? updateFields(updateData)
+        : updateData instanceof UpdateField
+        ? updateFields([updateData])
         : updateData
 
       return (
@@ -367,6 +369,13 @@ export function updateFields(fields) {
   }, {})
 }
 
+class UpdateField {
+  constructor(key, value) {
+    this.key = key
+    this.value = value
+  }
+}
+
 export function updateHelpers(mode = 'helpers', acc) {
   function processField(value) {
     if (mode === 'helpers') {
@@ -380,7 +389,7 @@ export function updateHelpers(mode = 'helpers', acc) {
   return {
     ...writeHelpers(),
     field: (...field) => ({
-      set: (value) => processField({ key: field, value })
+      set: (value) => processField(new UpdateField(field, value))
     })
   }
 }
