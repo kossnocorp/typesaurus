@@ -99,10 +99,11 @@ export class Collection {
     return new Ref(this, id)
   }
 
-  doc(id, value) {
+  doc(id, value, options) {
     if (!value && 'id' in id && 'data' in id && typeof id.data === 'function') {
       return this.doc(id.id, wrapData(id.data()))
     } else {
+      assertEnvironment(options?.as)
       return new Doc(this, id, value)
     }
   }
