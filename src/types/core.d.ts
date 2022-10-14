@@ -390,13 +390,7 @@ export namespace TypesaurusCore {
 
     ref: Ref<Def>
 
-    data: Props['environment'] extends 'server'
-      ? ServerData<ResolveModelType<Def['Model']>>
-      : Props['source'] extends 'database'
-      ? Data<ResolveModelType<Def['Model']>, 'present'>
-      : Props['dateStrategy'] extends 'estimate' | 'previous'
-      ? Data<ResolveModelType<Def['Model']>, 'present'>
-      : Data<ResolveModelType<Def['Model']>, 'missing'>
+    data: DocData<Def, Props>
 
     readonly props: Props
 
@@ -467,6 +461,17 @@ export namespace TypesaurusCore {
   export interface ServerDate extends Date {
     __dontUseWillBeUndefined__: true
   }
+
+  export type DocData<
+    Def extends DocDef,
+    Props extends DocProps
+  > = Props['environment'] extends 'server'
+    ? ServerData<ResolveModelType<Def['Model']>>
+    : Props['source'] extends 'database'
+    ? Data<ResolveModelType<Def['Model']>, 'present'>
+    : Props['dateStrategy'] extends 'estimate' | 'previous'
+    ? Data<ResolveModelType<Def['Model']>, 'present'>
+    : Data<ResolveModelType<Def['Model']>, 'missing'>
 
   export type WriteArg<Model extends ModelObjectType, Props extends DocProps> =
     | WriteData<Model, Props>
@@ -858,11 +863,20 @@ export namespace TypesaurusCore {
 
     ref(id: Def['Id']): Ref<Def>
 
-    doc<Props extends DocProps>(snapshot: Firebase.Snapshot): Doc<Def, Props>
+    doc<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
+      snapshot: Firebase.Snapshot
+    ): Doc<Def, Props>
 
-    doc<Props extends DocProps>(
+    doc<
+      Environment extends RuntimeEnvironment,
+      Props extends DocProps & { environment: Environment }
+    >(
       id: Def['Id'],
-      data: ResolveModelType<Def['WideModel']>
+      data: DocData<Def, Props>,
+      options?: OperationOptions<Environment>
     ): Doc<Def, Props>
 
     /**

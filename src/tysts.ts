@@ -1,6 +1,5 @@
 import { schema, Typesaurus } from '.'
 import type { TypesaurusCore as Core } from './types/core'
-import type { TypesaurusUpdate as Update } from './types/update'
 import type { TypesaurusUtils as Utils } from './types/utils'
 
 interface Post {
@@ -189,6 +188,22 @@ async function doc() {
       // @ts-expect-error - src is never
       contentDoc.data.src.length
   }
+
+  // Doc as server
+
+  const serverUser = db.users.doc(
+    db.users.id('sasha'),
+    {
+      name: 'Sasha',
+      contacts: {
+        email: 'koss@nocorp.me'
+      },
+      createdAt: new Date()
+    },
+    { as: 'server' }
+  )
+
+  serverUser.data.createdAt.getDay()
 
   // Fixed string ids
 
