@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { all, pathToDoc, query, queryHelpers, wrapData } from './index.mjs'
+import { all, pathToDoc, query, queryHelpers, wrapData } from './core.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}

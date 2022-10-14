@@ -106,6 +106,22 @@ describe('transaction', () => {
       })
   })
 
+  it('converts write docs', async () => {
+    const id = await db.counters.id()
+    const counter = db.counters.ref(id)
+    await counter.set({ count: 0 })
+
+    const result = await transaction(db)
+      .read(($) => $.db.counters.get(counter.id))
+      .write(($) => {
+        $.db.counters.set(id, { count: ($.result?.data.count || 0) + 1 })
+        return $.result
+      })
+
+    const doc = await result?.get()
+    expect(doc?.data.count).toBe(1)
+  })
+
   describe('set', () => {
     it('allows setting', async () => {
       const id = await db.counters.id()

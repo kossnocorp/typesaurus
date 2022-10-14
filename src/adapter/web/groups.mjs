@@ -1,5 +1,5 @@
 import { collectionGroup, getFirestore } from 'firebase/firestore'
-import { all, pathToDoc, _query, queryHelpers, wrapData } from './index.mjs'
+import { all, pathToDoc, _query, queryHelpers, wrapData } from './core.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}

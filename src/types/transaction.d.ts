@@ -213,9 +213,11 @@ export namespace TypesaurusTransaction {
   export type ReadDocsToWriteDocs<
     Result,
     Props extends Core.DocProps
-  > = Result extends ReadDoc<infer Model, Props>
-    ? WriteDoc<Model, Props>
-    : Result extends Record<any, unknown> | Array<unknown>
+  > = Result extends ReadDoc<infer Def, Props>
+    ? WriteDoc<Def, Props>
+    : Result extends ReadRef<infer Def, Props>
+    ? WriteRef<Def, Props>
+    : Result extends object
     ? { [Key in keyof Result]: ReadDocsToWriteDocs<Result[Key], Props> }
     : Result
 
@@ -244,7 +246,7 @@ export namespace TypesaurusTransaction {
   > {
     write: <WriteResult>(
       callback: WriteFunction<Schema, ReadResult, WriteResult, Props>
-    ) => WriteResult
+    ) => WriteDocsToDocs<WriteResult, Props>
   }
 
   /**
@@ -295,6 +297,17 @@ export namespace TypesaurusTransaction {
         : never
       : never
   }
+
+  export type WriteDocsToDocs<
+    Result,
+    Props extends Core.DocProps
+  > = Result extends WriteDoc<infer Def, Props>
+    ? Core.Doc<Def, Props>
+    : Result extends WriteRef<infer Def, Props>
+    ? Core.Ref<Def>
+    : Result extends object
+    ? { [Key in keyof Result]: WriteDocsToDocs<Result[Key], Props> }
+    : Result
 
   export type WriteDB<
     Schema extends Core.PlainSchema,
