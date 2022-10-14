@@ -138,6 +138,37 @@ describe('doc', () => {
     expect(user.data.birthday.getFullYear()).toBe(1987)
   })
 
+  it('allows to assert environment', async () => {
+    const server = () =>
+      db.users.doc(
+        db.users.id('42'),
+        {
+          name: 'Sasha',
+          createdAt: new Date(),
+          birthday: new Date(1987, 1, 11)
+        },
+        { as: 'server' }
+      )
+    const client = () =>
+      db.users.doc(
+        db.users.id('42'),
+        {
+          name: 'Sasha',
+          createdAt: new Date(),
+          birthday: new Date(1987, 1, 11)
+        },
+        { as: 'client' }
+      )
+
+    if (typeof window === 'undefined') {
+      await server()
+      expect(client).toThrowError('Expected client environment')
+    } else {
+      await client()
+      expect(server).toThrowError('Expected server environment')
+    }
+  })
+
   describe('test', () => {
     const contentDoc = db.content.doc(db.content.id('42'), {
       type: 'text',
