@@ -3,7 +3,7 @@ import {
   unwrapData,
   updateHelpers,
   writeHelpers
-} from './index.mjs'
+} from './core.mjs'
 import * as admin from 'firebase-admin'
 
 export const batch = (rootDB, options) => {

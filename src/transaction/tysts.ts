@@ -482,4 +482,19 @@ async function tysts() {
         $.field('type').set('text')
       )
     })
+
+  // Result type
+
+  const result = await transaction(db)
+    .read(($) => $.db.users.get(db.users.id('asd')))
+    .write(($) => {
+      if (!$.result) return
+      // @ts-expect-error - write can't read
+      $.result.get()
+      return $.result
+    })
+
+  if (result) {
+    await result.get()
+  }
 }

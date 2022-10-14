@@ -1,11 +1,14 @@
 import * as admin from 'firebase-admin'
 import {
   assertEnvironment,
+  Collection,
+  Doc,
+  Ref,
   unwrapData,
   updateHelpers,
   wrapData,
   writeHelpers
-} from './index.mjs'
+} from './core.mjs'
 
 export const transaction = (db, options) => {
   assertEnvironment(options?.as)
@@ -14,12 +17,13 @@ export const transaction = (db, options) => {
       return {
         write: (writeCallback) =>
           admin.firestore().runTransaction(async (firebaseTransaction) => {
-            const result = await readCallback(
+            const readResult = await readCallback(
               transactionReadHelpers(db, firebaseTransaction)
             )
-            return writeCallback(
-              transactionWriteHelpers(db, firebaseTransaction, result)
+            const writeResult = writeCallback(
+              transactionWriteHelpers(db, firebaseTransaction, readResult)
             )
+            return writeDocsToDocs(writeResult)
           })
       }
     }
@@ -143,6 +147,8 @@ function writeDB(rootDB, transaction) {
 function readDocsToWriteDocs(db, transaction, data) {
   if (data instanceof ReadDoc) {
     return WriteDoc.fromRead(data)
+  } else if (data instanceof ReadRef) {
+    return WriteRead.fromRead(data)
   } else if (data && typeof data === 'object') {
     const processedData = Array.isArray(data) ? [] : {}
     Object.entries(data).forEach(([key, value]) => {
@@ -217,6 +223,13 @@ class WriteRef {
   remove() {
     return this.collection.remove(this.id)
   }
+
+  static fromRead(doc) {
+    return new WriteRef(
+      WriteCollection.fromRead(doc.ref.collection),
+      doc.ref.id
+    )
+  }
 }
 
 class WriteDoc {
@@ -249,6 +262,26 @@ class WriteDoc {
       doc.ref.id,
       doc.data
     )
+  }
+}
+
+function writeDocsToDocs(value) {
+  if (value instanceof WriteDoc) {
+    return new Doc(
+      new Collection(value.ref.collection.path),
+      value.ref.id,
+      value.data
+    )
+  } else if (value instanceof WriteRef) {
+    return new Ref(new Collection(value.ref.collection.path), value.ref.id)
+  } else if (value && typeof value === 'object') {
+    const processedData = Array.isArray(value) ? [] : {}
+    Object.entries(value).forEach(([key, value]) => {
+      processedData[key] = writeDocsToDocs(value)
+    })
+    return processedData
+  } else {
+    return value
   }
 }
 
