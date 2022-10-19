@@ -28,11 +28,13 @@ export namespace Typesaurus {
 
   export type Def<
     Model extends Core.ModelType,
-    Path extends string,
+    Name extends string,
+    Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags
   > = {
     Model: Model
+    Name: Name
     Id: Id<Path>
     WideModel: WideModel
     Flags: Flags
@@ -55,24 +57,27 @@ export namespace Typesaurus {
 
   export type Collection<
     Model extends Core.ModelType,
-    Path extends string,
+    Name extends string,
+    Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags
-  > = Core.Collection<Def<Model, Path, WideModel, Flags>>
+  > = Core.AnyCollection<Def<Model, Name, Path, WideModel, Flags>>
 
   export type Ref<
     Model extends Core.ModelType,
-    Path extends string,
+    Name extends string,
+    Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags
-  > = Core.Ref<Def<Model, Path, WideModel, Flags>>
+  > = Core.Ref<Def<Model, Name, Path, WideModel, Flags>>
 
   export type Doc<
     Model extends Core.ModelType,
-    Path extends string,
+    Name extends string,
+    Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags
-  > = Core.Doc<Def<Model, Path, WideModel, Flags>, Core.DocProps>
+  > = Core.Doc<Def<Model, Name, Path, WideModel, Flags>, Core.DocProps>
 
   export type Model<Model extends Core.ModelType> = Core.ResolveModelType<Model>
 

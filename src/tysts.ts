@@ -102,6 +102,12 @@ interface AppStats {
   users: number
 }
 
+interface CustomCollection {
+  hello: 'world'
+}
+
+const customCollection = 'customCollectionName'
+
 // Flat schema
 const db = schema(($) => ({
   users: $.collection<User>(),
@@ -109,8 +115,35 @@ const db = schema(($) => ({
   accounts: $.collection<Account>(),
   organizations: $.collection<Organization>(),
   content: $.collection<[TextContent, ImageContent]>(),
-  appStats: $.collection<AppStats, 'appStats'>()
+  appStats: $.collection<AppStats, 'appStats'>(),
+  [customCollection]: $.collection<CustomCollection>()
 }))
+
+async function custom() {
+  // Creating custom collection
+
+  // Via constant named property
+
+  const doc = await db[customCollection].get(await db[customCollection].id())
+  db[customCollection].get
+  db.customCollectionName.get
+  doc?.data.hello
+
+  // Via name variable
+
+  async function createDb(collection: string) {
+    const customDB = schema(($) => ({
+      users: $.collection<User>(),
+      customCollection: $.collection<CustomCollection>().name(collection)
+    }))
+
+    const doc = await customDB.customCollection.get(
+      await customDB.customCollection.id()
+    )
+
+    doc?.data.hello
+  }
+}
 
 async function doc() {
   const user = db.users.doc(db.users.id('sasha'), {
@@ -1374,6 +1407,7 @@ async function narrowDoc() {
       Core.Doc<
         {
           Model: TwitterAccount
+          Name: 'accounts'
           Id: Core.Id<'accounts'>
           WideModel: [TwitterAccount, LinkedInAccount]
           Flags: { Reduced: true }

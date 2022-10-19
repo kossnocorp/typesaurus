@@ -77,6 +77,8 @@ const db = schema(($) => ({
   content: $.collection<[TextContent, ImageContent]>()
 }))
 
+type Schema = Typesaurus.Schema<typeof db>
+
 async function tysts() {
   transaction(db)
     .read(($) => $.db.users.get(db.users.id('asd')))
@@ -485,16 +487,23 @@ async function tysts() {
 
   // Result type
 
-  const result = await transaction(db)
+  type Result =
+    | { state: 'yep'; user: Schema['users']['Doc'] }
+    | { state: 'nope' }
+
+  const result: Result = await transaction(db)
     .read(($) => $.db.users.get(db.users.id('asd')))
     .write(($) => {
-      if (!$.result) return
+      if (!$.result) return { state: 'nope' }
       // @ts-expect-error - write can't read
       $.result.get()
-      return $.result
+      return { state: 'yep', user: $.result }
     })
 
-  if (result) {
-    await result.get()
+  if (result.state === 'yep') {
+    await result.user.get()
+  } else {
+    // @ts-expect-error
+    result.user
   }
 }

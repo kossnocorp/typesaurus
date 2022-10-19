@@ -13,9 +13,10 @@ export namespace TypesaurusCore {
   /**
    * Define custom id passing the collection path string as the generic.
    */
-  export type Id<Path extends string> = string & {
-    __dontUseWillBeUndefined__: Path
-  }
+  export type Id<Path extends string | symbol | Array<string | symbol>> =
+    string & {
+      __dontUseWillBeUndefined__: Path
+    }
 
   export type ModelType = ModelObjectType | ModelVariableType
 
@@ -290,6 +291,10 @@ export namespace TypesaurusCore {
 
   export interface DocDef {
     Model: ModelType
+    /**
+     * The collection name (path segment).
+     */
+    Name: string
     Id: Id<string> | string
     /**
      * If the collection has variable shape, it will contain models tuple,
@@ -446,7 +451,7 @@ export namespace TypesaurusCore {
    */
   export interface Ref<Def extends DocDef> extends DocAPI<Def> {
     type: 'ref'
-    collection: RichCollection<Def>
+    collection: Collection<Def>
     id: Def['Id']
   }
 
@@ -775,6 +780,7 @@ export namespace TypesaurusCore {
       | Doc<
           {
             Model: NarrowToModel
+            Name: Def['Name']
             Id: Def['Id']
             WideModel: Def['WideModel']
             Flags: Def['Flags'] & { Reduced: true }
@@ -807,8 +813,7 @@ export namespace TypesaurusCore {
   /**
    *
    */
-  export interface RichCollection<Def extends DocDef>
-    extends CollectionAPI<Def> {
+  export interface Collection<Def extends DocDef> extends CollectionAPI<Def> {
     /** The collection type */
     type: 'collection'
 
@@ -911,10 +916,8 @@ export namespace TypesaurusCore {
     path?: string
   }
 
-  export interface NestedRichCollection<
-    Def extends DocDef,
-    Schema extends AnyDB
-  > extends RichCollection<Def> {
+  export interface NestedCollection<Def extends DocDef, Schema extends AnyDB>
+    extends Collection<Def> {
     (id: Def['Id']): Schema
 
     schema: Schema
@@ -924,9 +927,9 @@ export namespace TypesaurusCore {
 
   export type NestedCollectionShortcuts<Schema extends AnyDB> = {
     [Path in keyof Schema]: Path extends string
-      ? Schema[Path] extends NestedRichCollection<infer Def, infer Schema>
+      ? Schema[Path] extends NestedCollection<infer Def, infer Schema>
         ? NestedCollectionShortcut<Def, Schema>
-        : Schema[Path] extends RichCollection<infer Def>
+        : Schema[Path] extends Collection<infer Def>
         ? CollectionShortcut<Def>
         : Schema[Path]
       : never
@@ -966,26 +969,32 @@ export namespace TypesaurusCore {
     sub: NestedCollectionShortcuts<Schema>
   }
 
-  export type Collection<Def extends DocDef> =
-    | RichCollection<Def>
-    | NestedRichCollection<Def, AnyDB>
+  export type AnyCollection<Def extends DocDef> =
+    | Collection<Def>
+    | NestedCollection<Def, AnyDB>
 
   export interface PlainCollection<
     Model extends ModelType,
-    CustomId extends Id<string> | string | undefined = undefined
+    CustomId extends Id<string> | string | undefined = undefined,
+    CustomName extends string | undefined = undefined
   > {
     /** The collection type */
     type: 'collection'
 
     sub<Schema extends PlainSchema>(
       schema: Schema
-    ): NestedPlainCollection<Model, Schema, CustomId>
+    ): NestedPlainCollection<Model, Schema, CustomId, CustomName>
+
+    name<Path extends string>(
+      name: Path
+    ): PlainCollection<Model, CustomId, Path>
   }
 
   export interface NestedPlainCollection<
     _Model extends ModelType,
     Schema extends PlainSchema,
-    _CustomId extends Id<string> | string | undefined = undefined
+    _CustomId extends Id<string> | string | undefined = undefined,
+    _CustomName extends string | undefined = undefined
   > {
     /** The collection type */
     type: 'collection'
@@ -998,39 +1007,46 @@ export namespace TypesaurusCore {
     | NestedPlainCollection<any, PlainSchema>
 
   export interface PlainSchema {
-    [Path: string]:
+    [Path: string | symbol]:
       | PlainCollection<any>
       | NestedPlainCollection<any, PlainSchema>
   }
 
   export interface AnyDB {
-    [CollectionPath: string]: Collection<any>
+    [CollectionPath: string]: AnyCollection<any>
   }
 
   export type DB<Schema, BasePath extends string | undefined = undefined> = {
-    [Path in keyof Schema]: Path extends string
-      ? Schema[Path] extends NestedPlainCollection<
+    [Name in keyof Schema]: Name extends string
+      ? Schema[Name] extends NestedPlainCollection<
           infer Model,
           infer Schema,
-          infer CustomId
+          infer CustomId,
+          infer CustomName
         >
-        ? NestedRichCollection<
+        ? NestedCollection<
             {
               Model: Model
+              Name: CustomName extends string ? CustomName : Name
               Id: CustomId extends Id<any> | string
                 ? CustomId
-                : Id<Utils.ComposePath<BasePath, Path>>
+                : Id<Utils.ComposePath<BasePath, Name>>
               WideModel: Model
               Flags: DocDefFlags
             },
-            DB<Schema, Utils.ComposePath<BasePath, Path>>
+            DB<Schema, Utils.ComposePath<BasePath, Name>>
           >
-        : Schema[Path] extends PlainCollection<infer Model, infer CustomId>
-        ? RichCollection<{
+        : Schema[Name] extends PlainCollection<
+            infer Model,
+            infer CustomId,
+            infer CustomName
+          >
+        ? Collection<{
             Model: Model
+            Name: CustomName extends string ? CustomName : Name
             Id: CustomId extends Id<any> | string
               ? CustomId
-              : Id<Utils.ComposePath<BasePath, Path>>
+              : Id<Utils.ComposePath<BasePath, Name>>
             WideModel: Model
             Flags: DocDefFlags
           }>
@@ -1051,13 +1067,13 @@ export namespace TypesaurusCore {
      * the subcollection types, i.e. `["comments"]["Id"]`.
      */
     [Path in keyof DB]: DB[Path] extends
-      | RichCollection<infer Def>
-      | NestedRichCollection<infer Def, any>
+      | Collection<infer Def>
+      | NestedCollection<infer Def, any>
       ? {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#sub).
            */
-          sub: DB[Path] extends NestedRichCollection<
+          sub: DB[Path] extends NestedCollection<
             any,
             infer Schema extends TypesaurusCore.DB<any, any>
           >
@@ -1355,6 +1371,7 @@ export namespace TypesaurusCore {
       ? Doc<
           {
             Model: NarrowToModel
+            Name: Def['Name']
             Id: Def['Id']
             WideModel: Def['WideModel']
             Flags: Def['Flags'] & { Reduced: true }

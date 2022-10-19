@@ -21,12 +21,12 @@ export namespace TypesaurusBatch {
   }
 
   export type BatchDB<DB extends Core.DB<any>, Props extends Core.DocProps> = {
-    [Path in keyof DB]: DB[Path] extends Core.NestedRichCollection<
+    [Path in keyof DB]: DB[Path] extends Core.NestedCollection<
       infer Model,
       infer NestedDB
     >
       ? NestedCollection<Model, Props, BatchDB<NestedDB, Props>>
-      : DB[Path] extends Core.RichCollection<infer Def>
+      : DB[Path] extends Core.Collection<infer Def>
       ? Collection<Def, Props>
       : never
   }

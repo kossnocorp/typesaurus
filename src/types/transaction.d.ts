@@ -96,6 +96,7 @@ export namespace TypesaurusTransaction {
       | WriteDoc<
           {
             Model: NarrowToModel
+            Name: Def['Name']
             Id: Def['Id']
             WideModel: Def['WideModel']
             Flags: Def['Flags'] & { Reduced: true }
@@ -130,7 +131,7 @@ export namespace TypesaurusTransaction {
   export interface WriteCollection<
     Def extends Core.DocDef,
     Props extends Core.DocProps
-  > extends Core.PlainCollection<Def> {
+  > {
     /** The Firestore path */
     path: string
 
@@ -264,31 +265,38 @@ export namespace TypesaurusTransaction {
     Props extends Core.DocProps,
     BasePath extends string | undefined = undefined
   > = {
-    [Path in keyof Schema]: Path extends string
-      ? Schema[Path] extends Core.NestedPlainCollection<
+    [Name in keyof Schema]: Name extends string
+      ? Schema[Name] extends Core.NestedPlainCollection<
           infer Model,
           infer Schema,
-          infer CustomId
+          infer CustomId,
+          infer CustomName
         >
         ? NestedReadCollection<
             {
               Model: Model
+              Name: CustomName extends string ? CustomName : Name
               Id: CustomId extends Core.Id<any> | string
                 ? CustomId
-                : Core.Id<Utils.ComposePath<BasePath, Path>>
+                : Core.Id<Utils.ComposePath<BasePath, Name>>
               WideModel: Model
               Flags: Core.DocDefFlags
             },
             Props,
-            ReadDB<Schema, Props, Utils.ComposePath<BasePath, Path>>
+            ReadDB<Schema, Props, Utils.ComposePath<BasePath, Name>>
           >
-        : Schema[Path] extends Core.PlainCollection<infer Model, infer CustomId>
+        : Schema[Name] extends Core.PlainCollection<
+            infer Model,
+            infer CustomId,
+            infer CustomName
+          >
         ? ReadCollection<
             {
               Model: Model
+              Name: CustomName extends string ? CustomName : Name
               Id: CustomId extends Core.Id<any> | string
                 ? CustomId
-                : Core.Id<Utils.ComposePath<BasePath, Path>>
+                : Core.Id<Utils.ComposePath<BasePath, Name>>
               WideModel: Model
               Flags: Core.DocDefFlags
             },
@@ -314,31 +322,38 @@ export namespace TypesaurusTransaction {
     Props extends Core.DocProps,
     BasePath extends string | undefined = undefined
   > = {
-    [Path in keyof Schema]: Path extends string
-      ? Schema[Path] extends Core.NestedPlainCollection<
+    [Name in keyof Schema]: Name extends string
+      ? Schema[Name] extends Core.NestedPlainCollection<
           infer Model,
           infer Schema,
-          infer CustomId
+          infer CustomId,
+          infer CustomName
         >
         ? NestedWriteCollection<
             {
               Model: Model
+              Name: CustomName extends string ? CustomName : Name
               Id: CustomId extends Core.Id<any> | string
                 ? CustomId
-                : Core.Id<Utils.ComposePath<BasePath, Path>>
+                : Core.Id<Utils.ComposePath<BasePath, Name>>
               WideModel: Model
               Flags: Core.DocDefFlags
             },
             Props,
-            WriteDB<Schema, Props, Utils.ComposePath<BasePath, Path>>
+            WriteDB<Schema, Props, Utils.ComposePath<BasePath, Name>>
           >
-        : Schema[Path] extends Core.PlainCollection<infer Model, infer CustomId>
+        : Schema[Name] extends Core.PlainCollection<
+            infer Model,
+            infer CustomId,
+            infer CustomName
+          >
         ? WriteCollection<
             {
               Model: Model
+              Name: CustomName extends string ? CustomName : Name
               Id: CustomId extends Core.Id<any> | string
                 ? CustomId
-                : Core.Id<Utils.ComposePath<BasePath, Path>>
+                : Core.Id<Utils.ComposePath<BasePath, Name>>
               WideModel: Model
               Flags: Core.DocDefFlags
             },

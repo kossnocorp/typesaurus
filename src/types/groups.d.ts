@@ -72,35 +72,36 @@ export namespace TypesaurusGroups {
       }
     : never
 
-  /**
-   * The type extracts schema models from a collections for {@link Groups}.
-   */
-  export type ExtractGroupModels<DB extends Core.DB<any>> = {
-    [Path in keyof DB]: DB[Path] extends
-      | Core.RichCollection<infer Def>
-      | Core.NestedRichCollection<infer Def, any>
-      ? Def
-      : never
-  }
-
   export type GroupsLevel1<DB extends Core.DB<any>> =
     // Get the models for the given (0) level
-    ExtractGroupModels<DB>
+    {
+      [Name in Utils.UnionKeys<DB> as DB[Name] extends
+        | Core.Collection<infer Def>
+        | Core.NestedCollection<infer Def, any>
+        ? Def['Name'] // Extract collection name from def
+        : never]: DB[Name] extends
+        | Core.Collection<infer Def>
+        | Core.NestedCollection<infer Def, any>
+        ? Def // Extract def
+        : never
+    }
 
   export type GroupsLevel2<DB extends Core.DB<any>> =
     // Infer the nested (1) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? {
-            [Key in Utils.UnionKeys<
+            [Name in Utils.UnionKeys<
               Collections['schema']
-            >]: Collections['schema'] extends Record<
-              Key,
-              | Core.RichCollection<infer Def>
-              | Core.NestedRichCollection<infer Def, any>
-            >
-              ? Def
-              : {}
+            > as Collections['schema'][Name] extends
+              | Core.Collection<infer Def>
+              | Core.NestedCollection<infer Def, any>
+              ? Def['Name'] // Extract collection name from def
+              : never]: Collections['schema'][Name] extends
+              | Core.Collection<infer Def>
+              | Core.NestedCollection<infer Def, any>
+              ? Def // Extract def
+              : never
           }
         : {}
       : {}
@@ -108,19 +109,21 @@ export namespace TypesaurusGroups {
   export type GroupsLevel3<DB extends Core.DB<any>> =
     // Infer the nested (3) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? {
-                [Key in Utils.UnionKeys<
+                [Name in Utils.UnionKeys<
                   Collections['schema']
-                >]: Collections['schema'] extends Record<
-                  Key,
-                  | Core.RichCollection<infer Def>
-                  | Core.NestedRichCollection<infer Def, any>
-                >
-                  ? Def
-                  : {}
+                > as Collections['schema'][Name] extends
+                  | Core.Collection<infer Def>
+                  | Core.NestedCollection<infer Def, any>
+                  ? Def['Name'] // Extract collection name from def
+                  : never]: Collections['schema'][Name] extends
+                  | Core.Collection<infer Def>
+                  | Core.NestedCollection<infer Def, any>
+                  ? Def // Extract def
+                  : never
               }
             : {}
           : {}
@@ -130,21 +133,23 @@ export namespace TypesaurusGroups {
   export type GroupsLevel4<DB extends Core.DB<any>> =
     // Infer the nested (4) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? Collections['schema'] extends Record<any, infer Collections>
-              ? Collections extends Core.NestedRichCollection<any, any>
+              ? Collections extends Core.NestedCollection<any, any>
                 ? {
-                    [Key in Utils.UnionKeys<
+                    [Name in Utils.UnionKeys<
                       Collections['schema']
-                    >]: Collections['schema'] extends Record<
-                      Key,
-                      | Core.RichCollection<infer Def>
-                      | Core.NestedRichCollection<infer Def, any>
-                    >
-                      ? Def
-                      : {}
+                    > as Collections['schema'][Name] extends
+                      | Core.Collection<infer Def>
+                      | Core.NestedCollection<infer Def, any>
+                      ? Def['Name'] // Extract collection name from def
+                      : never]: Collections['schema'][Name] extends
+                      | Core.Collection<infer Def>
+                      | Core.NestedCollection<infer Def, any>
+                      ? Def // Extract def
+                      : never
                   }
                 : {}
               : {}
@@ -156,23 +161,25 @@ export namespace TypesaurusGroups {
   export type GroupsLevel5<DB extends Core.DB<any>> =
     // Infer the nested (5) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? Collections['schema'] extends Record<any, infer Collections>
-              ? Collections extends Core.NestedRichCollection<any, any>
+              ? Collections extends Core.NestedCollection<any, any>
                 ? Collections['schema'] extends Record<any, infer Collections>
-                  ? Collections extends Core.NestedRichCollection<any, any>
+                  ? Collections extends Core.NestedCollection<any, any>
                     ? {
-                        [Key in Utils.UnionKeys<
+                        [Name in Utils.UnionKeys<
                           Collections['schema']
-                        >]: Collections['schema'] extends Record<
-                          Key,
-                          | Core.RichCollection<infer Def>
-                          | Core.NestedRichCollection<infer Def, any>
-                        >
-                          ? Def
-                          : {}
+                        > as Collections['schema'][Name] extends
+                          | Core.Collection<infer Def>
+                          | Core.NestedCollection<infer Def, any>
+                          ? Def['Name'] // Extract collection name from def
+                          : never]: Collections['schema'][Name] extends
+                          | Core.Collection<infer Def>
+                          | Core.NestedCollection<infer Def, any>
+                          ? Def // Extract def
+                          : never
                       }
                     : {}
                   : {}
@@ -186,28 +193,30 @@ export namespace TypesaurusGroups {
   export type GroupsLevel6<DB extends Core.DB<any>> =
     // Infer the nested (6) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? Collections['schema'] extends Record<any, infer Collections>
-              ? Collections extends Core.NestedRichCollection<any, any>
+              ? Collections extends Core.NestedCollection<any, any>
                 ? Collections['schema'] extends Record<any, infer Collections>
-                  ? Collections extends Core.NestedRichCollection<any, any>
+                  ? Collections extends Core.NestedCollection<any, any>
                     ? Collections['schema'] extends Record<
                         any,
                         infer Collections
                       >
-                      ? Collections extends Core.NestedRichCollection<any, any>
+                      ? Collections extends Core.NestedCollection<any, any>
                         ? {
-                            [Key in Utils.UnionKeys<
+                            [Name in Utils.UnionKeys<
                               Collections['schema']
-                            >]: Collections['schema'] extends Record<
-                              Key,
-                              | Core.RichCollection<infer Def>
-                              | Core.NestedRichCollection<infer Def, any>
-                            >
-                              ? Def
-                              : {}
+                            > as Collections['schema'][Name] extends
+                              | Core.Collection<infer Def>
+                              | Core.NestedCollection<infer Def, any>
+                              ? Def['Name'] // Extract collection name from def
+                              : never]: Collections['schema'][Name] extends
+                              | Core.Collection<infer Def>
+                              | Core.NestedCollection<infer Def, any>
+                              ? Def // Extract def
+                              : never
                           }
                         : {}
                       : {}
@@ -223,36 +232,35 @@ export namespace TypesaurusGroups {
   export type GroupsLevel7<DB extends Core.DB<any>> =
     // Infer the nested (7) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? Collections['schema'] extends Record<any, infer Collections>
-              ? Collections extends Core.NestedRichCollection<any, any>
+              ? Collections extends Core.NestedCollection<any, any>
                 ? Collections['schema'] extends Record<any, infer Collections>
-                  ? Collections extends Core.NestedRichCollection<any, any>
+                  ? Collections extends Core.NestedCollection<any, any>
                     ? Collections['schema'] extends Record<
                         any,
                         infer Collections
                       >
-                      ? Collections extends Core.NestedRichCollection<any, any>
+                      ? Collections extends Core.NestedCollection<any, any>
                         ? Collections['schema'] extends Record<
                             any,
                             infer Collections
                           >
-                          ? Collections extends Core.NestedRichCollection<
-                              any,
-                              any
-                            >
+                          ? Collections extends Core.NestedCollection<any, any>
                             ? {
-                                [Key in Utils.UnionKeys<
+                                [Name in Utils.UnionKeys<
                                   Collections['schema']
-                                >]: Collections['schema'] extends Record<
-                                  Key,
-                                  | Core.RichCollection<infer Def>
-                                  | Core.NestedRichCollection<infer Def, any>
-                                >
-                                  ? Def
-                                  : {}
+                                > as Collections['schema'][Name] extends
+                                  | Core.Collection<infer Def>
+                                  | Core.NestedCollection<infer Def, any>
+                                  ? Def['Name'] // Extract collection name from def
+                                  : never]: Collections['schema'][Name] extends
+                                  | Core.Collection<infer Def>
+                                  | Core.NestedCollection<infer Def, any>
+                                  ? Def // Extract def
+                                  : never
                               }
                             : {}
                           : {}
@@ -270,47 +278,43 @@ export namespace TypesaurusGroups {
   export type GroupsLevel8<DB extends Core.DB<any>> =
     // Infer the nested (8) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? Collections['schema'] extends Record<any, infer Collections>
-              ? Collections extends Core.NestedRichCollection<any, any>
+              ? Collections extends Core.NestedCollection<any, any>
                 ? Collections['schema'] extends Record<any, infer Collections>
-                  ? Collections extends Core.NestedRichCollection<any, any>
+                  ? Collections extends Core.NestedCollection<any, any>
                     ? Collections['schema'] extends Record<
                         any,
                         infer Collections
                       >
-                      ? Collections extends Core.NestedRichCollection<any, any>
+                      ? Collections extends Core.NestedCollection<any, any>
                         ? Collections['schema'] extends Record<
                             any,
                             infer Collections
                           >
-                          ? Collections extends Core.NestedRichCollection<
-                              any,
-                              any
-                            >
+                          ? Collections extends Core.NestedCollection<any, any>
                             ? Collections['schema'] extends Record<
                                 any,
                                 infer Collections
                               >
-                              ? Collections extends Core.NestedRichCollection<
+                              ? Collections extends Core.NestedCollection<
                                   any,
                                   any
                                 >
                                 ? {
-                                    [Key in Utils.UnionKeys<
+                                    [Name in Utils.UnionKeys<
                                       Collections['schema']
-                                    >]: Collections['schema'] extends Record<
-                                      Key,
-                                      | Core.RichCollection<infer Def>
-                                      | Core.NestedRichCollection<
-                                          infer Def,
-                                          any
-                                        >
-                                    >
-                                      ? Def
-                                      : {}
+                                    > as Collections['schema'][Name] extends
+                                      | Core.Collection<infer Def>
+                                      | Core.NestedCollection<infer Def, any>
+                                      ? Def['Name'] // Extract collection name from def
+                                      : never]: Collections['schema'][Name] extends
+                                      | Core.Collection<infer Def>
+                                      | Core.NestedCollection<infer Def, any>
+                                      ? Def // Extract def
+                                      : never
                                   }
                                 : {}
                               : {}
@@ -330,31 +334,28 @@ export namespace TypesaurusGroups {
   export type GroupsLevel9<DB extends Core.DB<any>> =
     // Infer the nested (9) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? Collections['schema'] extends Record<any, infer Collections>
-              ? Collections extends Core.NestedRichCollection<any, any>
+              ? Collections extends Core.NestedCollection<any, any>
                 ? Collections['schema'] extends Record<any, infer Collections>
-                  ? Collections extends Core.NestedRichCollection<any, any>
+                  ? Collections extends Core.NestedCollection<any, any>
                     ? Collections['schema'] extends Record<
                         any,
                         infer Collections
                       >
-                      ? Collections extends Core.NestedRichCollection<any, any>
+                      ? Collections extends Core.NestedCollection<any, any>
                         ? Collections['schema'] extends Record<
                             any,
                             infer Collections
                           >
-                          ? Collections extends Core.NestedRichCollection<
-                              any,
-                              any
-                            >
+                          ? Collections extends Core.NestedCollection<any, any>
                             ? Collections['schema'] extends Record<
                                 any,
                                 infer Collections
                               >
-                              ? Collections extends Core.NestedRichCollection<
+                              ? Collections extends Core.NestedCollection<
                                   any,
                                   any
                                 >
@@ -362,23 +363,28 @@ export namespace TypesaurusGroups {
                                     any,
                                     infer Collections
                                   >
-                                  ? Collections extends Core.NestedRichCollection<
+                                  ? Collections extends Core.NestedCollection<
                                       any,
                                       any
                                     >
                                     ? {
-                                        [Key in Utils.UnionKeys<
+                                        [Name in Utils.UnionKeys<
                                           Collections['schema']
-                                        >]: Collections['schema'] extends Record<
-                                          Key,
-                                          | Core.RichCollection<infer Def>
-                                          | Core.NestedRichCollection<
+                                        > as Collections['schema'][Name] extends
+                                          | Core.Collection<infer Def>
+                                          | Core.NestedCollection<
                                               infer Def,
                                               any
                                             >
-                                        >
-                                          ? Def
-                                          : {}
+                                          ? Def['Name'] // Extract collection name from def
+                                          : never]: Collections['schema'][Name] extends
+                                          | Core.Collection<infer Def>
+                                          | Core.NestedCollection<
+                                              infer Def,
+                                              any
+                                            >
+                                          ? Def // Extract def
+                                          : never
                                       }
                                     : {}
                                   : {}
@@ -400,31 +406,28 @@ export namespace TypesaurusGroups {
   export type GroupsLevel10<DB extends Core.DB<any>> =
     // Infer the nested (10) schema
     DB extends Record<any, infer Collections>
-      ? Collections extends Core.NestedRichCollection<any, any>
+      ? Collections extends Core.NestedCollection<any, any>
         ? Collections['schema'] extends Record<any, infer Collections>
-          ? Collections extends Core.NestedRichCollection<any, any>
+          ? Collections extends Core.NestedCollection<any, any>
             ? Collections['schema'] extends Record<any, infer Collections>
-              ? Collections extends Core.NestedRichCollection<any, any>
+              ? Collections extends Core.NestedCollection<any, any>
                 ? Collections['schema'] extends Record<any, infer Collections>
-                  ? Collections extends Core.NestedRichCollection<any, any>
+                  ? Collections extends Core.NestedCollection<any, any>
                     ? Collections['schema'] extends Record<
                         any,
                         infer Collections
                       >
-                      ? Collections extends Core.NestedRichCollection<any, any>
+                      ? Collections extends Core.NestedCollection<any, any>
                         ? Collections['schema'] extends Record<
                             any,
                             infer Collections
                           >
-                          ? Collections extends Core.NestedRichCollection<
-                              any,
-                              any
-                            >
+                          ? Collections extends Core.NestedCollection<any, any>
                             ? Collections['schema'] extends Record<
                                 any,
                                 infer Collections
                               >
-                              ? Collections extends Core.NestedRichCollection<
+                              ? Collections extends Core.NestedCollection<
                                   any,
                                   any
                                 >
@@ -432,7 +435,7 @@ export namespace TypesaurusGroups {
                                     any,
                                     infer Collections
                                   >
-                                  ? Collections extends Core.NestedRichCollection<
+                                  ? Collections extends Core.NestedCollection<
                                       any,
                                       any
                                     >
@@ -440,23 +443,28 @@ export namespace TypesaurusGroups {
                                         any,
                                         infer Collections
                                       >
-                                      ? Collections extends Core.NestedRichCollection<
+                                      ? Collections extends Core.NestedCollection<
                                           any,
                                           any
                                         >
                                         ? {
-                                            [Key in Utils.UnionKeys<
+                                            [Name in Utils.UnionKeys<
                                               Collections['schema']
-                                            >]: Collections['schema'] extends Record<
-                                              Key,
-                                              | Core.RichCollection<infer Def>
-                                              | Core.NestedRichCollection<
+                                            > as Collections['schema'][Name] extends
+                                              | Core.Collection<infer Def>
+                                              | Core.NestedCollection<
                                                   infer Def,
                                                   any
                                                 >
-                                            >
-                                              ? Def
-                                              : {}
+                                              ? Def['Name'] // Extract collection name from def
+                                              : never]: Collections['schema'][Name] extends
+                                              | Core.Collection<infer Def>
+                                              | Core.NestedCollection<
+                                                  infer Def,
+                                                  any
+                                                >
+                                              ? Def // Extract def
+                                              : never
                                           }
                                         : {}
                                       : {}

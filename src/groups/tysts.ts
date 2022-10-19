@@ -161,60 +161,20 @@ async function tysts() {
 
   type SchemaDeep = typeof dbDeep
 
-  // ExtractDBModels
-
-  type ExampleAQ30 = Groups.ExtractGroupModels<Schema1>
-
-  type ResultAQ30 = Assert<
-    {
-      books: {
-        Model: Book
-        Id: Core.Id<'books'>
-        WideModel: Book
-        Flags: Core.DocDefFlags
-      }
-      orders: {
-        Model: Order
-        Id: Core.Id<'orders'>
-        WideModel: Order
-        Flags: Core.DocDefFlags
-      }
-    },
-    ExampleAQ30
-  >
-
-  type ExampleRVD2 = Groups.ExtractGroupModels<Schema3>
-
-  type ResultRVD2 = Assert<
-    {
-      books: {
-        Model: Book
-        Id: Core.Id<'books'>
-        WideModel: Book
-        Flags: Core.DocDefFlags
-      }
-      orders: {
-        Model: Order
-        Id: Core.Id<'orders'>
-        WideModel: Order
-        Flags: Core.DocDefFlags
-      }
-    },
-    ExampleRVD2
-  >
-
   // ConstructGroups
 
   type ExampleOSE7 = Groups.ConstructGroups<
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       comics: {
         Model: Comic
+        Name: 'comics'
         Id: Core.Id<'comics'>
         WideModel: Comic
         Flags: Core.DocDefFlags
@@ -223,12 +183,14 @@ async function tysts() {
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'archive/books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       plants: {
         Model: Plant
+        Name: 'plants'
         Id: Core.Id<'plants'>
         WideModel: Plant
         Flags: Core.DocDefFlags
@@ -237,6 +199,7 @@ async function tysts() {
     {
       plants: {
         Model: Plant
+        Name: 'plants'
         Id: Core.Id<'archive/plants'>
         WideModel: Plant
         Flags: Core.DocDefFlags
@@ -256,12 +219,14 @@ async function tysts() {
       books: Groups.Group<
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'books'>
             WideModel: Book
             Flags: Core.DocDefFlags
           }
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'archive/books'>
             WideModel: Book
             Flags: Core.DocDefFlags
@@ -269,6 +234,7 @@ async function tysts() {
       >
       comics: Groups.Group<{
         Model: Comic
+        Name: 'comics'
         Id: Core.Id<'comics'>
         WideModel: Comic
         Flags: Core.DocDefFlags
@@ -276,12 +242,14 @@ async function tysts() {
       plants: Groups.Group<
         | {
             Model: Plant
+            Name: 'plants'
             Id: Core.Id<'plants'>
             WideModel: Plant
             Flags: Core.DocDefFlags
           }
         | {
             Model: Plant
+            Name: 'plants'
             Id: Core.Id<'archive/plants'>
             WideModel: Plant
             Flags: Core.DocDefFlags
@@ -295,12 +263,14 @@ async function tysts() {
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'orders/books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       comics: {
         Model: Comic
+        Name: 'comics'
         Id: Core.Id<'comics'>
         WideModel: Comic
         Flags: Core.DocDefFlags
@@ -309,18 +279,20 @@ async function tysts() {
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'archive/books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       plants: {
         Model: Plant
+        Name: 'plants'
         Id: Core.Id<'archive/plants'>
         WideModel: Plant
         Flags: Core.DocDefFlags
       }
     },
-    Groups.ExtractGroupModels<Schema3>,
+    Groups.GroupsLevel1<Schema3>,
     {},
     {},
     {},
@@ -335,18 +307,21 @@ async function tysts() {
       books: Groups.Group<
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'books'>
             WideModel: Book
             Flags: Core.DocDefFlags
           }
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'archive/books'>
             WideModel: Book
             Flags: Core.DocDefFlags
           }
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'orders/books'>
             WideModel: Book
             Flags: Core.DocDefFlags
@@ -354,18 +329,21 @@ async function tysts() {
       >
       orders: Groups.Group<{
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
       }>
       comics: Groups.Group<{
         Model: Comic
+        Name: 'comics'
         Id: Core.Id<'comics'>
         WideModel: Comic
         Flags: Core.DocDefFlags
       }>
       plants: Groups.Group<{
         Model: Plant
+        Name: 'plants'
         Id: Core.Id<'archive/plants'>
         WideModel: Plant
         Flags: Core.DocDefFlags
@@ -378,12 +356,14 @@ async function tysts() {
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'orders/books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       comics: {
         Model: Comic
+        Name: 'comics'
         Id: Core.Id<'comics'>
         WideModel: Comic
         Flags: Core.DocDefFlags
@@ -392,19 +372,21 @@ async function tysts() {
     | {
         books: {
           Model: Book
+          Name: 'books'
           Id: Core.Id<'archive/books'>
           WideModel: Book
           Flags: Core.DocDefFlags
         }
         plants: {
           Model: Plant
+          Name: 'plants'
           Id: Core.Id<'archive/plants'>
           WideModel: Plant
           Flags: Core.DocDefFlags
         }
       }
     | {},
-    Groups.ExtractGroupModels<Schema3>,
+    Groups.GroupsLevel1<Schema3>,
     {},
     {},
     {},
@@ -419,18 +401,21 @@ async function tysts() {
       books: Groups.Group<
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'books'>
             WideModel: Book
             Flags: Core.DocDefFlags
           }
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'archive/books'>
             WideModel: Book
             Flags: Core.DocDefFlags
           }
         | {
             Model: Book
+            Name: 'books'
             Id: Core.Id<'orders/books'>
             WideModel: Book
             Flags: Core.DocDefFlags
@@ -438,18 +423,21 @@ async function tysts() {
       >
       orders: Groups.Group<{
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
       }>
       comics: Groups.Group<{
         Model: Comic
+        Name: 'comics'
         Id: Core.Id<'comics'>
         WideModel: Comic
         Flags: Core.DocDefFlags
       }>
       plants: Groups.Group<{
         Model: Plant
+        Name: 'plants'
         Id: Core.Id<'archive/plants'>
         WideModel: Plant
         Flags: Core.DocDefFlags
@@ -468,12 +456,14 @@ async function tysts() {
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       orders: {
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -488,12 +478,14 @@ async function tysts() {
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       orders: {
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -508,12 +500,14 @@ async function tysts() {
     {
       books: {
         Model: Book
+        Name: 'books'
         Id: Core.Id<'books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }
       orders: {
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -534,12 +528,14 @@ async function tysts() {
     | {
         comments: {
           Model: Comment
+          Name: 'comments'
           Id: Core.Id<'books/comments'>
           WideModel: Comment
           Flags: Core.DocDefFlags
         }
         likes: {
           Model: Like
+          Name: 'likes'
           Id: Core.Id<'books/likes'>
           WideModel: Like
           Flags: Core.DocDefFlags
@@ -548,6 +544,7 @@ async function tysts() {
     | {
         comments: {
           Model: OrderComment
+          Name: 'comments'
           Id: Core.Id<'orders/comments'>
           WideModel: OrderComment
           Flags: Core.DocDefFlags
@@ -562,12 +559,14 @@ async function tysts() {
     | {
         comments: {
           Model: Comment
+          Name: 'comments'
           Id: Core.Id<'books/comments'>
           WideModel: Comment
           Flags: Core.DocDefFlags
         }
         likes: {
           Model: Like
+          Name: 'likes'
           Id: Core.Id<'books/likes'>
           WideModel: Like
           Flags: Core.DocDefFlags
@@ -576,6 +575,7 @@ async function tysts() {
     | {
         comments: {
           Model: OrderComment
+          Name: 'comments'
           Id: Core.Id<'orders/comments'>
           WideModel: OrderComment
           Flags: Core.DocDefFlags
@@ -601,6 +601,7 @@ async function tysts() {
     | {
         likes: {
           Model: Like
+          Name: 'likes'
           Id: Core.Id<'books/likes'>
           WideModel: Like
           Flags: Core.DocDefFlags
@@ -617,6 +618,7 @@ async function tysts() {
     {
       orders: {
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders/comments/likes/orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -633,6 +635,7 @@ async function tysts() {
     {
       comments: {
         Model: OrderComment
+        Name: 'comments'
         Id: Core.Id<'orders/comments/likes/orders/comments'>
         WideModel: OrderComment
         Flags: Core.DocDefFlags
@@ -649,6 +652,7 @@ async function tysts() {
     {
       likes: {
         Model: Like
+        Name: 'likes'
         Id: Core.Id<'orders/comments/likes/orders/comments/likes'>
         WideModel: Like
         Flags: Core.DocDefFlags
@@ -665,6 +669,7 @@ async function tysts() {
     {
       orders: {
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -681,6 +686,7 @@ async function tysts() {
     {
       comments: {
         Model: OrderComment
+        Name: 'comments'
         Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders/comments'>
         WideModel: OrderComment
         Flags: Core.DocDefFlags
@@ -697,6 +703,7 @@ async function tysts() {
     {
       likes: {
         Model: Like
+        Name: 'likes'
         Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders/comments/likes'>
         WideModel: Like
         Flags: Core.DocDefFlags
@@ -713,6 +720,7 @@ async function tysts() {
     {
       orders: {
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders/comments/likes/orders/comments/likes/orders/comments/likes/orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -731,12 +739,14 @@ async function tysts() {
     {
       books: Groups.Group<{
         Model: Book
+        Name: 'books'
         Id: Core.Id<'books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }>
       orders: Groups.Group<{
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -753,12 +763,14 @@ async function tysts() {
     {
       books: Groups.Group<{
         Model: Book
+        Name: 'books'
         Id: Core.Id<'books'>
         WideModel: Book
         Flags: Core.DocDefFlags
       }>
       orders: Groups.Group<{
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -775,6 +787,7 @@ async function tysts() {
     {
       books: Groups.Group<{
         Model: Book
+        Name: 'books'
         Id: Core.Id<'books'>
         WideModel: Book
         Flags: Core.DocDefFlags
@@ -782,12 +795,14 @@ async function tysts() {
       comments: Groups.Group<
         | {
             Model: Comment
+            Name: 'comments'
             Id: Core.Id<'books/comments'>
             WideModel: Comment
             Flags: Core.DocDefFlags
           }
         | {
             Model: OrderComment
+            Name: 'comments'
             Id: Core.Id<'orders/comments'>
             WideModel: OrderComment
             Flags: Core.DocDefFlags
@@ -796,12 +811,14 @@ async function tysts() {
       likes: Groups.Group<
         | {
             Model: Like
+            Name: 'likes'
             Id: Core.Id<'books/likes'>
             WideModel: Like
             Flags: Core.DocDefFlags
           }
         | {
             Model: Like
+            Name: 'likes'
             Id: Core.Id<'orders/comments/likes'>
             WideModel: Like
             Flags: Core.DocDefFlags
@@ -809,6 +826,7 @@ async function tysts() {
       >
       orders: Groups.Group<{
         Model: Order
+        Name: 'orders'
         Id: Core.Id<'orders'>
         WideModel: Order
         Flags: Core.DocDefFlags
@@ -845,28 +863,31 @@ async function tysts() {
     })
 
   groups(db3).likes.all()
+
+  // Custom collection names
+
+  const collectionName = 'customCollectionName'
+
+  const db4 = schema(($) => ({
+    users: $.collection<User>().sub({
+      posts: $.collection<Post>()
+    }),
+    [collectionName]: $.collection<Post>(),
+    shposts: $.collection<Post>()
+      .name('comments')
+      .sub({
+        shmosts: $.collection<Post>().name('replies')
+      })
+  }))
+
+  await groups(db4)[collectionName].all()
+
+  await groups(db4).comments.all()
+  await groups(db4).replies.all()
+  // @ts-expect-error
+  await groups(db4).shposts.all()
+  // @ts-expect-error
+  await groups(db4).shmosts.all()
 }
 
 type Assert<Type1, _Type2 extends Type1> = true
-
-function assert<Type>(arg: Type) {}
-
-// interface Hello<Pair extends [any, any]> {
-//   hello: Pair[0]
-//   world: Pair[1]
-// }
-
-// type Asd = Hello<[string, 'hello!']> | Hello<[number, 'world!']>
-
-interface Qwe<Hello, World> {
-  hello: Hello
-  world: World
-}
-
-type Asd = Qwe<string, 'hello!'> | Qwe<number, 'world!'>
-
-const asd = {} as unknown as Asd
-
-if (typeof asd.hello === 'string') {
-  asd.world
-}
