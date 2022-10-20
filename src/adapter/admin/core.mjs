@@ -7,8 +7,9 @@ export function schema(getSchema) {
 }
 
 export class Collection {
-  constructor(path) {
+  constructor(name, path) {
     this.type = 'collection'
+    this.name = name
     this.path = path
 
     this.update = (id, data, options) => {
@@ -178,10 +179,6 @@ export class Collection {
         return () => offs.map((off) => off())
       }
     })
-  }
-
-  configure(config) {
-    if (config.path) this.path = config.path
   }
 
   adapter() {
@@ -397,6 +394,15 @@ function schemaHelpers() {
         type: 'collection',
         sub(schema) {
           return { type: 'collection', schema }
+        },
+        name(name) {
+          return {
+            type: 'collection',
+            name,
+            sub(schema) {
+              return { type: 'collection', schema }
+            }
+          }
         }
       }
     }
@@ -405,26 +411,33 @@ function schemaHelpers() {
 
 function db(schema, nestedPath) {
   return Object.entries(schema).reduce(
-    (enrichedSchema, [path, plainCollection]) => {
+    (enrichedSchema, [collectionName, plainCollection]) => {
+      const name =
+        typeof plainCollection.name === 'string'
+          ? plainCollection.name
+          : collectionName
       const collection = new Collection(
-        nestedPath ? `${nestedPath}/${path}` : path
+        name,
+        nestedPath ? `${nestedPath}/${name}` : name
       )
-      enrichedSchema[path] =
-        'schema' in plainCollection
-          ? new Proxy(() => {}, {
-              get: (_target, prop) => {
-                if (prop === 'schema') return plainCollection.schema
-                else if (prop === 'sub')
-                  return subShortcut(plainCollection.schema)
-                else return collection[prop]
-              },
-              has(_target, prop) {
-                return prop in plainCollection
-              },
-              apply: (_target, prop, [id]) =>
-                db(plainCollection.schema, `${collection.path}/${id}`)
-            })
-          : collection
+
+      if ('schema' in plainCollection) {
+        enrichedSchema[collectionName] = new Proxy(() => {}, {
+          get: (_target, prop) => {
+            if (prop === 'schema') return plainCollection.schema
+            else if (prop === 'sub') return subShortcut(plainCollection.schema)
+            else return collection[prop]
+          },
+          has(_target, prop) {
+            return prop in plainCollection
+          },
+          apply: (_target, _prop, [id]) =>
+            db(plainCollection.schema, `${collection.path}/${id}`)
+        })
+      } else {
+        enrichedSchema[collectionName] = collection
+      }
+
       return enrichedSchema
     },
     {}
@@ -674,6 +687,8 @@ export function refToFirestoreDocument(ref) {
   return admin.firestore().doc(getRefPath(ref))
 }
 
+export const pathRegExp = /^(?:(.+\/)?(.+))\/(.+)$/
+
 /**
  * Creates a reference from a Firestore path.
  *
@@ -681,17 +696,17 @@ export function refToFirestoreDocument(ref) {
  * @returns Reference to a document
  */
 export function pathToRef(path) {
-  const captures = path.match(/^(.+)\/(.+)$/)
+  const captures = path.match(pathRegExp)
   if (!captures) throw new Error(`Can't parse path ${path}`)
-  const [, collectionPath, id] = captures
-  return new Ref(new Collection(collectionPath), id)
+  const [, nestedPath, name, id] = captures
+  return new Ref(new Collection(name, (nestedPath || '') + name), id)
 }
 
 export function pathToDoc(path, data) {
-  const captures = path.match(/^(.+)\/(.+)$/)
+  const captures = path.match(pathRegExp)
   if (!captures) throw new Error(`Can't parse path ${path}`)
-  const [, collectionPath, id] = captures
-  return new Doc(new Collection(collectionPath), id, data)
+  const [, nestedPath, name, id] = captures
+  return new Doc(new Collection(name, (nestedPath || '') + name), id, data)
 }
 
 /**

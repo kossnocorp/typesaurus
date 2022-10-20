@@ -817,8 +817,11 @@ export namespace TypesaurusCore {
     /** The collection type */
     type: 'collection'
 
-    /** The Firestore path */
+    /** The collection path */
     path: string
+
+    /** The collection name */
+    name: string
 
     get<
       Environment extends RuntimeEnvironment,
@@ -908,8 +911,6 @@ export namespace TypesaurusCore {
      * const newCommentId = await db.comments.id()
      */
     id(): Promise<Def['Id']>
-
-    configure(config: CollectionConfig): void
   }
 
   export interface CollectionConfig {

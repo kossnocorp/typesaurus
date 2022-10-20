@@ -7,7 +7,8 @@ import {
   unwrapData,
   updateHelpers,
   wrapData,
-  writeHelpers
+  writeHelpers,
+  pathRegExp
 } from './core.mjs'
 
 export const transaction = (db, options) => {
@@ -39,13 +40,14 @@ function transactionReadHelpers(db, transaction) {
 function readDB(rootDB, transaction) {
   function convertDB(db, nestedPath) {
     const processedDB = {}
-    Object.entries(db).forEach(([path, collection]) => {
+    Object.entries(db).forEach(([name, collection]) => {
       const readCollection = new ReadCollection(
         rootDB,
         transaction,
-        nestedPath ? `${nestedPath}/${path}` : path
+        name,
+        nestedPath ? `${nestedPath}/${name}` : name
       )
-      processedDB[path] =
+      processedDB[name] =
         typeof collection === 'function'
           ? new Proxy(() => {}, {
               get: (_target, prop) => readCollection[prop],
@@ -64,9 +66,10 @@ function readDB(rootDB, transaction) {
 }
 
 class ReadCollection {
-  constructor(db, transaction, path) {
+  constructor(db, transaction, name, path) {
     this.type = 'collection'
     this.db = db
+    this.name = name
     this.path = path
     this.transaction = transaction
   }
@@ -120,13 +123,14 @@ function transactionWriteHelpers(db, transaction, result) {
 function writeDB(rootDB, transaction) {
   function convertDB(db, nestedPath) {
     const processedDB = {}
-    Object.entries(db).forEach(([path, collection]) => {
+    Object.entries(db).forEach(([name, collection]) => {
       const writeCollection = new WriteCollection(
         rootDB,
         transaction,
-        nestedPath ? `${nestedPath}/${path}` : path
+        name,
+        nestedPath ? `${nestedPath}/${name}` : name
       )
-      processedDB[path] =
+      processedDB[name] =
         typeof collection === 'function'
           ? new Proxy(() => {}, {
               get: (_target, prop) => writeCollection[prop],
@@ -161,8 +165,9 @@ function readDocsToWriteDocs(db, transaction, data) {
 }
 
 class WriteCollection {
-  constructor(db, transaction, path) {
+  constructor(db, transaction, name, path) {
     this.type = 'collection'
+    this.name = name
     this.path = path
     this.db = db
     this.transaction = transaction
@@ -196,6 +201,7 @@ class WriteCollection {
     return new WriteCollection(
       collection.db,
       collection.transaction,
+      collection.name,
       collection.path
     )
   }
@@ -268,12 +274,15 @@ class WriteDoc {
 function writeDocsToDocs(value) {
   if (value instanceof WriteDoc) {
     return new Doc(
-      new Collection(value.ref.collection.path),
+      new Collection(value.ref.collection.name, value.ref.collection.path),
       value.ref.id,
       value.data
     )
   } else if (value instanceof WriteRef) {
-    return new Ref(new Collection(value.ref.collection.path), value.ref.id)
+    return new Ref(
+      new Collection(value.ref.collection.name, value.ref.collection.path),
+      value.ref.id
+    )
   } else if (value && typeof value === 'object') {
     const processedData = Array.isArray(value) ? [] : {}
     Object.entries(value).forEach(([key, value]) => {
@@ -286,8 +295,11 @@ function writeDocsToDocs(value) {
 }
 
 export function pathToWriteRef(db, transaction, path) {
-  const captures = path.match(/^(.+)\/(.+)$/)
+  const captures = path.match(pathRegExp)
   if (!captures) throw new Error(`Can't parse path ${path}`)
-  const [, collectionPath, id] = captures
-  return new WriteRef(new WriteCollection(db, transaction, collectionPath), id)
+  const [, nestedPath, name, id] = captures
+  return new WriteRef(
+    new WriteCollection(db, transaction, name, (nestedPath || '') + name),
+    id
+  )
 }
