@@ -58,11 +58,7 @@ interface Account {
   }
 
   counters?: {
-    [postId: string]:
-      | {
-          likes?: number
-        }
-      | undefined
+    [postId: string]: { likes?: number }
   }
 }
 
@@ -1139,6 +1135,10 @@ async function update() {
     $.field('counters', postId, 'likes').set($.increment(1))
   )
 
+  await db.accounts.update(db.accounts.id('sasha'), ($) =>
+    $.field('counters', postId, 'likes').set($.remove())
+  )
+
   // Increment on nested optional values
 
   db.organizations.update(db.organizations.id('org-id'), ($) => ({
@@ -1518,6 +1518,76 @@ namespace UnionKeys {
   type Result = Assert<'books' | 'comics', Utils.UnionKeys<Example>>
 }
 
+namespace WithoutIndexed {
+  type Example1 = {
+    [key: string]: string
+    required: string
+    optional?: string
+  }
+
+  const test1 = {} as Utils.WithoutIndexed<Example1>
+  // @ts-expect-error
+  test1['qwe']
+
+  type Example2 = {
+    [key: number]: string
+    required: string
+    optional?: string
+  }
+
+  const test2 = {} as Utils.WithoutIndexed<Example2>
+  // @ts-expect-error
+  test2[123]
+
+  type Example3 = {
+    [key: symbol]: string
+    required: string
+    optional?: string
+  }
+
+  const test3 = {} as Utils.WithoutIndexed<Example3>
+  // @ts-expect-error
+  test3[Symbol('hello')]
+}
+
+namespace StaticKey {
+  type Example1 = {
+    [key: string]: string
+    required: string
+    optional?: string
+  }
+
+  type Result11 = Assert<false, Utils.StaticKey<Example1, 'qwe'>>
+
+  type Result12 = Assert<true, Utils.StaticKey<Example1, 'required'>>
+
+  type Result13 = Assert<true, Utils.StaticKey<Example1, 'optional'>>
+
+  type Example2 = {
+    [key: number]: string
+    required: string
+    optional?: string
+  }
+
+  type Result21 = Assert<false, Utils.StaticKey<Example2, 123>>
+
+  type Result22 = Assert<true, Utils.StaticKey<Example2, 'required'>>
+
+  type Result23 = Assert<true, Utils.StaticKey<Example2, 'optional'>>
+
+  type Example3 = {
+    [key: symbol]: string
+    required: string
+    optional?: string
+  }
+
+  type Result31 = Assert<false, Utils.StaticKey<Example3, symbol>>
+
+  type Result32 = Assert<true, Utils.StaticKey<Example3, 'required'>>
+
+  type Result33 = Assert<true, Utils.StaticKey<Example3, 'optional'>>
+}
+
 namespace UtilsTest {
   type Result1 = Assert<
     {
@@ -1543,14 +1613,50 @@ namespace UtilsTest {
 }
 
 namespace RequiredKey {
-  interface Example {
+  interface Example1 {
     required: string
     optional?: string
   }
 
-  type Result1 = Assert<true, Utils.RequiredKey<Example, 'required'>>
+  type Result11 = Assert<true, Utils.RequiredKey<Example1, 'required'>>
 
-  type Result2 = Assert<false, Utils.RequiredKey<Example, 'optional'>>
+  type Result12 = Assert<false, Utils.RequiredKey<Example1, 'optional'>>
+
+  type Example2 = {
+    [key: string]: string
+    required: string
+    optional?: string
+  }
+
+  type Result21 = Assert<false, Utils.RequiredKey<Example2, 'qwe'>>
+
+  type Result22 = Assert<true, Utils.RequiredKey<Example2, 'required'>>
+
+  type Result23 = Assert<false, Utils.RequiredKey<Example2, 'optional'>>
+
+  type Example3 = {
+    [key: number]: string
+    required: string
+    optional?: string
+  }
+
+  type Result31 = Assert<false, Utils.RequiredKey<Example3, 123>>
+
+  type Result32 = Assert<true, Utils.RequiredKey<Example3, 'required'>>
+
+  type Result33 = Assert<false, Utils.RequiredKey<Example3, 'optional'>>
+
+  type Example4 = {
+    [key: symbol]: string
+    required: string
+    optional?: string
+  }
+
+  type Result41 = Assert<false, Utils.RequiredKey<Example4, symbol>>
+
+  type Result42 = Assert<true, Utils.RequiredKey<Example4, 'required'>>
+
+  type Result43 = Assert<false, Utils.RequiredKey<Example4, 'optional'>>
 }
 
 namespace AllOptionalBut {
@@ -1576,19 +1682,17 @@ namespace AllOptionalBut {
   type Result5 = Assert<false, Utils.AllOptionalBut<Example2, 'optional'>>
 
   interface Example3 {
-    [postId: string]:
-      | undefined
-      | {
-          likes?: string
-          views?: string
-        }
+    [postId: string]: {
+      likes?: string
+      views?: string
+    }
   }
 
   type Result6 = Assert<true, Utils.AllOptionalBut<Example3, 'post-id'>>
 
   interface Example4 {
     required: string
-    [optional: string]: undefined | string
+    [optional: string]: string
   }
 
   type Result7 = Assert<true, Utils.AllOptionalBut<Example4, 'required'>>
@@ -2142,175 +2246,6 @@ namespace SafePath {
     true,
     Utils.SafePath4<Example8, 'stats', 'post-id', 'comment-id', 'likes'>
   >
-
-  /*
-  interface Example6 {
-    1: {
-      2: {
-        3: {
-          4: {
-            required: string
-            optional?: string
-          }
-        }
-      }
-    }
-  }
-
-  type Result18 = Assert<
-    true,
-    TypesaurusUtils.SafePath5<Example6, 1, 2, 3, 4, 'required'>
-  >
-
-  type Result19 = Assert<
-    false,
-    TypesaurusUtils.SafePath5<Example6, 1, 2, 3, 4, 'optional'>
-  >
-
-  interface Example7 {
-    1: {
-      2: {
-        3: {
-          4: {
-            5: {
-              required: string
-              optional?: string
-            }
-          }
-        }
-      }
-    }
-  }
-
-  type Result20 = Assert<
-    true,
-    TypesaurusUtils.SafePath6<Example7, 1, 2, 3, 4, 5, 'required'>
-  >
-
-  type Result21 = Assert<
-    false,
-    TypesaurusUtils.SafePath6<Example7, 1, 2, 3, 4, 5, 'optional'>
-  >
-
-  interface Example8 {
-    1: {
-      2: {
-        3: {
-          4: {
-            5: {
-              6: {
-                required: string
-                optional?: string
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  type Result22 = Assert<
-    true,
-    TypesaurusUtils.SafePath7<Example8, 1, 2, 3, 4, 5, 6, 'required'>
-  >
-
-  type Result23 = Assert<
-    false,
-    TypesaurusUtils.SafePath7<Example8, 1, 2, 3, 4, 5, 6, 'optional'>
-  >
-
-  interface Example9 {
-    1: {
-      2: {
-        3: {
-          4: {
-            5: {
-              6: {
-                7: {
-                  required: string
-                  optional?: string
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  type Result24 = Assert<
-    true,
-    TypesaurusUtils.SafePath8<Example9, 1, 2, 3, 4, 5, 6, 7, 'required'>
-  >
-
-  type Result25 = Assert<
-    false,
-    TypesaurusUtils.SafePath8<Example9, 1, 2, 3, 4, 5, 6, 7, 'optional'>
-  >
-
-  interface Example10 {
-    1: {
-      2: {
-        3: {
-          4: {
-            5: {
-              6: {
-                7: {
-                  8: {
-                    required: string
-                    optional?: string
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  type Result26 = Assert<
-    true,
-    TypesaurusUtils.SafePath9<Example10, 1, 2, 3, 4, 5, 6, 7, 8, 'required'>
-  >
-
-  type Result27 = Assert<
-    false,
-    TypesaurusUtils.SafePath9<Example10, 1, 2, 3, 4, 5, 6, 7, 8, 'optional'>
-  >
-
-  interface Example11 {
-    1: {
-      2: {
-        3: {
-          4: {
-            5: {
-              6: {
-                7: {
-                  8: {
-                    9: {
-                      required: string
-                      optional?: string
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  type Result28 = Assert<
-    true,
-    TypesaurusUtils.SafePath10<Example11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'required'>
-  >
-
-  type Result29 = Assert<
-    false,
-    TypesaurusUtils.SafePath10<Example11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'optional'>
-  > */
 }
 
 namespace SharedShape {
@@ -2323,6 +2258,16 @@ namespace SharedShape {
   >
 
   type Result43J3 = Assert<{ a: string; b: string }, ResultOD83>
+}
+
+async function record() {
+  const account = await db.accounts.get(db.accounts.id('ok'))
+  if (!account) return
+
+  account.data.counters &&
+    Object.entries(account.data.counters).forEach(([_postId, counters]) => {
+      counters.likes
+    })
 }
 
 type Assert<Type1, _Type2 extends Type1> = true

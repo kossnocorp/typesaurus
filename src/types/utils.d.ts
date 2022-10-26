@@ -18,6 +18,27 @@ export namespace TypesaurusUtils {
   export type UnionKeys<Type> = Type extends Type ? keyof Type : never
 
   /**
+   * Removes indexed fields leaving only statically defined.
+   */
+  export type WithoutIndexed<Model> = {
+    [Key in keyof Model as string extends Key
+      ? never
+      : number extends Key
+      ? never
+      : symbol extends Key
+      ? never
+      : Key]: Model[Key]
+  }
+
+  /**
+   * Resolves true if the given key is statically defined in the given type.
+   */
+  export type StaticKey<
+    Model,
+    Key extends keyof Model
+  > = Key extends keyof WithoutIndexed<Model> ? true : false
+
+  /**
    * Returns a type with all fields required and all values exclude undefined.
    * It allows to extract key paths from nested objects with optional keys
    * and values.
@@ -29,18 +50,21 @@ export namespace TypesaurusUtils {
   /**
    * Resolves true if the passed key is a required field of the passed model.
    */
-  export type RequiredKey<Model, Key extends keyof Model> = Partial<
-    Pick<Model, Key>
-  > extends Pick<Model, Key>
-    ? false
-    : true
+  export type RequiredKey<Model, Key extends keyof Model> = StaticKey<
+    Model,
+    Key
+  > extends true
+    ? Partial<Pick<Model, Key>> extends Pick<Model, Key>
+      ? false
+      : true
+    : false
 
   /**
    * Resolves true if all sibling fields in the passed model are optional.
    */
   export type AllOptionalBut<Model, Key extends keyof Model> = Partial<
-    Omit<Model, Key>
-  > extends Omit<Model, Key>
+    Omit<WithoutIndexed<Model>, Key>
+  > extends Omit<WithoutIndexed<Model>, Key>
     ? true
     : false
 
