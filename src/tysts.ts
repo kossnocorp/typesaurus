@@ -57,10 +57,20 @@ interface Account {
     }
   }
 
-  counters?: {
+  counters: {
     [postId: string]: { likes?: number }
   }
+
+  nested?: {
+    counters?: {
+      [postId: PostId]: {
+        likes: number
+      }
+    }
+  }
 }
+
+type PostId = string & { __dontUseWillBeUndefined__: 'post' }
 
 interface User {
   name: string
@@ -1506,6 +1516,14 @@ namespace ModelToConcat {
   >(true)
 }
 
+namespace Debrand {
+  type Result1 = Assert<Utils.Debrand<string & { hello: 'world' }>, string>
+
+  type Result2 = Assert<Utils.Debrand<number & { hello: 'world' }>, number>
+
+  type Result3 = Assert<Utils.Debrand<symbol & { hello: 'world' }>, symbol>
+}
+
 namespace ComposePath {
   type Result1 = Assert<'users', Utils.ComposePath<undefined, 'users'>>
 
@@ -1548,6 +1566,39 @@ namespace WithoutIndexed {
   const test3 = {} as Utils.WithoutIndexed<Example3>
   // @ts-expect-error
   test3[Symbol('hello')]
+
+  type Example4 = {
+    [key: string & { hello: 'world' }]: string
+    required: string
+    optional?: string
+  }
+
+  const test4 = {} as Utils.WithoutIndexed<Example4>
+  const id4 = 'hello' as string & { hello: 'world' }
+  // @ts-expect-error
+  test4[id4]
+
+  type Example5 = {
+    [key: number & { hello: 'world' }]: string
+    required: string
+    optional?: string
+  }
+
+  const test5 = {} as Utils.WithoutIndexed<Example5>
+  const id5 = 123 as number & { hello: 'world' }
+  // @ts-expect-error
+  test5[id5]
+
+  type Example6 = {
+    [key: symbol & { hello: 'world' }]: string
+    required: string
+    optional?: string
+  }
+
+  const test6 = {} as Utils.WithoutIndexed<Example6>
+  const id6 = Symbol('hello') as symbol & { hello: 'world' }
+  // @ts-expect-error
+  test6[id6]
 }
 
 namespace StaticKey {
@@ -2268,6 +2319,10 @@ async function record() {
     Object.entries(account.data.counters).forEach(([_postId, counters]) => {
       counters.likes
     })
+
+  await db.accounts.update(db.accounts.id('ok'), ($) => [
+    $.field('nested', 'counters', 'post-id' as PostId).set($.remove())
+  ])
 }
 
 type Assert<Type1, _Type2 extends Type1> = true
