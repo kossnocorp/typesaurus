@@ -5,6 +5,20 @@ export namespace TypesaurusUtils {
   export type Falsy = undefined | null | '' | false | 0
 
   /**
+   * Any brand type that can be mixed with string number or symbol to create
+   * opaque primitive.
+   */
+  export type AnyBrand = { [key: string | number | symbol]: any }
+
+  /**
+   * Removes brand from the given type.
+   */
+  export type Debrand<Type> = Type extends infer _Brand extends AnyBrand &
+    infer Debranded extends string | number | symbol
+    ? Debranded
+    : Type
+
+  /**
    * Composes collection path from base path and collection name.
    */
   export type ComposePath<
@@ -21,11 +35,11 @@ export namespace TypesaurusUtils {
    * Removes indexed fields leaving only statically defined.
    */
   export type WithoutIndexed<Model> = {
-    [Key in keyof Model as string extends Key
+    [Key in keyof Model as string extends Debrand<Key>
       ? never
-      : number extends Key
+      : number extends Debrand<Key>
       ? never
-      : symbol extends Key
+      : symbol extends Debrand<Key>
       ? never
       : Key]: Model[Key]
   }
