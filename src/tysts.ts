@@ -108,6 +108,12 @@ interface AppStats {
   users: number
 }
 
+interface WithJSON {
+  str: OpaqueJSON
+}
+
+type OpaqueJSON = string & { __json: {} }
+
 interface CustomCollection {
   hello: 'world'
 }
@@ -122,7 +128,8 @@ const db = schema(($) => ({
   organizations: $.collection<Organization>(),
   content: $.collection<[TextContent, ImageContent]>(),
   appStats: $.collection<AppStats, 'appStats'>(),
-  [customCollection]: $.collection<CustomCollection>()
+  [customCollection]: $.collection<CustomCollection>(),
+  json: $.collection<WithJSON>()
 }))
 
 async function custom() {
@@ -247,6 +254,11 @@ async function doc() {
   // Fixed string ids
 
   db.appStats.doc('appStats', { users: 123 })
+
+  // Opaque string in data
+
+  const json = await db.json.get(db.json.id('index'))
+  if (json) assertType<TypeEqual<typeof json.data.str, OpaqueJSON>>(true)
 }
 
 async function get() {

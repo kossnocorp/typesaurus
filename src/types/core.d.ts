@@ -433,6 +433,8 @@ export namespace TypesaurusCore {
     ? Field
     : Field extends Array<infer ItemType>
     ? Array<DataField<ItemType, DateMissing>>
+    : Field extends string // Special case for strings, so opaque types (string & {}) can be used
+    ? Field
     : Field extends object // If it's an object, recursively pass through ModelData
     ? Data<Field, DateMissing>
     : Field
