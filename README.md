@@ -1,3 +1,5 @@
+⚠️ **Warning**: the current `main` represents Typesaurus X pre-release version of the library. [See `v7` branch](https://github.com/kossnocorp/typesaurus/tree/v7) for the stable version.
+
 # 🦕 Typesaurus
 
 TypeScript-first ODM for Firestore.
@@ -34,52 +36,26 @@ yarn add typesaurus@7
 _Note that Typesaurus requires `firebase` package to work in the web environment and `firebase-admin` to work in Node.js. These packages aren't listed as dependencies,
 so that they won't install automatically along with the Typesaurus package._
 
-Additionally, when using with ESM-enabled bundler (like webpack), you'll need to install `lazyfire` that enables asynchronous importing of Firebase modules in the web environment:
-
-```sh
-npm install lazyfire --save
-# Or using Yarn:
-yarn add lazyfire
-```
-
-[Read more about Lazy Fire](https://github.com/kossnocorp/lazyfire).
-
 ## Configuration
 
-Typesaurus does not require additional configuration, however **when using with ESM-enabled bundler (like webpack), you should transpile `node_modules`**. TypeScript preserves many modern languages features when it compiles to ESM code. So if you have to support older browsers, use Babel to process the dependencies code.
+Typesaurus does not require additional configuration, however **when using with ESM-enabled bundler, you should transpile `node_modules`**. TypeScript preserves many modern languages features when it compiles to ESM code. So if you have to support older browsers, use Babel to process the dependencies code
 
 ## Get started
 
 ### Initialization
 
-To start working with Typesaurus, you'll need to initialize Firebase.
+To start working with Typesaurus, initialize Firebase normally.
 
-#### Web environment
-
-In the web environment when using ESM-enabled bundler (like webpack), use [Lazy Fire](https://github.com/kossnocorp/lazyfire) to configure the Firebase application:
-
-```ts
-import { configureApp } from 'lazyfire'
-
-configureApp({
-  // Firebase app configuration
-})
-```
-
-#### Legacy web environment
-
-In the web environment with ESM-disabled ([see Firebase docs](https://firebase.google.com/docs/web/setup#add-sdks-initialize)):
+In the web environment ([see Firebase docs](https://firebase.google.com/docs/web/setup#add-sdks-initialize)):
 
 ```ts
 import * as firebase from 'firebase/app'
 import 'firebase/firestore'
 
 firebase.initializeApp({
-  // Firebase app configuration
+  // Project configuration
 })
 ```
-
-#### Node.js environment
 
 In Node.js ([see Firebase docs](https://firebase.google.com/docs/admin/setup#initialize-sdk)):
 
