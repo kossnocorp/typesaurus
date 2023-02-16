@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin'
+import { getFirestore } from 'firebase-admin/firestore'
 import { all, pathToDoc, query, queryHelpers, wrapData } from './core.mjs'
 
 export const groups = (rootDB) => {
@@ -46,6 +46,6 @@ class Group {
   }
 
   firebaseCollection() {
-    return admin.firestore().collectionGroup(this.name)
+    return getFirestore().collectionGroup(this.name)
   }
 }

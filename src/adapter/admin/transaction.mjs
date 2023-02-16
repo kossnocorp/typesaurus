@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin'
+import { getFirestore } from 'firebase-admin/firestore'
 import {
   assertEnvironment,
   Collection,
@@ -17,7 +17,7 @@ export const transaction = (db, options) => {
     read: (readCallback) => {
       return {
         write: (writeCallback) =>
-          admin.firestore().runTransaction(async (firebaseTransaction) => {
+          getFirestore().runTransaction(async (firebaseTransaction) => {
             const readResult = await readCallback(
               transactionReadHelpers(db, firebaseTransaction)
             )
@@ -106,11 +106,11 @@ class ReadDoc {
 }
 
 function firebaseDoc(path, id) {
-  return admin.firestore().doc(`${path}/${id}`)
+  return getFirestore().doc(`${path}/${id}`)
 }
 
 function firebaseCollection(path) {
-  return admin.firestore().collection(path)
+  return getFirestore().collection(path)
 }
 
 function transactionWriteHelpers(db, transaction, result) {

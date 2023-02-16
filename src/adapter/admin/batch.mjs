@@ -4,11 +4,11 @@ import {
   updateHelpers,
   writeHelpers
 } from './core.mjs'
-import * as admin from 'firebase-admin'
+import { getFirestore } from 'firebase-admin/firestore'
 
 export const batch = (rootDB, options) => {
   assertEnvironment(options?.as)
-  const firebaseBatch = admin.firestore().batch()
+  const firebaseBatch = getFirestore().batch()
   const db = async () => {
     await firebaseBatch.commit()
   }
@@ -80,5 +80,5 @@ class Collection {
 }
 
 function firebaseCollection(path) {
-  return admin.firestore().collection(path)
+  return getFirestore().collection(path)
 }

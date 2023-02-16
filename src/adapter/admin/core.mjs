@@ -1,4 +1,10 @@
-import * as admin from 'firebase-admin'
+import {
+  getFirestore,
+  Timestamp,
+  FieldValue,
+  FieldPath,
+  DocumentReference
+} from 'firebase-admin/firestore'
 import { SubscriptionPromise } from '../../sp/index.ts'
 
 export function schema(getSchema) {
@@ -146,9 +152,9 @@ export class Collection {
       get: async () => {
         // Firestore#getAll doesn't like empty lists
         if (ids.length === 0) return Promise.resolve([])
-        const firebaseSnap = await admin
-          .firestore()
-          .getAll(...ids.map((id) => this.firebaseDoc(id)))
+        const firebaseSnap = await getFirestore().getAll(
+          ...ids.map((id) => this.firebaseDoc(id))
+        )
         return firebaseSnap.map((firebaseSnap) => {
           if (!firebaseSnap.exists) {
             return null
@@ -190,11 +196,11 @@ export class Collection {
   }
 
   firebaseCollection() {
-    return admin.firestore().collection(this.path)
+    return getFirestore().collection(this.path)
   }
 
   firebaseDoc(id) {
-    return admin.firestore().doc(`${this.path}/${id}`)
+    return getFirestore().doc(`${this.path}/${id}`)
   }
 }
 
@@ -450,8 +456,7 @@ function subShortcut(schema) {
       shortcutsSchema[path] = {
         id(id) {
           if (id) return id
-          else
-            return Promise.resolve(admin.firestore().collection('any').doc().id)
+          else return Promise.resolve(getFirestore().collection('any').doc().id)
         }
       }
 
@@ -475,9 +480,7 @@ export function query(adapter, queries) {
       case 'order': {
         const { field, method, cursors: queryCursors } = query
         firestoreQuery = firestoreQuery.orderBy(
-          field[0] === '__id__'
-            ? admin.firestore.FieldPath.documentId()
-            : field.join('.'),
+          field[0] === '__id__' ? FieldPath.documentId() : field.join('.'),
           method
         )
 
@@ -507,9 +510,7 @@ export function query(adapter, queries) {
       case 'where': {
         const { field, filter, value } = query
         firestoreQuery = firestoreQuery.where(
-          field[0] === '__id__'
-            ? admin.firestore.FieldPath.documentId()
-            : field.join('.'),
+          field[0] === '__id__' ? FieldPath.documentId() : field.join('.'),
           filter,
           unwrapData(value)
         )
@@ -684,7 +685,7 @@ export function getRefPath(ref) {
  * @returns Firestore document
  */
 export function refToFirestoreDocument(ref) {
-  return admin.firestore().doc(getRefPath(ref))
+  return getFirestore().doc(getRefPath(ref))
 }
 
 export const pathRegExp = /^(?:(.+\/)?(.+))\/(.+)$/
@@ -724,26 +725,22 @@ export function unwrapData(data) {
       const fieldValue = data
       switch (fieldValue.kind) {
         case 'remove':
-          return admin.firestore.FieldValue.delete()
+          return FieldValue.delete()
 
         case 'increment':
-          return admin.firestore.FieldValue.increment(fieldValue.number)
+          return FieldValue.increment(fieldValue.number)
 
         case 'arrayUnion':
-          return admin.firestore.FieldValue.arrayUnion(
-            ...unwrapData(fieldValue.values)
-          )
+          return FieldValue.arrayUnion(...unwrapData(fieldValue.values))
 
         case 'arrayRemove':
-          return admin.firestore.FieldValue.arrayRemove(
-            ...unwrapData(fieldValue.values)
-          )
+          return FieldValue.arrayRemove(...unwrapData(fieldValue.values))
 
         case 'serverDate':
-          return admin.firestore.FieldValue.serverTimestamp()
+          return FieldValue.serverTimestamp()
       }
     } else if (data instanceof Date) {
-      return admin.firestore.Timestamp.fromDate(data)
+      return Timestamp.fromDate(data)
     }
 
     const isArray = Array.isArray(data)
@@ -769,9 +766,9 @@ export function unwrapData(data) {
  * @returns the data in Typesaurus format
  */
 export function wrapData(data, ref = pathToRef) {
-  if (data instanceof admin.firestore.DocumentReference) {
+  if (data instanceof DocumentReference) {
     return ref(data.path)
-  } else if (data instanceof admin.firestore.Timestamp) {
+  } else if (data instanceof Timestamp) {
     return data.toDate()
   } else if (data && typeof data === 'object') {
     const wrappedData = Object.assign(Array.isArray(data) ? [] : {}, data)
