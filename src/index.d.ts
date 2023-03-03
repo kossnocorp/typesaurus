@@ -15,12 +15,12 @@ export namespace Typesaurus {
   export type Schema<DB extends Core.DB<any, any>> = Core.InferSchema<DB>
 
   /**
-   * Narrows doc type. If your doc has multiple shapes, the type will help you
-   * narrow down data type to a specific type.
+   * Narrows doc type. If your doc has variable model, the type will help you
+   * narrow down the doc type to a specific data type.
    */
   export type NarrowDoc<
-    OriginalDoc extends Core.Doc<Core.DocDef, Core.DocProps>,
-    NarrowToModel extends Core.AnyData<any>
+    OriginalDoc extends Core.Doc<any, any>,
+    NarrowToModel extends Core.ModelObjectType
   > = Core.NarrowDoc<OriginalDoc, NarrowToModel>
 
   export type Def<
