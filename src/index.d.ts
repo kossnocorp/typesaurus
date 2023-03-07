@@ -98,4 +98,11 @@ export namespace Typesaurus {
     ModelToConcatTo extends ModelType,
     ModelToConcat extends ModelType
   > = Core.ConcatModel<ModelToConcatTo, ModelToConcat>
+
+  /**
+   * Normalizes server dates in an object. It replaces ServerDate with regular Date. It's useful when reusing interfaces
+   * in a non-Typesaurus environment or when you need to store it in an array (where server dates are not allowed).
+   */
+  export type NormalizeServerDates<Interface> =
+    Core.NormalizeServerDates<Interface>
 }

@@ -2323,6 +2323,39 @@ namespace SharedShape {
   type Result43J3 = Assert<{ a: string; b: string }, ResultOD83>
 }
 
+namespace NormalizeServerDates {
+  type ResultIR93 = Core.NormalizeServerDates<{
+    a: string
+    b: Typesaurus.ServerDate
+    c: Array<{
+      d: Typesaurus.ServerDate
+      e: boolean
+    }>
+    f: {
+      g: Typesaurus.ServerDate
+      h: number
+    }
+  }>
+
+  type Result1 = Assert<
+    {
+      a: string
+      b: Date
+      c: Array<{
+        d: Date
+        e: boolean
+      }>
+      f: {
+        g: Date
+        h: number
+      }
+    },
+    ResultIR93
+  >
+
+  type Result2 = Assert<number, Core.NormalizeServerDates<number>>
+}
+
 async function record() {
   const account = await db.accounts.get(db.accounts.id('ok'))
   if (!account) return

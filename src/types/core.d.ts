@@ -1383,4 +1383,14 @@ export namespace TypesaurusCore {
         >
       : never
     : never
+
+  /**
+   * Normalizes server dates in an object. It replaces ServerDate with regular Date. It's useful when reusing interfaces
+   * in a non-Typesaurus environment or when you need to store it in an array (where server dates are not allowed).
+   */
+  export type NormalizeServerDates<Interface> = {
+    [Key in keyof Interface]: Interface[Key] extends ServerDate
+      ? Date
+      : NormalizeServerDates<Interface[Key]>
+  }
 }
