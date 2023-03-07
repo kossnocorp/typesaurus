@@ -83,7 +83,8 @@ export class Collection {
 
   doc(id, value, options) {
     if (!value && 'id' in id && 'data' in id && typeof id.data === 'function') {
-      return this.doc(id.id, wrapData(id.data()))
+      if (id.exists) return this.doc(id.id, wrapData(id.data()))
+      else return null
     } else {
       assertEnvironment(options?.as)
       return new Doc(this, id, value)
@@ -156,9 +157,7 @@ export class Collection {
           ...ids.map((id) => this.firebaseDoc(id))
         )
         return firebaseSnap.map((firebaseSnap) => {
-          if (!firebaseSnap.exists) {
-            return null
-          }
+          if (!firebaseSnap.exists) return null
           const firestoreData = firebaseSnap.data()
           const data = firestoreData && wrapData(firestoreData)
           return new Doc(this, firebaseSnap.id, data)

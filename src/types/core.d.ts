@@ -878,7 +878,7 @@ export namespace TypesaurusCore {
       Props extends DocProps & { environment: Environment }
     >(
       snapshot: Firebase.Snapshot
-    ): Doc<Def, Props>
+    ): Doc<Def, Props> | null
 
     doc<
       Environment extends RuntimeEnvironment,

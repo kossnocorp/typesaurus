@@ -138,6 +138,24 @@ describe('doc', () => {
     expect(user.data.birthday.getFullYear()).toBe(1987)
   })
 
+  it('returns null if the snapshot does not exist', async () => {
+    const userId = await db.users.id()
+
+    const path = `users/${userId}`
+    let snapshot
+
+    if (typeof window === 'undefined') {
+      const admin = (await import('firebase-admin')).default
+      snapshot = await admin.firestore().doc(path).get()
+    } else {
+      const { getDoc, doc, getFirestore } = await import('firebase/firestore')
+      snapshot = await getDoc(doc(getFirestore(), path))
+    }
+
+    const doc = db.users.doc(snapshot)
+    expect(doc).toBe(null)
+  })
+
   it('allows to assert environment', async () => {
     const server = () =>
       db.users.doc(

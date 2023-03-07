@@ -102,7 +102,9 @@ export class Collection {
 
   doc(id, value, options) {
     if (!value && 'id' in id && 'data' in id && typeof id.data === 'function') {
-      return this.doc(id.id, wrapData(id.data()))
+      const data = id.data()
+      if (data) return this.doc(id.id, wrapData(data))
+      else return null
     } else {
       assertEnvironment(options?.as)
       return new Doc(this, id, value)
