@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "10.0.0-beta.2",
+  "version": "10.0.0-beta.3",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
@@ -31,7 +31,8 @@
       "require": "./helpers/index.js",
       "import": "./helpers/index.mjs"
     },
-    "./adapter/next": "./adapter/web/index.mjs"
+    "./adapter/next/admin": "./adapter/admin/index.mjs",
+    "./adapter/next/web": "./adapter/web/index.mjs"
   },
   "sideEffects": false,
   "repository": "https://github.com/kossnocorp/typesaurus",
