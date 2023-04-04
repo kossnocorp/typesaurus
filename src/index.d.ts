@@ -76,10 +76,11 @@ export namespace Typesaurus {
     Flags extends Core.DocDefFlags = Core.DocDefFlags
   > = Core.Doc<Def<Model, Name, Path, WideModel, Flags>, Core.DocProps>
 
-  export type Model<Model extends Core.ModelType> = Core.ResolveModelType<Model>
+  export type Model<Model extends Core.ModelType> =
+    Core.IntersectVariableModelType<Model>
 
   export type Data<Model extends Core.ModelType> = Core.AnyData<
-    Core.ResolveModelType<Model>
+    Core.IntersectVariableModelType<Model>
   >
 
   export type ModelType = Core.ModelType

@@ -1773,7 +1773,7 @@ export namespace TypesaurusUtils {
   /**
    * Creates type where all fields from all variants are present.
    */
-  export type Variable<
+  export type IntersectShape<
     A,
     B,
     C = undefined,
@@ -1785,33 +1785,33 @@ export namespace TypesaurusUtils {
     I = undefined,
     J = undefined
   > = C extends undefined
-    ? Variable2<A, B>
+    ? IntersectShape2<A, B>
     : D extends undefined
-    ? Variable3<A, B, C>
+    ? IntersectShape3<A, B, C>
     : E extends undefined
-    ? Variable4<A, B, C, D>
+    ? IntersectShape4<A, B, C, D>
     : F extends undefined
-    ? Variable5<A, B, C, D, E>
+    ? IntersectShape5<A, B, C, D, E>
     : G extends undefined
-    ? Variable6<A, B, C, D, E, F>
+    ? IntersectShape6<A, B, C, D, E, F>
     : H extends undefined
-    ? Variable7<A, B, C, D, E, F, G>
+    ? IntersectShape7<A, B, C, D, E, F, G>
     : I extends undefined
-    ? Variable8<A, B, C, D, E, F, G, H>
+    ? IntersectShape8<A, B, C, D, E, F, G, H>
     : J extends undefined
-    ? Variable9<A, B, C, D, E, F, G, H, I>
-    : Variable10<A, B, C, D, E, F, G, H, I, J>
+    ? IntersectShape9<A, B, C, D, E, F, G, H, I>
+    : IntersectShape10<A, B, C, D, E, F, G, H, I, J>
 
-  type Variable2<A, B> =
+  type IntersectShape2<A, B> =
     | (A & UndefinedDifference<A, B>)
     | (B & UndefinedDifference<B, A>)
 
-  type Variable3<A, B, C> =
+  type IntersectShape3<A, B, C> =
     | (A & UndefinedDifference<A, B> & UndefinedDifference<A, C>)
     | (B & UndefinedDifference<B, A> & UndefinedDifference<B, C>)
     | (C & UndefinedDifference<C, A> & UndefinedDifference<C, B>)
 
-  type Variable4<A, B, C, D> =
+  type IntersectShape4<A, B, C, D> =
     | (A &
         UndefinedDifference<A, B> &
         UndefinedDifference<A, C> &
@@ -1829,7 +1829,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<D, B> &
         UndefinedDifference<D, C>)
 
-  type Variable5<A, B, C, D, E> =
+  type IntersectShape5<A, B, C, D, E> =
     | (A &
         UndefinedDifference<A, B> &
         UndefinedDifference<A, C> &
@@ -1856,7 +1856,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<E, C> &
         UndefinedDifference<E, D>)
 
-  type Variable6<A, B, C, D, E, F> =
+  type IntersectShape6<A, B, C, D, E, F> =
     | (A &
         UndefinedDifference<A, B> &
         UndefinedDifference<A, C> &
@@ -1894,7 +1894,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<F, D> &
         UndefinedDifference<F, E>)
 
-  type Variable7<A, B, C, D, E, F, G> =
+  type IntersectShape7<A, B, C, D, E, F, G> =
     | (A &
         UndefinedDifference<A, B> &
         UndefinedDifference<A, C> &
@@ -1945,7 +1945,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<G, E> &
         UndefinedDifference<G, F>)
 
-  type Variable8<A, B, C, D, E, F, G, H> =
+  type IntersectShape8<A, B, C, D, E, F, G, H> =
     | (A &
         UndefinedDifference<A, B> &
         UndefinedDifference<A, C> &
@@ -2011,7 +2011,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<H, F> &
         UndefinedDifference<H, G>)
 
-  type Variable9<A, B, C, D, E, F, G, H, I> =
+  type IntersectShape9<A, B, C, D, E, F, G, H, I> =
     | (A &
         UndefinedDifference<A, B> &
         UndefinedDifference<A, C> &
@@ -2094,7 +2094,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<I, G> &
         UndefinedDifference<I, H>)
 
-  type Variable10<A, B, C, D, E, F, G, H, I, J> =
+  type IntersectShape10<A, B, C, D, E, F, G, H, I, J> =
     | (A &
         UndefinedDifference<A, B> &
         UndefinedDifference<A, C> &

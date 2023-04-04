@@ -49,7 +49,7 @@ export namespace TypesaurusQuery {
   export interface Helpers<Def extends Core.DocDef>
     extends CommonQueryHelpers<
       Def,
-      Core.ResolveModelType<Def['Model']>,
+      Core.IntersectVariableModelType<Def['Model']>,
       OrderQuery<Def['Model']>,
       WhereQuery<Def['Model']>,
       LimitQuery<Def['Model']>
@@ -62,7 +62,7 @@ export namespace TypesaurusQuery {
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
     extends CommonQueryHelpers<
       Def,
-      Core.ResolveModelType<Def['Model']>,
+      Core.IntersectVariableModelType<Def['Model']>,
       void,
       void,
       void

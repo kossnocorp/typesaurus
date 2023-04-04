@@ -105,8 +105,8 @@ export namespace TypesaurusUpdate {
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
     extends CommonHelpers<
       Def['Flags']['Reduced'] extends true
-        ? Core.ResolveModelType<Def['Model']>
-        : Core.SharedModelType<Def['WideModel']>,
+        ? Core.IntersectVariableModelType<Def['Model']>
+        : Core.SharedVariableModelType<Def['WideModel']>,
       Props,
       void
     > {

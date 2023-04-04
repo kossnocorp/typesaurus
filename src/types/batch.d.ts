@@ -56,17 +56,17 @@ export namespace TypesaurusBatch {
 
     set(
       id: Def['Id'],
-      data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>
+      data: Core.WriteArg<Core.IntersectVariableModelType<Def['Model']>, Props>
     ): void
 
     upset(
       id: Def['Id'],
-      data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>
+      data: Core.WriteArg<Core.IntersectVariableModelType<Def['Model']>, Props>
     ): void
 
     update(
       id: Def['Id'],
-      data: Update.Arg<Core.SharedModelType<Def['WideModel']>, Props>
+      data: Update.Arg<Core.SharedVariableModelType<Def['WideModel']>, Props>
     ): void
 
     remove(id: Def['Id']): void

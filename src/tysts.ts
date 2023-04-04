@@ -259,6 +259,11 @@ async function doc() {
 
   const json = await db.json.get(db.json.id('index'))
   if (json) assertType<TypeEqual<typeof json.data.str, OpaqueJSON>>(true)
+
+  // Creating variable model fetched from DB
+
+  const content = await db.content.get(contentId)
+  if (content) db.content.doc(contentId, content.data)
 }
 
 async function get() {
@@ -802,6 +807,11 @@ async function add() {
     // @ts-expect-error - text is not valid for image
     text: 'Nope'
   })
+
+  // Adding variable model fetched from DB
+
+  const content = await db.content.get(db.content.id('content-id'))
+  if (content) db.content.add(content.data)
 }
 
 async function set() {
@@ -892,6 +902,15 @@ async function set() {
     // @ts-expect-error - text is not valid for image
     text: 'Nope'
   })
+
+  // Setting variable model fetched from DB
+
+  const content = await db.content.get(contentId)
+  if (content) {
+    content.set(content.data)
+    content.ref.set(content.data)
+    db.content.set(contentId, content.data)
+  }
 }
 
 async function upset() {
@@ -982,6 +1001,15 @@ async function upset() {
     // @ts-expect-error - text is not valid for image
     text: 'Nope'
   })
+
+  // Upsetting variable model fetched from DB
+
+  const content = await db.content.get(contentId)
+  if (content) {
+    content.upset(content.data)
+    content.ref.upset(content.data)
+    db.content.upset(contentId, content.data)
+  }
 }
 
 async function update() {
@@ -1342,6 +1370,15 @@ async function update() {
     '',
     null
   ])
+
+  // Updating variable model fetched from DB
+
+  const content2 = await db.content.get(contentId)
+  if (content2) {
+    content2.update(content2.data)
+    content2.ref.update(content2.data)
+    db.content.update(contentId, content2.data)
+  }
 }
 
 async function sharedIds() {
@@ -1438,6 +1475,99 @@ async function narrowDoc() {
       >
     >
   >(true)
+}
+
+async function edgeCases() {
+  interface ServerChapter {}
+
+  interface ServerChapterPost {
+    chapterId: Schema['chapters']['Id']
+  }
+
+  const db = schema(($) => ({
+    chapters: $.collection<ServerChapter>().sub({
+      chapterPosts: $.collection<ServerChapterPost>()
+    })
+  }))
+
+  type Schema = Typesaurus.Schema<typeof db>
+
+  const data = {} as Schema['chapters']['sub']['chapterPosts']['Data']
+  const id: Schema['chapters']['Id'] = data.chapterId
+  return id
+}
+
+async function xx() {
+  interface ServerChapter {
+    uid: FirestoreSchema['chapters']['Id']
+    name: string
+    specialField: string
+  }
+
+  interface ServerChapterPost {
+    uid: FirestoreSchema['chapters']['sub']['chapter_posts']['Id']
+    chapterUid: FirestoreSchema['chapters']['Id']
+    specialField: string
+  }
+
+  const firestore = schema(($) => ({
+    chapters: $.collection<ServerChapter>().sub({
+      chapter_posts: $.collection<ServerChapterPost>()
+    })
+  }))
+
+  type FirestoreSchema = Typesaurus.Schema<typeof firestore>
+
+  // SPECIAL FIELD
+
+  interface ServerWithSpecialField {
+    specialField: string
+  }
+
+  function WithSpecialField<Name extends string, Path extends string>(
+    props: ServerWithSpecialField,
+    collection: Typesaurus.Collection<ServerWithSpecialField, Name, Path>,
+    id: Typesaurus.Id<Path>
+  ) {
+    const updateSpecialField = async () => {
+      return collection.update(id, {
+        specialField: 'some value'
+      })
+    }
+
+    return {
+      ...props,
+      updateSpecialField
+    }
+  }
+
+  const newChapter = (serverChapter: FirestoreSchema['chapters']['Data']) => {
+    const withAccess = WithSpecialField(
+      serverChapter,
+      firestore.chapters,
+      serverChapter.uid
+    )
+
+    return {
+      ...serverChapter,
+      ...withAccess
+    }
+  }
+
+  const newChapterPost = (
+    serverChapterPost: FirestoreSchema['chapters']['sub']['chapter_posts']['Data']
+  ) => {
+    const withAccess = WithSpecialField(
+      serverChapterPost,
+      firestore.chapters(serverChapterPost.chapterUid).chapter_posts, // The issue was here
+      serverChapterPost.uid
+    )
+
+    return {
+      ...serverChapterPost,
+      ...withAccess
+    }
+  }
 }
 
 namespace Data {

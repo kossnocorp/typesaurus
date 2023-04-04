@@ -87,97 +87,98 @@ export namespace TypesaurusCore {
 
   export type DocModel<Def extends DocDef> =
     Def['Flags']['Reduced'] extends true
-      ? ResolveModelType<Def['Model']>
-      : SharedModelType<Def['WideModel']>
+      ? IntersectVariableModelType<Def['Model']>
+      : SharedVariableModelType<Def['WideModel']>
 
-  export type ResolveModelType<Model extends ModelType> = Model extends [
-    infer A extends ModelObjectType,
-    infer B extends ModelObjectType,
-    infer C extends ModelObjectType,
-    infer D extends ModelObjectType,
-    infer E extends ModelObjectType,
-    infer F extends ModelObjectType,
-    infer G extends ModelObjectType,
-    infer H extends ModelObjectType,
-    infer I extends ModelObjectType,
-    infer J extends ModelObjectType
-  ]
-    ? Utils.Variable<A, B, C, D, E, F, G, H, I, J>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType,
-        infer C extends ModelObjectType,
-        infer D extends ModelObjectType,
-        infer E extends ModelObjectType,
-        infer F extends ModelObjectType,
-        infer G extends ModelObjectType,
-        infer H extends ModelObjectType,
-        infer I extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B, C, D, E, F, G, H, I>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType,
-        infer C extends ModelObjectType,
-        infer D extends ModelObjectType,
-        infer E extends ModelObjectType,
-        infer F extends ModelObjectType,
-        infer G extends ModelObjectType,
-        infer H extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B, C, D, E, F, G, H>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType,
-        infer C extends ModelObjectType,
-        infer D extends ModelObjectType,
-        infer E extends ModelObjectType,
-        infer F extends ModelObjectType,
-        infer G extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B, C, D, E, F, G>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType,
-        infer C extends ModelObjectType,
-        infer D extends ModelObjectType,
-        infer E extends ModelObjectType,
-        infer F extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B, C, D, E, F>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType,
-        infer C extends ModelObjectType,
-        infer D extends ModelObjectType,
-        infer E extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B, C, D, E>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType,
-        infer C extends ModelObjectType,
-        infer D extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B, C, D>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType,
-        infer C extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B, C>
-    : Model extends [
-        infer A extends ModelObjectType,
-        infer B extends ModelObjectType
-      ]
-    ? Utils.Variable<A, B>
-    : Model extends [infer A extends ModelObjectType]
-    ? A
-    : Model extends ModelObjectType
-    ? Model
-    : never
+  export type IntersectVariableModelType<Model extends ModelType> =
+    Model extends [
+      infer A extends ModelObjectType,
+      infer B extends ModelObjectType,
+      infer C extends ModelObjectType,
+      infer D extends ModelObjectType,
+      infer E extends ModelObjectType,
+      infer F extends ModelObjectType,
+      infer G extends ModelObjectType,
+      infer H extends ModelObjectType,
+      infer I extends ModelObjectType,
+      infer J extends ModelObjectType
+    ]
+      ? Utils.IntersectShape<A, B, C, D, E, F, G, H, I, J>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType,
+          infer C extends ModelObjectType,
+          infer D extends ModelObjectType,
+          infer E extends ModelObjectType,
+          infer F extends ModelObjectType,
+          infer G extends ModelObjectType,
+          infer H extends ModelObjectType,
+          infer I extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B, C, D, E, F, G, H, I>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType,
+          infer C extends ModelObjectType,
+          infer D extends ModelObjectType,
+          infer E extends ModelObjectType,
+          infer F extends ModelObjectType,
+          infer G extends ModelObjectType,
+          infer H extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B, C, D, E, F, G, H>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType,
+          infer C extends ModelObjectType,
+          infer D extends ModelObjectType,
+          infer E extends ModelObjectType,
+          infer F extends ModelObjectType,
+          infer G extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B, C, D, E, F, G>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType,
+          infer C extends ModelObjectType,
+          infer D extends ModelObjectType,
+          infer E extends ModelObjectType,
+          infer F extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B, C, D, E, F>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType,
+          infer C extends ModelObjectType,
+          infer D extends ModelObjectType,
+          infer E extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B, C, D, E>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType,
+          infer C extends ModelObjectType,
+          infer D extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B, C, D>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType,
+          infer C extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B, C>
+      : Model extends [
+          infer A extends ModelObjectType,
+          infer B extends ModelObjectType
+        ]
+      ? Utils.IntersectShape<A, B>
+      : Model extends [infer A extends ModelObjectType]
+      ? A
+      : Model extends ModelObjectType
+      ? Model
+      : never
 
-  export type SharedModelType<Model extends ModelType> = Model extends [
+  export type SharedVariableModelType<Model extends ModelType> = Model extends [
     infer A extends ModelObjectType,
     infer B extends ModelObjectType,
     infer C extends ModelObjectType,
@@ -258,6 +259,93 @@ export namespace TypesaurusCore {
         infer B extends ModelObjectType
       ]
     ? Utils.SharedShape2<A, B>
+    : Model extends [infer A extends ModelObjectType]
+    ? A
+    : Model extends ModelObjectType
+    ? Model
+    : never
+
+  export type UnionVariableModelType<Model extends ModelType> = Model extends [
+    infer A extends ModelObjectType,
+    infer B extends ModelObjectType,
+    infer C extends ModelObjectType,
+    infer D extends ModelObjectType,
+    infer E extends ModelObjectType,
+    infer F extends ModelObjectType,
+    infer G extends ModelObjectType,
+    infer H extends ModelObjectType,
+    infer I extends ModelObjectType,
+    infer J extends ModelObjectType
+  ]
+    ? A | B | C | D | E | F | G | H | I | J
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType,
+        infer H extends ModelObjectType,
+        infer I extends ModelObjectType
+      ]
+    ? A | B | C | D | E | F | G | H | I
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType,
+        infer H extends ModelObjectType
+      ]
+    ? A | B | C | D | E | F | G | H
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType,
+        infer G extends ModelObjectType
+      ]
+    ? A | B | C | D | E | F | G
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType,
+        infer F extends ModelObjectType
+      ]
+    ? Utils.SharedShape6<A, B, C, D, E, F>
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType,
+        infer E extends ModelObjectType
+      ]
+    ? A | B | C | D | E
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType,
+        infer D extends ModelObjectType
+      ]
+    ? A | B | C | D
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType,
+        infer C extends ModelObjectType
+      ]
+    ? A | B | C
+    : Model extends [
+        infer A extends ModelObjectType,
+        infer B extends ModelObjectType
+      ]
+    ? A | B
     : Model extends [infer A extends ModelObjectType]
     ? A
     : Model extends ModelObjectType
@@ -473,12 +561,12 @@ export namespace TypesaurusCore {
     Def extends DocDef,
     Props extends DocProps
   > = Props['environment'] extends 'server'
-    ? ServerData<ResolveModelType<Def['Model']>>
+    ? ServerData<IntersectVariableModelType<Def['Model']>>
     : Props['source'] extends 'database'
-    ? Data<ResolveModelType<Def['Model']>, 'present'>
+    ? Data<IntersectVariableModelType<Def['Model']>, 'present'>
     : Props['dateStrategy'] extends 'estimate' | 'previous'
-    ? Data<ResolveModelType<Def['Model']>, 'present'>
-    : Data<ResolveModelType<Def['Model']>, 'missing'>
+    ? Data<IntersectVariableModelType<Def['Model']>, 'present'>
+    : Data<IntersectVariableModelType<Def['Model']>, 'missing'>
 
   export type WriteArg<Model extends ModelObjectType, Props extends DocProps> =
     | WriteData<Model, Props>
@@ -760,7 +848,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment }
     >(
-      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<UnionVariableModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -768,7 +856,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment }
     >(
-      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<UnionVariableModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -777,7 +865,10 @@ export namespace TypesaurusCore {
     remove(): Promise<Ref<Def>>
 
     narrow<NarrowToModel extends ModelType>(
-      fn: DocNarrowFunction<ResolveModelType<Def['WideModel']>, NarrowToModel>
+      fn: DocNarrowFunction<
+        IntersectVariableModelType<Def['WideModel']>,
+        NarrowToModel
+      >
     ):
       | Doc<
           {
@@ -845,7 +936,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment }
     >(
-      data: WriteArg<ResolveModelType<Def['Model']>, Props>,
+      data: WriteArg<UnionVariableModelType<Def['Model']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -854,7 +945,7 @@ export namespace TypesaurusCore {
       Props extends DocProps & { environment: Environment }
     >(
       id: Def['Id'],
-      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<UnionVariableModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -863,7 +954,7 @@ export namespace TypesaurusCore {
       Props extends DocProps & { environment: Environment }
     >(
       id: Def['Id'],
-      data: WriteArg<ResolveModelType<Def['WideModel']>, Props>,
+      data: WriteArg<UnionVariableModelType<Def['WideModel']>, Props>,
       options?: OperationOptions<Environment>
     ): Promise<Ref<Def>>
 
@@ -1116,7 +1207,7 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#model).
            */
-          Model: ResolveModelType<Def['Model']>
+          Model: IntersectVariableModelType<Def['Model']>
 
           /**
            * The document data. It differs from the interface used to define
@@ -1125,7 +1216,10 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#data).
            */
-          Data: Data<ResolveModelType<Def['Model']>, ServerDateMissing>
+          Data: Data<
+            IntersectVariableModelType<Def['Model']>,
+            ServerDateMissing
+          >
 
           /**
            * Read result, either doc, `null` (not found) or `undefined`
@@ -1138,17 +1232,23 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
            */
-          WriteArg: WriteArg<ResolveModelType<Def['Model']>, DocProps>
+          WriteArg: WriteArg<IntersectVariableModelType<Def['Model']>, DocProps>
 
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
            */
-          WriteData: WriteData<ResolveModelType<Def['Model']>, DocProps>
+          WriteData: WriteData<
+            IntersectVariableModelType<Def['Model']>,
+            DocProps
+          >
 
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
            */
-          WriteGetter: WriteGetter<ResolveModelType<Def['Model']>, DocProps>
+          WriteGetter: WriteGetter<
+            IntersectVariableModelType<Def['Model']>,
+            DocProps
+          >
 
           /**
            * Write helpers type allows to abstract write building (for add, set
@@ -1172,17 +1272,26 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
            */
-          UpdateArg: Update.Arg<ResolveModelType<Def['Model']>, DocProps>
+          UpdateArg: Update.Arg<
+            IntersectVariableModelType<Def['Model']>,
+            DocProps
+          >
 
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
            */
-          UpdateData: Update.Data<ResolveModelType<Def['Model']>, DocProps>
+          UpdateData: Update.Data<
+            IntersectVariableModelType<Def['Model']>,
+            DocProps
+          >
 
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
            */
-          UpdateGetter: Update.Getter<ResolveModelType<Def['Model']>, DocProps>
+          UpdateGetter: Update.Getter<
+            IntersectVariableModelType<Def['Model']>,
+            DocProps
+          >
 
           /**
            * Update helpers type allows to abstract update building login into
@@ -1248,7 +1357,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#server-data).
            */
-          ServerData: ServerData<ResolveModelType<Def['Model']>>
+          ServerData: ServerData<IntersectVariableModelType<Def['Model']>>
 
           /**
            * The server version of Result, where the server dates are always
@@ -1267,7 +1376,10 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
            */
-          ServerWriteArg: WriteArg<ResolveModelType<Def['Model']>, DocProps>
+          ServerWriteArg: WriteArg<
+            IntersectVariableModelType<Def['Model']>,
+            DocProps
+          >
 
           /**
            * The server version of WriteData, where the Date can be used
@@ -1276,7 +1388,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
            */
           ServerWriteData: WriteData<
-            ResolveModelType<Def['Model']>,
+            IntersectVariableModelType<Def['Model']>,
             DocProps & { environment: 'server' }
           >
 
@@ -1287,7 +1399,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
            */
           ServerWriteGetter: WriteGetter<
-            ResolveModelType<Def['Model']>,
+            IntersectVariableModelType<Def['Model']>,
             DocProps & { environment: 'server' }
           >
 
@@ -1314,7 +1426,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
            */
           ServerUpdateArg: Update.Arg<
-            ResolveModelType<Def['Model']>,
+            IntersectVariableModelType<Def['Model']>,
             DocProps & { environment: 'server' }
           >
 
@@ -1325,7 +1437,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
            */
           ServerUpdateData: Update.Data<
-            ResolveModelType<Def['Model']>,
+            IntersectVariableModelType<Def['Model']>,
             DocProps & { environment: 'server' }
           >
 
@@ -1336,7 +1448,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
            */
           ServerUpdateGetter: Update.Getter<
-            ResolveModelType<Def['Model']>,
+            IntersectVariableModelType<Def['Model']>,
             DocProps & { environment: 'server' }
           >
 
@@ -1370,7 +1482,7 @@ export namespace TypesaurusCore {
     infer Def extends DocDef,
     infer Props extends DocProps
   >
-    ? NarrowToModel extends ResolveModelType<Def['WideModel']>
+    ? NarrowToModel extends IntersectVariableModelType<Def['WideModel']>
       ? Doc<
           {
             Model: NarrowToModel

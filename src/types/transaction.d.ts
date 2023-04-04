@@ -42,18 +42,22 @@ export namespace TypesaurusTransaction {
     Def extends Core.DocDef,
     Props extends Core.DocProps
   > {
-    set(data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>): void
+    set(
+      data: Core.WriteArg<Core.IntersectVariableModelType<Def['Model']>, Props>
+    ): void
 
     update(
       data: Update.Arg<
         Def['Flags']['Reduced'] extends true
-          ? Core.ResolveModelType<Def['Model']>
-          : Core.SharedModelType<Def['WideModel']>,
+          ? Core.IntersectVariableModelType<Def['Model']>
+          : Core.SharedVariableModelType<Def['WideModel']>,
         Props
       >
     ): void
 
-    upset(data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>): void
+    upset(
+      data: Core.WriteArg<Core.IntersectVariableModelType<Def['Model']>, Props>
+    ): void
 
     remove(): void
   }
@@ -68,8 +72,8 @@ export namespace TypesaurusTransaction {
     type: 'doc'
     ref: ReadRef<Def, Props>
     data: Props['environment'] extends 'server'
-      ? Core.ServerData<Core.ResolveModelType<Def['Model']>>
-      : Core.Data<Core.ResolveModelType<Def['Model']>, 'present'>
+      ? Core.ServerData<Core.IntersectVariableModelType<Def['Model']>>
+      : Core.Data<Core.IntersectVariableModelType<Def['Model']>, 'present'>
     props: Props
   }
 
@@ -83,13 +87,13 @@ export namespace TypesaurusTransaction {
     type: 'doc'
     ref: WriteRef<Def, Props>
     data: Props['environment'] extends 'server'
-      ? Core.ServerData<Core.ResolveModelType<Def['Model']>>
-      : Core.Data<Core.ResolveModelType<Def['Model']>, 'present'>
+      ? Core.ServerData<Core.IntersectVariableModelType<Def['Model']>>
+      : Core.Data<Core.IntersectVariableModelType<Def['Model']>, 'present'>
     props: Props
 
     narrow<NarrowToModel extends Core.ModelType>(
       fn: Core.DocNarrowFunction<
-        Core.ResolveModelType<Def['WideModel']>,
+        Core.IntersectVariableModelType<Def['WideModel']>,
         NarrowToModel
       >
     ):
@@ -137,17 +141,17 @@ export namespace TypesaurusTransaction {
 
     set(
       id: Def['Id'],
-      data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>
+      data: Core.WriteArg<Core.IntersectVariableModelType<Def['Model']>, Props>
     ): void
 
     upset(
       id: Def['Id'],
-      data: Core.WriteArg<Core.ResolveModelType<Def['Model']>, Props>
+      data: Core.WriteArg<Core.IntersectVariableModelType<Def['Model']>, Props>
     ): void
 
     update(
       id: Def['Id'],
-      data: Update.Arg<Core.SharedModelType<Def['WideModel']>, Props>
+      data: Update.Arg<Core.SharedVariableModelType<Def['WideModel']>, Props>
     ): void
 
     remove(id: Def['Id']): void
