@@ -21,7 +21,7 @@ export namespace TypesaurusCore {
   /**
    * The custom id constrain. Used to define collection id type.
    */
-  export type CustomIdConstrain = Id<string> | number | string | undefined
+  export type CustomIdConstrain = Id<string> | string | undefined
 
   export type ModelType = ModelObjectType | ModelVariableType
 
