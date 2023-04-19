@@ -388,7 +388,7 @@ export namespace TypesaurusCore {
      * The collection name (path segment).
      */
     Name: string
-    Id: Id<string> | string
+    Id: Id<string> | string | number
     /**
      * If the collection has variable shape, it will contain models tuple,
      * otherwise it will be equal {@link Model}.
@@ -1127,7 +1127,7 @@ export namespace TypesaurusCore {
             {
               Model: Model
               Name: CustomName extends string ? CustomName : Name
-              Id: CustomId extends Id<any> | string
+              Id: CustomId extends Id<any> | string | number
                 ? CustomId
                 : Id<Utils.ComposePath<BasePath, Name>>
               WideModel: Model
@@ -1143,7 +1143,7 @@ export namespace TypesaurusCore {
         ? Collection<{
             Model: Model
             Name: CustomName extends string ? CustomName : Name
-            Id: CustomId extends Id<any> | string
+            Id: CustomId extends Id<any> | string | number
               ? CustomId
               : Id<Utils.ComposePath<BasePath, Name>>
             WideModel: Model

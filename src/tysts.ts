@@ -115,6 +115,8 @@ interface WithJSON {
 
 type OpaqueJSON = string & { __json: {} }
 
+type OpaqueString = string & { __string: 'qwe' }
+
 type OpaqueNumber = number & { __number: 123 }
 
 interface CustomCollection {
@@ -122,6 +124,10 @@ interface CustomCollection {
 }
 
 const customCollection = 'customCollectionName'
+
+interface OpaqueModel {
+  string: string
+}
 
 // Flat schema
 const db = schema(($) => ({
@@ -132,7 +138,9 @@ const db = schema(($) => ({
   content: $.collection<[TextContent, ImageContent]>(),
   appStats: $.collection<AppStats, 'appStats'>(),
   [customCollection]: $.collection<CustomCollection>(),
-  json: $.collection<WithJSON>()
+  json: $.collection<WithJSON>(),
+  opaqueString: $.collection<OpaqueModel, OpaqueString>(),
+  opaqueNumber: $.collection<OpaqueModel, OpaqueNumber>()
 }))
 
 async function custom() {
@@ -265,6 +273,11 @@ async function doc() {
     assertType<TypeEqual<typeof json.data.str, OpaqueJSON>>(true)
     assertType<TypeEqual<typeof json.data.version, OpaqueNumber>>(true)
   }
+
+  // Opaque types as ids
+
+  db.opaqueString.doc('zxc' as OpaqueString, { string: 'ok' })
+  db.opaqueNumber.doc(987 as OpaqueNumber, { string: 'ok' })
 
   // Creating variable model fetched from DB
 
