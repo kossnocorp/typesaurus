@@ -18,6 +18,11 @@ export namespace TypesaurusCore {
       __dontUseWillBeUndefined__: Path
     }
 
+  /**
+   * The custom id constrain. Used to define collection id type.
+   */
+  export type CustomIdConstrain = Id<string> | number | string | undefined
+
   export type ModelType = ModelObjectType | ModelVariableType
 
   export type ModelVariableType =
@@ -521,7 +526,7 @@ export namespace TypesaurusCore {
     ? Field
     : Field extends Array<infer ItemType>
     ? Array<DataField<ItemType, DateMissing>>
-    : Field extends string // Special case for strings, so opaque types (string & {}) can be used
+    : Field extends string | number // Special case for strings & numbers, so opaque types (string & {}) can be used
     ? Field
     : Field extends object // If it's an object, recursively pass through ModelData
     ? Data<Field, DateMissing>
@@ -769,7 +774,7 @@ export namespace TypesaurusCore {
   export interface SchemaHelpers {
     collection<
       Model extends ModelType,
-      CustomId extends Id<string> | string | undefined = undefined
+      CustomId extends CustomIdConstrain = undefined
     >(): PlainCollection<Model, CustomId>
   }
 
@@ -1069,7 +1074,7 @@ export namespace TypesaurusCore {
 
   export interface PlainCollection<
     Model extends ModelType,
-    CustomId extends Id<string> | string | undefined = undefined,
+    CustomId extends CustomIdConstrain = undefined,
     CustomName extends string | undefined = undefined
   > {
     /** The collection type */
@@ -1087,7 +1092,7 @@ export namespace TypesaurusCore {
   export interface NestedPlainCollection<
     _Model extends ModelType,
     Schema extends PlainSchema,
-    _CustomId extends Id<string> | string | undefined = undefined,
+    _CustomId extends CustomIdConstrain = undefined,
     _CustomName extends string | undefined = undefined
   > {
     /** The collection type */

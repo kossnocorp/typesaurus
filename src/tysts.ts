@@ -110,9 +110,12 @@ interface AppStats {
 
 interface WithJSON {
   str: OpaqueJSON
+  version: OpaqueNumber
 }
 
 type OpaqueJSON = string & { __json: {} }
+
+type OpaqueNumber = number & { __number: 123 }
 
 interface CustomCollection {
   hello: 'world'
@@ -255,10 +258,13 @@ async function doc() {
 
   db.appStats.doc('appStats', { users: 123 })
 
-  // Opaque string in data
+  // Opaque types in data
 
   const json = await db.json.get(db.json.id('index'))
-  if (json) assertType<TypeEqual<typeof json.data.str, OpaqueJSON>>(true)
+  if (json) {
+    assertType<TypeEqual<typeof json.data.str, OpaqueJSON>>(true)
+    assertType<TypeEqual<typeof json.data.version, OpaqueNumber>>(true)
+  }
 
   // Creating variable model fetched from DB
 
