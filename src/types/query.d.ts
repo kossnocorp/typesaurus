@@ -19,11 +19,7 @@ export namespace TypesaurusQuery {
           // it's impossible towrap the query into a check because the check
           // will be invalid inside the function.
           undefined
-        : Core.SubscriptionPromise<
-            Core.QueryRequest,
-            Core.Doc<Def, Props>[],
-            Core.SubscriptionListMeta<Def, Props>
-          >
+        : SubscriptionPromise<Def, Environment, Props>
       : never
 
     build<
@@ -32,6 +28,18 @@ export namespace TypesaurusQuery {
     >(
       options?: Core.ReadOptions<Environment, Props>
     ): Builder<Def, Props>
+  }
+
+  export interface SubscriptionPromise<
+    Def extends Core.DocDef,
+    Environment extends Core.RuntimeEnvironment,
+    Props extends Core.DocProps & { environment: Environment }
+  > extends Core.SubscriptionPromise<
+      Core.QueryRequest,
+      Core.Doc<Def, Props>[],
+      Core.SubscriptionListMeta<Def, Props>
+    > {
+    count(): Promise<number>
   }
 
   export type Data<Model extends Core.ModelType> =

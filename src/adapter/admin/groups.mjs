@@ -36,6 +36,11 @@ class Group {
     return all(this.adapter())
   }
 
+  async count() {
+    const snap = await this.adapter().collection().count().get()
+    return snap.data().count
+  }
+
   adapter() {
     return {
       collection: () => this.firebaseCollection(),

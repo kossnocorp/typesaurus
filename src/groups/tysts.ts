@@ -888,6 +888,11 @@ async function tysts() {
   await groups(db4).shposts.all()
   // @ts-expect-error
   await groups(db4).shmosts.all()
+
+  // Count
+
+  const commentsCount = await groups(db2).comments.count()
+  commentsCount.toFixed()
 }
 
 type Assert<Type1, _Type2 extends Type1> = true

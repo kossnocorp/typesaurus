@@ -50,7 +50,7 @@
     "@types/webpack-env": "^1.18.0",
     "babel-loader": "^8.2.5",
     "babel-plugin-add-import-extension": "^1.6.0",
-    "firebase": "^9.7.0",
+    "firebase": "^9.22.1",
     "firebase-admin": "^11.5.0",
     "firebase-tools": "^11.23.1",
     "jest": "^28.1.3",

@@ -186,6 +186,11 @@ export class Collection {
     })
   }
 
+  async count() {
+    const snap = await this.adapter().collection().count().get()
+    return snap.data().count
+  }
+
   adapter() {
     return {
       collection: () => this.firebaseCollection(),
@@ -563,6 +568,8 @@ export function query(adapter, queries) {
         )
       )
     },
+
+    count: () => firestoreQuery.count().get(),
 
     subscribe: (onResult, onError) =>
       firestoreQuery.onSnapshot((firebaseSnap) => {
