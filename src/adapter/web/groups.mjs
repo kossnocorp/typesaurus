@@ -1,5 +1,9 @@
-import { collectionGroup, getFirestore } from 'firebase/firestore'
-import { all, pathToDoc, _query, queryHelpers, wrapData } from './core.mjs'
+import {
+  collectionGroup,
+  getCountFromServer,
+  getFirestore
+} from 'firebase/firestore'
+import { _query, all, pathToDoc, queryHelpers, wrapData } from './core.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}
@@ -35,6 +39,11 @@ class Group {
 
   all() {
     return all(this.adapter())
+  }
+
+  async count() {
+    const snap = await getCountFromServer(this.firebaseCollection())
+    return snap.data().count
   }
 
   adapter() {

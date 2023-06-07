@@ -186,6 +186,11 @@ export class Collection {
     })
   }
 
+  async count() {
+    const snap = await this.adapter().collection().count().get()
+    return snap.data().count
+  }
+
   adapter() {
     return {
       collection: () => this.firebaseCollection(),
@@ -542,7 +547,7 @@ export function query(adapter, queries) {
       firestoreQuery = firestoreQuery[method](...values)
     })
 
-  return new SubscriptionPromise({
+  const sp = new SubscriptionPromise({
     request: request({
       kind: 'query',
       ...adapter.request(),
@@ -606,6 +611,15 @@ export function query(adapter, queries) {
         onResult(docs, meta)
       }, onError)
   })
+
+  Object.assign(sp, {
+    count: async () => {
+      const snap = await firestoreQuery.count().get()
+      return snap.data().count
+    }
+  })
+
+  return sp
 }
 
 export function queryHelpers(mode = 'helpers', acc) {

@@ -272,6 +272,23 @@ async function doc() {
   if (content) db.content.doc(contentId, content.data)
 }
 
+async function collection() {
+  // Count
+
+  const docsCount = await db.users.count()
+  docsCount.toFixed()
+
+  const nestedDB = schema(($) => ({
+    users: $.collection<User>().sub({
+      settings: $.collection<{}>()
+    })
+  }))
+  const nestedDocsCount = await nestedDB
+    .users(nestedDB.users.id('whatever'))
+    .settings.count()
+  nestedDocsCount.toFixed()
+}
+
 async function get() {
   const user = await db.users.get(db.users.id('sasha'))
   if (!user) return
@@ -768,6 +785,14 @@ async function query() {
     '',
     0
   ])
+
+  // Count
+
+  const sashasCount = await db.users
+    .query(($) => $.field('name').equal('Sasha'))
+    .count()
+
+  sashasCount.toFixed()
 }
 
 async function add() {

@@ -20,5 +20,6 @@
     "titleBar.inactiveForeground": "#e7e7e799",
     "commandCenter.border": "#e7e7e799"
   },
-  "peacock.remoteColor": "#136881"
+  "peacock.remoteColor": "#136881",
+  "editor.formatOnSave": true,
 }

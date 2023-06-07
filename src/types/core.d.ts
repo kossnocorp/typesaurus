@@ -906,6 +906,8 @@ export namespace TypesaurusCore {
     >
 
     query: Query.Function<Def>
+
+    count(): Promise<number>
   }
 
   /**

@@ -1,4 +1,6 @@
 import {
+  DocumentReference,
+  Timestamp,
   addDoc,
   arrayRemove,
   arrayUnion,
@@ -7,9 +9,9 @@ import {
   deleteField,
   doc,
   documentId,
-  DocumentReference,
   endAt,
   endBefore,
+  getCountFromServer,
   getDoc,
   getDocs,
   getFirestore,
@@ -22,7 +24,6 @@ import {
   setDoc,
   startAfter,
   startAt,
-  Timestamp,
   updateDoc,
   where
 } from 'firebase/firestore'
@@ -197,6 +198,11 @@ export class Collection {
         return () => offs.map((off) => off())
       }
     })
+  }
+
+  async count() {
+    const snap = await getCountFromServer(this.firebaseCollection())
+    return snap.data().count
   }
 
   adapter() {
@@ -574,7 +580,7 @@ export function _query(adapter, queries) {
   const firebaseQuery = () =>
     query(adapter.collection(), ...firebaseQueries, ...firebaseCursors)
 
-  return new SubscriptionPromise({
+  const sp = new SubscriptionPromise({
     request: request({
       kind: 'query',
       ...adapter.request(),
@@ -651,6 +657,15 @@ export function _query(adapter, queries) {
       )
     }
   })
+
+  Object.assign(sp, {
+    count: async () => {
+      const snap = await getCountFromServer(firebaseQuery())
+      return snap.data().count
+    }
+  })
+
+  return sp
 }
 
 export function queryHelpers(mode = 'helpers', acc) {
