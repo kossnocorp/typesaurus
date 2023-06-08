@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "10.0.0-beta.7",
+  "version": "10.0.0-beta.8",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
@@ -12,18 +12,22 @@
   "module": "./adapter/admin/index.mjs",
   "exports": {
     ".": {
+      "browser": "./adapter/web/index.mjs",
       "require": "./adapter/admin/index.js",
       "import": "./adapter/admin/index.mjs"
     },
     "./batch": {
+      "browser": "./adapter/web/batch.mjs",
       "require": "./adapter/admin/batch.js",
       "import": "./adapter/admin/batch.mjs"
     },
     "./groups": {
+      "browser": "./adapter/web/groups.mjs",
       "require": "./adapter/admin/groups.js",
       "import": "./adapter/admin/groups.mjs"
     },
     "./transaction": {
+      "browser": "./adapter/web/transaction.mjs",
       "require": "./adapter/admin/transaction.js",
       "import": "./adapter/admin/transaction.mjs"
     },
