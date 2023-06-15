@@ -22,4 +22,5 @@
   },
   "peacock.remoteColor": "#136881",
   "editor.formatOnSave": true,
+  "prettier.prettierPath": "./node_modules/prettier",
 }
