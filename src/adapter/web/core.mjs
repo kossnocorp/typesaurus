@@ -39,7 +39,12 @@ export class Collection {
     this.type = 'collection'
     this.name = name
     this.path = path
-    this.firebaseDB = getFirestore()
+
+    this.firebaseDB = () => {
+      const db = this._firestoreDB || getFirestore()
+      this._firestoreDB = db
+      return db
+    }
 
     this.update = (id, data, options) => {
       assertEnvironment(options?.as)
@@ -55,7 +60,7 @@ export class Collection {
 
       return updateDoc(
         this.firebaseDoc(id),
-        unwrapData(this.firebaseDB, update)
+        unwrapData(this.firebaseDB(), update)
       ).then(() => this.ref(id))
     }
 
@@ -67,7 +72,7 @@ export class Collection {
         run: () =>
           updateDoc(
             this.firebaseDoc(id),
-            unwrapData(this.firebaseDB, updateFields(fields))
+            unwrapData(this.firebaseDB(), updateFields(fields))
           ).then(() => this.ref(id))
       }
     }
@@ -116,20 +121,21 @@ export class Collection {
     assertEnvironment(options?.as)
     return addDoc(
       this.firebaseCollection(),
-      writeData(this.firebaseDB, data)
+      writeData(this.firebaseDB(), data)
     ).then((firebaseRef) => this.ref(firebaseRef.id))
   }
 
   set(id, data, options) {
     assertEnvironment(options?.as)
-    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB, data)).then(
-      () => this.ref(id)
-    )
+    return setDoc(
+      this.firebaseDoc(id),
+      writeData(this.firebaseDB(), data)
+    ).then(() => this.ref(id))
   }
 
   upset(id, data, options) {
     assertEnvironment(options?.as)
-    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB, data), {
+    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB(), data), {
       merge: true
     }).then(() => this.ref(id))
   }
@@ -207,7 +213,7 @@ export class Collection {
 
   adapter() {
     return {
-      db: () => this.firebaseDB,
+      db: () => this.firebaseDB(),
       collection: () => this.firebaseCollection(),
       doc: (snapshot) => new Doc(this, snapshot.id, wrapData(snapshot.data())),
       request: () => ({ path: this.path })
@@ -215,11 +221,11 @@ export class Collection {
   }
 
   firebaseCollection() {
-    return collection(this.firebaseDB, this.path)
+    return collection(this.firebaseDB(), this.path)
   }
 
   firebaseDoc(id) {
-    return doc(this.firebaseDB, this.path, id)
+    return doc(this.firebaseDB(), this.path, id)
   }
 }
 

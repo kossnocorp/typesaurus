@@ -134,8 +134,8 @@ describe('doc', () => {
     }
 
     const user = db.users.doc(snapshot)
-    expect(user.data.createdAt).toBeInstanceOf(Date)
-    expect(user.data.birthday.getFullYear()).toBe(1987)
+    expect(user?.data.createdAt).toBeInstanceOf(Date)
+    expect(user?.data.birthday.getFullYear()).toBe(1987)
   })
 
   it('returns null if the snapshot does not exist', async () => {
