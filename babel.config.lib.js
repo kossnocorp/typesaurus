@@ -32,6 +32,7 @@ module.exports = {
     'src/**/*.d.ts',
     'src/**/tests.ts',
     'src/tests/**/*',
-    'src/**/tysts.ts'
+    'src/**/tysts.ts',
+    'src/tysts/**/*'
   ]
 }
