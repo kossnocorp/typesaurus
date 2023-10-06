@@ -1,0 +1,7 @@
+{
+  "base": "../../tsconfig.json",
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["*.ts"]
+}

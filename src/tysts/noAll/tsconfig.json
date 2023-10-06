@@ -1,0 +1,9 @@
+{
+  "base": "../../tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false
+  },
+  "include": ["*.ts"]
+}

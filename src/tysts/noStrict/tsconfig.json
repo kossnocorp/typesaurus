@@ -1,0 +1,7 @@
+{
+  "base": "../../tsconfig.json",
+  "compilerOptions": {
+    "strict": false
+  },
+  "include": ["*.ts"]
+}
