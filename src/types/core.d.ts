@@ -591,7 +591,9 @@ export namespace TypesaurusCore {
 
     remove(): ValueRemove
 
-    increment(value: number): ValueIncrement
+    increment<NumberType extends number>(
+      value: NumberType
+    ): ValueIncrement<NumberType>
 
     arrayUnion<Type>(values: Type | Type[]): ValueArrayUnion<Type>
 
@@ -621,10 +623,10 @@ export namespace TypesaurusCore {
           Data[Key],
           WriteFieldArray<Data, Key, ItemType>
         >
+      : Type extends number
+      ? WriteFieldMaybeUndefined<Data[Key], WriteFieldNumber<Data, Key, Type>>
       : Type extends object // If it's an object, recursively pass through SetModel
       ? WriteFieldMaybeUndefined<Data[Key], WriteFieldObject<Data, Key, Props>>
-      : Type extends number
-      ? WriteFieldMaybeUndefined<Data[Key], WriteFieldNumber<Data, Key>>
       : WriteFieldMaybeUndefined<Data[Key], WriteFieldOther<Data, Key>>
     : never
 
@@ -679,10 +681,11 @@ export namespace TypesaurusCore {
     ? WriteArrayObject<Field>
     : Field
 
-  export type WriteFieldNumber<Model, Key extends keyof Model> =
-    | Model[Key]
-    | ValueIncrement
-    | MaybeValueRemove<Model, Key>
+  export type WriteFieldNumber<
+    Model,
+    Key extends keyof Model,
+    NumberType extends number
+  > = Model[Key] | ValueIncrement<NumberType> | MaybeValueRemove<Model, Key>
 
   export type WriteFieldOther<Model, Key extends keyof Model> =
     | Model[Key]
@@ -695,13 +698,6 @@ export namespace TypesaurusCore {
   > =
     | WriteData<Model[Key], Props> // Even for update, nested objects are passed to set model
     | MaybeValueRemove<Model, Key>
-
-  export type Value<Type> =
-    | ValueRemove
-    | ValueIncrement
-    | ValueArrayUnion<Type>
-    | ValueArrayRemove<Type>
-    | ValueServerDate
 
   /**
    * Available value kinds.
@@ -724,10 +720,10 @@ export namespace TypesaurusCore {
   /**
    * The increment value type. It holds the increment value.
    */
-  export interface ValueIncrement {
+  export interface ValueIncrement<NumberType extends number> {
     type: 'value'
     kind: 'increment'
-    number: number
+    number: NumberType
   }
 
   /**

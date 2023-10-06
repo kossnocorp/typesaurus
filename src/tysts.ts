@@ -1238,6 +1238,15 @@ async function update() {
     })
   )
 
+  // Increment on opaque numbers
+
+  const json = await db.json.get(db.json.id('index'))
+  if (json) {
+    // @ts-expect-error: Should allow only incrementing via the opaque number
+    json.update(($) => $.field('version').set($.increment(1)))
+    json.update(($) => $.field('version').set($.increment(1 as OpaqueNumber)))
+  }
+
   // Updating variable collection
 
   const contentId = db.content.id('hello-world!')
