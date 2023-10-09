@@ -32,6 +32,18 @@ export namespace TypesaurusUtils {
   export type UnionKeys<Type> = Type extends Type ? keyof Type : never
 
   /**
+   * Resolves union value.
+   */
+  export type UnionValue<
+    Type,
+    UnionKey extends UnionKeys<Type>
+  > = Type extends {
+    [Key in UnionKey]: unknown
+  }
+    ? Type[UnionKey]
+    : never
+
+  /**
    * Removes indexed fields leaving only statically defined.
    */
   export type WithoutIndexed<Model> = {
