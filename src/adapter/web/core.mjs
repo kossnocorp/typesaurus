@@ -695,12 +695,12 @@ export function queryHelpers(mode = 'helpers', acc) {
 
   return {
     field: (...field) => ({
-      less: where.bind(null, field, '<'),
-      lessOrEqual: where.bind(null, field, '<='),
-      equal: where.bind(null, field, '=='),
+      lt: where.bind(null, field, '<'),
+      lte: where.bind(null, field, '<='),
+      eq: where.bind(null, field, '=='),
       not: where.bind(null, field, '!='),
-      more: where.bind(null, field, '>'),
-      moreOrEqual: where.bind(null, field, '>='),
+      gt: where.bind(null, field, '>'),
+      gte: where.bind(null, field, '>='),
       in: where.bind(null, field, 'in'),
       notIn: where.bind(null, field, 'not-in'),
       contains: where.bind(null, field, 'array-contains'),

@@ -57,9 +57,7 @@ describe('count', () => {
   })
 
   it('counts documents in a query', async () => {
-    const count = await db.mangas
-      .query(($) => $.field('volume').equal(2))
-      .count()
+    const count = await db.mangas.query(($) => $.field('volume').eq(2)).count()
     expect(count).toBe(1)
   })
 

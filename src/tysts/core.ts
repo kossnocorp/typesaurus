@@ -535,7 +535,7 @@ async function all() {
 }
 
 async function query() {
-  const [user] = await db.users.query(($) => $.field('name').equal('Sasha'))
+  const [user] = await db.users.query(($) => $.field('name').eq('Sasha'))
   if (!user) return
 
   // Runtime environment
@@ -570,7 +570,7 @@ async function query() {
   // Querying as server
 
   db.users
-    .query(($) => $.field('name').equal('Sasha'))
+    .query(($) => $.field('name').eq('Sasha'))
     .then((users) => {
       const user = users[0]
       if (!user) return
@@ -578,7 +578,7 @@ async function query() {
     })
 
   db.users
-    .query(($) => $.field('name').equal('Sasha'), { as: 'server' })
+    .query(($) => $.field('name').eq('Sasha'), { as: 'server' })
     .then((users) => {
       const user = users[0]
       if (!user) return
@@ -588,16 +588,16 @@ async function query() {
   // Basic query
 
   await db.users.query(($) => [
-    $.field('name').equal('Sasha'),
+    $.field('name').eq('Sasha'),
     // @ts-expect-error
-    $.field('contacts', 'emal').equal('koss@nocorp.me'),
+    $.field('contacts', 'emal').eq('koss@nocorp.me'),
     $.field('name').order(),
     $.limit(1)
   ])
 
   // Server date
 
-  await db.accounts.query(($) => $.field('createdAt').equal(new Date()))
+  await db.accounts.query(($) => $.field('createdAt').eq(new Date()))
 
   await db.accounts.query(($) =>
     $.field('createdAt').order('asc', $.startAt(new Date()))
@@ -687,8 +687,8 @@ async function query() {
 
   const offQuery = db.users
     .query(($) => [
-      $.field('name').equal('Sasha'),
-      $.field('contacts', 'email').equal('koss@nocorp.me'),
+      $.field('name').eq('Sasha'),
+      $.field('contacts', 'email').eq('koss@nocorp.me'),
       $.field('name').order(),
       $.limit(1)
     ])
@@ -700,12 +700,12 @@ async function query() {
   // Nested fields
 
   await db.users.query(($) => [
-    $.field('contacts', 'email').equal('koss@nocorp.me')
+    $.field('contacts', 'email').eq('koss@nocorp.me')
   ])
 
   // Optional path
   await db.accounts.query(($) => [
-    $.field('nested1Optional', 'nested12Optional', 'hello').equal('World!')
+    $.field('nested1Optional', 'nested12Optional', 'hello').eq('World!')
   ])
 
   // where
@@ -778,7 +778,7 @@ async function query() {
   // Empty query fields
 
   db.users.query(($) => [
-    $.field('name').equal('Sasha'),
+    $.field('name').eq('Sasha'),
     undefined,
     null,
     false,
@@ -789,7 +789,7 @@ async function query() {
   // Count
 
   const sashasCount = await db.users
-    .query(($) => $.field('name').equal('Sasha'))
+    .query(($) => $.field('name').eq('Sasha'))
     .count()
 
   sashasCount.toFixed()

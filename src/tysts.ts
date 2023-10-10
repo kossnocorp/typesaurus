@@ -555,7 +555,7 @@ async function all() {
 }
 
 async function query() {
-  const [user] = await db.users.query(($) => $.field('name').equal('Sasha'))
+  const [user] = await db.users.query(($) => $.field('name').eq('Sasha'))
   if (!user) return
 
   // Runtime environment
@@ -590,7 +590,7 @@ async function query() {
   // Querying as server
 
   db.users
-    .query(($) => $.field('name').equal('Sasha'))
+    .query(($) => $.field('name').eq('Sasha'))
     .then((users) => {
       const user = users[0]
       if (!user) return
@@ -598,7 +598,7 @@ async function query() {
     })
 
   db.users
-    .query(($) => $.field('name').equal('Sasha'), { as: 'server' })
+    .query(($) => $.field('name').eq('Sasha'), { as: 'server' })
     .then((users) => {
       const user = users[0]
       if (!user) return
@@ -608,7 +608,7 @@ async function query() {
   // Basic query
 
   await db.users.query(($) => [
-    $.field('name').equal('Sasha'),
+    $.field('name').eq('Sasha'),
     // @ts-expect-error
     $.field('contacts', 'emal').equal('koss@nocorp.me'),
     $.field('name').order(),
@@ -617,7 +617,7 @@ async function query() {
 
   // Server date
 
-  await db.accounts.query(($) => $.field('createdAt').equal(new Date()))
+  await db.accounts.query(($) => $.field('createdAt').eq(new Date()))
 
   await db.accounts.query(($) =>
     $.field('createdAt').order('asc', $.startAt(new Date()))
@@ -707,8 +707,8 @@ async function query() {
 
   const offQuery = db.users
     .query(($) => [
-      $.field('name').equal('Sasha'),
-      $.field('contacts', 'email').equal('koss@nocorp.me'),
+      $.field('name').eq('Sasha'),
+      $.field('contacts', 'email').eq('koss@nocorp.me'),
       $.field('name').order(),
       $.limit(1)
     ])
@@ -720,12 +720,12 @@ async function query() {
   // Nested fields
 
   await db.users.query(($) => [
-    $.field('contacts', 'email').equal('koss@nocorp.me')
+    $.field('contacts', 'email').eq('koss@nocorp.me')
   ])
 
   // Optional path
   await db.accounts.query(($) => [
-    $.field('nested1Optional', 'nested12Optional', 'hello').equal('World!')
+    $.field('nested1Optional', 'nested12Optional', 'hello').eq('World!')
   ])
 
   // where
@@ -798,7 +798,7 @@ async function query() {
   // Empty query fields
 
   db.users.query(($) => [
-    $.field('name').equal('Sasha'),
+    $.field('name').eq('Sasha'),
     undefined,
     null,
     false,
@@ -809,14 +809,14 @@ async function query() {
   // Union fields query
 
   // Simple
-  db.users.query(($) => $.field('contacts', 'city').equal('Singapore'))
+  db.users.query(($) => $.field('contacts', 'city').eq('Singapore'))
   // @ts-expect-error - address is a string
-  db.users.query(($) => $.field('contacts', 'city').equal(123))
+  db.users.query(($) => $.field('contacts', 'city').eq(123))
   // @ts-expect-error - the string keys should not leak
   db.users.query(($) => $.field('contacts', 'charAt').equal('Singapore'))
 
   // Deeply nested
-  db.users.query(($) => $.field('contacts', 'address', 'zip').equal('123456'))
+  db.users.query(($) => $.field('contacts', 'address', 'zip').eq('123456'))
   // @ts-expect-error - nope is not a correct field
   db.users.query(($) => $.field('contacts', 'address', 'nope').equal('nah'))
 
@@ -826,24 +826,24 @@ async function query() {
   db.users.query(($) => $.field('contacts', 'city').not(true))
 
   // Greater than
-  db.users.query(($) => $.field('contacts', 'city').more('Singapore'))
+  db.users.query(($) => $.field('contacts', 'city').gt('Singapore'))
   // @ts-expect-error - city is a string
-  db.users.query(($) => $.field('contacts', 'city').more(123))
+  db.users.query(($) => $.field('contacts', 'city').gt(123))
 
   // Greater than or equal
-  db.users.query(($) => $.field('contacts', 'city').moreOrEqual('Singapore'))
+  db.users.query(($) => $.field('contacts', 'city').gte('Singapore'))
   // @ts-expect-error - city is a string
-  db.users.query(($) => $.field('contacts', 'city').moreOrEqual(123))
+  db.users.query(($) => $.field('contacts', 'city').gte(123))
 
   // Less than
-  db.users.query(($) => $.field('contacts', 'city').less('Singapore'))
+  db.users.query(($) => $.field('contacts', 'city').lt('Singapore'))
   // @ts-expect-error - city is a string
-  db.users.query(($) => $.field('contacts', 'city').less(123))
+  db.users.query(($) => $.field('contacts', 'city').lt(123))
 
   // Less than or equal
-  db.users.query(($) => $.field('contacts', 'city').lessOrEqual('Singapore'))
+  db.users.query(($) => $.field('contacts', 'city').lte('Singapore'))
   // @ts-expect-error - city is a string
-  db.users.query(($) => $.field('contacts', 'city').lessOrEqual(123))
+  db.users.query(($) => $.field('contacts', 'city').lte(123))
 
   // Array contains
   db.users.query(($) => $.field('contacts', 'zip').contains('098765'))
@@ -898,7 +898,7 @@ async function query() {
   // Count
 
   const sashasCount = await db.users
-    .query(($) => $.field('name').equal('Sasha'))
+    .query(($) => $.field('name').eq('Sasha'))
     .count()
 
   sashasCount.toFixed()

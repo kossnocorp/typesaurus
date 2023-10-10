@@ -240,17 +240,17 @@ export namespace TypesaurusQuery {
     OrderQueryResult,
     WhereQueryResult
   > extends QueryFieldBase<Def, Def['Model'], DocId, OrderQueryResult> {
-    less(id: Def['Id']): WhereQueryResult
+    lt(id: Def['Id']): WhereQueryResult
 
-    lessOrEqual(id: Def['Id']): WhereQueryResult
+    lte(id: Def['Id']): WhereQueryResult
 
-    equal(id: Def['Id']): WhereQueryResult
+    eq(id: Def['Id']): WhereQueryResult
 
     not(id: Def['Id']): WhereQueryResult
 
-    more(id: Def['Id']): WhereQueryResult
+    gt(id: Def['Id']): WhereQueryResult
 
-    moreOrEqual(id: Def['Id']): WhereQueryResult
+    gte(id: Def['Id']): WhereQueryResult
 
     in(ids: Def['Id'][]): WhereQueryResult
 
@@ -264,21 +264,17 @@ export namespace TypesaurusQuery {
     OrderQueryResult,
     WhereQueryResult
   > extends QueryFieldBase<Def, Parent, Key, OrderQueryResult> {
-    less(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
+    lt(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    lessOrEqual(
-      field: QueryFieldValue<QueryFieldGet1<Parent, Key>>
-    ): WhereQueryResult
+    lte(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    equal(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
+    eq(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
     not(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    more(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
+    gt(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    moreOrEqual(
-      field: QueryFieldValue<QueryFieldGet1<Parent, Key>>
-    ): WhereQueryResult
+    gte(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
     in(fields: QueryFieldValue<QueryFieldGet1<Parent, Key>>[]): WhereQueryResult
 
