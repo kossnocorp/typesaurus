@@ -137,7 +137,7 @@ export namespace TypesaurusQuery {
   export type OrderCursors<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > =
     | Utils.Falsy
     | OrderCursorStart<Def, Parent, Key>
@@ -160,7 +160,7 @@ export namespace TypesaurusQuery {
   export type OrderCursorStart<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > =
     | OrderCursorStartAt<Def, Parent, Key>
     | OrderCursorStartAfter<Def, Parent, Key>
@@ -168,19 +168,19 @@ export namespace TypesaurusQuery {
   export interface OrderCursorStartAt<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > extends OrderCursor<Def, Parent, Key, 'startAt'> {}
 
   export interface OrderCursorStartAfter<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > extends OrderCursor<Def, Parent, Key, 'startAfter'> {}
 
   export type OrderCursorEnd<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > =
     | OrderCursorEndAt<Def, Parent, Key>
     | OrderCursorEndBefore<Def, Parent, Key>
@@ -188,19 +188,19 @@ export namespace TypesaurusQuery {
   export interface OrderCursorEndAt<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > extends OrderCursor<Def, Parent, Key, 'endAt'> {}
 
   export interface OrderCursorEndBefore<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > extends OrderCursor<Def, Parent, Key, 'endBefore'> {}
 
   export interface OrderCursor<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId,
+    Key extends QueryFieldKey1<Parent> | DocId,
     Position extends OrderCursorPosition
   > {
     type: 'cursor'
@@ -211,16 +211,18 @@ export namespace TypesaurusQuery {
   export type OrderCursorValue<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId
+    Key extends QueryFieldKey1<Parent> | DocId
   > =
-    | (Key extends keyof Parent ? QueryFieldValue<Parent[Key]> : Def['Id']) // Field value or id
+    | (Key extends QueryFieldKey1<Parent>
+        ? QueryFieldValue<QueryFieldGet1<Parent, Key>>
+        : Def['Id']) // Field value or id
     | Core.Doc<Def, Core.DocProps> // Will be used to get value for the cursor
     | undefined // Indicates the start of the query
 
   export interface QueryFieldBase<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent | DocId,
+    Key extends QueryFieldKey1<Parent> | DocId,
     OrderQueryResult
   > {
     // With cursors
@@ -258,41 +260,49 @@ export namespace TypesaurusQuery {
   export interface QueryPrimitiveField<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent,
+    Key extends QueryFieldKey1<Parent>,
     OrderQueryResult,
     WhereQueryResult
   > extends QueryFieldBase<Def, Parent, Key, OrderQueryResult> {
-    less(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
+    less(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    lessOrEqual(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
+    lessOrEqual(
+      field: QueryFieldValue<QueryFieldGet1<Parent, Key>>
+    ): WhereQueryResult
 
-    equal(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
+    equal(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    not(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
+    not(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    more(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
+    more(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult
 
-    moreOrEqual(field: QueryFieldValue<Parent[Key]>): WhereQueryResult
+    moreOrEqual(
+      field: QueryFieldValue<QueryFieldGet1<Parent, Key>>
+    ): WhereQueryResult
 
-    in(fields: QueryFieldValue<Parent[Key]>[]): WhereQueryResult
+    in(fields: QueryFieldValue<QueryFieldGet1<Parent, Key>>[]): WhereQueryResult
 
-    notIn(fields: QueryFieldValue<Parent[Key]>[]): WhereQueryResult
+    notIn(
+      fields: QueryFieldValue<QueryFieldGet1<Parent, Key>>[]
+    ): WhereQueryResult
   }
 
   export interface QueryArrayField<
     Parent,
-    Key extends keyof Parent,
+    Key extends QueryFieldKey1<Parent>,
     WhereQueryResult
   > {
     contains(
-      field: Exclude<Parent[Key], undefined> extends Array<infer ItemType>
+      field: Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<
+        infer ItemType
+      >
         ? QueryFieldValue<ItemType>
         : never
     ): WhereQueryResult
 
     containsAny(
-      field: Exclude<Parent[Key], undefined> extends Array<any>
-        ? QueryFieldValue<Parent[Key]>
+      field: Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<any>
+        ? QueryFieldValue<QueryFieldGet1<Parent, Key>>
         : never
     ): WhereQueryResult
   }
@@ -300,10 +310,10 @@ export namespace TypesaurusQuery {
   export type QueryField<
     Def extends Core.DocDef,
     Parent,
-    Key extends keyof Parent,
+    Key extends QueryFieldKey1<Parent>,
     OrderQueryResult,
     WhereQueryResult
-  > = Exclude<Parent[Key], undefined> extends Array<any>
+  > = Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<any>
     ? QueryArrayField<Parent, Key, WhereQueryResult>
     : QueryPrimitiveField<Def, Parent, Key, OrderQueryResult, WhereQueryResult>
 
@@ -332,7 +342,7 @@ export namespace TypesaurusQuery {
     /**
      * Field selector, allows querying by a specific field.
      */
-    field<Key extends keyof Model>(
+    field<Key extends QueryFieldKey1<Model>>(
       key: Key
     ): QueryField<Def, Model, Key, OrderQueryResult, WhereQueryResult>
 
@@ -340,14 +350,14 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>
     >(
       key1: Key1,
       key2: Key2
     ): QueryField<
       Def,
-      Utils.AllRequired<Model>[Key1],
+      QueryFieldGet1<Model, Key1>,
       Key2,
       OrderQueryResult,
       WhereQueryResult
@@ -357,16 +367,16 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>
     >(
       key1: Key1,
       key2: Key2,
       key3: Key3
     ): QueryField<
       Def,
-      Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2],
+      QueryFieldGet2<Model, Key1, Key2>,
       Key3,
       OrderQueryResult,
       WhereQueryResult
@@ -376,14 +386,10 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Model>[Key1]
-      >[Key2],
-      Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+      Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>
     >(
       key1: Key1,
       key2: Key2,
@@ -391,9 +397,7 @@ export namespace TypesaurusQuery {
       key4: Key4
     ): QueryField<
       Def,
-      Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3],
+      QueryFieldGet3<Model, Key1, Key2, Key3>,
       Key4,
       OrderQueryResult,
       WhereQueryResult
@@ -403,19 +407,11 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Model>[Key1]
-      >[Key2],
-      Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3],
-      Key5 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-        >[Key3]
-      >[Key4]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+      Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+      Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>
     >(
       key1: Key1,
       key2: Key2,
@@ -424,11 +420,7 @@ export namespace TypesaurusQuery {
       key5: Key5
     ): QueryField<
       Def,
-      Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-        >[Key3]
-      >[Key4],
+      QueryFieldGet4<Model, Key1, Key2, Key3, Key4>,
       Key5,
       OrderQueryResult,
       WhereQueryResult
@@ -438,26 +430,12 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Model>[Key1]
-      >[Key2],
-      Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3],
-      Key5 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-        >[Key3]
-      >[Key4],
-      Key6 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-          >[Key3]
-        >[Key4]
-      >[Key5]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+      Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+      Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+      Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>
     >(
       key1: Key1,
       key2: Key2,
@@ -467,13 +445,7 @@ export namespace TypesaurusQuery {
       key6: Key6
     ): QueryField<
       Def,
-      Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-          >[Key3]
-        >[Key4]
-      >[Key5],
+      QueryFieldGet5<Model, Key1, Key2, Key3, Key4, Key5>,
       Key6,
       OrderQueryResult,
       WhereQueryResult
@@ -483,35 +455,13 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Model>[Key1]
-      >[Key2],
-      Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3],
-      Key5 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-        >[Key3]
-      >[Key4],
-      Key6 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-          >[Key3]
-        >[Key4]
-      >[Key5],
-      Key7 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-            >[Key3]
-          >[Key4]
-        >[Key5]
-      >[Key6]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+      Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+      Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+      Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+      Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>
     >(
       key1: Key1,
       key2: Key2,
@@ -522,15 +472,7 @@ export namespace TypesaurusQuery {
       key7: Key7
     ): QueryField<
       Def,
-      Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-            >[Key3]
-          >[Key4]
-        >[Key5]
-      >[Key6],
+      QueryFieldGet6<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
       Key7,
       OrderQueryResult,
       WhereQueryResult
@@ -540,46 +482,23 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Model>[Key1]
-      >[Key2],
-      Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3],
-      Key5 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-        >[Key3]
-      >[Key4],
-      Key6 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-          >[Key3]
-        >[Key4]
-      >[Key5],
-      Key7 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-            >[Key3]
-          >[Key4]
-        >[Key5]
-      >[Key6],
-      Key8 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-              >[Key3]
-            >[Key4]
-          >[Key5]
-        >[Key6]
-      >[Key7]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+      Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+      Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+      Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+      Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+      Key8 extends QueryFieldKey8<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7
+      >
     >(
       key1: Key1,
       key2: Key2,
@@ -591,17 +510,7 @@ export namespace TypesaurusQuery {
       key8: Key8
     ): QueryField<
       Def,
-      Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-              >[Key3]
-            >[Key4]
-          >[Key5]
-        >[Key6]
-      >[Key7],
+      QueryFieldGet7<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7>,
       Key8,
       OrderQueryResult,
       WhereQueryResult
@@ -611,59 +520,34 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Model>[Key1]
-      >[Key2],
-      Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3],
-      Key5 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-        >[Key3]
-      >[Key4],
-      Key6 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-          >[Key3]
-        >[Key4]
-      >[Key5],
-      Key7 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-            >[Key3]
-          >[Key4]
-        >[Key5]
-      >[Key6],
-      Key8 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-              >[Key3]
-            >[Key4]
-          >[Key5]
-        >[Key6]
-      >[Key7],
-      Key9 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<
-                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-                >[Key3]
-              >[Key4]
-            >[Key5]
-          >[Key6]
-        >[Key7]
-      >[Key8]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+      Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+      Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+      Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+      Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+      Key8 extends QueryFieldKey8<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7
+      >,
+      Key9 extends QueryFieldKey9<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8
+      >
     >(
       key1: Key1,
       key2: Key2,
@@ -676,19 +560,7 @@ export namespace TypesaurusQuery {
       key9: Key9
     ): QueryField<
       Def,
-      Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<
-                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-                >[Key3]
-              >[Key4]
-            >[Key5]
-          >[Key6]
-        >[Key7]
-      >[Key8],
+      QueryFieldGet8<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8>,
       Key9,
       OrderQueryResult,
       WhereQueryResult
@@ -698,74 +570,46 @@ export namespace TypesaurusQuery {
      * Field selector, allows querying by a specific field.
      */
     field<
-      Key1 extends keyof Model,
-      Key2 extends keyof Utils.AllRequired<Model>[Key1],
-      Key3 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Model>[Key1]
-      >[Key2],
-      Key4 extends keyof Utils.AllRequired<
-        Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-      >[Key3],
-      Key5 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-        >[Key3]
-      >[Key4],
-      Key6 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-          >[Key3]
-        >[Key4]
-      >[Key5],
-      Key7 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-            >[Key3]
-          >[Key4]
-        >[Key5]
-      >[Key6],
-      Key8 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-              >[Key3]
-            >[Key4]
-          >[Key5]
-        >[Key6]
-      >[Key7],
-      Key9 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<
-                  Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-                >[Key3]
-              >[Key4]
-            >[Key5]
-          >[Key6]
-        >[Key7]
-      >[Key8],
-      Key10 extends keyof Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<
-                  Utils.AllRequired<
-                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-                  >[Key3]
-                >[Key4]
-              >[Key5]
-            >[Key6]
-          >[Key7]
-        >[Key8]
-      >[Key9]
+      Key1 extends QueryFieldKey1<Model>,
+      Key2 extends QueryFieldKey2<Model, Key1>,
+      Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+      Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+      Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+      Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+      Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+      Key8 extends QueryFieldKey8<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7
+      >,
+      Key9 extends QueryFieldKey9<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8
+      >,
+      Key10 extends QueryFieldKey10<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8,
+        Key9
+      >
     >(
       key1: Key1,
       key2: Key2,
@@ -779,21 +623,18 @@ export namespace TypesaurusQuery {
       key10: Key10
     ): QueryField<
       Def,
-      Utils.AllRequired<
-        Utils.AllRequired<
-          Utils.AllRequired<
-            Utils.AllRequired<
-              Utils.AllRequired<
-                Utils.AllRequired<
-                  Utils.AllRequired<
-                    Utils.AllRequired<Utils.AllRequired<Model>[Key1]>[Key2]
-                  >[Key3]
-                >[Key4]
-              >[Key5]
-            >[Key6]
-          >[Key7]
-        >[Key8]
-      >[Key9],
+      QueryFieldGet9<
+        Model,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8,
+        Key9
+      >,
       Key10,
       OrderQueryResult,
       WhereQueryResult
@@ -801,22 +642,292 @@ export namespace TypesaurusQuery {
 
     limit(to: number): LimitQueryResult
 
-    startAt<Parent, Key extends keyof Parent | DocId>(
+    startAt<Parent, Key extends QueryFieldKey1<Parent> | DocId>(
       value: OrderCursorValue<Def, Parent, Key>
     ): OrderCursorStartAt<Def, Parent, Key>
 
-    startAfter<Parent, Key extends keyof Parent | DocId>(
+    startAfter<Parent, Key extends QueryFieldKey1<Parent> | DocId>(
       value: OrderCursorValue<Def, Parent, Key>
     ): OrderCursorStartAfter<Def, Parent, Key>
 
-    endAt<Parent, Key extends keyof Parent | DocId>(
+    endAt<Parent, Key extends QueryFieldKey1<Parent> | DocId>(
       value: OrderCursorValue<Def, Parent, Key>
     ): OrderCursorEndAt<Def, Parent, Key>
 
-    endBefore<Parent, Key extends keyof Parent | DocId>(
+    endBefore<Parent, Key extends QueryFieldKey1<Parent> | DocId>(
       value: OrderCursorValue<Def, Parent, Key>
     ): OrderCursorEndBefore<Def, Parent, Key>
 
     docId(): DocId
   }
+
+  /// Query utils
+
+  //// QueryFieldKeyX
+
+  export type QueryFieldKey1<Model> = Utils.UnionKeys<Utils.AllRequired<Model>>
+
+  export type QueryFieldKey2<
+    Model,
+    Key1 extends QueryFieldKey1<Model>
+  > = QueryFieldKey1<QueryFieldGet1<Model, Key1>>
+
+  export type QueryFieldKey3<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>
+  > = QueryFieldKey1<QueryFieldGet2<Model, Key1, Key2>>
+
+  export type QueryFieldKey4<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>
+  > = QueryFieldKey1<QueryFieldGet3<Model, Key1, Key2, Key3>>
+
+  export type QueryFieldKey5<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>
+  > = QueryFieldKey1<QueryFieldGet4<Model, Key1, Key2, Key3, Key4>>
+
+  export type QueryFieldKey6<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>
+  > = QueryFieldKey1<QueryFieldGet5<Model, Key1, Key2, Key3, Key4, Key5>>
+
+  export type QueryFieldKey7<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>
+  > = QueryFieldKey1<QueryFieldGet6<Model, Key1, Key2, Key3, Key4, Key5, Key6>>
+
+  export type QueryFieldKey8<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+    Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>
+  > = QueryFieldKey1<
+    QueryFieldGet7<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7>
+  >
+
+  export type QueryFieldKey9<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+    Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+    Key8 extends QueryFieldKey8<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7>
+  > = QueryFieldKey1<
+    QueryFieldGet8<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8>
+  >
+
+  export type QueryFieldKey10<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+    Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+    Key8 extends QueryFieldKey8<
+      Model,
+      Key1,
+      Key2,
+      Key3,
+      Key4,
+      Key5,
+      Key6,
+      Key7
+    >,
+    Key9 extends QueryFieldKey9<
+      Model,
+      Key1,
+      Key2,
+      Key3,
+      Key4,
+      Key5,
+      Key6,
+      Key7,
+      Key8
+    >
+  > = QueryFieldKey1<
+    QueryFieldGet9<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9>
+  >
+
+  //// QueryFieldGetX
+
+  export type QueryFieldGet1<
+    Model,
+    Key extends QueryFieldKey1<Model>
+  > = Utils.UnionValue<Utils.AllRequired<Model>, Key>
+
+  export type QueryFieldGet2<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>
+  > = QueryFieldGet1<QueryFieldGet1<Model, Key1>, Key2>
+
+  export type QueryFieldGet3<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>
+  > = QueryFieldGet1<QueryFieldGet2<Model, Key1, Key2>, Key3>
+
+  export type QueryFieldGet4<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>
+  > = QueryFieldGet1<QueryFieldGet3<Model, Key1, Key2, Key3>, Key4>
+
+  export type QueryFieldGet5<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>
+  > = QueryFieldGet1<QueryFieldGet4<Model, Key1, Key2, Key3, Key4>, Key5>
+
+  export type QueryFieldGet6<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>
+  > = QueryFieldGet1<QueryFieldGet5<Model, Key1, Key2, Key3, Key4, Key5>, Key6>
+
+  export type QueryFieldGet7<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+    Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>
+  > = QueryFieldGet1<
+    QueryFieldGet6<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+    Key7
+  >
+
+  export type QueryFieldGet8<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+    Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+    Key8 extends QueryFieldKey8<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7>
+  > = QueryFieldGet1<
+    QueryFieldGet7<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7>,
+    Key8
+  >
+
+  export type QueryFieldGet9<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+    Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+    Key8 extends QueryFieldKey8<
+      Model,
+      Key1,
+      Key2,
+      Key3,
+      Key4,
+      Key5,
+      Key6,
+      Key7
+    >,
+    Key9 extends QueryFieldKey9<
+      Model,
+      Key1,
+      Key2,
+      Key3,
+      Key4,
+      Key5,
+      Key6,
+      Key7,
+      Key8
+    >
+  > = QueryFieldGet1<
+    QueryFieldGet8<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8>,
+    Key9
+  >
+
+  export type QueryFieldGet10<
+    Model,
+    Key1 extends QueryFieldKey1<Model>,
+    Key2 extends QueryFieldKey2<Model, Key1>,
+    Key3 extends QueryFieldKey3<Model, Key1, Key2>,
+    Key4 extends QueryFieldKey4<Model, Key1, Key2, Key3>,
+    Key5 extends QueryFieldKey5<Model, Key1, Key2, Key3, Key4>,
+    Key6 extends QueryFieldKey6<Model, Key1, Key2, Key3, Key4, Key5>,
+    Key7 extends QueryFieldKey7<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
+    Key8 extends QueryFieldKey8<
+      Model,
+      Key1,
+      Key2,
+      Key3,
+      Key4,
+      Key5,
+      Key6,
+      Key7
+    >,
+    Key9 extends QueryFieldKey9<
+      Model,
+      Key1,
+      Key2,
+      Key3,
+      Key4,
+      Key5,
+      Key6,
+      Key7,
+      Key8
+    >,
+    Key10 extends QueryFieldKey10<
+      Model,
+      Key1,
+      Key2,
+      Key3,
+      Key4,
+      Key5,
+      Key6,
+      Key7,
+      Key8,
+      Key9
+    >
+  > = QueryFieldGet1<
+    QueryFieldGet9<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9>,
+    Key10
+  >
 }

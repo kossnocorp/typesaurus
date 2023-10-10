@@ -74,10 +74,30 @@ type PostId = string & { __dontUseWillBeUndefined__: 'post' }
 
 interface User {
   name: string
-  contacts: {
-    email: string
-    phone?: string
-  }
+  contacts:
+    | {
+        email: string
+        phone?: string
+      }
+    | {
+        country: string
+        city: string
+      }
+    | {
+        zip: string[]
+      }
+    | {
+        address:
+          | {
+              zip: string
+            }
+          | {
+              line: string
+            }
+      }
+    | {
+        no: number
+      }
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
@@ -785,6 +805,95 @@ async function query() {
     '',
     0
   ])
+
+  // Union fields query
+
+  // Simple
+  db.users.query(($) => $.field('contacts', 'city').equal('Singapore'))
+  // @ts-expect-error - address is a string
+  db.users.query(($) => $.field('contacts', 'city').equal(123))
+  // @ts-expect-error - the string keys should not leak
+  db.users.query(($) => $.field('contacts', 'charAt').equal('Singapore'))
+
+  // Deeply nested
+  db.users.query(($) => $.field('contacts', 'address', 'zip').equal('123456'))
+  // @ts-expect-error - nope is not a correct field
+  db.users.query(($) => $.field('contacts', 'address', 'nope').equal('nah'))
+
+  // Not
+  db.users.query(($) => $.field('contacts', 'city').not('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').not(true))
+
+  // Greater than
+  db.users.query(($) => $.field('contacts', 'city').more('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').more(123))
+
+  // Greater than or equal
+  db.users.query(($) => $.field('contacts', 'city').moreOrEqual('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').moreOrEqual(123))
+
+  // Less than
+  db.users.query(($) => $.field('contacts', 'city').less('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').less(123))
+
+  // Less than or equal
+  db.users.query(($) => $.field('contacts', 'city').lessOrEqual('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').lessOrEqual(123))
+
+  // Array contains
+  db.users.query(($) => $.field('contacts', 'zip').contains('098765'))
+  // @ts-expect-error - zip is an array of numbers
+  db.users.query(($) => $.field('contacts', 'zip').contains(98765))
+
+  // Array contains any
+  db.users.query(($) => $.field('contacts', 'zip').containsAny(['098765']))
+  // @ts-expect-error - zip is an array of numbers
+  db.users.query(($) => $.field('contacts', 'zip').containsAny([98765]))
+
+  // In
+  db.users.query(($) => $.field('contacts', 'city').in(['Singapore']))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').in([123]))
+
+  // Not in
+  db.users.query(($) => $.field('contacts', 'city').notIn(['Singapore']))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').notIn([123]))
+
+  // Cursors
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      $.startAfter('Singapore'),
+      $.endAt('Bangkok')
+    ])
+  )
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      // @ts-expect-error - city is a string
+      $.startAfter(123),
+      // @ts-expect-error - city is a string
+      $.endAt(456)
+    ])
+  )
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      $.startAt('Singapore'),
+      $.endBefore('Bangkok')
+    ])
+  )
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      // @ts-expect-error - city is a string
+      $.startAt(123),
+      // @ts-expect-error - city is a string
+      $.endBefore(456)
+    ])
+  )
 
   // Count
 
