@@ -895,6 +895,9 @@ async function query() {
     ])
   )
 
+  // Variable shape
+  db.content.query(($) => $.field('src').eq('https://exama.com/image.png'))
+
   // Count
 
   const sashasCount = await db.users
