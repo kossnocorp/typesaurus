@@ -10,33 +10,45 @@
   "browser": "./adapter/web",
   "main": "./adapter/admin/index.js",
   "module": "./adapter/admin/index.mjs",
+  "types": "./index.d.ts",
   "exports": {
     ".": {
       "browser": "./adapter/web/index.mjs",
       "require": "./adapter/admin/index.js",
-      "import": "./adapter/admin/index.mjs"
+      "import": "./adapter/admin/index.mjs",
+      "types": "./index.d.ts"
     },
     "./batch": {
       "browser": "./adapter/web/batch.mjs",
       "require": "./adapter/admin/batch.js",
-      "import": "./adapter/admin/batch.mjs"
+      "import": "./adapter/admin/batch.mjs",
+      "types": "./types/batch.d.ts"
     },
     "./groups": {
       "browser": "./adapter/web/groups.mjs",
       "require": "./adapter/admin/groups.js",
-      "import": "./adapter/admin/groups.mjs"
+      "import": "./adapter/admin/groups.mjs",
+      "types": "./types/groups.d.ts"
     },
     "./transaction": {
       "browser": "./adapter/web/transaction.mjs",
       "require": "./adapter/admin/transaction.js",
-      "import": "./adapter/admin/transaction.mjs"
+      "import": "./adapter/admin/transaction.mjs",
+      "types": "./types/transaction.d.ts"
     },
     "./helpers": {
       "require": "./helpers/index.js",
-      "import": "./helpers/index.mjs"
+      "import": "./helpers/index.mjs",
+      "types": "./types/helpers.js"
     },
-    "./adapter/next/admin": "./adapter/admin/index.mjs",
-    "./adapter/next/web": "./adapter/web/index.mjs"
+    "./adapter/next/admin": {
+      "import": "./adapter/admin/index.mjs",
+      "types": "./index.d.ts"
+    },
+    "./adapter/next/web": {
+      "import": "./adapter/web/index.mjs",
+      "types": "./index.d.ts"
+    }
   },
   "sideEffects": false,
   "repository": "https://github.com/kossnocorp/typesaurus",
