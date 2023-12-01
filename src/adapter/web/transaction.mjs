@@ -1,14 +1,16 @@
 import { doc, getFirestore, runTransaction } from 'firebase/firestore'
 import {
-  assertEnvironment,
   Collection,
   Doc,
   Ref,
+  UpdateField,
+  assertEnvironment,
+  pathRegExp,
   unwrapData,
+  updateFields,
   updateHelpers,
   wrapData,
-  writeHelpers,
-  pathRegExp
+  writeHelpers
 } from './core.mjs'
 
 export const transaction = (db, options) => {
@@ -186,10 +188,18 @@ class WriteCollection {
   }
 
   update(id, data) {
-    const dataToUpdate =
-      typeof data === 'function' ? data(updateHelpers()) : data
+    const updateData = typeof data === 'function' ? data(updateHelpers()) : data
+    if (!updateData) return
+
+    const update = Array.isArray(updateData)
+      ? updateFields(updateData)
+      : updateData instanceof UpdateField
+      ? updateFields([updateData])
+      : updateData
+    if (!Object.keys(update).length) return
+
     const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    this.transaction.update(doc, unwrapData(this.firebaseDB, dataToUpdate))
+    this.transaction.update(doc, unwrapData(this.firebaseDB, update))
   }
 
   remove(id) {

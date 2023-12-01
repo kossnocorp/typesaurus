@@ -32,7 +32,7 @@ export class Collection {
 
       return (
         Object.keys(update).length
-          ? this.firebaseDoc(id).update(unwrapData(update, true))
+          ? this.firebaseDoc(id).update(unwrapData(update))
           : Promise.resolve()
       ).then(() => this.ref(id))
     }
@@ -44,9 +44,7 @@ export class Collection {
         ...updateHelpers('build', fields),
         run: async () => {
           if (fields.length)
-            await this.firebaseDoc(id).update(
-              unwrapData(updateFields(fields), true)
-            )
+            await this.firebaseDoc(id).update(unwrapData(updateFields(fields)))
           return this.ref(id)
         }
       }
@@ -372,7 +370,7 @@ export function updateFields(fields) {
   }, {})
 }
 
-class UpdateField {
+export class UpdateField {
   constructor(key, value) {
     this.key = key
     this.value = value

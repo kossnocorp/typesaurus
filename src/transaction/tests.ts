@@ -232,6 +232,93 @@ describe('transaction', () => {
       expect(doc?.data.count).toBe(2)
       expect(doc?.data.optional).toBe(true)
     })
+
+    it('allows to update via array of fields', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await Promise.all([
+        plusOne(counter, true),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) => {
+            const { result } = $
+            result?.update(($) => [
+              $.field('count').set((result.data.count || 0) + 1),
+              $.field('optional').set(true)
+            ])
+          })
+      ])
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(2)
+      expect(doc?.data.optional).toBe(true)
+    })
+
+    it('filters out the empty fields properly', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await Promise.all([
+        plusOne(counter, true),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) => {
+            // TODO: Make $.result readonly so there's no need to assign a variable?
+            const { result } = $
+            return result?.update(($) => [
+              false,
+              undefined,
+              null,
+              0,
+              $.field('count').set((result.data.count || 0) + 1),
+              $.field('optional').set(true)
+            ])
+          })
+      ])
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(2)
+      expect(doc?.data.optional).toBe(true)
+    })
+
+    it('skips empty updates', async () => {
+      const id = await db.counters.id()
+      const counter = db.counters.ref(id)
+      await counter.set({ count: 0 })
+
+      await Promise.all([
+        plusOne(counter, true),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) => undefined),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) => null),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) => 0),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) => false),
+
+        transaction(db)
+          .read(($) => $.db.counters.get(counter.id))
+          .write(($) => [undefined, null, 0, false])
+      ])
+
+      const doc = await counter.get()
+      expect(doc?.data.count).toBe(1)
+      expect(doc?.data.optional).toBe(undefined)
+    })
   })
 
   describe('remove', () => {

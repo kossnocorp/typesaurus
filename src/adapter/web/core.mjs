@@ -396,7 +396,7 @@ export function updateFields(fields) {
   }, {})
 }
 
-class UpdateField {
+export class UpdateField {
   constructor(key, value) {
     this.key = key
     this.value = value

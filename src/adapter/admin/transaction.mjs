@@ -6,6 +6,8 @@ import {
   Ref,
   unwrapData,
   updateHelpers,
+  updateFields,
+  UpdateField,
   wrapData,
   writeHelpers,
   pathRegExp
@@ -186,10 +188,18 @@ class WriteCollection {
   }
 
   update(id, data) {
-    const dataToUpdate =
-      typeof data === 'function' ? data(updateHelpers()) : data
+    const updateData = typeof data === 'function' ? data(updateHelpers()) : data
+    if (!updateData) return
+
+    const update = Array.isArray(updateData)
+      ? updateFields(updateData)
+      : updateData instanceof UpdateField
+      ? updateFields([updateData])
+      : updateData
+    if (!Object.keys(update).length) return
+
     const doc = firebaseCollection(this.path).doc(id)
-    this.transaction.update(doc, unwrapData(dataToUpdate))
+    this.transaction.update(doc, unwrapData(update))
   }
 
   remove(id) {
