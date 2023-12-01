@@ -1,4 +1,4 @@
-import { doc, getFirestore, runTransaction } from 'firebase/firestore'
+import { doc, runTransaction } from 'firebase/firestore'
 import {
   Collection,
   Doc,
@@ -12,6 +12,7 @@ import {
   wrapData,
   writeHelpers
 } from './core.mjs'
+import { firestoreSymbol } from './firebase.mjs'
 
 export const transaction = (db, options) => {
   assertEnvironment(options?.as)
@@ -19,14 +20,14 @@ export const transaction = (db, options) => {
     read: (readCallback) => {
       return {
         write: (writeCallback) =>
-          runTransaction(getFirestore(), async (firebaseTransaction) => {
+          runTransaction(db[firestoreSymbol](), async (firebaseTransaction) => {
             const readResult = await readCallback(
               transactionReadHelpers(db, firebaseTransaction)
             )
             const writeResult = writeCallback(
               transactionWriteHelpers(db, firebaseTransaction, readResult)
             )
-            return writeDocsToDocs(writeResult)
+            return writeDocsToDocs(db, writeResult)
           })
       }
     }
@@ -69,23 +70,23 @@ function readDB(rootDB, transaction) {
 
 class ReadCollection {
   constructor(db, transaction, name, path) {
-    this.type = 'collection'
     this.db = db
+    this.firestore = db[firestoreSymbol]
+    this.type = 'collection'
     this.name = name
     this.path = path
     this.transaction = transaction
-    this.firebaseDB = getFirestore()
   }
 
   async get(id) {
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    const snapshot = await this.transaction.get(doc)
+    const _doc = firebaseDoc(this.firestore(), this.path, id)
+    const snapshot = await this.transaction.get(_doc)
     if (!snapshot.exists()) return null
     return new ReadDoc(
       this,
       id,
-      wrapData(snapshot.data(), (path) =>
-        pathToWriteRef(this.db, this.transaction, path)
+      wrapData(this.db, snapshot.data(), (db, path) =>
+        pathToWriteRef(db, this.transaction, path)
       )
     )
   }
@@ -165,24 +166,24 @@ function readDocsToWriteDocs(db, transaction, data) {
 
 class WriteCollection {
   constructor(db, transaction, name, path) {
+    this.db = db
+    this.firestore = db[firestoreSymbol]
     this.type = 'collection'
     this.name = name
     this.path = path
-    this.db = db
     this.transaction = transaction
-    this.firebaseDB = getFirestore()
   }
 
   set(id, data) {
     const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    this.transaction.set(doc, unwrapData(this.firebaseDB, dataToSet))
+    const doc = firebaseDoc(this.firestore(), this.path, id)
+    this.transaction.set(doc, unwrapData(this.firestore(), dataToSet))
   }
 
   upset(id, data) {
     const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    this.transaction.set(doc, unwrapData(this.firebaseDB, dataToUpset), {
+    const doc = firebaseDoc(this.firestore(), this.path, id)
+    this.transaction.set(doc, unwrapData(this.firestore(), dataToUpset), {
       merge: true
     })
   }
@@ -198,12 +199,12 @@ class WriteCollection {
       : updateData
     if (!Object.keys(update).length) return
 
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    const doc = firebaseDoc(this.firestore(), this.path, id)
     this.transaction.update(doc, unwrapData(this.firebaseDB, update))
   }
 
   remove(id) {
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
+    const doc = firebaseDoc(this.firestore(), this.path, id)
     this.transaction.delete(doc)
   }
 
@@ -281,22 +282,22 @@ class WriteDoc {
   }
 }
 
-function writeDocsToDocs(value) {
+function writeDocsToDocs(db, value) {
   if (value instanceof WriteDoc) {
     return new Doc(
-      new Collection(value.ref.collection.name, value.ref.collection.path),
+      new Collection(db, value.ref.collection.name, value.ref.collection.path),
       value.ref.id,
       value.data
     )
   } else if (value instanceof WriteRef) {
     return new Ref(
-      new Collection(value.ref.collection.name, value.ref.collection.path),
+      new Collection(db, value.ref.collection.name, value.ref.collection.path),
       value.ref.id
     )
   } else if (value && typeof value === 'object') {
     const processedData = Array.isArray(value) ? [] : {}
     Object.entries(value).forEach(([key, value]) => {
-      processedData[key] = writeDocsToDocs(value)
+      processedData[key] = writeDocsToDocs(db, value)
     })
     return processedData
   } else {

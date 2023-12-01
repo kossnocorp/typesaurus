@@ -1,17 +1,17 @@
-import { getFirestore } from 'firebase-admin/firestore'
 import {
-  assertEnvironment,
   Collection,
   Doc,
   Ref,
-  unwrapData,
-  updateHelpers,
-  updateFields,
   UpdateField,
+  assertEnvironment,
+  pathRegExp,
+  unwrapData,
+  updateFields,
+  updateHelpers,
   wrapData,
-  writeHelpers,
-  pathRegExp
+  writeHelpers
 } from './core.mjs'
+import { firestoreSymbol } from './firebase.mjs'
 
 export const transaction = (db, options) => {
   assertEnvironment(options?.as)
@@ -19,14 +19,14 @@ export const transaction = (db, options) => {
     read: (readCallback) => {
       return {
         write: (writeCallback) =>
-          getFirestore().runTransaction(async (firebaseTransaction) => {
+          db[firestoreSymbol]().runTransaction(async (firebaseTransaction) => {
             const readResult = await readCallback(
               transactionReadHelpers(db, firebaseTransaction)
             )
             const writeResult = writeCallback(
               transactionWriteHelpers(db, firebaseTransaction, readResult)
             )
-            return writeDocsToDocs(writeResult)
+            return writeDocsToDocs(db, writeResult)
           })
       }
     }
@@ -69,22 +69,23 @@ function readDB(rootDB, transaction) {
 
 class ReadCollection {
   constructor(db, transaction, name, path) {
-    this.type = 'collection'
     this.db = db
+    this.firestore = db[firestoreSymbol]
+    this.type = 'collection'
     this.name = name
     this.path = path
     this.transaction = transaction
   }
 
   async get(id) {
-    const doc = firebaseDoc(this.path, id)
+    const doc = this.firestore().doc(`${this.path}/${id}`)
     const snapshot = await this.transaction.get(doc)
     if (!snapshot.exists) return null
     return new ReadDoc(
       this,
       id,
-      wrapData(snapshot.data(), (path) =>
-        pathToWriteRef(this.db, this.transaction, path)
+      wrapData(this.db, snapshot.data(), (db, path) =>
+        pathToWriteRef(db, this.transaction, path)
       )
     )
   }
@@ -105,14 +106,6 @@ class ReadDoc {
     this.ref = new ReadRef(collection, id)
     this.data = data
   }
-}
-
-function firebaseDoc(path, id) {
-  return getFirestore().doc(`${path}/${id}`)
-}
-
-function firebaseCollection(path) {
-  return getFirestore().collection(path)
 }
 
 function transactionWriteHelpers(db, transaction, result) {
@@ -168,23 +161,26 @@ function readDocsToWriteDocs(db, transaction, data) {
 
 class WriteCollection {
   constructor(db, transaction, name, path) {
+    this.db = db
+    this.firestore = db[firestoreSymbol]
     this.type = 'collection'
     this.name = name
     this.path = path
-    this.db = db
     this.transaction = transaction
   }
 
   set(id, data) {
     const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.transaction.set(doc, unwrapData(dataToSet))
+    const doc = this.firestore().collection(this.path).doc(id)
+    this.transaction.set(doc, unwrapData(this.firestore, dataToSet))
   }
 
   upset(id, data) {
     const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.transaction.set(doc, unwrapData(dataToUpset), { merge: true })
+    const doc = this.firestore().collection(this.path).doc(id)
+    this.transaction.set(doc, unwrapData(this.firestore, dataToUpset), {
+      merge: true
+    })
   }
 
   update(id, data) {
@@ -198,12 +194,12 @@ class WriteCollection {
       : updateData
     if (!Object.keys(update).length) return
 
-    const doc = firebaseCollection(this.path).doc(id)
-    this.transaction.update(doc, unwrapData(update))
+    const doc = this.firestore().collection(this.path).doc(id)
+    this.transaction.update(doc, unwrapData(this.firestore, update))
   }
 
   remove(id) {
-    const doc = firebaseCollection(this.path).doc(id)
+    const doc = this.firestore().collection(this.path).doc(id)
     this.transaction.delete(doc)
   }
 
@@ -281,10 +277,10 @@ class WriteDoc {
   }
 }
 
-function writeDocsToDocs(value) {
+function writeDocsToDocs(db, value) {
   if (value instanceof WriteDoc) {
     return new Doc(
-      new Collection(value.ref.collection.name, value.ref.collection.path),
+      new Collection(db, value.ref.collection.name, value.ref.collection.path),
       value.ref.id,
       value.data
     )
@@ -296,7 +292,7 @@ function writeDocsToDocs(value) {
   } else if (value && typeof value === 'object') {
     const processedData = Array.isArray(value) ? [] : {}
     Object.entries(value).forEach(([key, value]) => {
-      processedData[key] = writeDocsToDocs(value)
+      processedData[key] = writeDocsToDocs(db, value)
     })
     return processedData
   } else {

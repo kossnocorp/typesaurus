@@ -144,16 +144,19 @@ interface CustomCollection {
 const customCollection = 'customCollectionName'
 
 // Flat schema
-const db = schema(($) => ({
-  users: $.collection<User>(),
-  posts: $.collection<Post>(),
-  accounts: $.collection<Account>(),
-  organizations: $.collection<Organization>(),
-  content: $.collection<[TextContent, ImageContent]>(),
-  appStats: $.collection<AppStats, 'appStats'>(),
-  [customCollection]: $.collection<CustomCollection>(),
-  json: $.collection<WithJSON>()
-}))
+const db = schema(
+  ($) => ({
+    users: $.collection<User>(),
+    posts: $.collection<Post>(),
+    accounts: $.collection<Account>(),
+    organizations: $.collection<Organization>(),
+    content: $.collection<[TextContent, ImageContent]>(),
+    appStats: $.collection<AppStats, 'appStats'>(),
+    [customCollection]: $.collection<CustomCollection>(),
+    json: $.collection<WithJSON>()
+  }),
+  { server: { preferRest: true } }
+)
 
 async function custom() {
   // Creating custom collection

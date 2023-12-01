@@ -14,7 +14,6 @@ import {
   getCountFromServer,
   getDoc,
   getDocs,
-  getFirestore,
   increment,
   limit,
   onSnapshot,
@@ -28,23 +27,21 @@ import {
   where
 } from 'firebase/firestore'
 import { SubscriptionPromise } from '../../sp/index.ts'
+import { firestore as createFirestore, firestoreSymbol } from './firebase.mjs'
 
-export function schema(getSchema) {
+export function schema(getSchema, options) {
+  let firestore
   const schema = getSchema(schemaHelpers())
-  return db(schema)
+  return db(() => (firestore = firestore || createFirestore(options)), schema)
 }
 
 export class Collection {
-  constructor(name, path) {
+  constructor(db, name, path) {
+    this.db = db
+    this.firestore = db[firestoreSymbol]
     this.type = 'collection'
     this.name = name
     this.path = path
-
-    this.firebaseDB = () => {
-      const db = this._firestoreDB || getFirestore()
-      this._firestoreDB = db
-      return db
-    }
 
     this.update = (id, data, options) => {
       assertEnvironment(options?.as)
@@ -60,7 +57,7 @@ export class Collection {
 
       return updateDoc(
         this.firebaseDoc(id),
-        unwrapData(this.firebaseDB(), update)
+        unwrapData(this.firestore, update)
       ).then(() => this.ref(id))
     }
 
@@ -72,7 +69,7 @@ export class Collection {
         run: () =>
           updateDoc(
             this.firebaseDoc(id),
-            unwrapData(this.firebaseDB(), updateFields(fields))
+            unwrapData(this.firestore, updateFields(fields))
           ).then(() => this.ref(id))
       }
     }
@@ -82,6 +79,7 @@ export class Collection {
       const queriesResult = queries(queryHelpers())
       if (!queriesResult) return
       return _query(
+        this.firestore,
         this.adapter(),
         [].concat(queriesResult).filter((q) => !!q)
       )
@@ -92,7 +90,7 @@ export class Collection {
       const queries = []
       return {
         ...queryHelpers('builder', queries),
-        run: () => _query(this.adapter(), queries)
+        run: () => _query(this.firestore, this.adapter(), queries)
       }
     }
   }
@@ -109,7 +107,7 @@ export class Collection {
   doc(id, value, options) {
     if (!value && 'id' in id && 'data' in id && typeof id.data === 'function') {
       const data = id.data()
-      if (data) return this.doc(id.id, wrapData(data))
+      if (data) return this.doc(id.id, wrapData(this.db, data))
       else return null
     } else {
       assertEnvironment(options?.as)
@@ -121,21 +119,20 @@ export class Collection {
     assertEnvironment(options?.as)
     return addDoc(
       this.firebaseCollection(),
-      writeData(this.firebaseDB(), data)
+      writeData(this.firestore, data)
     ).then((firebaseRef) => this.ref(firebaseRef.id))
   }
 
   set(id, data, options) {
     assertEnvironment(options?.as)
-    return setDoc(
-      this.firebaseDoc(id),
-      writeData(this.firebaseDB(), data)
-    ).then(() => this.ref(id))
+    return setDoc(this.firebaseDoc(id), writeData(this.firestore, data)).then(
+      () => this.ref(id)
+    )
   }
 
   upset(id, data, options) {
     assertEnvironment(options?.as)
-    return setDoc(this.firebaseDoc(id), writeData(this.firebaseDB(), data), {
+    return setDoc(this.firebaseDoc(id), writeData(this.firestore, data), {
       merge: true
     }).then(() => this.ref(id))
   }
@@ -159,7 +156,7 @@ export class Collection {
       get: async () => {
         const firebaseSnap = await getDoc(doc)
         const data = firebaseSnap.data()
-        if (data) return new Doc(this, id, wrapData(data))
+        if (data) return new Doc(this, id, wrapData(this.db, data))
         return null
       },
 
@@ -168,7 +165,7 @@ export class Collection {
           doc,
           (firebaseSnap) => {
             const data = firebaseSnap.data()
-            if (data) onResult(new Doc(this, id, wrapData(data)))
+            if (data) onResult(new Doc(this, id, wrapData(this.db, data)))
             else onResult(null)
           },
           onError
@@ -178,6 +175,7 @@ export class Collection {
 
   many(ids, options) {
     assertEnvironment(options?.as)
+    const db = this.db
 
     return new SubscriptionPromise({
       request: request({ kind: 'many', path: this.path, ids }),
@@ -213,19 +211,19 @@ export class Collection {
 
   adapter() {
     return {
-      db: () => this.firebaseDB(),
       collection: () => this.firebaseCollection(),
-      doc: (snapshot) => new Doc(this, snapshot.id, wrapData(snapshot.data())),
+      doc: (snapshot) =>
+        new Doc(this, snapshot.id, wrapData(this.db, snapshot.data())),
       request: () => ({ path: this.path })
     }
   }
 
   firebaseCollection() {
-    return collection(this.firebaseDB(), this.path)
+    return collection(this.firestore(), this.path)
   }
 
   firebaseDoc(id) {
-    return doc(this.firebaseDB(), this.path, id)
+    return doc(this.firestore(), this.path, id)
   }
 }
 
@@ -354,9 +352,9 @@ export function all(adapter) {
   })
 }
 
-export function writeData(db, data) {
+export function writeData(firestore, data) {
   return unwrapData(
-    db,
+    firestore,
     typeof data === 'function' ? data(writeHelpers()) : data
   )
 }
@@ -443,7 +441,8 @@ function schemaHelpers() {
   }
 }
 
-function db(schema, nestedPath) {
+function db(firestore, schema, nestedPath) {
+  const enrichedSchema = { [firestoreSymbol]: firestore }
   return Object.entries(schema).reduce(
     (enrichedSchema, [collectionName, plainCollection]) => {
       const name =
@@ -451,6 +450,7 @@ function db(schema, nestedPath) {
           ? plainCollection.name
           : collectionName
       const collection = new Collection(
+        enrichedSchema,
         name,
         nestedPath ? `${nestedPath}/${name}` : name
       )
@@ -459,36 +459,40 @@ function db(schema, nestedPath) {
         enrichedSchema[name] = new Proxy(() => {}, {
           get: (_target, prop) => {
             if (prop === 'schema') return plainCollection.schema
-            else if (prop === 'sub') return subShortcut(plainCollection.schema)
+            else if (prop === 'sub')
+              return subShortcut(firestore, plainCollection.schema)
             else return collection[prop]
           },
           has(_target, prop) {
             return prop in plainCollection
           },
           apply: (_target, _prop, [id]) =>
-            db(plainCollection.schema, `${collection.path}/${id}`)
+            db(firestore, plainCollection.schema, `${collection.path}/${id}`)
         })
       } else {
         enrichedSchema[collectionName] = collection
       }
       return enrichedSchema
     },
-    {}
+    enrichedSchema
   )
 }
 
-function subShortcut(schema) {
+function subShortcut(firestore, schema) {
   return Object.entries(schema).reduce(
     (shortcutsSchema, [path, schemaCollection]) => {
       shortcutsSchema[path] = {
         id(id) {
           if (id) return id
-          else return Promise.resolve(doc(collection(getFirestore(), 'any')).id)
+          else return Promise.resolve(doc(collection(firestore(), 'any')).id)
         }
       }
 
       if ('schema' in schemaCollection)
-        shortcutsSchema[path].sub = subShortcut(schemaCollection.schema)
+        shortcutsSchema[path].sub = subShortcut(
+          firestore,
+          schemaCollection.schema
+        )
 
       return shortcutsSchema
     },
@@ -496,7 +500,7 @@ function subShortcut(schema) {
   )
 }
 
-export function _query(adapter, queries) {
+export function _query(firestore, adapter, queries) {
   const firebaseQueries = []
   let cursors = []
 
@@ -540,7 +544,7 @@ export function _query(adapter, queries) {
           where(
             field[0] === '__id__' ? documentId() : field.join('.'),
             filter,
-            unwrapData(adapter.db(), value)
+            unwrapData(firestore, value)
           )
         )
         break
@@ -565,7 +569,7 @@ export function _query(adapter, queries) {
       methodValues = [cursor.position, []]
       groupedCursors.push(methodValues)
     }
-    methodValues[1].push(unwrapData(adapter.db(), cursor.value))
+    methodValues[1].push(unwrapData(firestore, cursor.value))
   })
 
   const firebaseCursors = []
@@ -739,8 +743,8 @@ export function queryHelpers(mode = 'helpers', acc) {
  * @param ref - The reference to create Firestore document from
  * @returns Firestore document
  */
-export function refToFirestoreDocument(db, ref) {
-  return doc(db, ref.collection.path, ref.id)
+export function refToFirestoreDocument(firestore, ref) {
+  return doc(firestore(), ref.collection.path, ref.id)
 }
 
 export const pathRegExp = /^(?:(.+\/)?(.+))\/(.+)$/
@@ -751,18 +755,18 @@ export const pathRegExp = /^(?:(.+\/)?(.+))\/(.+)$/
  * @param path - The Firestore path
  * @returns Reference to a document
  */
-export function pathToRef(path) {
+export function pathToRef(db, path) {
   const captures = path.match(pathRegExp)
   if (!captures) throw new Error(`Can't parse path ${path}`)
   const [, nestedPath, name, id] = captures
-  return new Ref(new Collection(name, (nestedPath || '') + name), id)
+  return new Ref(new Collection(db, name, (nestedPath || '') + name), id)
 }
 
-export function pathToDoc(path, data) {
+export function pathToDoc(db, path, data) {
   const captures = path.match(pathRegExp)
   if (!captures) throw new Error(`Can't parse path ${path}`)
   const [, nestedPath, name, id] = captures
-  return new Doc(new Collection(name, (nestedPath || '') + name), id, data)
+  return new Doc(new Collection(db, name, (nestedPath || '') + name), id, data)
 }
 
 /**
@@ -772,10 +776,10 @@ export function pathToDoc(path, data) {
  * @param data - the data to convert
  * @returns the data in Firestore format
  */
-export function unwrapData(db, data) {
+export function unwrapData(firestore, data) {
   if (data && typeof data === 'object') {
     if (data.type === 'ref') {
-      return refToFirestoreDocument(db, data)
+      return refToFirestoreDocument(firestore, data)
     } else if (data.type === 'value') {
       const fieldValue = data
       switch (fieldValue.kind) {
@@ -786,10 +790,10 @@ export function unwrapData(db, data) {
           return increment(fieldValue.number)
 
         case 'arrayUnion':
-          return arrayUnion(...unwrapData(db, fieldValue.values))
+          return arrayUnion(...unwrapData(firestore, fieldValue.values))
 
         case 'arrayRemove':
-          return arrayRemove(...unwrapData(db, fieldValue.values))
+          return arrayRemove(...unwrapData(firestore, fieldValue.values))
 
         case 'serverDate':
           return serverTimestamp()
@@ -802,7 +806,7 @@ export function unwrapData(db, data) {
     const unwrappedObject = Object.assign(isArray ? [] : {}, data)
 
     Object.keys(unwrappedObject).forEach((key) => {
-      unwrappedObject[key] = unwrapData(db, unwrappedObject[key])
+      unwrappedObject[key] = unwrapData(firestore, unwrappedObject[key])
     })
 
     return unwrappedObject
@@ -820,15 +824,15 @@ export function unwrapData(db, data) {
  * @param data - the data to convert
  * @returns the data in Typesaurus format
  */
-export function wrapData(data, ref = pathToRef) {
+export function wrapData(db, data, ref = pathToRef) {
   if (data instanceof DocumentReference) {
-    return ref(data.path)
+    return ref(db, data.path)
   } else if (data instanceof Timestamp) {
     return data.toDate()
   } else if (data && typeof data === 'object') {
     const wrappedData = Object.assign(Array.isArray(data) ? [] : {}, data)
     Object.keys(wrappedData).forEach((key) => {
-      wrappedData[key] = wrapData(wrappedData[key], ref)
+      wrappedData[key] = wrapData(db, wrappedData[key], ref)
     })
     return wrappedData
   } else if (typeof data === 'string' && data === '%%undefined%%') {

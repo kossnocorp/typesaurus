@@ -5,8 +5,9 @@ import type { TypesaurusFirebase as Firebase } from './firebase'
 
 export namespace TypesaurusCore {
   export interface Function {
-    <Schema extends PlainSchema>(
-      getSchema: ($: SchemaHelpers) => Schema
+    <Schema extends PlainSchema, Opts extends Options>(
+      getSchema: ($: SchemaHelpers) => Schema,
+      options?: Opts
     ): DB<Schema>
   }
 
@@ -1507,5 +1508,35 @@ export namespace TypesaurusCore {
     [Key in keyof Interface]: Interface[Key] extends ServerDate
       ? Date
       : NormalizeServerDates<Interface[Key]>
+  }
+
+  /**
+   * The options. It allows to configure the Firebase settings.
+   */
+  export interface Options {
+    /** The app name. */
+    app?: string
+    /** The server options. */
+    server?: OptionsServer
+    /** The client options. */
+  }
+
+  /**
+   * The server options.
+   */
+  export interface OptionsServer {
+    /** The server app name. It takes priority over the root's app name. */
+    app?: string
+    /** The option forces Firestore the use of REST transport until an operation
+     * requires gRPC. It helps to speed up the cold start of the Functions. */
+    preferRest?: boolean
+  }
+
+  /**
+   * The client options.
+   */
+  export interface OptionsServer {
+    /** The client app name. It takes priority over the root's app name. */
+    app?: string
   }
 }

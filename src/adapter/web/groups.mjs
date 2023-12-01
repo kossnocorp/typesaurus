@@ -1,9 +1,6 @@
-import {
-  collectionGroup,
-  getCountFromServer,
-  getFirestore
-} from 'firebase/firestore'
+import { collectionGroup, getCountFromServer } from 'firebase/firestore'
 import { _query, all, pathToDoc, queryHelpers, wrapData } from './core.mjs'
+import { firestoreSymbol } from './firebase.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}
@@ -11,7 +8,7 @@ export const groups = (rootDB) => {
   function extract(db) {
     Object.entries(db).forEach(([path, collection]) => {
       if (path in groups) return
-      groups[path] = new Group(path)
+      groups[path] = new Group(rootDB, path)
       if ('schema' in collection) extract(collection.schema)
     })
   }
@@ -21,18 +18,19 @@ export const groups = (rootDB) => {
 }
 
 class Group {
-  constructor(name) {
-    this.firebaseDB = getFirestore()
+  constructor(db, name) {
+    this.db = db
+    this.firestore = db[firestoreSymbol]
     this.name = name
 
     this.query = (queries) =>
-      _query(this.adapter(), [].concat(queries(queryHelpers())))
+      _query(this.firestore, this.adapter(), [].concat(queries(queryHelpers())))
 
     this.query.build = () => {
       const queries = []
       return {
         ...queryHelpers('builder', queries),
-        run: () => _query(this.adapter(), queries)
+        run: () => _query(this.firestore, this.adapter(), queries)
       }
     }
   }
@@ -42,21 +40,22 @@ class Group {
   }
 
   async count() {
-    const snap = await getCountFromServer(this.firebaseCollection())
+    const snap = await getCountFromServer(
+      collectionGroup(this.firestore(), this.name)
+    )
     return snap.data().count
   }
 
   adapter() {
     return {
-      db: () => this.firebaseDB,
-      collection: () => this.firebaseCollection(),
+      collection: () => collectionGroup(this.firestore(), this.name),
       doc: (snapshot) =>
-        pathToDoc(snapshot.ref.path, wrapData(snapshot.data())),
+        pathToDoc(
+          this.db,
+          snapshot.ref.path,
+          wrapData(this.db, snapshot.data())
+        ),
       request: () => ({ path: this.name, group: true })
     }
-  }
-
-  firebaseCollection() {
-    return collectionGroup(this.firebaseDB, this.name)
   }
 }

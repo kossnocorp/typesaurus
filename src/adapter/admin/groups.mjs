@@ -1,5 +1,5 @@
-import { getFirestore } from 'firebase-admin/firestore'
 import { all, pathToDoc, query, queryHelpers, wrapData } from './core.mjs'
+import { firestoreSymbol } from './firebase.mjs'
 
 export const groups = (rootDB) => {
   const groups = {}
@@ -7,7 +7,7 @@ export const groups = (rootDB) => {
   function extract(db) {
     Object.entries(db).forEach(([path, collection]) => {
       if (path in groups) return
-      groups[path] = new Group(path)
+      groups[path] = new Group(rootDB, path)
       if ('schema' in collection) extract(collection.schema)
     })
   }
@@ -17,17 +17,19 @@ export const groups = (rootDB) => {
 }
 
 class Group {
-  constructor(name) {
+  constructor(db, name) {
+    this.db = db
+    this.firestore = db[firestoreSymbol]
     this.name = name
 
     this.query = (queries) =>
-      query(this.adapter(), [].concat(queries(queryHelpers())))
+      query(this.firestore, this.adapter(), [].concat(queries(queryHelpers())))
 
     this.query.build = () => {
       const queries = []
       return {
         ...queryHelpers('builder', queries),
-        run: () => query(this.adapter(), queries)
+        run: () => query(this.firestore, this.adapter(), queries)
       }
     }
   }
@@ -43,14 +45,14 @@ class Group {
 
   adapter() {
     return {
-      collection: () => this.firebaseCollection(),
+      collection: () => this.firestore().collectionGroup(this.name),
       doc: (snapshot) =>
-        pathToDoc(snapshot.ref.path, wrapData(snapshot.data())),
+        pathToDoc(
+          this.db,
+          snapshot.ref.path,
+          wrapData(this.db, snapshot.data())
+        ),
       request: () => ({ path: this.name, group: true })
     }
-  }
-
-  firebaseCollection() {
-    return getFirestore().collectionGroup(this.name)
   }
 }

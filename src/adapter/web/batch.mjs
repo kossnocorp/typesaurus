@@ -1,14 +1,15 @@
-import { doc, getFirestore, writeBatch } from 'firebase/firestore'
+import { doc, writeBatch } from 'firebase/firestore'
 import {
   assertEnvironment,
   unwrapData,
   updateHelpers,
   writeHelpers
 } from './core.mjs'
+import { firestoreSymbol } from './firebase.mjs'
 
 export const batch = (rootDB, options) => {
   assertEnvironment(options?.as)
-  const firebaseBatch = writeBatch(getFirestore())
+  const firebaseBatch = writeBatch(rootDB[firestoreSymbol]())
   const db = async () => {
     await firebaseBatch.commit()
   }
@@ -45,23 +46,23 @@ function batchDB(rootDB, batch) {
 
 class Collection {
   constructor(db, batch, path) {
-    this.type = 'collection'
     this.db = db
+    this.firestore = db[firestoreSymbol]
+    this.type = 'collection'
     this.batch = batch
     this.path = path
-    this.firebaseDB = getFirestore()
   }
 
   set(id, data) {
     const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    this.batch.set(doc, unwrapData(this.firebaseDB, dataToSet))
+    const _doc = doc(this.firestore(), this.path, id)
+    this.batch.set(_doc, unwrapData(this.firestore, dataToSet))
   }
 
   upset(id, data) {
     const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    this.batch.set(doc, unwrapData(this.firebaseDB, dataToUpset), {
+    const _doc = doc(this.firestore(), this.path, id)
+    this.batch.set(_doc, unwrapData(this.firestore, dataToUpset), {
       merge: true
     })
   }
@@ -69,16 +70,12 @@ class Collection {
   update(id, data) {
     const dataToUpdate =
       typeof data === 'function' ? data(updateHelpers()) : data
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    this.batch.update(doc, unwrapData(this.firebaseDB, dataToUpdate))
+    const _doc = doc(this.firestore(), this.path, id)
+    this.batch.update(_doc, unwrapData(this.firestore, dataToUpdate))
   }
 
   remove(id) {
-    const doc = firebaseDoc(this.firebaseDB, this.path, id)
-    this.batch.delete(doc)
+    const _doc = doc(this.firestore(), this.path, id)
+    this.batch.delete(_doc)
   }
-}
-
-function firebaseDoc(db, path, id) {
-  return doc(db, path, id)
 }

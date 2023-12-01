@@ -4,11 +4,11 @@ import {
   updateHelpers,
   writeHelpers
 } from './core.mjs'
-import { getFirestore } from 'firebase-admin/firestore'
+import { firestoreSymbol } from './firebase.mjs'
 
 export const batch = (rootDB, options) => {
   assertEnvironment(options?.as)
-  const firebaseBatch = getFirestore().batch()
+  const firebaseBatch = rootDB[firestoreSymbol]().batch()
   const db = async () => {
     await firebaseBatch.commit()
   }
@@ -45,22 +45,25 @@ function batchDB(rootDB, batch) {
 
 class Collection {
   constructor(db, batch, path) {
-    this.type = 'collection'
     this.db = db
+    this.firestore = db[firestoreSymbol]
+    this.type = 'collection'
     this.batch = batch
     this.path = path
   }
 
   set(id, data) {
     const dataToSet = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.batch.set(doc, unwrapData(dataToSet))
+    const doc = this.firestore().collection(this.path).doc(id)
+    this.batch.set(doc, unwrapData(this.firestore, dataToSet))
   }
 
   upset(id, data) {
     const dataToUpset = typeof data === 'function' ? data(writeHelpers()) : data
-    const doc = firebaseCollection(this.path).doc(id)
-    this.batch.set(doc, unwrapData(dataToUpset), { merge: true })
+    const doc = this.firestore().collection(this.path).doc(id)
+    this.batch.set(doc, unwrapData(this.firestore, dataToUpset), {
+      merge: true
+    })
   }
 
   update(id, data) {
@@ -68,17 +71,13 @@ class Collection {
       typeof data === 'function' ? data(updateHelpers()) : data
 
     if (Object.keys(dataToUpdate).length) {
-      const doc = firebaseCollection(this.path).doc(id)
-      this.batch.update(doc, unwrapData(dataToUpdate))
+      const doc = this.firestore().collection(this.path).doc(id)
+      this.batch.update(doc, unwrapData(this.firestore, dataToUpdate))
     }
   }
 
   remove(id) {
-    const doc = firebaseCollection(this.path).doc(id)
+    const doc = this.firestore().collection(this.path).doc(id)
     this.batch.delete(doc)
   }
-}
-
-function firebaseCollection(path) {
-  return getFirestore().collection(path)
 }
