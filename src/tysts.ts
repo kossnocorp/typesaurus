@@ -133,6 +133,14 @@ interface WithJSON {
   version: OpaqueNumber
 }
 
+interface Address {
+  title: string
+  address?: {
+    city?: string
+    lines?: string[]
+  }
+}
+
 type OpaqueJSON = string & { __json: {} }
 
 type OpaqueNumber = number & { __number: 123 }
@@ -153,7 +161,8 @@ const db = schema(
     content: $.collection<[TextContent, ImageContent]>(),
     appStats: $.collection<AppStats, 'appStats'>(),
     [customCollection]: $.collection<CustomCollection>(),
-    json: $.collection<WithJSON>()
+    json: $.collection<WithJSON>(),
+    addresses: $.collection<Address>()
   }),
   { server: { preferRest: true } }
 )
@@ -1534,6 +1543,17 @@ async function update() {
     content2.ref.update(content2.data)
     db.content.update(contentId, content2.data)
   }
+
+  // It disallows updating array fields via dot notation
+
+  db.addresses.update(db.addresses.id('address-id'), ($) =>
+    // @ts-expect-error - Can't update array fields via dot notation
+    $.field('address', 'lines', 0).set('123 Main St')
+  )
+
+  const $dotNope = db.addresses.update.build(db.addresses.id('address-id'))
+  // @ts-expect-error - Can't update array fields via dot notation
+  $dotNope.field('address', 'lines', 0).set('123 Main St')
 }
 
 async function sharedIds() {
