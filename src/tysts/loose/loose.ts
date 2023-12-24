@@ -2,16 +2,9 @@
 // including loose that is located next to this file (see ./loose/loose.ts).
 // To do that, we use @tysts-start and @tysts-end comments.
 
-// @tysts-start: strict
-import { schema, Typesaurus } from '..'
-import type { TypesaurusCore as Core } from '../types/core'
-import type { TypesaurusUtils as Utils } from '../types/utils'
-// @tysts-end: strict
-/* @tysts-start: loose
 import { schema, Typesaurus } from '../..'
 import type { TypesaurusCore as Core } from '../../types/core'
 import type { TypesaurusUtils as Utils } from '../../types/utils'
-@tysts-end: loose */
 
 interface Post {
   title: string
@@ -1249,9 +1242,6 @@ async function upset() {
   // as long as exactOptionalPropertyTypes is set
   await db.users.set(
     db.users.id('sasha'),
-    // @tysts-start: strict
-    // @ts-expect-error - birthdate is optional not undefined
-    // @tysts-end: strict
     {
       ...base,
       birthdate: undefined
@@ -1352,17 +1342,6 @@ async function update() {
     name: $.remove()
   }))
 
-  // @tysts-start: strict - without exactOptionalPropertyTypes we can't prevent undefined from being set
-  // @ts-expect-error - name is required
-  await db.users.update(db.users.id('sasha'), ($) => ({
-    name: undefined
-  }))
-
-  // @ts-expect-error - name is required
-  await db.users.update(db.users.id('sasha'), {
-    name: undefined
-  })
-  // @tysts-end: strict
 
   await db.users.update(db.users.id('sasha'), ($) =>
     // @ts-expect-error - name is required
@@ -1373,9 +1352,6 @@ async function update() {
 
   // If it's only optional field, you should not be able to set it to undefined
   // as long as exactOptionalPropertyTypes is set
-  // @tysts-start: strict
-  // @ts-expect-error - birthdate is optional not undefined
-  // @tysts-end: strict
   await db.users.update(db.users.id('sasha'), {
     birthdate: undefined
   })
@@ -2036,12 +2012,7 @@ namespace UnionKeys {
 
 namespace WithoutIndexed {
   type Example1 = {
-    // @tysts-start: strict - without exactOptionalPropertyTypes it breaks
-    [key: string]: string
-    // @tysts-end: strict
-    /* @tysts-start: loose
     [key: string]: string | undefined
-    @tysts-end: loose */
     required: string
     optional?: string
   }
@@ -2106,12 +2077,7 @@ namespace WithoutIndexed {
 
 namespace StaticKey {
   type Example1 = {
-    // @tysts-start: strict - without exactOptionalPropertyTypes it breaks
-    [key: string]: string
-    // @tysts-end: strict
-    /* @tysts-start: loose
     [key: string]: string | undefined
-    @tysts-end: loose */
     required: string
     optional?: string
   }
@@ -2182,12 +2148,7 @@ namespace RequiredKey {
   type Result12 = Assert<false, Utils.RequiredKey<Example1, 'optional'>>
 
   type Example2 = {
-    // @tysts-start: strict - without exactOptionalPropertyTypes it breaks
-    [key: string]: string
-    // @tysts-end: strict
-    /* @tysts-start: loose
     [key: string]: string | undefined
-    @tysts-end: loose */
     required: string
     optional?: string
   }
@@ -2880,3 +2841,4 @@ export type TypeEqual<T, U> = Exclude<T, U> extends never
     ? true
     : false
   : false
+

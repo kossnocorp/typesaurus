@@ -615,22 +615,21 @@ export namespace TypesaurusCore {
     Props extends DocProps
   > = Exclude<Data[Key], undefined> extends infer Type // Exclude undefined
     ? Type extends ServerDate // First, ensure ServerDate is properly set
-      ? WriteFieldMaybeUndefined<
-          Data[Key],
-          WriteFieldServerDate<Data, Key, Props>
-        >
+      ? WriteFieldServerDate<Data, Key, Props>
       : Type extends Array<infer ItemType>
-      ? WriteFieldMaybeUndefined<
-          Data[Key],
-          WriteFieldArray<Data, Key, ItemType>
-        >
+      ? WriteFieldArray<Data, Key, ItemType>
       : Type extends number
-      ? WriteFieldMaybeUndefined<Data[Key], WriteFieldNumber<Data, Key, Type>>
+      ? WriteFieldNumber<Data, Key, Type>
       : Type extends object // If it's an object, recursively pass through SetModel
-      ? WriteFieldMaybeUndefined<Data[Key], WriteFieldObject<Data, Key, Props>>
-      : WriteFieldMaybeUndefined<Data[Key], WriteFieldOther<Data, Key>>
+      ? WriteFieldObject<Data, Key, Props>
+      : WriteFieldOther<Data, Key>
     : never
 
+  /**
+   * Helper that adds undefined to the type if the origin type extends it.
+   * Allows to set undefined to the fields that are altered with special values
+   * like $.remove() or $.serverDate().
+   */
   export type WriteFieldMaybeUndefined<
     OriginType,
     Value = OriginType
@@ -640,19 +639,24 @@ export namespace TypesaurusCore {
     Model,
     Key extends keyof Model,
     Props extends DocProps
-  > = Props['environment'] extends 'server' // Date can be used only in the server environment
-    ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
-    : ValueServerDate | MaybeValueRemove<Model, Key>
+  > = WriteFieldMaybeUndefined<
+    Model[Key],
+    Props['environment'] extends 'server' // Date can be used only in the server environment
+      ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
+      : ValueServerDate | MaybeValueRemove<Model, Key>
+  >
 
-  export type WriteFieldArray<Model, Key extends keyof Model, ItemType> =
+  export type WriteFieldArray<
+    Model,
+    Key extends keyof Model,
+    ItemType
+  > = WriteFieldMaybeUndefined<
+    Model[Key],
     | WriteArray<Array<ItemType>>
-    | ValueArrayUnion<
-        WriteFieldMaybeUndefined<ItemType, WriteArrayItem<ItemType>>
-      >
-    | ValueArrayRemove<
-        WriteFieldMaybeUndefined<ItemType, WriteArrayItem<ItemType>>
-      >
+    | ValueArrayUnion<WriteArrayItem<ItemType>>
+    | ValueArrayRemove<WriteArrayItem<ItemType>>
     | MaybeValueRemove<Model, Key>
+  >
 
   export type WriteArray<Data extends Array<any>> = Data extends Array<
     infer ItemType

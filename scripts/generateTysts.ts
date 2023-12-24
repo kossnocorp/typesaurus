@@ -1,0 +1,45 @@
+import { readFile, writeFile } from 'fs/promises'
+
+type Mode = 'strict' | 'loose'
+
+const startRE = /^\s*(\/\/|\/\*)\s@tysts-start:\s(strict|loose)/
+const endRE = /^\s*(\/\/\s)?@tysts-end:\s(strict|loose)/
+
+readFile('./src/tysts/core.ts', 'utf-8')
+  .then((code) => code.split('\n'))
+  .then((lines) => {
+    const generatingMode = 'loose' as const
+    let code = ''
+    let mode: undefined | Mode = undefined
+
+    for (const line of lines) {
+      if (mode) {
+        // Check if mode ends
+        const endMatches = line.match(endRE)
+        if (endMatches) {
+          const endMode = endMatches[2]
+          if (endMode !== mode)
+            throw new Error(
+              `Mismatched @tysts-end: expected ${mode} but got ${endMode}`
+            )
+          mode = undefined
+          continue
+        }
+
+        // Add line if it's the generating mode otherwise ignore
+        if (mode === generatingMode) code += line + '\n'
+
+        continue
+      }
+
+      const startMatches = line.match(startRE)
+      if (startMatches) {
+        mode = startMatches[2] as Mode
+        continue
+      }
+
+      code += line + '\n'
+    }
+
+    return writeFile(`./src/tysts/${generatingMode}/${generatingMode}.ts`, code)
+  })
