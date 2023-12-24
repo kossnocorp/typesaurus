@@ -2215,4 +2215,9 @@ export namespace TypesaurusUtils {
   export type WholeOrPartial<Type> = Type | { [Key in keyof Type]?: Type[Key] }
 
   export type WholeOrEmpty<Type> = Type | { [Key in keyof Type]?: undefined }
+
+  /**
+   * Resolves true if the strictNullChecks is set to true in the tsconfig.
+   */
+  export type StrictNullChecksEnabled = null extends undefined ? false : true
 }

@@ -2056,6 +2056,16 @@ namespace ModelToConcat {
   >(true)
 }
 
+namespace Types {
+  type Schema = Typesaurus.Schema<typeof db>
+
+  type InferredId = Schema['users']['Id']
+  ;('' as InferredId).toLowerCase()
+
+  type Id = Typesaurus.Id<'users'>
+  ;('' as Id).toLowerCase()
+}
+
 namespace Debrand {
   type Result1 = Assert<Utils.Debrand<string & { hello: 'world' }>, string>
 
