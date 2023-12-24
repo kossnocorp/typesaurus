@@ -15,17 +15,14 @@ export namespace TypesaurusCore {
    * Define custom id passing the collection path string as the generic.
    */
   export type Id<Path extends string | symbol | Array<string | symbol>> =
-    // Fallback to strings if strictNullChecks is not true
-    Utils.StrictNullChecksEnabled extends true
-      ? string & {
-          [idBrand]: Path
-        }
-      : string
+    string & {
+      [idBrand]: Path
+    }
   const idBrand: unique symbol
   /**
    * The custom id constrain. Used to define collection id type.
    */
-  export type CustomIdConstrain = Id<string> | string | undefined
+  export type CustomIdConstrain = Id<string> | string | false
 
   export type ModelType = ModelObjectType | ModelVariableType
 
@@ -778,7 +775,7 @@ export namespace TypesaurusCore {
   export interface SchemaHelpers {
     collection<
       Model extends ModelType,
-      CustomId extends CustomIdConstrain = undefined
+      CustomId extends CustomIdConstrain = false
     >(): PlainCollection<Model, CustomId>
   }
 
@@ -1080,7 +1077,7 @@ export namespace TypesaurusCore {
 
   export interface PlainCollection<
     Model extends ModelType,
-    CustomId extends CustomIdConstrain = undefined,
+    CustomId extends CustomIdConstrain = false,
     CustomName extends string | undefined = undefined
   > {
     /** The collection type */
@@ -1098,7 +1095,7 @@ export namespace TypesaurusCore {
   export interface NestedPlainCollection<
     _Model extends ModelType,
     Schema extends PlainSchema,
-    _CustomId extends CustomIdConstrain = undefined,
+    _CustomId extends CustomIdConstrain = false,
     _CustomName extends string | undefined = undefined
   > {
     /** The collection type */
@@ -1133,12 +1130,9 @@ export namespace TypesaurusCore {
             {
               Model: Model
               Name: CustomName extends string ? CustomName : Name
-              Id: // Fallback to strings if strictNullChecks is not true
-              Utils.StrictNullChecksEnabled extends true
-                ? CustomId extends Id<any> | string
-                  ? CustomId
-                  : Id<Utils.ComposePath<BasePath, Name>>
-                : string
+              Id: CustomId extends Id<any> | string
+                ? CustomId
+                : Id<Utils.ComposePath<BasePath, Name>>
               WideModel: Model
               Flags: DocDefFlags
             },
@@ -1152,12 +1146,9 @@ export namespace TypesaurusCore {
         ? Collection<{
             Model: Model
             Name: CustomName extends string ? CustomName : Name
-            Id: // Fallback to strings if strictNullChecks is not true
-            Utils.StrictNullChecksEnabled extends true
-              ? CustomId extends Id<any> | string
-                ? CustomId
-                : Id<Utils.ComposePath<BasePath, Name>>
-              : string
+            Id: CustomId extends Id<any> | string
+              ? CustomId
+              : Id<Utils.ComposePath<BasePath, Name>>
             WideModel: Model
             Flags: DocDefFlags
           }>
