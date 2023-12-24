@@ -266,8 +266,10 @@ async function doc() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Source
@@ -275,8 +277,10 @@ async function doc() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Server date strategy
@@ -286,8 +290,10 @@ async function doc() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   assertType<TypeEqual<typeof user.data.birthdate, Date | undefined>>(true)
@@ -390,8 +396,10 @@ async function get() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Source
@@ -399,8 +407,10 @@ async function get() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Server date strategy
@@ -410,8 +420,10 @@ async function get() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Reading as server
@@ -477,8 +489,10 @@ async function many() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Source
@@ -486,8 +500,10 @@ async function many() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Server date strategy
@@ -497,8 +513,10 @@ async function many() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Reading as server
@@ -554,8 +572,10 @@ async function all() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Source
@@ -563,8 +583,10 @@ async function all() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Server date strategy
@@ -574,8 +596,10 @@ async function all() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Reading as server
@@ -635,8 +659,10 @@ async function query() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Source
@@ -644,8 +670,10 @@ async function query() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Server date strategy
@@ -655,8 +683,10 @@ async function query() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     // @ts-expect-error
     user.data.createdAt.getDay()
+    // @tysts-end: strict
   }
 
   // Querying as server
@@ -864,8 +894,10 @@ async function query() {
 
   // Empty query
 
+  // @tysts-start: strict - with strictNullChecks disabled there's no error
   const emptyQuery = db.accounts.query(($) => undefined)
   assertType<TypeEqual<typeof emptyQuery, undefined>>(true)
+  // @tysts-end: strict
 
   // Empty query fields
 
@@ -1364,10 +1396,12 @@ async function update() {
   })
   // @tysts-end: strict
 
+  // @tysts-start: strict - with strictNullChecks disabled there's no error
   await db.users.update(db.users.id('sasha'), ($) =>
     // @ts-expect-error - name is required
     $.field('name').set(undefined)
   )
+  // @tysts-end: strict
 
   // Setting undefined to optional fields
 
@@ -1694,7 +1728,9 @@ async function update() {
   db.users.update(userId, () => null)
   const emptyUpdate1 = db.users.update(userId, () => undefined)
 
+  // @tysts-start: strict - with strictNullChecks disabled there's no error
   assertType<TypeEqual<typeof emptyUpdate1, undefined>>(true)
+  // @tysts-end: strict
 
   db.users.get(userId).then((user) => {
     if (!user) return
@@ -1704,7 +1740,9 @@ async function update() {
     user.update(() => null)
     const emptyUpdate2 = user.update(() => undefined)
 
+    // @tysts-start: strict - with strictNullChecks disabled there's no error
     assertType<TypeEqual<typeof emptyUpdate2, undefined>>(true)
+    // @tysts-end: strict
   })
 
   // Empty update fields
@@ -1751,6 +1789,8 @@ async function sharedIds() {
 
   db.settings.update(userId, { email: 'hello@example.com' })
 }
+
+// @tysts-start: strict - with strictNullChecks disabled the tysts fail
 
 async function inferSchema() {
   type Schema1 = Core.InferSchema<typeof db>
@@ -1925,6 +1965,8 @@ async function xx() {
     }
   }
 }
+
+// @tysts-end: strict
 
 namespace Data {
   // It does not mingle typed id

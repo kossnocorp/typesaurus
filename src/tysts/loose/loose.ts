@@ -259,8 +259,6 @@ async function doc() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Source
@@ -268,8 +266,6 @@ async function doc() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Server date strategy
@@ -279,8 +275,6 @@ async function doc() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   assertType<TypeEqual<typeof user.data.birthdate, Date | undefined>>(true)
@@ -383,8 +377,6 @@ async function get() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Source
@@ -392,8 +384,6 @@ async function get() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Server date strategy
@@ -403,8 +393,6 @@ async function get() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Reading as server
@@ -470,8 +458,6 @@ async function many() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Source
@@ -479,8 +465,6 @@ async function many() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Server date strategy
@@ -490,8 +474,6 @@ async function many() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Reading as server
@@ -547,8 +529,6 @@ async function all() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Source
@@ -556,8 +536,6 @@ async function all() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Server date strategy
@@ -567,8 +545,6 @@ async function all() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Reading as server
@@ -628,8 +604,6 @@ async function query() {
   if (user.test({ environment: 'server' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Source
@@ -637,8 +611,6 @@ async function query() {
   if (user.test({ source: 'database' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Server date strategy
@@ -648,8 +620,6 @@ async function query() {
   } else if (user.test({ dateStrategy: 'previous' })) {
     user.data.createdAt.getDay()
   } else {
-    // @ts-expect-error
-    user.data.createdAt.getDay()
   }
 
   // Querying as server
@@ -856,9 +826,6 @@ async function query() {
   }
 
   // Empty query
-
-  const emptyQuery = db.accounts.query(($) => undefined)
-  assertType<TypeEqual<typeof emptyQuery, undefined>>(true)
 
   // Empty query fields
 
@@ -1342,12 +1309,6 @@ async function update() {
     name: $.remove()
   }))
 
-
-  await db.users.update(db.users.id('sasha'), ($) =>
-    // @ts-expect-error - name is required
-    $.field('name').set(undefined)
-  )
-
   // Setting undefined to optional fields
 
   // If it's only optional field, you should not be able to set it to undefined
@@ -1670,8 +1631,6 @@ async function update() {
   db.users.update(userId, () => null)
   const emptyUpdate1 = db.users.update(userId, () => undefined)
 
-  assertType<TypeEqual<typeof emptyUpdate1, undefined>>(true)
-
   db.users.get(userId).then((user) => {
     if (!user) return
 
@@ -1679,8 +1638,6 @@ async function update() {
     user.update(() => '')
     user.update(() => null)
     const emptyUpdate2 = user.update(() => undefined)
-
-    assertType<TypeEqual<typeof emptyUpdate2, undefined>>(true)
   })
 
   // Empty update fields
@@ -1726,180 +1683,6 @@ async function sharedIds() {
   const userId = await db.users.id()
 
   db.settings.update(userId, { email: 'hello@example.com' })
-}
-
-async function inferSchema() {
-  type Schema1 = Core.InferSchema<typeof db>
-
-  assertType<TypeEqual<Schema1['users']['Id'], Typesaurus.Id<'users'>>>(true)
-  assertType<TypeEqual<Schema1['users']['Ref'], Typesaurus.Ref<User, 'users'>>>(
-    true
-  )
-  assertType<TypeEqual<Schema1['users']['Doc'], Typesaurus.Doc<User, 'users'>>>(
-    true
-  )
-
-  interface Settings {
-    email: string
-  }
-
-  const nestedDB = schema(($) => ({
-    users: $.collection<User>().sub({
-      settings: $.collection<Settings>()
-    })
-  }))
-
-  type Schema2 = Core.InferSchema<typeof nestedDB>
-
-  assertType<
-    TypeEqual<
-      Schema2['users']['sub']['settings']['Id'],
-      Typesaurus.Id<'users/settings'>
-    >
-  >(true)
-
-  assertType<
-    TypeEqual<
-      Schema2['users']['sub']['settings']['Ref'],
-      Typesaurus.Ref<Settings, 'users/settings'>
-    >
-  >(true)
-
-  assertType<
-    TypeEqual<
-      Schema2['users']['sub']['settings']['Doc'],
-      Typesaurus.Doc<Settings, 'users/settings'>
-    >
-  >(true)
-}
-
-async function narrowDoc() {
-  interface TwitterAccount {
-    type: 'twitter'
-    screenName: number
-  }
-
-  interface LinkedInAccount {
-    type: 'linkedin'
-    email: string
-  }
-
-  const db = schema(($) => ({
-    accounts: $.collection<[TwitterAccount, LinkedInAccount]>()
-  }))
-
-  type Schema = Core.InferSchema<typeof db>
-
-  type Result1 = Core.NarrowDoc<Schema['accounts']['Doc'], TwitterAccount>
-
-  assertType<
-    TypeEqual<
-      Result1,
-      Core.Doc<
-        {
-          Model: TwitterAccount
-          Name: 'accounts'
-          Id: Core.Id<'accounts'>
-          WideModel: [TwitterAccount, LinkedInAccount]
-          Flags: { Reduced: true }
-        },
-        Core.DocProps
-      >
-    >
-  >(true)
-}
-
-async function edgeCases() {
-  interface ServerChapter {}
-
-  interface ServerChapterPost {
-    chapterId: Schema['chapters']['Id']
-  }
-
-  const db = schema(($) => ({
-    chapters: $.collection<ServerChapter>().sub({
-      chapterPosts: $.collection<ServerChapterPost>()
-    })
-  }))
-
-  type Schema = Typesaurus.Schema<typeof db>
-
-  const data = {} as Schema['chapters']['sub']['chapterPosts']['Data']
-  const id: Schema['chapters']['Id'] = data.chapterId
-  return id
-}
-
-async function xx() {
-  interface ServerChapter {
-    uid: FirestoreSchema['chapters']['Id']
-    name: string
-    specialField: string
-  }
-
-  interface ServerChapterPost {
-    uid: FirestoreSchema['chapters']['sub']['chapter_posts']['Id']
-    chapterUid: FirestoreSchema['chapters']['Id']
-    specialField: string
-  }
-
-  const firestore = schema(($) => ({
-    chapters: $.collection<ServerChapter>().sub({
-      chapter_posts: $.collection<ServerChapterPost>()
-    })
-  }))
-
-  type FirestoreSchema = Typesaurus.Schema<typeof firestore>
-
-  // SPECIAL FIELD
-
-  interface ServerWithSpecialField {
-    specialField: string
-  }
-
-  function WithSpecialField<Name extends string, Path extends string>(
-    props: ServerWithSpecialField,
-    collection: Typesaurus.Collection<ServerWithSpecialField, Name, Path>,
-    id: Typesaurus.Id<Path>
-  ) {
-    const updateSpecialField = async () => {
-      return collection.update(id, {
-        specialField: 'some value'
-      })
-    }
-
-    return {
-      ...props,
-      updateSpecialField
-    }
-  }
-
-  const newChapter = (serverChapter: FirestoreSchema['chapters']['Data']) => {
-    const withAccess = WithSpecialField(
-      serverChapter,
-      firestore.chapters,
-      serverChapter.uid
-    )
-
-    return {
-      ...serverChapter,
-      ...withAccess
-    }
-  }
-
-  const newChapterPost = (
-    serverChapterPost: FirestoreSchema['chapters']['sub']['chapter_posts']['Data']
-  ) => {
-    const withAccess = WithSpecialField(
-      serverChapterPost,
-      firestore.chapters(serverChapterPost.chapterUid).chapter_posts, // The issue was here
-      serverChapterPost.uid
-    )
-
-    return {
-      ...serverChapterPost,
-      ...withAccess
-    }
-  }
 }
 
 namespace Data {
@@ -2843,4 +2626,3 @@ export type TypeEqual<T, U> = Exclude<T, U> extends never
     ? true
     : false
   : false
-

@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    // It affects the tysts but not the functionality
+    // It affects the tysts but not the functionality:
     "noImplicitAny": false,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
+    // Actually affects the functionality:
     "exactOptionalPropertyTypes": false
   },
   "include": ["**/*.ts"]
