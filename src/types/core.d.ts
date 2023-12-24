@@ -16,9 +16,9 @@ export namespace TypesaurusCore {
    */
   export type Id<Path extends string | symbol | Array<string | symbol>> =
     string & {
-      __dontUseWillBeUndefined__: Path
+      [idBrand]: Path
     }
-
+  const idBrand: unique symbol
   /**
    * The custom id constrain. Used to define collection id type.
    */
