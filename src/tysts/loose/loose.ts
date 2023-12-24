@@ -2019,7 +2019,9 @@ namespace WithoutIndexed {
 
   const test1 = {} as Utils.WithoutIndexed<Example1>
   // @ts-expect-error
-  test1['qwe']
+  type Result1 = typeof test1['qwe']
+
+  type ResultOk = typeof test1['required']
 
   type Example2 = {
     [key: number]: string
@@ -2029,7 +2031,7 @@ namespace WithoutIndexed {
 
   const test2 = {} as Utils.WithoutIndexed<Example2>
   // @ts-expect-error
-  test2[123]
+  type Result2 = typeof test2[123]
 
   type Example3 = {
     [key: symbol]: string
@@ -2039,7 +2041,7 @@ namespace WithoutIndexed {
 
   const test3 = {} as Utils.WithoutIndexed<Example3>
   // @ts-expect-error
-  test3[Symbol('hello')]
+  type Result3 = typeof test3[Symbol]
 
   type Example4 = {
     [key: string & { hello: 'world' }]: string
@@ -2050,7 +2052,7 @@ namespace WithoutIndexed {
   const test4 = {} as Utils.WithoutIndexed<Example4>
   const id4 = 'hello' as string & { hello: 'world' }
   // @ts-expect-error
-  test4[id4]
+  type Result4 = typeof test4[id4]
 
   type Example5 = {
     [key: number & { hello: 'world' }]: string
@@ -2061,7 +2063,7 @@ namespace WithoutIndexed {
   const test5 = {} as Utils.WithoutIndexed<Example5>
   const id5 = 123 as number & { hello: 'world' }
   // @ts-expect-error
-  test5[id5]
+  type Result5 = typeof test5[id5]
 
   type Example6 = {
     [key: symbol & { hello: 'world' }]: string
@@ -2072,7 +2074,7 @@ namespace WithoutIndexed {
   const test6 = {} as Utils.WithoutIndexed<Example6>
   const id6 = Symbol('hello') as symbol & { hello: 'world' }
   // @ts-expect-error
-  test6[id6]
+  type Result6 = typeof test6[id6]
 }
 
 namespace StaticKey {

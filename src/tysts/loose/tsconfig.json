@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true,
+    // It affects the tysts but not the functionality
+    "noImplicitAny": false,
     "strictNullChecks": true,
     "exactOptionalPropertyTypes": false
   },

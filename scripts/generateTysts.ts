@@ -12,7 +12,8 @@ readFile('./src/tysts/core.ts', 'utf-8')
     let code = ''
     let mode: undefined | Mode = undefined
 
-    for (const line of lines) {
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index]
       if (mode) {
         // Check if mode ends
         const endMatches = line.match(endRE)
@@ -20,7 +21,9 @@ readFile('./src/tysts/core.ts', 'utf-8')
           const endMode = endMatches[2]
           if (endMode !== mode)
             throw new Error(
-              `Mismatched @tysts-end: expected ${mode} but got ${endMode}`
+              `Mismatched @tysts-end: expected ${mode} but got ${endMode}. Line: ${
+                index + 1
+              }`
             )
           mode = undefined
           continue
