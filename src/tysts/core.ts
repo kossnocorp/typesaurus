@@ -74,10 +74,30 @@ type PostId = string & { __dontUseWillBeUndefined__: 'post' }
 
 interface User {
   name: string
-  contacts: {
-    email: string
-    phone?: string
-  }
+  contacts:
+    | {
+        email: string
+        phone?: string
+      }
+    | {
+        country: string
+        city: string
+      }
+    | {
+        zip: string[]
+      }
+    | {
+        address:
+          | {
+              zip: string
+            }
+          | {
+              line: string
+            }
+      }
+    | {
+        no: number
+      }
   birthdate?: Date
   // Allow setting only server date on client,
   // but allow on server
@@ -113,6 +133,14 @@ interface WithJSON {
   version: OpaqueNumber
 }
 
+interface Address {
+  title: string
+  address?: {
+    city?: string
+    lines?: string[]
+  }
+}
+
 type OpaqueJSON = string & { __json: {} }
 
 type OpaqueNumber = number & { __number: 123 }
@@ -124,16 +152,20 @@ interface CustomCollection {
 const customCollection = 'customCollectionName'
 
 // Flat schema
-const db = schema(($) => ({
-  users: $.collection<User>(),
-  posts: $.collection<Post>(),
-  accounts: $.collection<Account>(),
-  organizations: $.collection<Organization>(),
-  content: $.collection<[TextContent, ImageContent]>(),
-  appStats: $.collection<AppStats, 'appStats'>(),
-  [customCollection]: $.collection<CustomCollection>(),
-  json: $.collection<WithJSON>()
-}))
+const db = schema(
+  ($) => ({
+    users: $.collection<User>(),
+    posts: $.collection<Post>(),
+    accounts: $.collection<Account>(),
+    organizations: $.collection<Organization>(),
+    content: $.collection<[TextContent, ImageContent]>(),
+    appStats: $.collection<AppStats, 'appStats'>(),
+    [customCollection]: $.collection<CustomCollection>(),
+    json: $.collection<WithJSON>(),
+    addresses: $.collection<Address>()
+  }),
+  { server: { preferRest: true } }
+)
 
 async function custom() {
   // Creating custom collection
@@ -590,7 +622,7 @@ async function query() {
   await db.users.query(($) => [
     $.field('name').eq('Sasha'),
     // @ts-expect-error
-    $.field('contacts', 'emal').eq('koss@nocorp.me'),
+    $.field('contacts', 'emal').equal('koss@nocorp.me'),
     $.field('name').order(),
     $.limit(1)
   ])
@@ -785,6 +817,98 @@ async function query() {
     '',
     0
   ])
+
+  // Union fields query
+
+  // Simple
+  db.users.query(($) => $.field('contacts', 'city').eq('Singapore'))
+  // @ts-expect-error - address is a string
+  db.users.query(($) => $.field('contacts', 'city').eq(123))
+  // @ts-expect-error - the string keys should not leak
+  db.users.query(($) => $.field('contacts', 'charAt').equal('Singapore'))
+
+  // Deeply nested
+  db.users.query(($) => $.field('contacts', 'address', 'zip').eq('123456'))
+  // @ts-expect-error - nope is not a correct field
+  db.users.query(($) => $.field('contacts', 'address', 'nope').equal('nah'))
+
+  // Not
+  db.users.query(($) => $.field('contacts', 'city').not('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').not(true))
+
+  // Greater than
+  db.users.query(($) => $.field('contacts', 'city').gt('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').gt(123))
+
+  // Greater than or equal
+  db.users.query(($) => $.field('contacts', 'city').gte('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').gte(123))
+
+  // Less than
+  db.users.query(($) => $.field('contacts', 'city').lt('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').lt(123))
+
+  // Less than or equal
+  db.users.query(($) => $.field('contacts', 'city').lte('Singapore'))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').lte(123))
+
+  // Array contains
+  db.users.query(($) => $.field('contacts', 'zip').contains('098765'))
+  // @ts-expect-error - zip is an array of numbers
+  db.users.query(($) => $.field('contacts', 'zip').contains(98765))
+
+  // Array contains any
+  db.users.query(($) => $.field('contacts', 'zip').containsAny(['098765']))
+  // @ts-expect-error - zip is an array of numbers
+  db.users.query(($) => $.field('contacts', 'zip').containsAny([98765]))
+
+  // In
+  db.users.query(($) => $.field('contacts', 'city').in(['Singapore']))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').in([123]))
+
+  // Not in
+  db.users.query(($) => $.field('contacts', 'city').notIn(['Singapore']))
+  // @ts-expect-error - city is a string
+  db.users.query(($) => $.field('contacts', 'city').notIn([123]))
+
+  // Cursors
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      $.startAfter('Singapore'),
+      $.endAt('Bangkok')
+    ])
+  )
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      // @ts-expect-error - city is a string
+      $.startAfter(123),
+      // @ts-expect-error - city is a string
+      $.endAt(456)
+    ])
+  )
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      $.startAt('Singapore'),
+      $.endBefore('Bangkok')
+    ])
+  )
+  db.users.query(($) =>
+    $.field('contacts', 'city').order('asc', [
+      // @ts-expect-error - city is a string
+      $.startAt(123),
+      // @ts-expect-error - city is a string
+      $.endBefore(456)
+    ])
+  )
+
+  // Variable shape
+  db.content.query(($) => $.field('src').eq('https://exama.com/image.png'))
 
   // Count
 
@@ -1238,6 +1362,15 @@ async function update() {
     })
   )
 
+  // Increment on opaque numbers
+
+  const json = await db.json.get(db.json.id('index'))
+  if (json) {
+    // @ts-expect-error: Should allow only incrementing via the opaque number
+    json.update(($) => $.field('version').set($.increment(1)))
+    json.update(($) => $.field('version').set($.increment(1 as OpaqueNumber)))
+  }
+
   // Updating variable collection
 
   const contentId = db.content.id('hello-world!')
@@ -1410,6 +1543,17 @@ async function update() {
     content2.ref.update(content2.data)
     db.content.update(contentId, content2.data)
   }
+
+  // It disallows updating array fields via dot notation
+
+  db.addresses.update(db.addresses.id('address-id'), ($) =>
+    // @ts-expect-error - Can't update array fields via dot notation
+    $.field('address', 'lines', 0).set('123 Main St')
+  )
+
+  const $dotNope = db.addresses.update.build(db.addresses.id('address-id'))
+  // @ts-expect-error - Can't update array fields via dot notation
+  $dotNope.field('address', 'lines', 0).set('123 Main St')
 }
 
 async function sharedIds() {
