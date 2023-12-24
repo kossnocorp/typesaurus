@@ -5,10 +5,12 @@ type Mode = 'strict' | 'loose'
 const startRE = /^\s*(\/\/|\/\*)\s@tysts-start:\s(strict|loose)/
 const endRE = /^\s*(\/\/\s)?@tysts-end:\s(strict|loose)/
 
-readFile('./src/tysts/core.ts', 'utf-8')
+const tysts = 'core'
+
+readFile(`./src/tysts/${tysts}.ts`, 'utf-8')
   .then((code) => code.split('\n'))
   .then((lines) => {
-    const generatingMode = 'loose' as const
+    const generatingMode: Mode[] = ['loose']
     let code = ''
     let mode: undefined | Mode = undefined
 
@@ -30,7 +32,7 @@ readFile('./src/tysts/core.ts', 'utf-8')
         }
 
         // Add line if it's the generating mode otherwise ignore
-        if (mode === generatingMode) code += line + '\n'
+        if (generatingMode.includes(mode)) code += line + '\n'
 
         continue
       }
@@ -44,5 +46,5 @@ readFile('./src/tysts/core.ts', 'utf-8')
       code += line + '\n'
     }
 
-    return writeFile(`./src/tysts/${generatingMode}/${generatingMode}.ts`, code)
+    return writeFile(`./src/tysts/${generatingMode}/${tysts}.ts`, code)
   })
