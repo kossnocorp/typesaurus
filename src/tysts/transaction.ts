@@ -1,4 +1,13 @@
+// NOTE: That this file is used to generate tysts for different environments,
+// including loose that is located next to this file (see ./loose/transaction.ts).
+// To do that, we use @tysts-start and @tysts-end comments.
+
+// @tysts-start: strict
 import { schema, transaction, Typesaurus } from '..'
+// @tysts-end: strict
+/* @tysts-start: loose
+import { schema, transaction, Typesaurus } from '../..'
+@tysts-end: loose */
 
 interface User {
   name: string

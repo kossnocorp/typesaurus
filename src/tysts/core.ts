@@ -1,5 +1,5 @@
 // NOTE: That this file is used to generate tysts for different environments,
-// including loose that is located next to this file (see ./loose/loose.ts).
+// including loose that is located next to this file (see ./loose/core.ts).
 // To do that, we use @tysts-start and @tysts-end comments.
 
 // @tysts-start: strict

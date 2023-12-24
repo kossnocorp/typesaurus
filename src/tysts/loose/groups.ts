@@ -1,6 +1,10 @@
-import { schema, groups, Typesaurus } from '..'
-import type { TypesaurusGroups as Groups } from '../types/groups'
-import type { TypesaurusCore as Core } from '../types/core'
+// NOTE: That this file is used to generate tysts for different environments,
+// including loose that is located next to this file (see ./loose/groups.ts).
+// To do that, we use @tysts-start and @tysts-end comments.
+
+import { schema, groups, Typesaurus } from '../..'
+import type { TypesaurusGroups as Groups } from '../../types/groups'
+import type { TypesaurusCore as Core } from '../../types/core'
 
 interface User {
   name: string
@@ -896,3 +900,4 @@ async function tysts() {
 }
 
 type Assert<Type1, _Type2 extends Type1> = true
+

@@ -3,6 +3,7 @@
   "compilerOptions": {
     "emitDeclarationOnly": true
   },
+  "include": ["src/**/*.ts"],
   "exclude": [
     "lib",
     "node_modules",

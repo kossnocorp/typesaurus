@@ -1,5 +1,5 @@
 // NOTE: That this file is used to generate tysts for different environments,
-// including loose that is located next to this file (see ./loose/loose.ts).
+// including loose that is located next to this file (see ./loose/core.ts).
 // To do that, we use @tysts-start and @tysts-end comments.
 
 import { schema, Typesaurus } from '../..'
@@ -827,6 +827,7 @@ async function query() {
 
   // Empty query
 
+
   // Empty query fields
 
   db.users.query(($) => [
@@ -1309,6 +1310,8 @@ async function update() {
     name: $.remove()
   }))
 
+
+
   // Setting undefined to optional fields
 
   // If it's only optional field, you should not be able to set it to undefined
@@ -1631,6 +1634,7 @@ async function update() {
   db.users.update(userId, () => null)
   const emptyUpdate1 = db.users.update(userId, () => undefined)
 
+
   db.users.get(userId).then((user) => {
     if (!user) return
 
@@ -1638,6 +1642,7 @@ async function update() {
     user.update(() => '')
     user.update(() => null)
     const emptyUpdate2 = user.update(() => undefined)
+
   })
 
   // Empty update fields
@@ -1684,6 +1689,7 @@ async function sharedIds() {
 
   db.settings.update(userId, { email: 'hello@example.com' })
 }
+
 
 namespace Data {
   // It does not mingle typed id
@@ -2636,3 +2642,4 @@ export type TypeEqual<T, U> = Exclude<T, U> extends never
     ? true
     : false
   : false
+

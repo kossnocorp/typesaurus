@@ -5,46 +5,49 @@ type Mode = 'strict' | 'loose'
 const startRE = /^\s*(\/\/|\/\*)\s@tysts-start:\s(strict|loose)/
 const endRE = /^\s*(\/\/\s)?@tysts-end:\s(strict|loose)/
 
-const tysts = 'core'
+const tysts = ['core', 'batch', 'groups', 'transaction'] as const
 
-readFile(`./src/tysts/${tysts}.ts`, 'utf-8')
-  .then((code) => code.split('\n'))
-  .then((lines) => {
-    const generatingMode: Mode[] = ['loose']
-    let code = ''
-    let mode: undefined | Mode = undefined
+Promise.all(tysts.map((tyst) => generateTyst(tyst)))
 
-    for (let index = 0; index < lines.length; index++) {
-      const line = lines[index]
-      if (mode) {
-        // Check if mode ends
-        const endMatches = line.match(endRE)
-        if (endMatches) {
-          const endMode = endMatches[2]
-          if (endMode !== mode)
-            throw new Error(
-              `Mismatched @tysts-end: expected ${mode} but got ${endMode}. Line: ${
-                index + 1
-              }`
-            )
-          mode = undefined
-          continue
-        }
+async function generateTyst(tyst: typeof tysts[number]) {
+  const content = await readFile(`./src/tysts/${tyst}.ts`, 'utf-8')
+  const lines = content.split('\n')
 
-        // Add line if it's the generating mode otherwise ignore
-        if (generatingMode.includes(mode)) code += line + '\n'
+  const generatingMode: Mode[] = ['loose']
+  let code = ''
+  let mode: undefined | Mode = undefined
 
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index]!
+    if (mode) {
+      // Check if mode ends
+      const endMatches = line.match(endRE)
+      if (endMatches) {
+        const endMode = endMatches[2]
+        if (endMode !== mode)
+          throw new Error(
+            `Mismatched @tysts-end: expected ${mode} but got ${endMode}. Line: ${
+              index + 1
+            }`
+          )
+        mode = undefined
         continue
       }
 
-      const startMatches = line.match(startRE)
-      if (startMatches) {
-        mode = startMatches[2] as Mode
-        continue
-      }
+      // Add line if it's the generating mode otherwise ignore
+      if (generatingMode.includes(mode)) code += line + '\n'
 
-      code += line + '\n'
+      continue
     }
 
-    return writeFile(`./src/tysts/${generatingMode}/${tysts}.ts`, code)
-  })
+    const startMatches = line.match(startRE)
+    if (startMatches) {
+      mode = startMatches[2] as Mode
+      continue
+    }
+
+    code += line + '\n'
+  }
+
+  return writeFile(`./src/tysts/${generatingMode}/${tyst}.ts`, code)
+}
