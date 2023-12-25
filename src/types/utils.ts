@@ -2,13 +2,13 @@ export namespace TypesaurusUtils {
   /**
    * Falsy type.
    */
-  export type Falsy = undefined | null | '' | false | 0
+  export type Falsy = undefined | null | "" | false | 0;
 
   /**
    * Any brand type that can be mixed with string number or symbol to create
    * opaque primitive.
    */
-  export type AnyBrand = { [key: string | number | symbol]: any }
+  export type AnyBrand = { [key: string | number | symbol]: any };
 
   /**
    * Removes brand from the given type.
@@ -16,32 +16,32 @@ export namespace TypesaurusUtils {
   export type Debrand<Type> = Type extends infer _Brand extends AnyBrand &
     infer Debranded extends string | number | symbol
     ? Debranded
-    : Type
+    : Type;
 
   /**
    * Composes collection path from base path and collection name.
    */
   export type ComposePath<
     BasePath extends string | false,
-    Path extends string
-  > = BasePath extends false ? Path : `${BasePath}/${Path}`
+    Path extends string,
+  > = BasePath extends false ? Path : `${BasePath}/${Path}`;
 
   /**
    * Resolves union keys.
    */
-  export type UnionKeys<Type> = Type extends Type ? keyof Type : never
+  export type UnionKeys<Type> = Type extends Type ? keyof Type : never;
 
   /**
    * Resolves union value.
    */
   export type UnionValue<
     Type,
-    UnionKey extends UnionKeys<Type>
+    UnionKey extends UnionKeys<Type>,
   > = Type extends {
-    [Key in UnionKey]: unknown
+    [Key in UnionKey]: unknown;
   }
     ? Type[UnionKey]
-    : never
+    : never;
 
   /**
    * Removes indexed fields leaving only statically defined.
@@ -50,19 +50,19 @@ export namespace TypesaurusUtils {
     [Key in keyof Model as string extends Debrand<Key>
       ? never
       : number extends Debrand<Key>
-      ? never
-      : symbol extends Debrand<Key>
-      ? never
-      : Key]: Model[Key]
-  }
+        ? never
+        : symbol extends Debrand<Key>
+          ? never
+          : Key]: Model[Key];
+  };
 
   /**
    * Resolves true if the given key is statically defined in the given type.
    */
   export type StaticKey<
     Model,
-    Key extends keyof Model
-  > = Key extends keyof WithoutIndexed<Model> ? true : false
+    Key extends keyof Model,
+  > = Key extends keyof WithoutIndexed<Model> ? true : false;
 
   /**
    * Returns a type with all fields required and all values exclude undefined.
@@ -70,8 +70,8 @@ export namespace TypesaurusUtils {
    * and values.
    */
   export type AllRequired<Model> = {
-    [Key in keyof Required<Model>]-?: Exclude<Required<Model>[Key], undefined>
-  }
+    [Key in keyof Required<Model>]-?: Exclude<Required<Model>[Key], undefined>;
+  };
 
   /**
    * Resolves true if the passed key is a required field of the passed model.
@@ -83,7 +83,7 @@ export namespace TypesaurusUtils {
     ? Partial<Pick<Model, Key>> extends Pick<Model, Key>
       ? false
       : true
-    : false
+    : false;
 
   /**
    * Resolves true if all sibling fields in the passed model are optional.
@@ -92,7 +92,7 @@ export namespace TypesaurusUtils {
     Omit<WithoutIndexed<Model>, Key>
   > extends Omit<WithoutIndexed<Model>, Key>
     ? true
-    : false
+    : false;
 
   /**
    * Resolves true if the passed path to a field within a nested object
@@ -108,7 +108,7 @@ export namespace TypesaurusUtils {
     Key1
   > extends true
     ? true
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -118,12 +118,12 @@ export namespace TypesaurusUtils {
   export type RequiredPath2<
     Model,
     Key1 extends keyof Model,
-    Key2 extends keyof AllRequired<Model>[Key1]
+    Key2 extends keyof AllRequired<Model>[Key1],
   > = RequiredPath1<Model, Key1> extends true // Check if the path is safe up to this level
     ? RequiredKey<AllRequired<Model>[Key1], Key2> extends true // Check if the given field is required
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -135,7 +135,7 @@ export namespace TypesaurusUtils {
     Model,
     Key1 extends keyof Model,
     Key2 extends keyof AllRequired<Model>[Key1],
-    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2]
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
   > = RequiredPath2<Model, Key1, Key2> extends true
     ? RequiredKey<
         AllRequired<AllRequired<Model>[Key1]>[Key2],
@@ -143,7 +143,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -158,7 +158,7 @@ export namespace TypesaurusUtils {
     Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
     Key4 extends keyof AllRequired<
       AllRequired<AllRequired<Model>[Key1]>[Key2]
-    >[Key3]
+    >[Key3],
   > = RequiredPath3<Model, Key1, Key2, Key3> extends true
     ? RequiredKey<
         AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
@@ -166,7 +166,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -184,7 +184,7 @@ export namespace TypesaurusUtils {
     >[Key3],
     Key5 extends keyof AllRequired<
       AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-    >[Key4]
+    >[Key4],
   > = RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
     ? RequiredKey<
         AllRequired<
@@ -194,7 +194,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -217,7 +217,7 @@ export namespace TypesaurusUtils {
       AllRequired<
         AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
       >[Key4]
-    >[Key5]
+    >[Key5],
   > = RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
     ? RequiredKey<
         AllRequired<
@@ -229,7 +229,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -259,7 +259,7 @@ export namespace TypesaurusUtils {
           AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
         >[Key4]
       >[Key5]
-    >[Key6]
+    >[Key6],
   > = RequiredPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
     ? RequiredKey<
         AllRequired<
@@ -273,7 +273,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -312,7 +312,7 @@ export namespace TypesaurusUtils {
           >[Key4]
         >[Key5]
       >[Key6]
-    >[Key7]
+    >[Key7],
   > = RequiredPath7<
     Model,
     Key1,
@@ -337,7 +337,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -387,7 +387,7 @@ export namespace TypesaurusUtils {
           >[Key5]
         >[Key6]
       >[Key7]
-    >[Key8]
+    >[Key8],
   > = RequiredPath8<
     Model,
     Key1,
@@ -415,7 +415,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link RequiredPath1} for the documentation.
@@ -478,7 +478,7 @@ export namespace TypesaurusUtils {
           >[Key6]
         >[Key7]
       >[Key8]
-    >[Key9]
+    >[Key9],
   > = RequiredPath9<
     Model,
     Key1,
@@ -511,7 +511,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * Resolves true if the passed optional path to a field within a nested object
@@ -524,8 +524,8 @@ export namespace TypesaurusUtils {
    */
   export type SafeOptionalPath1<
     Model,
-    Key1 extends keyof Model
-  > = AllOptionalBut<Model, Key1> extends true ? true : false
+    Key1 extends keyof Model,
+  > = AllOptionalBut<Model, Key1> extends true ? true : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -535,12 +535,12 @@ export namespace TypesaurusUtils {
   export type SafeOptionalPath2<
     Model,
     Key1 extends keyof Model,
-    Key2 extends keyof AllRequired<Model>[Key1]
+    Key2 extends keyof AllRequired<Model>[Key1],
   > = SafeOptionalPath1<Model, Key1> extends true // Check if the path is safe up to this level
     ? AllOptionalBut<AllRequired<Model>[Key1], Key2> extends true // Checks if there are no required sibling fields
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -552,7 +552,7 @@ export namespace TypesaurusUtils {
     Model,
     Key1 extends keyof Model,
     Key2 extends keyof AllRequired<Model>[Key1],
-    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2]
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
   > = SafeOptionalPath2<Model, Key1, Key2> extends true
     ? AllOptionalBut<
         AllRequired<AllRequired<Model>[Key1]>[Key2],
@@ -560,7 +560,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -575,7 +575,7 @@ export namespace TypesaurusUtils {
     Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
     Key4 extends keyof AllRequired<
       AllRequired<AllRequired<Model>[Key1]>[Key2]
-    >[Key3]
+    >[Key3],
   > = SafeOptionalPath3<Model, Key1, Key2, Key3> extends true
     ? AllOptionalBut<
         AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
@@ -583,7 +583,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -601,7 +601,7 @@ export namespace TypesaurusUtils {
     >[Key3],
     Key5 extends keyof AllRequired<
       AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-    >[Key4]
+    >[Key4],
   > = SafeOptionalPath4<Model, Key1, Key2, Key3, Key4> extends true
     ? AllOptionalBut<
         AllRequired<
@@ -611,7 +611,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -634,7 +634,7 @@ export namespace TypesaurusUtils {
       AllRequired<
         AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
       >[Key4]
-    >[Key5]
+    >[Key5],
   > = SafeOptionalPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
     ? AllOptionalBut<
         AllRequired<
@@ -646,7 +646,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -676,7 +676,7 @@ export namespace TypesaurusUtils {
           AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
         >[Key4]
       >[Key5]
-    >[Key6]
+    >[Key6],
   > = SafeOptionalPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
     ? AllOptionalBut<
         AllRequired<
@@ -690,7 +690,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -729,7 +729,7 @@ export namespace TypesaurusUtils {
           >[Key4]
         >[Key5]
       >[Key6]
-    >[Key7]
+    >[Key7],
   > = SafeOptionalPath7<
     Model,
     Key1,
@@ -754,7 +754,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -804,7 +804,7 @@ export namespace TypesaurusUtils {
           >[Key5]
         >[Key6]
       >[Key7]
-    >[Key8]
+    >[Key8],
   > = SafeOptionalPath8<
     Model,
     Key1,
@@ -832,7 +832,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * See {@link SafeOptionalPath1} for the documentation.
@@ -895,7 +895,7 @@ export namespace TypesaurusUtils {
           >[Key6]
         >[Key7]
       >[Key8]
-    >[Key9]
+    >[Key9],
   > = SafeOptionalPath9<
     Model,
     Key1,
@@ -928,7 +928,7 @@ export namespace TypesaurusUtils {
       > extends true
       ? true
       : false
-    : false
+    : false;
 
   /**
    * Resolves true if the passed path to a field within a nested object is
@@ -943,7 +943,7 @@ export namespace TypesaurusUtils {
    *
    * See {@link SafePath5} for the internal implementation details.
    */
-  export type SafePath1<Model, _Key1 extends keyof Model> = true
+  export type SafePath1<Model, _Key1 extends keyof Model> = true;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -954,10 +954,10 @@ export namespace TypesaurusUtils {
   export type SafePath2<
     Model,
     Key1 extends keyof Model,
-    Key2 extends keyof AllRequired<Model>[Key1]
+    Key2 extends keyof AllRequired<Model>[Key1],
   > = RequiredPath1<Model, Key1> extends true
     ? true
-    : SafeOptionalPath1<AllRequired<Model>[Key1], Key2>
+    : SafeOptionalPath1<AllRequired<Model>[Key1], Key2>;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -969,10 +969,10 @@ export namespace TypesaurusUtils {
     Model,
     Key1 extends keyof Model,
     Key2 extends keyof AllRequired<Model>[Key1],
-    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2]
+    Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
   > = RequiredPath2<Model, Key1, Key2> extends true
     ? true
-    : SafeOptionalPath2<AllRequired<Model>[Key1], Key2, Key3>
+    : SafeOptionalPath2<AllRequired<Model>[Key1], Key2, Key3>;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -987,10 +987,10 @@ export namespace TypesaurusUtils {
     Key3 extends keyof AllRequired<AllRequired<Model>[Key1]>[Key2],
     Key4 extends keyof AllRequired<
       AllRequired<AllRequired<Model>[Key1]>[Key2]
-    >[Key3]
+    >[Key3],
   > = RequiredPath3<Model, Key1, Key2, Key3> extends true
     ? true
-    : SafeOptionalPath3<AllRequired<Model>[Key1], Key2, Key3, Key4>
+    : SafeOptionalPath3<AllRequired<Model>[Key1], Key2, Key3, Key4>;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -1007,7 +1007,7 @@ export namespace TypesaurusUtils {
     >[Key3],
     Key5 extends keyof AllRequired<
       AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-    >[Key4]
+    >[Key4],
   > =
     // If the path is required at every level but last, resolve true.
     //
@@ -1017,30 +1017,30 @@ export namespace TypesaurusUtils {
     RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
       ? true
       : // Otherwise check if it's required at one level lower...
-      RequiredPath3<Model, Key1, Key2, Key3> extends true
-      ? // ...and if it is, check if the optional path from that lower level
-        // is safe.
-        //
-        // Here we check the last two keys of the path.
-        SafeOptionalPath2<
-          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
-          Key4,
-          Key5
-        >
-      : // Repeat the same one more lever lower...
-      RequiredPath2<Model, Key1, Key2> extends true
-      ? SafeOptionalPath3<
-          AllRequired<AllRequired<Model>[Key1]>[Key2],
-          Key3,
-          Key4,
-          Key5
-        >
-      : // ...until we reach the first level where we can simply check the whole
-        // path.
-        //
-        // We don't check the root level and start at thefirst level (Key1)
-        // because it's always safe as missing document can't be updated.
-        SafeOptionalPath4<AllRequired<Model>[Key1], Key2, Key3, Key4, Key5>
+        RequiredPath3<Model, Key1, Key2, Key3> extends true
+        ? // ...and if it is, check if the optional path from that lower level
+          // is safe.
+          //
+          // Here we check the last two keys of the path.
+          SafeOptionalPath2<
+            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
+            Key4,
+            Key5
+          >
+        : // Repeat the same one more lever lower...
+          RequiredPath2<Model, Key1, Key2> extends true
+          ? SafeOptionalPath3<
+              AllRequired<AllRequired<Model>[Key1]>[Key2],
+              Key3,
+              Key4,
+              Key5
+            >
+          : // ...until we reach the first level where we can simply check the whole
+            // path.
+            //
+            // We don't check the root level and start at thefirst level (Key1)
+            // because it's always safe as missing document can't be updated.
+            SafeOptionalPath4<AllRequired<Model>[Key1], Key2, Key3, Key4, Key5>;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -1063,33 +1063,40 @@ export namespace TypesaurusUtils {
       AllRequired<
         AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
       >[Key4]
-    >[Key5]
+    >[Key5],
   > = RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
     ? true
     : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
-    ? SafeOptionalPath2<
-        AllRequired<
-          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-        >[Key4],
-        Key5,
-        Key6
-      >
-    : RequiredPath3<Model, Key1, Key2, Key3> extends true
-    ? SafeOptionalPath3<
-        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
-        Key4,
-        Key5,
-        Key6
-      >
-    : RequiredPath2<Model, Key1, Key2> extends true
-    ? SafeOptionalPath4<
-        AllRequired<AllRequired<Model>[Key1]>[Key2],
-        Key3,
-        Key4,
-        Key5,
-        Key6
-      >
-    : SafeOptionalPath5<AllRequired<Model>[Key1], Key2, Key3, Key4, Key5, Key6>
+      ? SafeOptionalPath2<
+          AllRequired<
+            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+          >[Key4],
+          Key5,
+          Key6
+        >
+      : RequiredPath3<Model, Key1, Key2, Key3> extends true
+        ? SafeOptionalPath3<
+            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
+            Key4,
+            Key5,
+            Key6
+          >
+        : RequiredPath2<Model, Key1, Key2> extends true
+          ? SafeOptionalPath4<
+              AllRequired<AllRequired<Model>[Key1]>[Key2],
+              Key3,
+              Key4,
+              Key5,
+              Key6
+            >
+          : SafeOptionalPath5<
+              AllRequired<Model>[Key1],
+              Key2,
+              Key3,
+              Key4,
+              Key5,
+              Key6
+            >;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -1119,54 +1126,54 @@ export namespace TypesaurusUtils {
           AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
         >[Key4]
       >[Key5]
-    >[Key6]
+    >[Key6],
   > = RequiredPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
     ? true
     : RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
-    ? SafeOptionalPath2<
-        AllRequired<
+      ? SafeOptionalPath2<
           AllRequired<
-            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-          >[Key4]
-        >[Key5],
-        Key6,
-        Key7
-      >
-    : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
-    ? SafeOptionalPath3<
-        AllRequired<
-          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-        >[Key4],
-        Key5,
-        Key6,
-        Key7
-      >
-    : RequiredPath3<Model, Key1, Key2, Key3> extends true
-    ? SafeOptionalPath4<
-        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
-        Key4,
-        Key5,
-        Key6,
-        Key7
-      >
-    : RequiredPath2<Model, Key1, Key2> extends true
-    ? SafeOptionalPath5<
-        AllRequired<AllRequired<Model>[Key1]>[Key2],
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7
-      >
-    : SafeOptionalPath6<
-        AllRequired<Model>[Key1],
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7
-      >
+            AllRequired<
+              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+            >[Key4]
+          >[Key5],
+          Key6,
+          Key7
+        >
+      : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
+        ? SafeOptionalPath3<
+            AllRequired<
+              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+            >[Key4],
+            Key5,
+            Key6,
+            Key7
+          >
+        : RequiredPath3<Model, Key1, Key2, Key3> extends true
+          ? SafeOptionalPath4<
+              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
+              Key4,
+              Key5,
+              Key6,
+              Key7
+            >
+          : RequiredPath2<Model, Key1, Key2> extends true
+            ? SafeOptionalPath5<
+                AllRequired<AllRequired<Model>[Key1]>[Key2],
+                Key3,
+                Key4,
+                Key5,
+                Key6,
+                Key7
+              >
+            : SafeOptionalPath6<
+                AllRequired<Model>[Key1],
+                Key2,
+                Key3,
+                Key4,
+                Key5,
+                Key6,
+                Key7
+              >;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -1205,7 +1212,7 @@ export namespace TypesaurusUtils {
           >[Key4]
         >[Key5]
       >[Key6]
-    >[Key7]
+    >[Key7],
   > = RequiredPath7<
     Model,
     Key1,
@@ -1218,67 +1225,67 @@ export namespace TypesaurusUtils {
   > extends true
     ? true
     : RequiredPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
-    ? SafeOptionalPath2<
-        AllRequired<
+      ? SafeOptionalPath2<
           AllRequired<
             AllRequired<
-              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-            >[Key4]
-          >[Key5]
-        >[Key6],
-        Key7,
-        Key8
-      >
-    : RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
-    ? SafeOptionalPath3<
-        AllRequired<
-          AllRequired<
-            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-          >[Key4]
-        >[Key5],
-        Key6,
-        Key7,
-        Key8
-      >
-    : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
-    ? SafeOptionalPath4<
-        AllRequired<
-          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-        >[Key4],
-        Key5,
-        Key6,
-        Key7,
-        Key8
-      >
-    : RequiredPath3<Model, Key1, Key2, Key3> extends true
-    ? SafeOptionalPath5<
-        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8
-      >
-    : RequiredPath2<Model, Key1, Key2> extends true
-    ? SafeOptionalPath6<
-        AllRequired<AllRequired<Model>[Key1]>[Key2],
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8
-      >
-    : SafeOptionalPath7<
-        AllRequired<Model>[Key1],
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8
-      >
+              AllRequired<
+                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+              >[Key4]
+            >[Key5]
+          >[Key6],
+          Key7,
+          Key8
+        >
+      : RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+        ? SafeOptionalPath3<
+            AllRequired<
+              AllRequired<
+                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+              >[Key4]
+            >[Key5],
+            Key6,
+            Key7,
+            Key8
+          >
+        : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
+          ? SafeOptionalPath4<
+              AllRequired<
+                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+              >[Key4],
+              Key5,
+              Key6,
+              Key7,
+              Key8
+            >
+          : RequiredPath3<Model, Key1, Key2, Key3> extends true
+            ? SafeOptionalPath5<
+                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
+                Key4,
+                Key5,
+                Key6,
+                Key7,
+                Key8
+              >
+            : RequiredPath2<Model, Key1, Key2> extends true
+              ? SafeOptionalPath6<
+                  AllRequired<AllRequired<Model>[Key1]>[Key2],
+                  Key3,
+                  Key4,
+                  Key5,
+                  Key6,
+                  Key7,
+                  Key8
+                >
+              : SafeOptionalPath7<
+                  AllRequired<Model>[Key1],
+                  Key2,
+                  Key3,
+                  Key4,
+                  Key5,
+                  Key6,
+                  Key7,
+                  Key8
+                >;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -1328,7 +1335,7 @@ export namespace TypesaurusUtils {
           >[Key5]
         >[Key6]
       >[Key7]
-    >[Key8]
+    >[Key8],
   > = RequiredPath8<
     Model,
     Key1,
@@ -1342,96 +1349,98 @@ export namespace TypesaurusUtils {
   > extends true
     ? true
     : RequiredPath7<
-        Model,
-        Key1,
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7
-      > extends true
-    ? SafeOptionalPath2<
-        AllRequired<
+          Model,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7
+        > extends true
+      ? SafeOptionalPath2<
           AllRequired<
             AllRequired<
               AllRequired<
-                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-              >[Key4]
-            >[Key5]
-          >[Key6]
-        >[Key7],
-        Key8,
-        Key9
-      >
-    : RequiredPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
-    ? SafeOptionalPath3<
-        AllRequired<
-          AllRequired<
+                AllRequired<
+                  AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6]
+          >[Key7],
+          Key8,
+          Key9
+        >
+      : RequiredPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
+        ? SafeOptionalPath3<
             AllRequired<
-              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-            >[Key4]
-          >[Key5]
-        >[Key6],
-        Key7,
-        Key8,
-        Key9
-      >
-    : RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
-    ? SafeOptionalPath4<
-        AllRequired<
-          AllRequired<
-            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-          >[Key4]
-        >[Key5],
-        Key6,
-        Key7,
-        Key8,
-        Key9
-      >
-    : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
-    ? SafeOptionalPath5<
-        AllRequired<
-          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-        >[Key4],
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9
-      >
-    : RequiredPath3<Model, Key1, Key2, Key3> extends true
-    ? SafeOptionalPath6<
-        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9
-      >
-    : RequiredPath2<Model, Key1, Key2> extends true
-    ? SafeOptionalPath7<
-        AllRequired<AllRequired<Model>[Key1]>[Key2],
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9
-      >
-    : SafeOptionalPath8<
-        AllRequired<Model>[Key1],
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9
-      >
+              AllRequired<
+                AllRequired<
+                  AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+                >[Key4]
+              >[Key5]
+            >[Key6],
+            Key7,
+            Key8,
+            Key9
+          >
+        : RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+          ? SafeOptionalPath4<
+              AllRequired<
+                AllRequired<
+                  AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+                >[Key4]
+              >[Key5],
+              Key6,
+              Key7,
+              Key8,
+              Key9
+            >
+          : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
+            ? SafeOptionalPath5<
+                AllRequired<
+                  AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
+                >[Key4],
+                Key5,
+                Key6,
+                Key7,
+                Key8,
+                Key9
+              >
+            : RequiredPath3<Model, Key1, Key2, Key3> extends true
+              ? SafeOptionalPath6<
+                  AllRequired<
+                    AllRequired<AllRequired<Model>[Key1]>[Key2]
+                  >[Key3],
+                  Key4,
+                  Key5,
+                  Key6,
+                  Key7,
+                  Key8,
+                  Key9
+                >
+              : RequiredPath2<Model, Key1, Key2> extends true
+                ? SafeOptionalPath7<
+                    AllRequired<AllRequired<Model>[Key1]>[Key2],
+                    Key3,
+                    Key4,
+                    Key5,
+                    Key6,
+                    Key7,
+                    Key8,
+                    Key9
+                  >
+                : SafeOptionalPath8<
+                    AllRequired<Model>[Key1],
+                    Key2,
+                    Key3,
+                    Key4,
+                    Key5,
+                    Key6,
+                    Key7,
+                    Key8,
+                    Key9
+                  >;
 
   /**
    * See {@link SafePath1} for the documentation.
@@ -1494,7 +1503,7 @@ export namespace TypesaurusUtils {
           >[Key6]
         >[Key7]
       >[Key8]
-    >[Key9]
+    >[Key9],
   > = RequiredPath9<
     Model,
     Key1,
@@ -1509,129 +1518,141 @@ export namespace TypesaurusUtils {
   > extends true
     ? true
     : RequiredPath8<
-        Model,
-        Key1,
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8
-      > extends true
-    ? SafeOptionalPath2<
-        AllRequired<
+          Model,
+          Key1,
+          Key2,
+          Key3,
+          Key4,
+          Key5,
+          Key6,
+          Key7,
+          Key8
+        > extends true
+      ? SafeOptionalPath2<
           AllRequired<
             AllRequired<
               AllRequired<
                 AllRequired<
-                  AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-                >[Key4]
-              >[Key5]
-            >[Key6]
-          >[Key7]
-        >[Key8],
-        Key9,
-        Key10
-      >
-    : RequiredPath7<
-        Model,
-        Key1,
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7
-      > extends true
-    ? SafeOptionalPath3<
-        AllRequired<
-          AllRequired<
+                  AllRequired<
+                    AllRequired<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6]
+            >[Key7]
+          >[Key8],
+          Key9,
+          Key10
+        >
+      : RequiredPath7<
+            Model,
+            Key1,
+            Key2,
+            Key3,
+            Key4,
+            Key5,
+            Key6,
+            Key7
+          > extends true
+        ? SafeOptionalPath3<
             AllRequired<
               AllRequired<
-                AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-              >[Key4]
-            >[Key5]
-          >[Key6]
-        >[Key7],
-        Key8,
-        Key9,
-        Key10
-      >
-    : RequiredPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
-    ? SafeOptionalPath4<
-        AllRequired<
-          AllRequired<
-            AllRequired<
-              AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-            >[Key4]
-          >[Key5]
-        >[Key6],
-        Key7,
-        Key8,
-        Key9,
-        Key10
-      >
-    : RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
-    ? SafeOptionalPath5<
-        AllRequired<
-          AllRequired<
-            AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-          >[Key4]
-        >[Key5],
-        Key6,
-        Key7,
-        Key8,
-        Key9,
-        Key10
-      >
-    : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
-    ? SafeOptionalPath6<
-        AllRequired<
-          AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3]
-        >[Key4],
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9,
-        Key10
-      >
-    : RequiredPath3<Model, Key1, Key2, Key3> extends true
-    ? SafeOptionalPath7<
-        AllRequired<AllRequired<AllRequired<Model>[Key1]>[Key2]>[Key3],
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9,
-        Key10
-      >
-    : RequiredPath2<Model, Key1, Key2> extends true
-    ? SafeOptionalPath8<
-        AllRequired<AllRequired<Model>[Key1]>[Key2],
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9,
-        Key10
-      >
-    : SafeOptionalPath9<
-        AllRequired<Model>[Key1],
-        Key2,
-        Key3,
-        Key4,
-        Key5,
-        Key6,
-        Key7,
-        Key8,
-        Key9,
-        Key10
-      >
+                AllRequired<
+                  AllRequired<
+                    AllRequired<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6]
+            >[Key7],
+            Key8,
+            Key9,
+            Key10
+          >
+        : RequiredPath6<Model, Key1, Key2, Key3, Key4, Key5, Key6> extends true
+          ? SafeOptionalPath4<
+              AllRequired<
+                AllRequired<
+                  AllRequired<
+                    AllRequired<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5]
+              >[Key6],
+              Key7,
+              Key8,
+              Key9,
+              Key10
+            >
+          : RequiredPath5<Model, Key1, Key2, Key3, Key4, Key5> extends true
+            ? SafeOptionalPath5<
+                AllRequired<
+                  AllRequired<
+                    AllRequired<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2]
+                    >[Key3]
+                  >[Key4]
+                >[Key5],
+                Key6,
+                Key7,
+                Key8,
+                Key9,
+                Key10
+              >
+            : RequiredPath4<Model, Key1, Key2, Key3, Key4> extends true
+              ? SafeOptionalPath6<
+                  AllRequired<
+                    AllRequired<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2]
+                    >[Key3]
+                  >[Key4],
+                  Key5,
+                  Key6,
+                  Key7,
+                  Key8,
+                  Key9,
+                  Key10
+                >
+              : RequiredPath3<Model, Key1, Key2, Key3> extends true
+                ? SafeOptionalPath7<
+                    AllRequired<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2]
+                    >[Key3],
+                    Key4,
+                    Key5,
+                    Key6,
+                    Key7,
+                    Key8,
+                    Key9,
+                    Key10
+                  >
+                : RequiredPath2<Model, Key1, Key2> extends true
+                  ? SafeOptionalPath8<
+                      AllRequired<AllRequired<Model>[Key1]>[Key2],
+                      Key3,
+                      Key4,
+                      Key5,
+                      Key6,
+                      Key7,
+                      Key8,
+                      Key9,
+                      Key10
+                    >
+                  : SafeOptionalPath9<
+                      AllRequired<Model>[Key1],
+                      Key2,
+                      Key3,
+                      Key4,
+                      Key5,
+                      Key6,
+                      Key7,
+                      Key8,
+                      Key9,
+                      Key10
+                    >;
 
   export type SharedShape<
     A,
@@ -1643,36 +1664,36 @@ export namespace TypesaurusUtils {
     G = undefined,
     H = undefined,
     I = undefined,
-    J = undefined
+    J = undefined,
   > = C extends undefined
     ? SharedShape2<A, B>
     : D extends undefined
-    ? SharedShape3<A, B, C>
-    : E extends undefined
-    ? SharedShape4<A, B, C, D>
-    : F extends undefined
-    ? SharedShape5<A, B, C, D, E>
-    : G extends undefined
-    ? SharedShape6<A, B, C, D, E, F>
-    : H extends undefined
-    ? SharedShape7<A, B, C, D, E, F, G>
-    : I extends undefined
-    ? SharedShape8<A, B, C, D, E, F, G, H>
-    : J extends undefined
-    ? SharedShape9<A, B, C, D, E, F, G, H, I>
-    : SharedShape10<A, B, C, D, E, F, G, H, I, J>
+      ? SharedShape3<A, B, C>
+      : E extends undefined
+        ? SharedShape4<A, B, C, D>
+        : F extends undefined
+          ? SharedShape5<A, B, C, D, E>
+          : G extends undefined
+            ? SharedShape6<A, B, C, D, E, F>
+            : H extends undefined
+              ? SharedShape7<A, B, C, D, E, F, G>
+              : I extends undefined
+                ? SharedShape8<A, B, C, D, E, F, G, H>
+                : J extends undefined
+                  ? SharedShape9<A, B, C, D, E, F, G, H, I>
+                  : SharedShape10<A, B, C, D, E, F, G, H, I, J>;
 
   export type SharedShape2<A, B> = {
     [Key in keyof (A | B) as A[Key] & B[Key] extends never
       ? never
-      : Key]: A[Key] & B[Key]
-  }
+      : Key]: A[Key] & B[Key];
+  };
 
   export type SharedShape3<A, B, C> = {
     [Key in keyof (A | B | C) as A[Key] & B[Key] & C[Key] extends never
       ? never
-      : Key]: A[Key] & B[Key] & C[Key]
-  }
+      : Key]: A[Key] & B[Key] & C[Key];
+  };
 
   export type SharedShape4<A, B, C, D> = {
     [Key in keyof (A | B | C | D) as A[Key] &
@@ -1680,8 +1701,8 @@ export namespace TypesaurusUtils {
       C[Key] &
       D[Key] extends never
       ? never
-      : Key]: A[Key] & B[Key] & C[Key] & D[Key]
-  }
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key];
+  };
 
   export type SharedShape5<A, B, C, D, E> = {
     [Key in keyof (A | B | C | D | E) as [Key] &
@@ -1690,8 +1711,8 @@ export namespace TypesaurusUtils {
       D[Key] &
       E[Key] extends never
       ? never
-      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key]
-  }
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key];
+  };
 
   export type SharedShape6<A, B, C, D, E, F> = {
     [Key in keyof (A | B | C | D | E | F) as A[Key] &
@@ -1701,8 +1722,8 @@ export namespace TypesaurusUtils {
       E[Key] &
       F[Key] extends never
       ? never
-      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key]
-  }
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key];
+  };
 
   export type SharedShape7<A, B, C, D, E, F, G> = {
     [Key in keyof (A | B | C | D | E | F | G) as A[Key] &
@@ -1713,8 +1734,8 @@ export namespace TypesaurusUtils {
       F[Key] &
       G[Key] extends never
       ? never
-      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key] & G[Key]
-  }
+      : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key] & G[Key];
+  };
 
   export type SharedShape8<A, B, C, D, E, F, G, H> = {
     [Key in keyof (A | B | C | D | E | F | G | H) as A[Key] &
@@ -1733,8 +1754,8 @@ export namespace TypesaurusUtils {
       E[Key] &
       F[Key] &
       G[Key] &
-      H[Key]
-  }
+      H[Key];
+  };
 
   export type SharedShape9<A, B, C, D, E, F, G, H, I> = {
     [Key in keyof (A | B | C | D | E | F | G | H | I) as A[Key] &
@@ -1755,8 +1776,8 @@ export namespace TypesaurusUtils {
       F[Key] &
       G[Key] &
       H[Key] &
-      I[Key]
-  }
+      I[Key];
+  };
 
   export type SharedShape10<A, B, C, D, E, F, G, H, I, J> = {
     [Key in keyof (A | B | C | D | E | F | G | H | I | J) as A[Key] &
@@ -1779,8 +1800,8 @@ export namespace TypesaurusUtils {
       G[Key] &
       H[Key] &
       I[Key] &
-      J[Key]
-  }
+      J[Key];
+  };
 
   /**
    * Creates type where all fields from all variants are present.
@@ -1795,33 +1816,33 @@ export namespace TypesaurusUtils {
     G = undefined,
     H = undefined,
     I = undefined,
-    J = undefined
+    J = undefined,
   > = C extends undefined
     ? IntersectShape2<A, B>
     : D extends undefined
-    ? IntersectShape3<A, B, C>
-    : E extends undefined
-    ? IntersectShape4<A, B, C, D>
-    : F extends undefined
-    ? IntersectShape5<A, B, C, D, E>
-    : G extends undefined
-    ? IntersectShape6<A, B, C, D, E, F>
-    : H extends undefined
-    ? IntersectShape7<A, B, C, D, E, F, G>
-    : I extends undefined
-    ? IntersectShape8<A, B, C, D, E, F, G, H>
-    : J extends undefined
-    ? IntersectShape9<A, B, C, D, E, F, G, H, I>
-    : IntersectShape10<A, B, C, D, E, F, G, H, I, J>
+      ? IntersectShape3<A, B, C>
+      : E extends undefined
+        ? IntersectShape4<A, B, C, D>
+        : F extends undefined
+          ? IntersectShape5<A, B, C, D, E>
+          : G extends undefined
+            ? IntersectShape6<A, B, C, D, E, F>
+            : H extends undefined
+              ? IntersectShape7<A, B, C, D, E, F, G>
+              : I extends undefined
+                ? IntersectShape8<A, B, C, D, E, F, G, H>
+                : J extends undefined
+                  ? IntersectShape9<A, B, C, D, E, F, G, H, I>
+                  : IntersectShape10<A, B, C, D, E, F, G, H, I, J>;
 
   type IntersectShape2<A, B> =
     | (A & UndefinedDifference<A, B>)
-    | (B & UndefinedDifference<B, A>)
+    | (B & UndefinedDifference<B, A>);
 
   type IntersectShape3<A, B, C> =
     | (A & UndefinedDifference<A, B> & UndefinedDifference<A, C>)
     | (B & UndefinedDifference<B, A> & UndefinedDifference<B, C>)
-    | (C & UndefinedDifference<C, A> & UndefinedDifference<C, B>)
+    | (C & UndefinedDifference<C, A> & UndefinedDifference<C, B>);
 
   type IntersectShape4<A, B, C, D> =
     | (A &
@@ -1839,7 +1860,7 @@ export namespace TypesaurusUtils {
     | (D &
         UndefinedDifference<D, A> &
         UndefinedDifference<D, B> &
-        UndefinedDifference<D, C>)
+        UndefinedDifference<D, C>);
 
   type IntersectShape5<A, B, C, D, E> =
     | (A &
@@ -1866,7 +1887,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<E, A> &
         UndefinedDifference<E, B> &
         UndefinedDifference<E, C> &
-        UndefinedDifference<E, D>)
+        UndefinedDifference<E, D>);
 
   type IntersectShape6<A, B, C, D, E, F> =
     | (A &
@@ -1904,7 +1925,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<F, B> &
         UndefinedDifference<F, C> &
         UndefinedDifference<F, D> &
-        UndefinedDifference<F, E>)
+        UndefinedDifference<F, E>);
 
   type IntersectShape7<A, B, C, D, E, F, G> =
     | (A &
@@ -1955,7 +1976,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<G, C> &
         UndefinedDifference<G, D> &
         UndefinedDifference<G, E> &
-        UndefinedDifference<G, F>)
+        UndefinedDifference<G, F>);
 
   type IntersectShape8<A, B, C, D, E, F, G, H> =
     | (A &
@@ -2021,7 +2042,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<H, D> &
         UndefinedDifference<H, E> &
         UndefinedDifference<H, F> &
-        UndefinedDifference<H, G>)
+        UndefinedDifference<H, G>);
 
   type IntersectShape9<A, B, C, D, E, F, G, H, I> =
     | (A &
@@ -2104,7 +2125,7 @@ export namespace TypesaurusUtils {
         UndefinedDifference<I, E> &
         UndefinedDifference<I, F> &
         UndefinedDifference<I, G> &
-        UndefinedDifference<I, H>)
+        UndefinedDifference<I, H>);
 
   type IntersectShape10<A, B, C, D, E, F, G, H, I, J> =
     | (A &
@@ -2206,18 +2227,18 @@ export namespace TypesaurusUtils {
         UndefinedDifference<J, F> &
         UndefinedDifference<J, G> &
         UndefinedDifference<J, H> &
-        UndefinedDifference<J, I>)
+        UndefinedDifference<J, I>);
 
   export type UndefinedDifference<BaseType, ApplyingType> = {
-    [Key in Exclude<keyof ApplyingType, keyof BaseType>]?: undefined
-  }
+    [Key in Exclude<keyof ApplyingType, keyof BaseType>]?: undefined;
+  };
 
-  export type WholeOrPartial<Type> = Type | { [Key in keyof Type]?: Type[Key] }
+  export type WholeOrPartial<Type> = Type | { [Key in keyof Type]?: Type[Key] };
 
-  export type WholeOrEmpty<Type> = Type | { [Key in keyof Type]?: undefined }
+  export type WholeOrEmpty<Type> = Type | { [Key in keyof Type]?: undefined };
 
   /**
    * Resolves true if the strictNullChecks is set to true in the tsconfig.
    */
-  export type StrictNullChecksEnabled = true // null extends undefined ? false : true
+  export type StrictNullChecksEnabled = true; // null extends undefined ? false : true
 }

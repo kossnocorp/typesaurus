@@ -1,11 +1,11 @@
-import * as admin from 'firebase-admin'
-import { schema } from '../src'
+import * as admin from "firebase-admin";
+import { schema } from "../src";
 
 // Test that the schema works before initializing the app
 schema(($) => ({
-  test: $.collection<{}>()
-}))
+  test: $.collection<{}>(),
+}));
 
-admin.initializeApp()
+admin.initializeApp();
 
-jest.setTimeout(process.env.FIRESTORE_EMULATOR_HOST ? 15000 : 25000)
+jest.setTimeout(process.env.FIRESTORE_EMULATOR_HOST ? 15000 : 25000);

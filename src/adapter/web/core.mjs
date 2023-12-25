@@ -24,189 +24,189 @@ import {
   startAfter,
   startAt,
   updateDoc,
-  where
-} from 'firebase/firestore'
-import { SubscriptionPromise } from '../../sp/index.ts'
-import { firestore as createFirestore, firestoreSymbol } from './firebase.mjs'
+  where,
+} from "firebase/firestore";
+import { SubscriptionPromise } from "../../sp/index.ts";
+import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
 
 export function schema(getSchema, options) {
-  let firestore
-  const schema = getSchema(schemaHelpers())
-  return db(() => (firestore = firestore || createFirestore(options)), schema)
+  let firestore;
+  const schema = getSchema(schemaHelpers());
+  return db(() => (firestore = firestore || createFirestore(options)), schema);
 }
 
 export class Collection {
   constructor(db, name, path) {
-    this.db = db
-    this.firestore = db[firestoreSymbol]
-    this.type = 'collection'
-    this.name = name
-    this.path = path
+    this.db = db;
+    this.firestore = db[firestoreSymbol];
+    this.type = "collection";
+    this.name = name;
+    this.path = path;
 
     this.update = (id, data, options) => {
-      assertEnvironment(options?.as)
+      assertEnvironment(options?.as);
       const updateData =
-        typeof data === 'function' ? data(updateHelpers()) : data
-      if (!updateData) return
+        typeof data === "function" ? data(updateHelpers()) : data;
+      if (!updateData) return;
 
       const update = Array.isArray(updateData)
         ? updateFields(updateData)
         : updateData instanceof UpdateField
-        ? updateFields([updateData])
-        : updateData
+          ? updateFields([updateData])
+          : updateData;
 
       return updateDoc(
         this.firebaseDoc(id),
-        unwrapData(this.firestore, update)
-      ).then(() => this.ref(id))
-    }
+        unwrapData(this.firestore, update),
+      ).then(() => this.ref(id));
+    };
 
     this.update.build = (id, options) => {
-      assertEnvironment(options?.as)
-      const fields = []
+      assertEnvironment(options?.as);
+      const fields = [];
       return {
-        ...updateHelpers('build', fields),
+        ...updateHelpers("build", fields),
         run: () =>
           updateDoc(
             this.firebaseDoc(id),
-            unwrapData(this.firestore, updateFields(fields))
-          ).then(() => this.ref(id))
-      }
-    }
+            unwrapData(this.firestore, updateFields(fields)),
+          ).then(() => this.ref(id)),
+      };
+    };
 
     this.query = (queries, options) => {
-      assertEnvironment(options?.as)
-      const queriesResult = queries(queryHelpers())
-      if (!queriesResult) return
+      assertEnvironment(options?.as);
+      const queriesResult = queries(queryHelpers());
+      if (!queriesResult) return;
       return _query(
         this.firestore,
         this.adapter(),
-        [].concat(queriesResult).filter((q) => !!q)
-      )
-    }
+        [].concat(queriesResult).filter((q) => !!q),
+      );
+    };
 
     this.query.build = (options) => {
-      assertEnvironment(options?.as)
-      const queries = []
+      assertEnvironment(options?.as);
+      const queries = [];
       return {
-        ...queryHelpers('builder', queries),
-        run: () => _query(this.firestore, this.adapter(), queries)
-      }
-    }
+        ...queryHelpers("builder", queries),
+        run: () => _query(this.firestore, this.adapter(), queries),
+      };
+    };
   }
 
   id(id) {
-    if (id) return id
-    else return Promise.resolve(doc(this.firebaseCollection()).id)
+    if (id) return id;
+    else return Promise.resolve(doc(this.firebaseCollection()).id);
   }
 
   ref(id) {
-    return new Ref(this, id)
+    return new Ref(this, id);
   }
 
   doc(id, value, options) {
-    if (!value && 'id' in id && 'data' in id && typeof id.data === 'function') {
-      const data = id.data()
-      if (data) return this.doc(id.id, wrapData(this.db, data))
-      else return null
+    if (!value && "id" in id && "data" in id && typeof id.data === "function") {
+      const data = id.data();
+      if (data) return this.doc(id.id, wrapData(this.db, data));
+      else return null;
     } else {
-      assertEnvironment(options?.as)
-      return new Doc(this, id, value)
+      assertEnvironment(options?.as);
+      return new Doc(this, id, value);
     }
   }
 
   add(data, options) {
-    assertEnvironment(options?.as)
+    assertEnvironment(options?.as);
     return addDoc(
       this.firebaseCollection(),
-      writeData(this.firestore, data)
-    ).then((firebaseRef) => this.ref(firebaseRef.id))
+      writeData(this.firestore, data),
+    ).then((firebaseRef) => this.ref(firebaseRef.id));
   }
 
   set(id, data, options) {
-    assertEnvironment(options?.as)
+    assertEnvironment(options?.as);
     return setDoc(this.firebaseDoc(id), writeData(this.firestore, data)).then(
-      () => this.ref(id)
-    )
+      () => this.ref(id),
+    );
   }
 
   upset(id, data, options) {
-    assertEnvironment(options?.as)
+    assertEnvironment(options?.as);
     return setDoc(this.firebaseDoc(id), writeData(this.firestore, data), {
-      merge: true
-    }).then(() => this.ref(id))
+      merge: true,
+    }).then(() => this.ref(id));
   }
 
   remove(id) {
-    return deleteDoc(this.firebaseDoc(id)).then(() => this.ref(id))
+    return deleteDoc(this.firebaseDoc(id)).then(() => this.ref(id));
   }
 
   all(options) {
-    assertEnvironment(options?.as)
-    return all(this.adapter())
+    assertEnvironment(options?.as);
+    return all(this.adapter());
   }
 
   get(id, options) {
-    assertEnvironment(options?.as)
-    const doc = this.firebaseDoc(id)
+    assertEnvironment(options?.as);
+    const doc = this.firebaseDoc(id);
 
     return new SubscriptionPromise({
-      request: request({ kind: 'get', path: this.path, id }),
+      request: request({ kind: "get", path: this.path, id }),
 
       get: async () => {
-        const firebaseSnap = await getDoc(doc)
-        const data = firebaseSnap.data()
-        if (data) return new Doc(this, id, wrapData(this.db, data))
-        return null
+        const firebaseSnap = await getDoc(doc);
+        const data = firebaseSnap.data();
+        if (data) return new Doc(this, id, wrapData(this.db, data));
+        return null;
       },
 
       subscribe: (onResult, onError) =>
         onSnapshot(
           doc,
           (firebaseSnap) => {
-            const data = firebaseSnap.data()
-            if (data) onResult(new Doc(this, id, wrapData(this.db, data)))
-            else onResult(null)
+            const data = firebaseSnap.data();
+            if (data) onResult(new Doc(this, id, wrapData(this.db, data)));
+            else onResult(null);
           },
-          onError
-        )
-    })
+          onError,
+        ),
+    });
   }
 
   many(ids, options) {
-    assertEnvironment(options?.as)
-    const db = this.db
+    assertEnvironment(options?.as);
+    const db = this.db;
 
     return new SubscriptionPromise({
-      request: request({ kind: 'many', path: this.path, ids }),
+      request: request({ kind: "many", path: this.path, ids }),
 
       get: () => Promise.all(ids.map((id) => this.get(id))),
 
       subscribe: (onResult, onError) => {
         // Firestore#getAll doesn't like empty lists
         if (ids.length === 0) {
-          onResult([])
-          return () => {}
+          onResult([]);
+          return () => {};
         }
-        let waiting = ids.length
-        const result = new Array(ids.length)
+        let waiting = ids.length;
+        const result = new Array(ids.length);
         const offs = ids.map((id, idIndex) =>
           this.get(id)
             .on((doc) => {
-              result[idIndex] = doc
-              if (waiting) waiting--
-              if (waiting === 0) onResult(result)
+              result[idIndex] = doc;
+              if (waiting) waiting--;
+              if (waiting === 0) onResult(result);
             })
-            .catch(onError)
-        )
-        return () => offs.map((off) => off())
-      }
-    })
+            .catch(onError),
+        );
+        return () => offs.map((off) => off());
+      },
+    });
   }
 
   async count() {
-    const snap = await getCountFromServer(this.firebaseCollection())
-    return snap.data().count
+    const snap = await getCountFromServer(this.firebaseCollection());
+    return snap.data().count;
   }
 
   adapter() {
@@ -214,111 +214,111 @@ export class Collection {
       collection: () => this.firebaseCollection(),
       doc: (snapshot) =>
         new Doc(this, snapshot.id, wrapData(this.db, snapshot.data())),
-      request: () => ({ path: this.path })
-    }
+      request: () => ({ path: this.path }),
+    };
   }
 
   firebaseCollection() {
-    return collection(this.firestore(), this.path)
+    return collection(this.firestore(), this.path);
   }
 
   firebaseDoc(id) {
-    return doc(this.firestore(), this.path, id)
+    return doc(this.firestore(), this.path, id);
   }
 }
 
 export class Ref {
   constructor(collection, id) {
-    this.type = 'ref'
-    this.collection = collection
-    this.id = id
+    this.type = "ref";
+    this.collection = collection;
+    this.id = id;
 
     this.update = (data, options) =>
-      this.collection.update(this.id, data, options)
+      this.collection.update(this.id, data, options);
 
     this.update.build = (options) =>
-      this.collection.update.build(this.id, options)
+      this.collection.update.build(this.id, options);
   }
 
   get(options) {
-    return this.collection.get(this.id, options)
+    return this.collection.get(this.id, options);
   }
 
   set(data, options) {
-    return this.collection.set(this.id, data, options)
+    return this.collection.set(this.id, data, options);
   }
 
   upset(data, options) {
-    return this.collection.upset(this.id, data, options)
+    return this.collection.upset(this.id, data, options);
   }
 
   async remove() {
-    return this.collection.remove(this.id)
+    return this.collection.remove(this.id);
   }
 }
 
 export class Doc {
   constructor(collection, id, data) {
-    this.type = 'doc'
-    this.collection = collection
-    this.ref = new Ref(collection, id)
-    this.data = data
+    this.type = "doc";
+    this.collection = collection;
+    this.ref = new Ref(collection, id);
+    this.data = data;
     this.props = {
-      environment: 'client',
-      source: 'database', // TODO
-      dateStrategy: 'none', // TODO
-      pendingWrites: false // TODO
-    }
+      environment: "client",
+      source: "database", // TODO
+      dateStrategy: "none", // TODO
+      pendingWrites: false, // TODO
+    };
 
-    this.update = (data, options) => this.ref.update(data, options)
+    this.update = (data, options) => this.ref.update(data, options);
 
-    this.update.build = (options) => this.ref.update.build(options)
+    this.update.build = (options) => this.ref.update.build(options);
   }
 
   get(options) {
-    return this.ref.get(options)
+    return this.ref.get(options);
   }
 
   set(data, options) {
-    return this.ref.set(data, options)
+    return this.ref.set(data, options);
   }
 
   upset(data, options) {
-    return this.ref.upset(data, options)
+    return this.ref.upset(data, options);
   }
 
   remove() {
-    return this.ref.remove()
+    return this.ref.remove();
   }
 
   test(props) {
     return Object.entries(props).every(
-      ([key, value]) => this.props[key] === value
-    )
+      ([key, value]) => this.props[key] === value,
+    );
   }
 
   narrow(cb) {
-    const result = cb(this.data)
-    if (result) return this
+    const result = cb(this.data);
+    if (result) return this;
   }
 }
 
 export function all(adapter) {
-  const firebaseCollection = adapter.collection()
+  const firebaseCollection = adapter.collection();
 
   return new SubscriptionPromise({
-    request: request({ kind: 'all', ...adapter.request() }),
+    request: request({ kind: "all", ...adapter.request() }),
 
     get: async () => {
-      const snapshot = await getDocs(firebaseCollection)
-      return snapshot.docs.map((doc) => adapter.doc(doc))
+      const snapshot = await getDocs(firebaseCollection);
+      return snapshot.docs.map((doc) => adapter.doc(doc));
     },
 
     subscribe: (onResult, onError) =>
       onSnapshot(
         firebaseCollection,
         (firebaseSnap) => {
-          const docs = firebaseSnap.docs.map((doc) => adapter.doc(doc))
+          const docs = firebaseSnap.docs.map((doc) => adapter.doc(doc));
           const changes = () =>
             firebaseSnap.docChanges().map((change) => ({
               type: change.type,
@@ -326,156 +326,156 @@ export function all(adapter) {
               newIndex: change.newIndex,
               doc:
                 docs[
-                  change.type === 'removed' ? change.oldIndex : change.newIndex
+                  change.type === "removed" ? change.oldIndex : change.newIndex
                 ] ||
                 // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
                 // contain the removed document. In that case, we'll restore it from `change.doc`:
                 adapter.doc(
-                  change.doc
+                  change.doc,
                   // {
                   //   firestoreData: true,
                   //   environment: a.environment,
                   //   serverTimestamps: options?.serverTimestamps,
                   //   ...a.getDocMeta(change.doc)
                   // }
-                )
-            }))
+                ),
+            }));
           const meta = {
             changes,
             size: firebaseSnap.size,
-            empty: firebaseSnap.empty
-          }
-          onResult(docs, meta)
+            empty: firebaseSnap.empty,
+          };
+          onResult(docs, meta);
         },
-        onError
-      )
-  })
+        onError,
+      ),
+  });
 }
 
 export function writeData(firestore, data) {
   return unwrapData(
     firestore,
-    typeof data === 'function' ? data(writeHelpers()) : data
-  )
+    typeof data === "function" ? data(writeHelpers()) : data,
+  );
 }
 
 export function writeHelpers() {
   return {
-    serverDate: () => ({ type: 'value', kind: 'serverDate' }),
+    serverDate: () => ({ type: "value", kind: "serverDate" }),
 
-    remove: () => ({ type: 'value', kind: 'remove' }),
+    remove: () => ({ type: "value", kind: "remove" }),
 
     increment: (number) => ({
-      type: 'value',
-      kind: 'increment',
-      number
+      type: "value",
+      kind: "increment",
+      number,
     }),
 
     arrayUnion: (values) => ({
-      type: 'value',
-      kind: 'arrayUnion',
-      values: [].concat(values)
+      type: "value",
+      kind: "arrayUnion",
+      values: [].concat(values),
     }),
 
     arrayRemove: (values) => ({
-      type: 'value',
-      kind: 'arrayRemove',
-      values: [].concat(values)
-    })
-  }
+      type: "value",
+      kind: "arrayRemove",
+      values: [].concat(values),
+    }),
+  };
 }
 
 export function updateFields(fields) {
   return fields.reduce((acc, field) => {
-    if (!field) return acc
-    const { key, value } = field
-    acc[Array.isArray(key) ? key.join('.') : key] = value
-    return acc
-  }, {})
+    if (!field) return acc;
+    const { key, value } = field;
+    acc[Array.isArray(key) ? key.join(".") : key] = value;
+    return acc;
+  }, {});
 }
 
 export class UpdateField {
   constructor(key, value) {
-    this.key = key
-    this.value = value
+    this.key = key;
+    this.value = value;
   }
 }
 
-export function updateHelpers(mode = 'helpers', acc) {
+export function updateHelpers(mode = "helpers", acc) {
   function processField(value) {
-    if (mode === 'helpers') {
-      return value
+    if (mode === "helpers") {
+      return value;
     } else {
       // Builder mode
-      acc.push(value)
+      acc.push(value);
     }
   }
 
   return {
     ...writeHelpers(),
     field: (...field) => ({
-      set: (value) => processField(new UpdateField(field, value))
-    })
-  }
+      set: (value) => processField(new UpdateField(field, value)),
+    }),
+  };
 }
 
 function schemaHelpers() {
   return {
     collection() {
       return {
-        type: 'collection',
+        type: "collection",
         sub(schema) {
-          return { type: 'collection', schema }
+          return { type: "collection", schema };
         },
         name(name) {
           return {
-            type: 'collection',
+            type: "collection",
             name,
             sub(schema) {
-              return { type: 'collection', schema }
-            }
-          }
-        }
-      }
-    }
-  }
+              return { type: "collection", schema };
+            },
+          };
+        },
+      };
+    },
+  };
 }
 
 function db(firestore, schema, nestedPath) {
-  const enrichedSchema = { [firestoreSymbol]: firestore }
+  const enrichedSchema = { [firestoreSymbol]: firestore };
   return Object.entries(schema).reduce(
     (enrichedSchema, [collectionName, plainCollection]) => {
       const name =
-        typeof plainCollection.name === 'string'
+        typeof plainCollection.name === "string"
           ? plainCollection.name
-          : collectionName
+          : collectionName;
       const collection = new Collection(
         enrichedSchema,
         name,
-        nestedPath ? `${nestedPath}/${name}` : name
-      )
+        nestedPath ? `${nestedPath}/${name}` : name,
+      );
 
-      if ('schema' in plainCollection) {
+      if ("schema" in plainCollection) {
         enrichedSchema[name] = new Proxy(() => {}, {
           get: (_target, prop) => {
-            if (prop === 'schema') return plainCollection.schema
-            else if (prop === 'sub')
-              return subShortcut(firestore, plainCollection.schema)
-            else return collection[prop]
+            if (prop === "schema") return plainCollection.schema;
+            else if (prop === "sub")
+              return subShortcut(firestore, plainCollection.schema);
+            else return collection[prop];
           },
           has(_target, prop) {
-            return prop in plainCollection
+            return prop in plainCollection;
           },
           apply: (_target, _prop, [id]) =>
-            db(firestore, plainCollection.schema, `${collection.path}/${id}`)
-        })
+            db(firestore, plainCollection.schema, `${collection.path}/${id}`),
+        });
       } else {
-        enrichedSchema[collectionName] = collection
+        enrichedSchema[collectionName] = collection;
       }
-      return enrichedSchema
+      return enrichedSchema;
     },
-    enrichedSchema
-  )
+    enrichedSchema,
+  );
 }
 
 function subShortcut(firestore, schema) {
@@ -483,142 +483,142 @@ function subShortcut(firestore, schema) {
     (shortcutsSchema, [path, schemaCollection]) => {
       shortcutsSchema[path] = {
         id(id) {
-          if (id) return id
-          else return Promise.resolve(doc(collection(firestore(), 'any')).id)
-        }
-      }
+          if (id) return id;
+          else return Promise.resolve(doc(collection(firestore(), "any")).id);
+        },
+      };
 
-      if ('schema' in schemaCollection)
+      if ("schema" in schemaCollection)
         shortcutsSchema[path].sub = subShortcut(
           firestore,
-          schemaCollection.schema
-        )
+          schemaCollection.schema,
+        );
 
-      return shortcutsSchema
+      return shortcutsSchema;
     },
-    {}
-  )
+    {},
+  );
 }
 
 export function _query(firestore, adapter, queries) {
-  const firebaseQueries = []
-  let cursors = []
+  const firebaseQueries = [];
+  let cursors = [];
 
   queries.forEach((query) => {
     switch (query.type) {
-      case 'order': {
-        const { field, method, cursors: queryCursors } = query
+      case "order": {
+        const { field, method, cursors: queryCursors } = query;
         firebaseQueries.push(
           orderBy(
-            field[0] === '__id__' ? documentId() : field.join('.'),
-            method
-          )
-        )
+            field[0] === "__id__" ? documentId() : field.join("."),
+            method,
+          ),
+        );
 
         if (queryCursors)
           cursors = cursors.concat(
             queryCursors.reduce((acc, cursor) => {
-              if (!cursor) return acc
-              const { type, position, value } = cursor
+              if (!cursor) return acc;
+              const { type, position, value } = cursor;
               return acc.concat({
                 type,
                 position,
                 value:
-                  typeof value === 'object' &&
+                  typeof value === "object" &&
                   value !== null &&
-                  'type' in value &&
-                  value.type == 'doc'
-                    ? field[0] === '__id__'
+                  "type" in value &&
+                  value.type == "doc"
+                    ? field[0] === "__id__"
                       ? value.ref.id
                       : field.reduce((acc, key) => acc[key], value.data)
-                    : value
-              })
-            }, [])
-          )
-        break
+                    : value,
+              });
+            }, []),
+          );
+        break;
       }
 
-      case 'where': {
-        const { field, filter, value } = query
+      case "where": {
+        const { field, filter, value } = query;
         firebaseQueries.push(
           where(
-            field[0] === '__id__' ? documentId() : field.join('.'),
+            field[0] === "__id__" ? documentId() : field.join("."),
             filter,
-            unwrapData(firestore, value)
-          )
-        )
-        break
+            unwrapData(firestore, value),
+          ),
+        );
+        break;
       }
 
-      case 'limit': {
-        firebaseQueries.push(limit(query.number))
-        break
+      case "limit": {
+        firebaseQueries.push(limit(query.number));
+        break;
       }
     }
 
-    return firebaseQueries
-  }, [])
+    return firebaseQueries;
+  }, []);
 
-  let groupedCursors = []
+  let groupedCursors = [];
 
   cursors.forEach((cursor) => {
     let methodValues = groupedCursors.find(
-      ([position]) => position === cursor.position
-    )
+      ([position]) => position === cursor.position,
+    );
     if (!methodValues) {
-      methodValues = [cursor.position, []]
-      groupedCursors.push(methodValues)
+      methodValues = [cursor.position, []];
+      groupedCursors.push(methodValues);
     }
-    methodValues[1].push(unwrapData(firestore, cursor.value))
-  })
+    methodValues[1].push(unwrapData(firestore, cursor.value));
+  });
 
-  const firebaseCursors = []
+  const firebaseCursors = [];
 
   if (cursors.length && cursors.every((cursor) => cursor.value !== undefined))
     groupedCursors.forEach(([method, values]) => {
       firebaseCursors.push(
-        (method === 'startAt'
+        (method === "startAt"
           ? startAt
-          : method === 'startAfter'
-          ? startAfter
-          : method === 'endAt'
-          ? endAt
-          : endBefore)(...values)
-      )
-    })
+          : method === "startAfter"
+            ? startAfter
+            : method === "endAt"
+              ? endAt
+              : endBefore)(...values),
+      );
+    });
 
   const firebaseQuery = () =>
-    query(adapter.collection(), ...firebaseQueries, ...firebaseCursors)
+    query(adapter.collection(), ...firebaseQueries, ...firebaseCursors);
 
   const sp = new SubscriptionPromise({
     request: request({
-      kind: 'query',
+      kind: "query",
       ...adapter.request(),
-      queries: queries
+      queries: queries,
     }),
 
     get: async () => {
-      const firebaseSnap = await getDocs(firebaseQuery())
+      const firebaseSnap = await getDocs(firebaseQuery());
       return firebaseSnap.docs.map((firebaseSnap) =>
         adapter.doc(
-          firebaseSnap
+          firebaseSnap,
           // {
           //   firestoreData: true,
           //   environment: a.environment as Environment,
           //   serverTimestamps: options?.serverTimestamps,
           //   ...a.getDocMeta(firebaseSnap)
           // }
-        )
-      )
+        ),
+      );
     },
 
     subscribe: (onResult, onError) => {
-      let q
+      let q;
       try {
-        q = firebaseQuery()
+        q = firebaseQuery();
       } catch (error) {
-        onError(error)
-        return
+        onError(error);
+        return;
       }
 
       return onSnapshot(
@@ -626,15 +626,15 @@ export function _query(firestore, adapter, queries) {
         (firebaseSnap) => {
           const docs = firebaseSnap.docs.map((firebaseSnap) =>
             adapter.doc(
-              firebaseSnap
+              firebaseSnap,
               // {
               //   firestoreData: true,
               //   environment: a.environment as Environment,
               //   serverTimestamps: options?.serverTimestamps,
               //   ...a.getDocMeta(firebaseSnap)
               // }
-            )
-          )
+            ),
+          );
           const changes = () =>
             firebaseSnap.docChanges().map((change) => ({
               type: change.type,
@@ -642,99 +642,99 @@ export function _query(firestore, adapter, queries) {
               newIndex: change.newIndex,
               doc:
                 docs[
-                  change.type === 'removed' ? change.oldIndex : change.newIndex
+                  change.type === "removed" ? change.oldIndex : change.newIndex
                 ] ||
                 // If change.type indicates 'removed', sometimes (not all the time) `docs` does not
                 // contain the removed document. In that case, we'll restore it from `change.doc`:
                 adapter.doc(
-                  change.doc
+                  change.doc,
                   // {
                   //   firestoreData: true,
                   //   environment: a.environment,
                   //   serverTimestamps: options?.serverTimestamps,
                   //   ...a.getDocMeta(change.doc)
                   // }
-                )
-            }))
+                ),
+            }));
           const meta = {
             changes,
             size: firebaseSnap.size,
-            empty: firebaseSnap.empty
-          }
-          onResult(docs, meta)
+            empty: firebaseSnap.empty,
+          };
+          onResult(docs, meta);
         },
-        onError
-      )
-    }
-  })
+        onError,
+      );
+    },
+  });
 
   Object.assign(sp, {
     count: async () => {
-      const snap = await getCountFromServer(firebaseQuery())
-      return snap.data().count
-    }
-  })
+      const snap = await getCountFromServer(firebaseQuery());
+      return snap.data().count;
+    },
+  });
 
-  return sp
+  return sp;
 }
 
-export function queryHelpers(mode = 'helpers', acc) {
+export function queryHelpers(mode = "helpers", acc) {
   function processQuery(value) {
-    if (mode === 'helpers') {
-      return value
+    if (mode === "helpers") {
+      return value;
     } else {
       // Builder mode
-      acc.push(value)
+      acc.push(value);
     }
   }
 
   function where(field, filter, value) {
     return processQuery({
-      type: 'where',
+      type: "where",
       field,
       filter,
-      value
-    })
+      value,
+    });
   }
 
   return {
     field: (...field) => ({
-      lt: where.bind(null, field, '<'),
-      lte: where.bind(null, field, '<='),
-      eq: where.bind(null, field, '=='),
-      not: where.bind(null, field, '!='),
-      gt: where.bind(null, field, '>'),
-      gte: where.bind(null, field, '>='),
-      in: where.bind(null, field, 'in'),
-      notIn: where.bind(null, field, 'not-in'),
-      contains: where.bind(null, field, 'array-contains'),
-      containsAny: where.bind(null, field, 'array-contains-any'),
+      lt: where.bind(null, field, "<"),
+      lte: where.bind(null, field, "<="),
+      eq: where.bind(null, field, "=="),
+      not: where.bind(null, field, "!="),
+      gt: where.bind(null, field, ">"),
+      gte: where.bind(null, field, ">="),
+      in: where.bind(null, field, "in"),
+      notIn: where.bind(null, field, "not-in"),
+      contains: where.bind(null, field, "array-contains"),
+      containsAny: where.bind(null, field, "array-contains-any"),
 
       order: (maybeMethod, maybeCursors) =>
         processQuery({
-          type: 'order',
+          type: "order",
           field,
-          method: typeof maybeMethod === 'string' ? maybeMethod : 'asc',
+          method: typeof maybeMethod === "string" ? maybeMethod : "asc",
           cursors: maybeCursors
             ? [].concat(maybeCursors)
-            : maybeMethod && typeof maybeMethod !== 'string'
-            ? [].concat(maybeMethod)
-            : undefined
-        })
+            : maybeMethod && typeof maybeMethod !== "string"
+              ? [].concat(maybeMethod)
+              : undefined,
+        }),
     }),
 
-    limit: (number) => processQuery({ type: 'limit', number }),
+    limit: (number) => processQuery({ type: "limit", number }),
 
-    startAt: (value) => ({ type: 'cursor', position: 'startAt', value }),
+    startAt: (value) => ({ type: "cursor", position: "startAt", value }),
 
-    startAfter: (value) => ({ type: 'cursor', position: 'startAfter', value }),
+    startAfter: (value) => ({ type: "cursor", position: "startAfter", value }),
 
-    endAt: (value) => ({ type: 'cursor', position: 'endAt', value }),
+    endAt: (value) => ({ type: "cursor", position: "endAt", value }),
 
-    endBefore: (value) => ({ type: 'cursor', position: 'endBefore', value }),
+    endBefore: (value) => ({ type: "cursor", position: "endBefore", value }),
 
-    docId: () => '__id__'
-  }
+    docId: () => "__id__",
+  };
 }
 
 /**
@@ -744,10 +744,10 @@ export function queryHelpers(mode = 'helpers', acc) {
  * @returns Firestore document
  */
 export function refToFirestoreDocument(firestore, ref) {
-  return doc(firestore(), ref.collection.path, ref.id)
+  return doc(firestore(), ref.collection.path, ref.id);
 }
 
-export const pathRegExp = /^(?:(.+\/)?(.+))\/(.+)$/
+export const pathRegExp = /^(?:(.+\/)?(.+))\/(.+)$/;
 
 /**
  * Creates a reference from a Firestore path.
@@ -756,17 +756,17 @@ export const pathRegExp = /^(?:(.+\/)?(.+))\/(.+)$/
  * @returns Reference to a document
  */
 export function pathToRef(db, path) {
-  const captures = path.match(pathRegExp)
-  if (!captures) throw new Error(`Can't parse path ${path}`)
-  const [, nestedPath, name, id] = captures
-  return new Ref(new Collection(db, name, (nestedPath || '') + name), id)
+  const captures = path.match(pathRegExp);
+  if (!captures) throw new Error(`Can't parse path ${path}`);
+  const [, nestedPath, name, id] = captures;
+  return new Ref(new Collection(db, name, (nestedPath || "") + name), id);
 }
 
 export function pathToDoc(db, path, data) {
-  const captures = path.match(pathRegExp)
-  if (!captures) throw new Error(`Can't parse path ${path}`)
-  const [, nestedPath, name, id] = captures
-  return new Doc(new Collection(db, name, (nestedPath || '') + name), id, data)
+  const captures = path.match(pathRegExp);
+  if (!captures) throw new Error(`Can't parse path ${path}`);
+  const [, nestedPath, name, id] = captures;
+  return new Doc(new Collection(db, name, (nestedPath || "") + name), id, data);
 }
 
 /**
@@ -777,43 +777,43 @@ export function pathToDoc(db, path, data) {
  * @returns the data in Firestore format
  */
 export function unwrapData(firestore, data) {
-  if (data && typeof data === 'object') {
-    if (data.type === 'ref') {
-      return refToFirestoreDocument(firestore, data)
-    } else if (data.type === 'value') {
-      const fieldValue = data
+  if (data && typeof data === "object") {
+    if (data.type === "ref") {
+      return refToFirestoreDocument(firestore, data);
+    } else if (data.type === "value") {
+      const fieldValue = data;
       switch (fieldValue.kind) {
-        case 'remove':
-          return deleteField()
+        case "remove":
+          return deleteField();
 
-        case 'increment':
-          return increment(fieldValue.number)
+        case "increment":
+          return increment(fieldValue.number);
 
-        case 'arrayUnion':
-          return arrayUnion(...unwrapData(firestore, fieldValue.values))
+        case "arrayUnion":
+          return arrayUnion(...unwrapData(firestore, fieldValue.values));
 
-        case 'arrayRemove':
-          return arrayRemove(...unwrapData(firestore, fieldValue.values))
+        case "arrayRemove":
+          return arrayRemove(...unwrapData(firestore, fieldValue.values));
 
-        case 'serverDate':
-          return serverTimestamp()
+        case "serverDate":
+          return serverTimestamp();
       }
     } else if (data instanceof Date) {
-      return Timestamp.fromDate(data)
+      return Timestamp.fromDate(data);
     }
 
-    const isArray = Array.isArray(data)
-    const unwrappedObject = Object.assign(isArray ? [] : {}, data)
+    const isArray = Array.isArray(data);
+    const unwrappedObject = Object.assign(isArray ? [] : {}, data);
 
     Object.keys(unwrappedObject).forEach((key) => {
-      unwrappedObject[key] = unwrapData(firestore, unwrappedObject[key])
-    })
+      unwrappedObject[key] = unwrapData(firestore, unwrappedObject[key]);
+    });
 
-    return unwrappedObject
+    return unwrappedObject;
   } else if (data === undefined) {
-    return '%%undefined%%'
+    return "%%undefined%%";
   } else {
-    return data
+    return data;
   }
 }
 
@@ -826,27 +826,27 @@ export function unwrapData(firestore, data) {
  */
 export function wrapData(db, data, ref = pathToRef) {
   if (data instanceof DocumentReference) {
-    return ref(db, data.path)
+    return ref(db, data.path);
   } else if (data instanceof Timestamp) {
-    return data.toDate()
-  } else if (data && typeof data === 'object') {
-    const wrappedData = Object.assign(Array.isArray(data) ? [] : {}, data)
+    return data.toDate();
+  } else if (data && typeof data === "object") {
+    const wrappedData = Object.assign(Array.isArray(data) ? [] : {}, data);
     Object.keys(wrappedData).forEach((key) => {
-      wrappedData[key] = wrapData(db, wrappedData[key], ref)
-    })
-    return wrappedData
-  } else if (typeof data === 'string' && data === '%%undefined%%') {
-    return undefined
+      wrappedData[key] = wrapData(db, wrappedData[key], ref);
+    });
+    return wrappedData;
+  } else if (typeof data === "string" && data === "%%undefined%%") {
+    return undefined;
   } else {
-    return data
+    return data;
   }
 }
 
 export function assertEnvironment(environment) {
-  if (environment && environment !== 'client')
-    throw new Error(`Expected ${environment} environment`)
+  if (environment && environment !== "client")
+    throw new Error(`Expected ${environment} environment`);
 }
 
 function request(payload) {
-  return { type: 'request', ...payload }
+  return { type: "request", ...payload };
 }

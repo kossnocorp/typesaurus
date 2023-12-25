@@ -1,6 +1,6 @@
 export namespace TypesaurusFirebase {
   export interface Snapshot {
-    id: string
-    data(): any
+    id: string;
+    data(): any;
   }
 }

@@ -1,3 +1,3 @@
-import type { TypesaurusTransaction } from '../types/transaction.js'
+import type { TypesaurusTransaction } from "../types/transaction.js";
 
-export declare const transaction: TypesaurusTransaction.Function
+export declare const transaction: TypesaurusTransaction.Function;

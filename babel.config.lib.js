@@ -1,39 +1,39 @@
 const config = {
-  presets: ['@babel/preset-typescript'],
+  presets: ["@babel/preset-typescript"],
 
   env: {
     cjs: {
       presets: [
         [
-          '@babel/preset-env',
-          { targets: { node: 'current' }, modules: 'commonjs', loose: true }
-        ]
+          "@babel/preset-env",
+          { targets: { node: "current" }, modules: "commonjs", loose: true },
+        ],
       ],
 
       plugins: [
         [
-          '@babel/plugin-transform-modules-commonjs',
-          { strict: true, noInterop: true }
+          "@babel/plugin-transform-modules-commonjs",
+          { strict: true, noInterop: true },
         ],
-        ['babel-plugin-add-import-extension', { extension: 'js' }]
-      ]
+        ["babel-plugin-add-import-extension", { extension: "js" }],
+      ],
     },
 
     esm: {
       presets: [
-        ['@babel/preset-env', { targets: { node: 'current' }, modules: false }]
+        ["@babel/preset-env", { targets: { node: "current" }, modules: false }],
       ],
 
-      plugins: [['babel-plugin-add-import-extension', { extension: 'mjs' }]]
-    }
+      plugins: [["babel-plugin-add-import-extension", { extension: "mjs" }]],
+    },
   },
 
   ignore: [
-    'src/**/*.d.ts',
-    'src/**/tests.ts',
-    'src/tests/**/*',
-    'src/**/tysts.ts',
-    'src/tysts/**/*'
-  ]
-}
-export default config
+    "src/**/*.d.ts",
+    "src/**/tests.ts",
+    "src/tests/**/*",
+    "src/**/tysts.ts",
+    "src/tysts/**/*",
+  ],
+};
+export default config;
