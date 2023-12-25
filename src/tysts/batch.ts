@@ -160,10 +160,12 @@ async function tysts() {
 
   // Enforce required fields
 
+  // @tysts-start: strict
   // @ts-expect-error - name is required
   $.users.update(db.users.id('user-id'), ($) => ({
     name: $.remove()
   }))
+  // @tysts-end: strict
 
   // @ts-expect-error - name is required
   $.users.update(db.users.id('sasha'), {
