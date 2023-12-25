@@ -1,47 +1,85 @@
 {
   "name": "typesaurus",
-  "version": "10.0.0-beta.12",
+  "version": "10.0.0-rc.1",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
     "Firestore",
     "TypeScript"
   ],
-  "type": "module",
-  "browser": "./adapter/web",
+  "sideEffects": false,
+  "browser": "./adapter/web/index",
   "main": "./adapter/admin/index.js",
   "module": "./adapter/admin/index.mjs",
-  "types": "./index.d.ts",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
-      "browser": "./adapter/web/index.mjs",
-      "require": "./adapter/admin/index.js",
-      "import": "./adapter/admin/index.mjs",
-      "types": "./index.d.ts"
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./adapter/admin/index.js",
+        "browser": "./adapter/web/index.js"
+      },
+      "import": {
+        "types": "./index.d.mts",
+        "default": "./adapter/admin/index.mjs",
+        "browser": "./adapter/web/index.mjs"
+      }
     },
     "./batch": {
-      "browser": "./adapter/web/batch.mjs",
-      "require": "./adapter/admin/batch.js",
-      "import": "./adapter/admin/batch.mjs",
-      "types": "./batch/index.d.ts"
+      "require": {
+        "types": "./types/batch.d.ts",
+        "default": "./adapter/admin/batch.js",
+        "browser": "./adapter/web/batch.js"
+      },
+      "import": {
+        "types": "./types/batch.d.mts",
+        "default": "./adapter/admin/batch.mjs",
+        "browser": "./adapter/web/batch.mjs"
+      }
     },
     "./groups": {
-      "browser": "./adapter/web/groups.mjs",
-      "require": "./adapter/admin/groups.js",
-      "import": "./adapter/admin/groups.mjs",
-      "types": "./groups/index.d.ts"
+      "require": {
+        "types": "./types/groups.d.ts",
+        "default": "./adapter/admin/groups.js",
+        "browser": "./adapter/web/groups.js"
+      },
+      "import": {
+        "types": "./types/groups.d.mts",
+        "default": "./adapter/admin/groups.mjs",
+        "browser": "./adapter/web/groups.mjs"
+      }
     },
     "./transaction": {
-      "browser": "./adapter/web/transaction.mjs",
-      "require": "./adapter/admin/transaction.js",
-      "import": "./adapter/admin/transaction.mjs",
-      "types": "./transaction/index.d.ts"
+      "require": {
+        "browser": "./adapter/web/transaction.js",
+        "types": "./types/transaction.d.ts",
+        "default": "./adapter/admin/transaction.js"
+      },
+      "import": {
+        "browser": "./adapter/web/transaction.mjs",
+        "types": "./types/transaction.d.mts",
+        "default": "./adapter/admin/transaction.mjs"
+      }
     },
     "./helpers": {
-      "browser": "./helpers/index.mjs",
-      "require": "./helpers/index.js",
-      "import": "./helpers/index.mjs",
-      "types": "./helpers/index.d.ts"
+      "require": {
+        "types": "./helpers/index.d.ts",
+        "default": "./helpers/index.js"
+      },
+      "import": {
+        "types": "./helpers/index.d.mts",
+        "default": "./helpers/index.mjs"
+      }
+    },
+    "./sp": {
+      "require": {
+        "types": "./sp/index.d.ts",
+        "default": "./sp/index.js"
+      },
+      "import": {
+        "types": "./sp/index.d.mts",
+        "default": "./sp/index.mjs"
+      }
     },
     "./adapter/next/admin": {
       "default": "./adapter/admin/index.mjs",
@@ -52,7 +90,6 @@
       "types": "./index.d.ts"
     }
   },
-  "sideEffects": false,
   "repository": "https://github.com/kossnocorp/typesaurus",
   "author": "Sasha Koss <koss@nocorp.me>",
   "license": "MIT",
@@ -84,7 +121,6 @@
     "sinon": "^14.0.0",
     "size-limit": "^8.0.0",
     "size-limit-preset-node-lib": "^0.1.0",
-    "typedoc": "^0.15.0",
     "typescript": "^5.3.3",
     "webpack": "^5.74.0"
   }

@@ -1,10 +1,12 @@
 {
   "extends": "./tsconfig.base",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "./src",
     "sourceMap": true,
     "outDir": "lib",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "declaration": true,
+    "emitDeclarationOnly": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/tysts", "**/tests.ts", "src/tests"]

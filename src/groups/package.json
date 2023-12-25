@@ -1,4 +1,4 @@
 {
-  "browser": "../adapter/web/groups.js",
-  "main": "../adapter/admin/groups.js"
+  "main": "../adapter/admin/groups.js",
+  "types": "../types/groups.d.ts"
 }

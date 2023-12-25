@@ -1,10 +1,10 @@
-import type { TypesaurusCore as Core } from "./types/core";
-import type { TypesaurusUtils as Utils } from "./types/utils";
+import type { TypesaurusCore as Core } from "./types/core.js";
 
-export * from "./transaction";
-export * from "./groups";
-export * from "./batch";
-export * from "./helpers";
+export * from "./types/transaction.js";
+export * from "./types/groups.js";
+export * from "./types/batch.js";
+export * from "./helpers/index.js";
+export * from "./sp/index.js";
 
 export declare const schema: Core.Function;
 

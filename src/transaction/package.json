@@ -1,4 +1,4 @@
 {
-  "browser": "../adapter/web/transaction.js",
-  "main": "../adapter/admin/transaction.js"
+  "main": "../adapter/admin/transaction.js",
+  "types": "../types/transaction.d.ts"
 }

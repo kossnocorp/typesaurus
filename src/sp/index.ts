@@ -1,30 +1,5 @@
 import type { TypesaurusCore } from "../types/core.js";
 
-export type SubscriptionPromiseGet<Result> = () => Promise<Result>;
-
-export type SubscriptionPromiseResultCallback<Result, SubscriptionMeta> =
-  SubscriptionMeta extends undefined
-    ? (result: Result) => void
-    : (result: Result, meta: SubscriptionMeta) => void;
-
-export type SubscriptionPromiseErrorCallback = (error: Error) => void;
-
-export type SubscriptionPromiseSubscribe<Result, SubscriptionMeta> = (
-  resultCallback: SubscriptionPromiseResultCallback<Result, SubscriptionMeta>,
-  errorCallback: SubscriptionPromiseErrorCallback,
-) => TypesaurusCore.OffSubscription;
-
-export interface SubscriptionPromiseProps<Request, Result, SubscriptionMeta> {
-  request: Request;
-  get: SubscriptionPromiseGet<Result>;
-  subscribe: SubscriptionPromiseSubscribe<Result, SubscriptionMeta>;
-}
-
-export interface SubscriptionPromiseSubscriptions<Result, SubscriptionMeta> {
-  result: SubscriptionPromiseResultCallback<Result, SubscriptionMeta>[];
-  error: SubscriptionPromiseErrorCallback[];
-}
-
 export class SubscriptionPromise<Request, Result, SubscriptionMeta = undefined>
   implements TypesaurusCore.SubscriptionPromise<Request, Result>
 {
@@ -34,18 +9,15 @@ export class SubscriptionPromise<Request, Result, SubscriptionMeta = undefined>
 
   private error: unknown;
 
-  private get: SubscriptionPromiseGet<Result>;
+  private get: TypesaurusSP.Get<Result>;
 
-  private subscribe: SubscriptionPromiseSubscribe<Result, SubscriptionMeta>;
+  private subscribe: TypesaurusSP.Subscribe<Result, SubscriptionMeta>;
 
   private promise: Promise<Result> | undefined;
 
   private off: (() => void) | undefined;
 
-  private subscriptions: SubscriptionPromiseSubscriptions<
-    Result,
-    SubscriptionMeta
-  >;
+  private subscriptions: TypesaurusSP.Subscriptions<Result, SubscriptionMeta>;
 
   request: Request;
 
@@ -53,7 +25,7 @@ export class SubscriptionPromise<Request, Result, SubscriptionMeta = undefined>
     request,
     get,
     subscribe,
-  }: SubscriptionPromiseProps<Request, Result, SubscriptionMeta>) {
+  }: TypesaurusSP.Props<Request, Result, SubscriptionMeta>) {
     this.request = request;
     this.get = get;
     this.subscribe = subscribe;
@@ -184,5 +156,32 @@ export class SubscriptionPromise<Request, Result, SubscriptionMeta = undefined>
       this.error = error;
       return Promise.reject(error);
     }
+  }
+}
+
+export namespace TypesaurusSP {
+  export type Get<Result> = () => Promise<Result>;
+
+  export type ResultCallback<Result, SubscriptionMeta> =
+    SubscriptionMeta extends undefined
+      ? (result: Result) => void
+      : (result: Result, meta: SubscriptionMeta) => void;
+
+  export type ErrorCallback = (error: Error) => void;
+
+  export type Subscribe<Result, SubscriptionMeta> = (
+    resultCallback: ResultCallback<Result, SubscriptionMeta>,
+    errorCallback: ErrorCallback,
+  ) => TypesaurusCore.OffSubscription;
+
+  export interface Props<Request, Result, SubscriptionMeta> {
+    request: Request;
+    get: Get<Result>;
+    subscribe: Subscribe<Result, SubscriptionMeta>;
+  }
+
+  export interface Subscriptions<Result, SubscriptionMeta> {
+    result: ResultCallback<Result, SubscriptionMeta>[];
+    error: ErrorCallback[];
   }
 }

@@ -1,4 +1,4 @@
 {
-  "browser": "../adapter/web/batch.js",
-  "main": "../adapter/admin/batch.js"
+  "main": "../adapter/admin/batch.js",
+  "types": "../types/batch.d.ts"
 }

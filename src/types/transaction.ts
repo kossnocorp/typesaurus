@@ -2,6 +2,8 @@ import type { TypesaurusUtils as Utils } from "./utils.js";
 import type { TypesaurusCore as Core } from "./core.js";
 import type { TypesaurusUpdate as Update } from "./update.js";
 
+export declare const transaction: TypesaurusTransaction.Function;
+
 export namespace TypesaurusTransaction {
   export interface Function {
     <

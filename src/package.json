@@ -1,5 +1,0 @@
-{
-  "browser": "./adapter/web/index.mjs",
-  "main": "./adapter/admin/index.mjs",
-  "types": "./index.d.ts"
-}

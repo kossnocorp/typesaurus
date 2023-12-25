@@ -1,6 +1,8 @@
 import type { TypesaurusCore as Core } from "./core.js";
 import type { TypesaurusUtils as Utils } from "./utils.js";
 
+export declare const groups: TypesaurusGroups.Function;
+
 export namespace TypesaurusGroups {
   export interface Function {
     <DB extends Core.DB<any>>(db: DB): Groups<DB>;

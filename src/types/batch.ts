@@ -1,6 +1,8 @@
 import type { TypesaurusCore as Core } from "./core.js";
 import type { TypesaurusUpdate as Update } from "./update.js";
 
+export declare const batch: TypesaurusBatch.Function;
+
 export namespace TypesaurusBatch {
   export interface Function {
     <
