@@ -1,5 +1,6 @@
 import type { TypesaurusUtils as Utils } from "./utils.js";
 import type { TypesaurusCore as Core } from "./core.js";
+import { Nullify } from "../index.js";
 
 export namespace TypesaurusUpdate {
   export interface CollectionFunction<Def extends Core.DocDef> {
@@ -79,6 +80,11 @@ export namespace TypesaurusUpdate {
   export type Data<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
+  > = DataNullified<Core.Nullify<Model>, Props>;
+
+  export type DataNullified<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps,
   > = {
     [Key in keyof Model]?: Core.WriteField<Model, Key, Props>;
   };
@@ -97,13 +103,15 @@ export namespace TypesaurusUpdate {
   export interface Helpers<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
-  > extends CommonHelpers<Model, Props, UpdateField<Model>> {}
+  > extends CommonHelpers<Nullify<Model>, Props, UpdateField<Model>> {}
 
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
     extends CommonHelpers<
-      Def["Flags"]["Reduced"] extends true
-        ? Core.IntersectVariableModelType<Def["Model"]>
-        : Core.SharedVariableModelType<Def["WideModel"]>,
+      Core.Nullify<
+        Def["Flags"]["Reduced"] extends true
+          ? Core.IntersectVariableModelType<Def["Model"]>
+          : Core.SharedVariableModelType<Def["WideModel"]>
+      >,
       Props,
       void
     > {

@@ -70,7 +70,10 @@ export namespace TypesaurusUtils {
    * and values.
    */
   export type AllRequired<Model> = {
-    [Key in keyof Required<Model>]-?: Exclude<Required<Model>[Key], undefined>;
+    [Key in keyof Required<Model>]-?: Exclude<
+      Required<Model>[Key],
+      undefined | null
+    >;
   };
 
   /**
@@ -84,6 +87,15 @@ export namespace TypesaurusUtils {
       ? false
       : true
     : false;
+
+  /**
+   * Resolves true if the passed field is undefined union and not optionally
+   * undefined.
+   */
+  export type ActuallyUndefined<
+    Model,
+    Key extends keyof Model,
+  > = undefined extends Required<Model>[Key] ? true : false;
 
   /**
    * Resolves true if all sibling fields in the passed model are optional.
@@ -2238,7 +2250,11 @@ export namespace TypesaurusUtils {
   export type WholeOrEmpty<Type> = Type | { [Key in keyof Type]?: undefined };
 
   /**
-   * Resolves true if the strictNullChecks is set to true in the tsconfig.
+   * Checks if exactOptionalPropertyTypes is enabled or not
    */
-  export type StrictNullChecksEnabled = true; // null extends undefined ? false : true
+  export type ExactOptionalPropertyTypesEnabled = {
+    test: undefined;
+  } extends { test?: boolean }
+    ? false
+    : true;
 }

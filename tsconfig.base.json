@@ -6,6 +6,7 @@
     "strict": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
     // Enable for debug, but keep disabled after that as it slows down builds a lot
     // "noErrorTruncation": true,

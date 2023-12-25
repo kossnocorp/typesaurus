@@ -515,6 +515,11 @@ export namespace TypesaurusCore {
   export type Data<
     Model extends ModelObjectType,
     DateMissing extends ServerDateMissing,
+  > = DataNullified<Nullify<Model>, DateMissing>;
+
+  export type DataNullified<
+    Model extends ModelObjectType,
+    DateMissing extends ServerDateMissing,
   > = {
     [Key in keyof Model]: DataField<Model[Key], DateMissing>;
   };
@@ -608,7 +613,12 @@ export namespace TypesaurusCore {
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
-  export type WriteData<Model, Props extends DocProps> = {
+  export type WriteData<Model, Props extends DocProps> = WriteDataNullified<
+    Nullify<Model>,
+    Props
+  >;
+
+  export type WriteDataNullified<Model, Props extends DocProps> = {
     [Key in keyof Model]: WriteField<Model, Key, Props>;
   };
 
@@ -1549,4 +1559,27 @@ export namespace TypesaurusCore {
     /** The client app name. It takes priority over the root's app name. */
     app?: string;
   }
+
+  /**
+   * Deeply adds null to all undefined values.
+   */
+  export type Nullify<Type> =
+    // First we extract null and undefined
+    Type extends null | undefined
+      ? Type | null
+      : // Now we extract as-is types
+        Type extends string | number | boolean | Date | ServerDate | Ref<any>
+        ? Type
+        : // Now extract array types
+          Type extends Array<infer Item>
+          ? Array<Nullify<Item>>
+          : // Now extract object types
+            Type extends object
+            ? {
+                [Key in keyof Type]: // If field is optionally undefined, exclude undefined before nullifing the rest
+                Utils.ActuallyUndefined<Type, Key> extends true
+                  ? Nullify<Type[Key]>
+                  : Nullify<Exclude<Type[Key], undefined>>;
+              }
+            : never;
 }

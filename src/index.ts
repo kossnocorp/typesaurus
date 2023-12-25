@@ -1,4 +1,5 @@
 import type { TypesaurusCore as Core } from "./types/core";
+import type { TypesaurusUtils as Utils } from "./types/utils";
 
 export * from "./transaction";
 export * from "./groups";
@@ -6,6 +7,13 @@ export * from "./batch";
 export * from "./helpers";
 
 export declare const schema: Core.Function;
+
+/**
+ * Deeply adds null to all undefined values. It's useful for wrapping
+ * your types when you expect data from Firestore where undefined values turn
+ * into nulls.
+ */
+export type Nullify<Type> = Core.Nullify<Type>;
 
 export namespace Typesaurus {
   /**

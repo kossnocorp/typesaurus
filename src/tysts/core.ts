@@ -368,6 +368,12 @@ async function doc() {
 
   const content = await db.content.get(contentId);
   if (content) db.content.doc(contentId, content.data);
+
+  // Nullifies undefineds
+
+  assertType<
+    TypeEqual<typeof serverUser.data.alias, string | undefined | null>
+  >(true);
 }
 
 async function collection() {
@@ -478,6 +484,12 @@ async function get() {
 
     await textContent.update({ text: "Yup" });
   }
+
+  // Nullifies undefineds
+
+  assertType<TypeEqual<typeof user.data.alias, string | undefined | null>>(
+    true,
+  );
 }
 
 async function many() {
@@ -561,6 +573,12 @@ async function many() {
 
     await textContent.update({ text: "Yup" });
   }
+
+  // Nullifies undefineds
+
+  assertType<TypeEqual<typeof user.data.alias, string | undefined | null>>(
+    true,
+  );
 }
 
 async function all() {
@@ -648,6 +666,12 @@ async function all() {
 
     await textContent.update({ text: "Yup" });
   }
+
+  // Nullifies undefineds
+
+  assertType<TypeEqual<typeof user.data.alias, string | undefined | null>>(
+    true,
+  );
 }
 
 async function query() {
@@ -1009,6 +1033,12 @@ async function query() {
     .count();
 
   sashasCount.toFixed();
+
+  // Nullifies undefineds
+
+  assertType<TypeEqual<typeof user.data.alias, string | undefined | null>>(
+    true,
+  );
 }
 
 async function add() {
@@ -1061,6 +1091,15 @@ async function add() {
 
   const content = await db.content.get(db.content.id("content-id"));
   if (content) db.content.add(content.data);
+
+  // Allows to set nulls instead of undefineds
+
+  await db.users.add(($) => ({
+    name: "Sasha",
+    contacts: { email: "koss@nocorp.me" },
+    createdAt: $.serverDate(),
+    status: null,
+  }));
 }
 
 async function set() {
@@ -1162,6 +1201,15 @@ async function set() {
     content.ref.set(content.data);
     db.content.set(contentId, content.data);
   }
+
+  // Allows to set nulls instead of undefineds
+
+  await db.users.set(db.users.id("123"), ($) => ({
+    name: "Sasha",
+    contacts: { email: "koss@nocorp.me" },
+    createdAt: $.serverDate(),
+    status: null,
+  }));
 }
 
 async function upset() {
@@ -1279,7 +1327,7 @@ async function upset() {
 
   // If it's only optional field, you should not be able to set it to undefined
   // as long as exactOptionalPropertyTypes is set
-  await db.users.set(
+  await db.users.upset(
     db.users.id("sasha"),
     // @tysts-start: strict
     // @ts-expect-error - birthdate is optional not undefined
@@ -1291,10 +1339,10 @@ async function upset() {
     { as: "server" },
   );
   // But you can skip it
-  await db.users.set(db.users.id("sasha"), base, { as: "server" });
+  await db.users.upset(db.users.id("sasha"), base, { as: "server" });
 
   // If it's optional and undefined, it can be both set to undefined and skipped
-  await db.users.set(
+  await db.users.upset(
     db.users.id("sasha"),
     {
       ...base,
@@ -1302,10 +1350,10 @@ async function upset() {
     },
     { as: "server" },
   );
-  await db.users.set(db.users.id("sasha"), base, { as: "server" });
+  await db.users.upset(db.users.id("sasha"), base, { as: "server" });
 
   // If it's undefined it can be set to undefined but can't be skipped
-  await db.users.set(
+  await db.users.upset(
     db.users.id("sasha"),
     {
       ...base,
@@ -1314,7 +1362,9 @@ async function upset() {
     { as: "server" },
   );
   // @ts-expect-error - status is required
-  await db.users.set(db.users.id("sasha"), baseWithoutStatus, { as: "server" });
+  await db.users.upset(db.users.id("sasha"), baseWithoutStatus, {
+    as: "server",
+  });
 
   // It should accept the original model
 
@@ -1322,9 +1372,18 @@ async function upset() {
     as: "server",
   });
   mixed &&
-    (await db.mixed.set(db.mixed.id("sasha"), mixed.data, {
+    (await db.mixed.upset(db.mixed.id("sasha"), mixed.data, {
       as: "server",
     }));
+
+  // Allows to set nulls instead of undefineds
+
+  await db.users.upset(db.users.id("123"), ($) => ({
+    name: "Sasha",
+    contacts: { email: "koss@nocorp.me" },
+    createdAt: $.serverDate(),
+    status: null,
+  }));
 }
 
 async function update() {
@@ -1773,6 +1832,22 @@ async function update() {
   const $dotNope = db.addresses.update.build(db.addresses.id("address-id"));
   // @ts-expect-error - Can't update array fields via dot notation
   $dotNope.field("address", "lines", 0).set("123 Main St");
+
+  // Allows to set nulls instead of undefineds
+
+  await db.users.update(db.users.id("123"), {
+    status: null,
+  });
+
+  await db.users.update(db.users.id("123"), ($) => ({
+    status: null,
+  }));
+
+  await db.users.update(db.users.id("123"), ($) => $.field("status").set(null));
+
+  const $userNullify = db.users.update.build(db.users.id("123"));
+
+  $userNullify.field("status").set(null);
 }
 
 async function sharedIds() {
@@ -2226,6 +2301,17 @@ namespace UtilsTest {
       optional?: string | undefined;
     }>
   >;
+
+  type Result3 = Assert<
+    {
+      required: string;
+      optional: string;
+    },
+    Utils.AllRequired<{
+      required: string;
+      optional?: string | undefined | null;
+    }>
+  >;
 }
 
 namespace RequiredKey {
@@ -2279,6 +2365,49 @@ namespace RequiredKey {
 
   type Result43 = Assert<false, Utils.RequiredKey<Example4, "optional">>;
 }
+
+// @tysts-start: strict - without exactOptionalPropertyTypes it breaks
+namespace ActuallyUndefined {
+  interface Solid {
+    ok: true;
+  }
+
+  interface UndefiendField {
+    ok: true | undefined;
+  }
+
+  interface OptionalField {
+    ok?: true;
+  }
+
+  interface OptionalUndefinedField {
+    ok?: true | undefined;
+  }
+
+  interface DynamicUndefined {
+    [key: string]: true | undefined;
+  }
+
+  interface Dynamic {
+    [key: string]: true;
+  }
+
+  type Result1 = Assert<false, Utils.ActuallyUndefined<Solid, "ok">>;
+
+  type Result2 = Assert<true, Utils.ActuallyUndefined<UndefiendField, "ok">>;
+
+  type Result3 = Assert<false, Utils.ActuallyUndefined<OptionalField, "ok">>;
+
+  type Result4 = Assert<
+    true,
+    Utils.ActuallyUndefined<OptionalUndefinedField, "ok">
+  >;
+
+  type Result6 = Assert<false, Utils.ActuallyUndefined<Dynamic, "ok">>;
+
+  type Result7 = Assert<true, Utils.ActuallyUndefined<DynamicUndefined, "ok">>;
+}
+// @tysts-end: strict
 
 namespace AllOptionalBut {
   interface Example1 {
@@ -2927,6 +3056,63 @@ namespace NormalizeServerDates {
   >;
 
   type Result2 = Assert<number, Core.NormalizeServerDates<number>>;
+}
+
+namespace Nullify {
+  type Result1 = Assert<null, Core.Nullify<null>>;
+
+  type Result2 = Assert<undefined | null, Core.Nullify<undefined | null>>;
+
+  type Result3 = Assert<number, Core.Nullify<number>>;
+
+  type Result4 = Assert<
+    number | undefined | null,
+    Core.Nullify<number | undefined>
+  >;
+
+  type Result5 = Assert<Date, Core.Nullify<Date>>;
+
+  type Result6 = Assert<
+    Date | undefined | null,
+    Core.Nullify<Date | undefined>
+  >;
+
+  type Result7 = Assert<Date | null, Core.Nullify<Date | null>>;
+
+  type Result8 = Assert<
+    Date | null | { hello: "world" },
+    Core.Nullify<Date | null | { hello: "world" }>
+  >;
+
+  type Result9 = Assert<
+    Date | null | { hello: "world"; cruel?: true | undefined | null },
+    Core.Nullify<Date | null | { hello: "world"; cruel: true | undefined }>
+  >;
+
+  type Result10 = Assert<
+    Date | null | { hello: "world"; cruel?: true | undefined | null },
+    Core.Nullify<Date | null | { hello: "world"; cruel?: true | undefined }>
+  >;
+
+  type Result11 = Assert<
+    Date | null | { hello: "world"; cruel?: true },
+    Core.Nullify<Date | null | { hello: "world"; cruel?: true }>
+  >;
+
+  type Result12 = Assert<
+    (Date | null | { hello: "world"; cruel?: true | undefined | null })[],
+    Core.Nullify<(Date | null | { hello: "world"; cruel: true | undefined })[]>
+  >;
+
+  type Result13 = Assert<
+    { [key: string]: boolean },
+    Core.Nullify<{ [key: string]: boolean }>
+  >;
+
+  type Result14 = Assert<
+    { [key: string]: boolean | undefined | null },
+    Core.Nullify<{ [key: string]: boolean | undefined }>
+  >;
 }
 
 async function record() {
