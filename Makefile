@@ -4,10 +4,10 @@
 BIN = $(shell yarn bin)
 
 types:
-	npx tsc --project tsconfig.dev.json
+	npx tsc --build
 
 types-watch:
-	npx tsc --project tsconfig.dev.json --watch
+	npx tsc --build --watch
 
 test: test-node test-browser
 .PHONY: test

@@ -1,8 +1,11 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
+    "composite": true,
     "incremental": true,
-    "noEmit": true,
-    "tsBuildInfoFile": "./tmp/.tsbuildinfo"
-  }
+    "tsBuildInfoFile": "./tmp/.tsbuildinfo",
+    "outDir": "./.ts"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/tysts/loose"]
 }

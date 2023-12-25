@@ -1,22 +1,12 @@
 {
-  "compilerOptions": {
-    "rootDir": ".",
-    "declaration": true,
-    "target": "es6",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "sourceMap": true,
-    "outDir": "lib",
-    "strict": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    // Enable for debug, but keep disabled after that as it slows down builds a lot
-    // "noErrorTruncation": true,
-    "allowJs": true
-  },
-  "include": ["src/**/*.ts", "scripts/**/*.ts", "src/transaction/index.dts"],
-  "exclude": ["lib", "node_modules", "legacy", "src/tysts/*/*"]
+  "extends": "./tsconfig.base",
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.dev.json"
+    },
+    {
+      "path": "./src/tysts/loose/tsconfig.json"
+    }
+  ]
 }

@@ -4,7 +4,8 @@
     "noImplicitAny": false,
     "strictNullChecks": false,
     // Actually affects the functionality:
-    "exactOptionalPropertyTypes": false
+    "exactOptionalPropertyTypes": false,
+    "outDir": "./.ts"
   },
   "include": ["**/*.ts"]
 }
