@@ -1795,7 +1795,7 @@ namespace Debrand {
 }
 
 namespace ComposePath {
-  type Result1 = Assert<"users", Utils.ComposePath<undefined, "users">>;
+  type Result1 = Assert<"users", Utils.ComposePath<false, "users">>;
 
   type Result2 = Assert<"users/posts", Utils.ComposePath<"users", "posts">>;
 }
