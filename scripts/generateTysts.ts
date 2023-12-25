@@ -1,4 +1,5 @@
 import { readFile, writeFile } from 'fs/promises'
+import { format } from 'prettier'
 
 type Mode = 'strict' | 'loose'
 
@@ -49,5 +50,7 @@ async function generateTyst(tyst: typeof tysts[number]) {
     code += line + '\n'
   }
 
-  return writeFile(`./src/tysts/${generatingMode}/${tyst}.ts`, code)
+  const prettyCode = await format(code, { parser: 'typescript' })
+
+  return writeFile(`./src/tysts/${generatingMode}/${tyst}.ts`, prettyCode)
 }
