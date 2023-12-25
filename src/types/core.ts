@@ -1,7 +1,7 @@
-import type { TypesaurusUtils as Utils } from './utils'
-import type { TypesaurusQuery as Query } from './query'
-import type { TypesaurusUpdate as Update } from './update'
-import type { TypesaurusFirebase as Firebase } from './firebase'
+import type { TypesaurusUtils as Utils } from './utils.js'
+import type { TypesaurusQuery as Query } from './query.js'
+import type { TypesaurusUpdate as Update } from './update.js'
+import type { TypesaurusFirebase as Firebase } from './firebase.js'
 
 export namespace TypesaurusCore {
   export interface Function {

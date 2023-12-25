@@ -7,6 +7,7 @@
     "Firestore",
     "TypeScript"
   ],
+  "type": "module",
   "browser": "./adapter/web",
   "main": "./adapter/admin/index.js",
   "module": "./adapter/admin/index.mjs",

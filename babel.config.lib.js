@@ -1,4 +1,4 @@
-module.exports = {
+const config = {
   presets: ['@babel/preset-typescript'],
 
   env: {
@@ -36,3 +36,4 @@ module.exports = {
     'src/tysts/**/*'
   ]
 }
+export default config

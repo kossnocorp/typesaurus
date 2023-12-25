@@ -1,4 +1,4 @@
-import type { TypesaurusCore } from '../types/core'
+import type { TypesaurusCore } from '../types/core.js'
 
 export type SubscriptionPromiseGet<Result> = () => Promise<Result>
 

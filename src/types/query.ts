@@ -1,5 +1,5 @@
-import type { TypesaurusUtils as Utils } from './utils'
-import type { TypesaurusCore as Core } from './core'
+import type { TypesaurusUtils as Utils } from './utils.js'
+import type { TypesaurusCore as Core } from './core.js'
 
 export namespace TypesaurusQuery {
   export interface Function<Def extends Core.DocDef> {

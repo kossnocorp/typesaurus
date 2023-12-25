@@ -1,5 +1,5 @@
-import type { TypesaurusCore as Core } from './core'
-import type { TypesaurusUpdate as Update } from './update'
+import type { TypesaurusCore as Core } from './core.js'
+import type { TypesaurusUpdate as Update } from './update.js'
 
 export namespace TypesaurusBatch {
   export interface Function {

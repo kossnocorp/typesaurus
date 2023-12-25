@@ -1,6 +1,6 @@
-import type { TypesaurusUtils as Utils } from './utils'
-import type { TypesaurusCore as Core } from './core'
-import type { TypesaurusUpdate as Update } from './update'
+import type { TypesaurusUtils as Utils } from './utils.js'
+import type { TypesaurusCore as Core } from './core.js'
+import type { TypesaurusUpdate as Update } from './update.js'
 
 export namespace TypesaurusTransaction {
   export interface Function {
