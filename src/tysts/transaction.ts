@@ -144,7 +144,7 @@ async function tysts() {
       Promise.all([
         $.db.users.get(db.users.id("asd")),
         $.db.posts.get(db.posts.id("qwe")),
-      ]),
+      ])
     )
     .write(($) => {
       $.result[0]?.data.contacts;
@@ -193,7 +193,7 @@ async function tysts() {
       Promise.all([
         $.db.users.get(db.users.id("asd")),
         $.db.posts.get(db.posts.id("qwe")),
-      ]),
+      ])
     )
     .write(($) => {
       $.result[0]?.data.birthdate;
@@ -270,17 +270,17 @@ async function tysts() {
 
       // Enforce required fields
 
-      // @tysts-start: strict
       // @ts-expect-error - name is required
       $.result.update(db.users.id("sasha"), ($) => ({
         name: $.remove(),
       }));
-      // @tysts-end: strict
 
+      // @tysts-start: strict
       // @ts-expect-error - name is required
       $.db.users.update(db.users.id("sasha"), ($) => ({
         name: undefined,
       }));
+      // @tysts-end: strict
 
       // Works with nested fields
 
@@ -299,13 +299,13 @@ async function tysts() {
       }));
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
-        $.field("nested1Optional").set($.remove()),
+        $.field("nested1Optional").set($.remove())
       );
 
       // Single field update
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
-        $.field("name").set("Alexander"),
+        $.field("name").set("Alexander")
       );
 
       // Multiple fields update
@@ -318,31 +318,31 @@ async function tysts() {
       // Nested fields
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
-        $.field("contacts", "phone").set("+65xxxxxxxx"),
+        $.field("contacts", "phone").set("+65xxxxxxxx")
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         // @ts-expect-error - wrong type
-        $.field("contacts", "phone").set(6500000000),
+        $.field("contacts", "phone").set(6500000000)
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         // @ts-expect-error - can't update because emergencyContacts can be undefined
-        $.field("emergencyContacts", "phone").set("+65xxxxxxxx"),
+        $.field("emergencyContacts", "phone").set("+65xxxxxxxx")
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         // @ts-expect-error - emergencyContacts must have name and phone
         $.field("emergencyContacts").set({
           name: "Sasha",
-        }),
+        })
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         $.field("emergencyContacts").set({
           name: "Sasha",
           phone: "+65xxxxxxxx",
-        }),
+        })
       );
 
       // Deeply nested field corner cases
@@ -350,35 +350,35 @@ async function tysts() {
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         $.field("nested1Required", "nested12Required").set({
           hello: "Hello!",
-        }),
+        })
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         $.field("nested1Required", "nested12Required").set({
           hello: "Hello!",
           world: "World!",
-        }),
+        })
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         // @ts-expect-error - can't update without hello
         $.field("nested1Required", "nested12Required").set({
           world: "World!",
-        }),
+        })
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         // @ts-expect-error - should not update because requried12 on nested1Optional is required
         $.field("nested1Optional", "nested12Optional").set({
           hello: "Hello!",
-        }),
+        })
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
         // @ts-expect-error - nested1Optional has required12, so can't update
         $.field("nested1Optional", "nested12Optional").set({
           world: "World!",
-        }),
+        })
       );
 
       // Nested fields with records
@@ -386,15 +386,15 @@ async function tysts() {
       const postId = "post-id";
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
-        $.field("counters").set({ [postId]: { likes: 5 } }),
+        $.field("counters").set({ [postId]: { likes: 5 } })
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
-        $.field("counters", postId).set({ likes: 5 }),
+        $.field("counters", postId).set({ likes: 5 })
       );
 
       $.db.accounts.update(db.accounts.id("sasha"), ($) =>
-        $.field("counters", postId, "likes").set($.increment(1)),
+        $.field("counters", postId, "likes").set($.increment(1))
       );
     });
 
@@ -422,13 +422,13 @@ async function tysts() {
 
       $.result.update(($) =>
         // @ts-expect-error - can't update non-shared variable model fields
-        $.field("type").set("text"),
+        $.field("type").set("text")
       );
 
       // Narrowing
 
       const textContent = $.result.narrow<TextContent>(
-        (data) => data.type === "text" && data,
+        (data) => data.type === "text" && data
       );
 
       if (textContent) {
@@ -437,7 +437,7 @@ async function tysts() {
 
         textContent.update(($) =>
           // @ts-expect-error - can't update - we narrowed down to text type
-          $.field("src").set("Nope"),
+          $.field("src").set("Nope")
         );
 
         textContent.update({ text: "Yup" });
@@ -451,7 +451,7 @@ async function tysts() {
 
         textContent.ref.update(($) =>
           // @ts-expect-error - can't update - we narrowed down to text type
-          $.field("src").set("Nope"),
+          $.field("src").set("Nope")
         );
 
         textContent.ref.update({ text: "Yup" });
@@ -474,7 +474,7 @@ async function tysts() {
 
       $.result.ref.update(($) =>
         // @ts-expect-error - can't update non-shared variable model fields
-        $.field("type").set("text"),
+        $.field("type").set("text")
       );
 
       // ...via collection:
@@ -492,7 +492,7 @@ async function tysts() {
 
       $.db.content.update(contentId, ($) =>
         // @ts-expect-error - can't update non-shared variable model fields
-        $.field("type").set("text"),
+        $.field("type").set("text")
       );
     });
 

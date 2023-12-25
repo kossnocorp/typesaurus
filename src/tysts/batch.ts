@@ -160,17 +160,17 @@ async function tysts() {
 
   // Enforce required fields
 
-  // @tysts-start: strict
   // @ts-expect-error - name is required
   $.users.update(db.users.id("user-id"), ($) => ({
     name: $.remove(),
   }));
-  // @tysts-end: strict
 
+  // @tysts-start: strict - without exactOptionalPropertyTypes we can't prevent undefined from being set
   // @ts-expect-error - name is required
   $.users.update(db.users.id("sasha"), {
     name: undefined,
   });
+  // @tysts-end: strict
 
   // Works with nested fields
 
@@ -189,13 +189,13 @@ async function tysts() {
   }));
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
-    $.field("nested1Optional").set($.remove()),
+    $.field("nested1Optional").set($.remove())
   );
 
   // Single field update
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
-    $.field("name").set("Alexander"),
+    $.field("name").set("Alexander")
   );
 
   // Multiple fields update
@@ -208,32 +208,32 @@ async function tysts() {
   // Nested fields
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
-    $.field("contacts", "phone").set("+65xxxxxxxx"),
+    $.field("contacts", "phone").set("+65xxxxxxxx")
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     $.field("contacts", "phone")
       // @ts-expect-error - wrong type
-      .set(6500000000),
+      .set(6500000000)
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     // @ts-expect-error - can't update because emergencyContacts can be undefined
-    $.field("emergencyContacts", "phone").set("+65xxxxxxxx"),
+    $.field("emergencyContacts", "phone").set("+65xxxxxxxx")
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     // @ts-expect-error - emergencyContacts must have name and phone
     $.field("emergencyContacts").set({
       name: "Sasha",
-    }),
+    })
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     $.field("emergencyContacts").set({
       name: "Sasha",
       phone: "+65xxxxxxxx",
-    }),
+    })
   );
 
   // Deeply nested field corner cases
@@ -241,35 +241,35 @@ async function tysts() {
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     $.field("nested1Required", "nested12Required").set({
       hello: "Hello!",
-    }),
+    })
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     $.field("nested1Required", "nested12Required").set({
       hello: "Hello!",
       world: "World!",
-    }),
+    })
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     // @ts-expect-error - can't update without hello
     $.field("nested1Required", "nested12Required").set({
       world: "World!",
-    }),
+    })
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     // @ts-expect-error - should not update because requried12 on nested1Optional is required
     $.field("nested1Optional", "nested12Optional").set({
       hello: "Hello!",
-    }),
+    })
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
     // @ts-expect-error - nested1Optional has required12, so can't update
     $.field("nested1Optional", "nested12Optional").set({
       world: "World!",
-    }),
+    })
   );
 
   // Updating variable collection
@@ -289,7 +289,7 @@ async function tysts() {
 
   $.content.update(contentId, ($) =>
     // @ts-expect-error - can't update non-shared variable model fields
-    $.field("type").set("text"),
+    $.field("type").set("text")
   );
 
   // Nested fields with records
@@ -297,14 +297,14 @@ async function tysts() {
   const postId = Math.random().toString();
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
-    $.field("counters").set({ [postId]: { likes: 5 } }),
+    $.field("counters").set({ [postId]: { likes: 5 } })
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
-    $.field("counters", postId).set({ likes: 5 }),
+    $.field("counters", postId).set({ likes: 5 })
   );
 
   $.accounts.update(db.accounts.id("sasha"), ($) =>
-    $.field("counters", postId, "likes").set($.increment(1)),
+    $.field("counters", postId, "likes").set($.increment(1))
   );
 }
