@@ -127,7 +127,7 @@ describe("upset", () => {
     ).toBe(true);
   });
 
-  it("preserves undefineds", async () => {
+  it("turns undefined into nulls", async () => {
     const userRef = db.users.ref(db.users.id("42"));
     const postRef = await db.posts.upset(await db.posts.id(), {
       author: userRef,
@@ -136,8 +136,8 @@ describe("upset", () => {
       tags: ["hello", undefined, "world"],
     });
     const postFromDB = await postRef.get();
-    expect(postFromDB?.data.date).toEqual(undefined);
-    expect(postFromDB?.data.tags).toEqual(["hello", undefined, "world"]);
+    expect(postFromDB?.data.date).toEqual(null);
+    expect(postFromDB?.data.tags).toEqual(["hello", null, "world"]);
   });
 
   it("allows incrementing values", async () => {

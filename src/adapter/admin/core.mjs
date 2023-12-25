@@ -784,7 +784,7 @@ export function unwrapData(firestore, data) {
 
     return unwrappedObject;
   } else if (data === undefined) {
-    return "%%undefined%%";
+    return null;
   } else {
     return data;
   }

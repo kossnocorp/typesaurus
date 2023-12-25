@@ -1,5 +1,5 @@
 /** @type {import('@jest/types').Config.InitialOptions} */
-module.exports = {
+const config = {
   roots: ["<rootDir>/src/"],
   testRegex: ["tests\\.ts$", "tests/.+\\.ts$"],
   setupFilesAfterEnv: ["<rootDir>/tests/setupAdmin.ts"],
@@ -7,3 +7,4 @@ module.exports = {
     "\\.(mjs|js|ts)$": "babel-jest",
   },
 };
+export default config;

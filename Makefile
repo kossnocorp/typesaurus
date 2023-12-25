@@ -22,7 +22,7 @@ test-node-watch:
 	npx firebase emulators:exec --only firestore "npx jest --env node --watch"
 
 test-browser:
-	npx firebase emulators:exec --only firestore "npx karma start --single-run"
+	npx firebase emulators:exec --only firestore "npx karma start karma.conf.cjs --single-run"
 
 test-browser-watch:
 	npx firebase emulators:exec --only firestore "npx karma start"
@@ -36,17 +36,17 @@ test-system-node-watch:
 	npx jest --env node --watch
 
 test-system-browser:
-	npx karma start --single-run
+	npx karma start karma.conf.cjs --single-run
 
 test-system-browser-watch:
 	npx karma start
 
 build:
 	@rm -rf lib
-	@env BABEL_ENV=esm npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .mjs --quiet
-	@env BABEL_ENV=cjs npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .js --quiet
+	@env BABEL_ENV=esm npx babel src --config-file ./babel.config.lib.json --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .mjs --quiet
+	@env BABEL_ENV=cjs npx babel src --config-file ./babel.config.lib.json --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .js --quiet
 	@npx tsc -p tsconfig.lib.json
-# @env npx babel src --config-file ./babel.config.lib.js --source-root src --out-dir lib --extensions .mjs,.ts,.js --out-file-extension .js --ignore "src/**/tests.ts" --ignore "src/tests/**/*" --ignore "src/**/tysts.ts" --ignore "src/tysts/**/*" --ignore "src/**/*.d.ts" --quiet
+# @env npx babel src --config-file ./babel.config.lib.json --source-root src --out-dir lib --extensions .mjs,.ts,.js --out-file-extension .js --ignore "src/**/tests.ts" --ignore "src/tests/**/*" --ignore "src/**/tysts.ts" --ignore "src/tysts/**/*" --ignore "src/**/*.d.ts" --quiet
 # @npx prettier "lib/**/*.[jt]s" --write --loglevel silent
 # @cp package.json lib
 # @cp *.md lib
