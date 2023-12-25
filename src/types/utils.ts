@@ -22,9 +22,9 @@ export namespace TypesaurusUtils {
    * Composes collection path from base path and collection name.
    */
   export type ComposePath<
-    BasePath extends string | undefined,
+    BasePath extends string | false,
     Path extends string
-  > = BasePath extends undefined ? Path : `${BasePath}/${Path}`
+  > = BasePath extends false ? Path : `${BasePath}/${Path}`
 
   /**
    * Resolves union keys.
@@ -1657,24 +1657,24 @@ export namespace TypesaurusUtils {
     : H extends undefined
     ? SharedShape7<A, B, C, D, E, F, G>
     : I extends undefined
-    ? SharedShape<A, B, C, D, E, F, G, H>
+    ? SharedShape8<A, B, C, D, E, F, G, H>
     : J extends undefined
     ? SharedShape9<A, B, C, D, E, F, G, H, I>
     : SharedShape10<A, B, C, D, E, F, G, H, I, J>
 
-  type SharedShape2<A, B> = {
+  export type SharedShape2<A, B> = {
     [Key in keyof (A | B) as A[Key] & B[Key] extends never
       ? never
       : Key]: A[Key] & B[Key]
   }
 
-  type SharedShape3<A, B, C> = {
+  export type SharedShape3<A, B, C> = {
     [Key in keyof (A | B | C) as A[Key] & B[Key] & C[Key] extends never
       ? never
       : Key]: A[Key] & B[Key] & C[Key]
   }
 
-  type SharedShape4<A, B, C, D> = {
+  export type SharedShape4<A, B, C, D> = {
     [Key in keyof (A | B | C | D) as A[Key] &
       B[Key] &
       C[Key] &
@@ -1683,7 +1683,7 @@ export namespace TypesaurusUtils {
       : Key]: A[Key] & B[Key] & C[Key] & D[Key]
   }
 
-  type SharedShape5<A, B, C, D, E> = {
+  export type SharedShape5<A, B, C, D, E> = {
     [Key in keyof (A | B | C | D | E) as [Key] &
       B[Key] &
       C[Key] &
@@ -1693,7 +1693,7 @@ export namespace TypesaurusUtils {
       : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key]
   }
 
-  type SharedShape6<A, B, C, D, E, F> = {
+  export type SharedShape6<A, B, C, D, E, F> = {
     [Key in keyof (A | B | C | D | E | F) as A[Key] &
       B[Key] &
       C[Key] &
@@ -1704,7 +1704,7 @@ export namespace TypesaurusUtils {
       : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key]
   }
 
-  type SharedShape7<A, B, C, D, E, F, G> = {
+  export type SharedShape7<A, B, C, D, E, F, G> = {
     [Key in keyof (A | B | C | D | E | F | G) as A[Key] &
       B[Key] &
       C[Key] &
@@ -1716,7 +1716,7 @@ export namespace TypesaurusUtils {
       : Key]: A[Key] & B[Key] & C[Key] & D[Key] & E[Key] & F[Key] & G[Key]
   }
 
-  type SharedShape8<A, B, C, D, E, F, G, H> = {
+  export type SharedShape8<A, B, C, D, E, F, G, H> = {
     [Key in keyof (A | B | C | D | E | F | G | H) as A[Key] &
       B[Key] &
       C[Key] &
@@ -1736,7 +1736,7 @@ export namespace TypesaurusUtils {
       H[Key]
   }
 
-  type SharedShape9<A, B, C, D, E, F, G, H, I> = {
+  export type SharedShape9<A, B, C, D, E, F, G, H, I> = {
     [Key in keyof (A | B | C | D | E | F | G | H | I) as A[Key] &
       B[Key] &
       C[Key] &
@@ -1758,7 +1758,7 @@ export namespace TypesaurusUtils {
       I[Key]
   }
 
-  type SharedShape10<A, B, C, D, E, F, G, H, I, J> = {
+  export type SharedShape10<A, B, C, D, E, F, G, H, I, J> = {
     [Key in keyof (A | B | C | D | E | F | G | H | I | J) as A[Key] &
       B[Key] &
       C[Key] &
@@ -2219,5 +2219,5 @@ export namespace TypesaurusUtils {
   /**
    * Resolves true if the strictNullChecks is set to true in the tsconfig.
    */
-  export type StrictNullChecksEnabled = null extends undefined ? false : true
+  export type StrictNullChecksEnabled = true // null extends undefined ? false : true
 }

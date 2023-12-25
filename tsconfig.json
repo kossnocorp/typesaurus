@@ -12,10 +12,11 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     // Enable for debug, but keep disabled after that as it slows down builds a lot
-    "noErrorTruncation": true,
+    // "noErrorTruncation": true,
     "allowJs": true
   },
-  "include": ["src/**/*.ts", "scripts/**/*.ts"],
-  "exclude": ["lib", "node_modules", "legacy"]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "src/transaction/index.dts"],
+  "exclude": ["lib", "node_modules", "legacy", "src/tysts/*/*"]
 }

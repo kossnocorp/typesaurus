@@ -18,7 +18,7 @@ export namespace TypesaurusCore {
     string & {
       [idBrand]: Path
     }
-  const idBrand: unique symbol
+  declare const idBrand: unique symbol
   /**
    * The custom id constrain. Used to define collection id type.
    */
@@ -1078,7 +1078,7 @@ export namespace TypesaurusCore {
   export interface PlainCollection<
     Model extends ModelType,
     CustomId extends CustomIdConstrain = false,
-    CustomName extends string | undefined = undefined
+    CustomName extends string | false = false
   > {
     /** The collection type */
     type: 'collection'
@@ -1096,7 +1096,7 @@ export namespace TypesaurusCore {
     _Model extends ModelType,
     Schema extends PlainSchema,
     _CustomId extends CustomIdConstrain = false,
-    _CustomName extends string | undefined = undefined
+    _CustomName extends string | false = false
   > {
     /** The collection type */
     type: 'collection'
@@ -1118,7 +1118,7 @@ export namespace TypesaurusCore {
     [CollectionPath: string]: AnyCollection<any>
   }
 
-  export type DB<Schema, BasePath extends string | undefined = undefined> = {
+  export type DB<Schema, BasePath extends string | false = false> = {
     [Name in keyof Schema]: Name extends string
       ? Schema[Name] extends NestedPlainCollection<
           infer Model,

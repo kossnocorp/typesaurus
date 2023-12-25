@@ -267,7 +267,7 @@ export namespace TypesaurusTransaction {
   export type ReadDB<
     Schema extends Core.PlainSchema,
     Props extends Core.DocProps,
-    BasePath extends string | undefined = undefined
+    BasePath extends string | false = false
   > = {
     [Name in keyof Schema]: Name extends string
       ? Schema[Name] extends Core.NestedPlainCollection<
@@ -324,7 +324,7 @@ export namespace TypesaurusTransaction {
   export type WriteDB<
     Schema extends Core.PlainSchema,
     Props extends Core.DocProps,
-    BasePath extends string | undefined = undefined
+    BasePath extends string | false = false
   > = {
     [Name in keyof Schema]: Name extends string
       ? Schema[Name] extends Core.NestedPlainCollection<

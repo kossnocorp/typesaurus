@@ -1,3 +1,3 @@
 import type { TypesaurusBatch } from '../types/batch'
 
-export const batch: TypesaurusBatch.Function
+export declare const batch: TypesaurusBatch.Function

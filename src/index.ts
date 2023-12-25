@@ -5,7 +5,7 @@ export * from './groups'
 export * from './batch'
 export * from './helpers'
 
-export const schema: Core.Function
+export declare const schema: Core.Function
 
 export namespace Typesaurus {
   /**
