@@ -627,9 +627,14 @@ export namespace TypesaurusCore {
     Key extends keyof Data,
     Props extends DocProps,
   > = Exclude<Data[Key], undefined> extends infer Type // Exclude undefined
-    ? Type extends ServerDate // First, ensure ServerDate is properly set
+    ? // TODO:
+      // > = Exclude<Data[Key], undefined | null> extends infer Type // Exclude undefined and null
+      Type extends ServerDate // First, ensure ServerDate is properly set
       ? WriteFieldServerDate<Data, Key, Props>
-      : Type extends Array<infer ItemType>
+      : // TODO:
+        // : Type extends Ref<any> | Date | string | boolean | null | undefined
+        //   ? Type
+        Type extends Array<infer ItemType>
         ? WriteFieldArray<Data, Key, ItemType>
         : Type extends number
           ? WriteFieldNumber<Data, Key, Type>
@@ -680,7 +685,9 @@ export namespace TypesaurusCore {
   export type WriteArrayItem<Item> = Item extends ServerDate | Array<any> // No server dates and arrays are allowed in arrays
     ? never
     : Item extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
-      ? Item
+      ? // TODO:
+        // : Item extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
+        Item
       : Item extends object // If it's an object, recursively pass through WriteArrayObject
         ? WriteArrayObject<Item>
         : Item;
@@ -692,7 +699,9 @@ export namespace TypesaurusCore {
   export type WriteArrayObjectField<Field> = Field extends ServerDate // No server dates are allowed in arrays
     ? never
     : Field extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
-      ? Field
+      ? // TODO:
+        // : Field extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
+        Field
       : Field extends Array<any>
         ? WriteArray<Field>
         : Field extends object // If it's an object, recursively pass through ModelData
@@ -1576,8 +1585,11 @@ export namespace TypesaurusCore {
           : // Now extract object types
             Type extends object
             ? {
-                [Key in keyof Type]: // If field is optionally undefined, exclude undefined before nullifing the rest
-                Utils.ActuallyUndefined<Type, Key> extends true
+                [Key in keyof Type]: Utils.ActuallyUndefined<
+                  // If field is optionally undefined, exclude undefined before nullifing the rest
+                  Type,
+                  Key
+                > extends true
                   ? Nullify<Type[Key]>
                   : Nullify<Exclude<Type[Key], undefined>>;
               }
