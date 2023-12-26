@@ -1,4 +1,5 @@
 import sinon from "sinon";
+import { beforeEach, describe, expect, it, afterEach } from "vitest";
 import { groups, schema, Typesaurus } from "..";
 
 describe("all", () => {
@@ -165,11 +166,11 @@ describe("all", () => {
         }),
       }));
 
-      afterEach(() =>
-        groups(db)
+      afterEach(async () => {
+        await groups(db)
           .comments.all()
-          .then((docs) => docs.map((doc) => doc.remove())),
-      );
+          .then((docs) => docs.map((doc) => doc.remove()));
+      });
 
       it("allows to get all data from collection groups", async () => {
         await Promise.all([
@@ -382,11 +383,11 @@ describe("all", () => {
         }),
       }));
 
-      afterEach(() =>
-        groups(db)
+      afterEach(async () => {
+        await groups(db)
           .comments.all()
-          .then((docs) => docs.map((doc) => doc.remove())),
-      );
+          .then((docs) => docs.map((doc) => doc.remove()));
+      });
 
       it("allows to get all data from collection groups", async () => {
         await Promise.all([

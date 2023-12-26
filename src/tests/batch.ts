@@ -1,4 +1,5 @@
-import { schema, batch } from "..";
+import { describe, expect, it } from "vitest";
+import { batch, schema } from "..";
 
 describe("batch", () => {
   interface User {

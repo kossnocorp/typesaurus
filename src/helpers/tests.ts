@@ -1,6 +1,7 @@
+import { describe, expect, it } from "vitest";
 import { schema } from "..";
 import { SubscriptionPromise } from "../sp/index";
-import { silence, retry, resolved } from "./index";
+import { resolved, retry, silence } from "./index";
 
 describe("helpers", () => {
   interface User {

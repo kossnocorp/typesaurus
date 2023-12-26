@@ -1,6 +1,5 @@
+import { describe, expect, it } from "vitest";
 import { schema, Typesaurus } from "..";
-
-const exp = typeof jasmine !== "undefined" ? jasmine : expect;
 
 describe("doc", () => {
   interface User {
@@ -48,12 +47,12 @@ describe("doc", () => {
     });
 
     expect(userDoc).toEqual(
-      exp.objectContaining({
+      expect.objectContaining({
         type: "doc",
-        ref: exp.objectContaining({
+        ref: expect.objectContaining({
           type: "ref",
           id: "42",
-          collection: exp.objectContaining({
+          collection: expect.objectContaining({
             type: "collection",
             path: "users",
           }),

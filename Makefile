@@ -16,30 +16,30 @@ test-setup:
 	npx firebase setup:emulators:firestore
 
 test-node:
-	npx firebase emulators:exec --only firestore "npx jest --env node"
+	npx firebase emulators:exec --only firestore "npx vitest run"
 
 test-node-watch:
-	npx firebase emulators:exec --only firestore "npx jest --env node --watch"
+	npx firebase emulators:exec --only firestore "npx vitest"
 
 test-browser:
-	npx firebase emulators:exec --only firestore "npx karma start --single-run"
+	npx firebase emulators:exec --only firestore "env BROWSER=true npx vitest run --browser"
 
 test-browser-watch:
-	npx firebase emulators:exec --only firestore "npx karma start"
+	npx firebase emulators:exec --only firestore "env BROWSER=true npx vitest --browser"
 
 test-system: test-system-node test-system-browser
 
 test-system-node:
-	env GOOGLE_APPLICATION_CREDENTIALS=${CURDIR}/secrets/key.json npx jest --env node
+	env GOOGLE_APPLICATION_CREDENTIALS=${CURDIR}/secrets/key.json npx vitest run
 
 test-system-node-watch:
-	npx jest --env node --watch
+	env GOOGLE_APPLICATION_CREDENTIALS=${CURDIR}/secrets/key.json npx vitest
 
 test-system-browser:
-	npx karma start --single-run
+	env BROWSER=true npx vitest run --browser
 
 test-system-browser-watch:
-	npx karma start
+	env BROWSER=true npx vitest --browser
 
 test-types: install-attw build 
 	@cd lib && attw --pack
@@ -49,6 +49,7 @@ build:
 	@npx tsc -p tsconfig.lib.json
 	@env BABEL_ENV=esm npx babel src --config-file ./babel.config.lib.json --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .mjs --quiet
 	@env BABEL_ENV=cjs npx babel src --config-file ./babel.config.lib.json --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .js --quiet
+	@rm -rf lib/types/*js*
 	@make sync-files
 	@make build-mts
 	@cp package.json lib
@@ -66,6 +67,7 @@ sync-files:
 		mkdir -p `dirname "$$dest"`; \
 		rsync -av "$$file" "$$dest"; \
 	done
+	@rm -rf lib/tysts/loose
 
 build-mts:
 	@find lib -name '*.d.ts' | while read file; do \

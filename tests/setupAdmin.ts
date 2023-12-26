@@ -8,4 +8,4 @@ schema(($) => ({
 
 admin.initializeApp();
 
-jest.setTimeout(process.env.FIRESTORE_EMULATOR_HOST ? 15000 : 25000);
+// jest.setTimeout(process.env.FIRESTORE_EMULATOR_HOST ? 15000 : 25000);

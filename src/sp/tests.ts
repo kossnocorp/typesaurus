@@ -1,4 +1,5 @@
 import sinon from "sinon";
+import { describe, expect, it } from "vitest";
 import { SubscriptionPromise } from ".";
 
 describe("SubscriptionPromise", () => {

@@ -1,4 +1,5 @@
 import sinon from "sinon";
+import { afterEach, describe, expect, it } from "vitest";
 import { schema, Typesaurus } from "..";
 
 describe("get", () => {

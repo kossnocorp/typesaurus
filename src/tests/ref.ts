@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { schema } from "..";
 
 describe("ref", () => {
@@ -12,7 +13,7 @@ describe("ref", () => {
   it("creates ref object", () => {
     const userRef = db.users.ref(db.users.id("42"));
     expect(userRef).toEqual(
-      (typeof jasmine !== "undefined" ? jasmine : expect).objectContaining({
+      expect.objectContaining({
         type: "ref",
         id: "42",
       }),

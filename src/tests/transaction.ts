@@ -1,4 +1,5 @@
 import sinon from "sinon";
+import { beforeEach, describe, expect, it, beforeAll, afterAll } from "vitest";
 import { schema, transaction, Typesaurus } from "..";
 
 describe("transaction", () => {
@@ -24,7 +25,7 @@ describe("transaction", () => {
   });
 
   beforeEach(() => {
-    typeof jest !== "undefined" && jest.setTimeout(20000);
+    // typeof jest !== "undefined" && jest.setTimeout(20000);
     console.warn = sinon.spy();
   });
 

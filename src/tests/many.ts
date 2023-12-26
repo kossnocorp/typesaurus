@@ -1,4 +1,5 @@
-import { schema, Typesaurus } from "..";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
+import { Typesaurus, schema } from "..";
 
 describe("many", () => {
   interface Fruit {

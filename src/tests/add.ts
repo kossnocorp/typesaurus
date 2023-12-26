@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { schema, Typesaurus } from "..";
 import type { TypesaurusCore } from "../types/core";
 
