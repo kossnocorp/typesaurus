@@ -196,11 +196,42 @@ interface Mixed {
   nested2: Mixed | undefined;
   nested3?: Mixed;
   nested4?: Mixed | undefined;
+  arrayOfObjects: Array<{
+    date?: Date;
+    some?: "things";
+    things?: "some" | undefined;
+    opaqueNumber: OpaqueNumber;
+    opaqueString: OpaqueString;
+    opaqueBoolean: OpaqueBoolean;
+  }>;
 }
 
 type OpaqueJSON = string & { __json: {} };
 
 type OpaqueNumber = number & { __number: 123 };
+
+type OpaqueString = string & { __string: "hello" };
+
+type OpaqueBoolean = boolean & { __boolean: true };
+
+interface OpaqueTypes {
+  number: OpaqueNumber;
+  numberArr: OpaqueNumber[];
+  string: OpaqueString;
+  stringArr: OpaqueString[];
+  boolean: OpaqueBoolean;
+  booleanArr: OpaqueBoolean[];
+  object: {
+    number: OpaqueNumber;
+    string: OpaqueString;
+    boolean: OpaqueBoolean;
+  };
+  array: Array<{
+    number: OpaqueNumber;
+    string: OpaqueString;
+    boolean: OpaqueBoolean;
+  }>;
+}
 
 interface CustomCollection {
   hello: "world";
@@ -3056,6 +3087,12 @@ namespace NormalizeServerDates {
   >;
 
   type Result2 = Assert<number, Core.NormalizeServerDates<number>>;
+
+  type asd = Core.NormalizeServerDates<OpaqueString>;
+
+  type Result3 = Assert<OpaqueString, Core.NormalizeServerDates<OpaqueString>>;
+
+  type Result4 = Assert<OpaqueTypes, Core.NormalizeServerDates<OpaqueTypes>>;
 }
 
 namespace Nullify {

@@ -1530,14 +1530,20 @@ export namespace TypesaurusCore {
     : never;
 
   /**
-   * Normalizes server dates in an object. It replaces ServerDate with regular Date. It's useful when reusing interfaces
-   * in a non-Typesaurus environment or when you need to store it in an array (where server dates are not allowed).
+   * Deeply normalizes server dates in a given type. It replaces ServerDate with
+   * regular Date. It's useful when reusing interfaces in a non-Typesaurus
+   * environment or when you need to store it in an array (where server dates
+   * are not allowed).
    */
-  export type NormalizeServerDates<Interface> = {
-    [Key in keyof Interface]: Interface[Key] extends ServerDate
-      ? Date
-      : NormalizeServerDates<Interface[Key]>;
-  };
+  export type NormalizeServerDates<Type> = Type extends ServerDate
+    ? Date
+    : Type extends Date | Ref<any> | string | number | boolean
+      ? Type
+      : Type extends Array<infer Item>
+        ? Array<NormalizeServerDates<Item>>
+        : Type extends object
+          ? { [Key in keyof Type]: NormalizeServerDates<Type[Key]> }
+          : never;
 
   /**
    * The options. It allows to configure the Firebase settings.
