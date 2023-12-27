@@ -51,6 +51,7 @@ build:
 	@env BABEL_ENV=cjs npx babel src --config-file ./babel.config.lib.json --source-root src --out-dir lib --extensions .mjs,.ts --out-file-extension .js --quiet
 	@rm -rf lib/types/*js*
 	@make sync-files
+	@rm -rf lib/tysts
 	@make build-mts
 	@cp package.json lib
 	@cp *.md lib
@@ -62,12 +63,11 @@ copy-mjs:
 	done
 
 sync-files:
-	@find src \( -name '*.d.ts' -o -name '*.json' \) -print0 | while IFS= read -r -d '' file; do \
+	@find src \( -name '*.d.ts' -o -name '*.json' \) -print | while IFS= read -r file; do \
 		dest=`echo "$$file" | sed 's|^src/|lib/|'`; \
 		mkdir -p `dirname "$$dest"`; \
 		rsync -av "$$file" "$$dest"; \
 	done
-	@rm -rf lib/tysts/loose
 
 build-mts:
 	@find lib -name '*.d.ts' | while read file; do \
