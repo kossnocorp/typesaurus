@@ -613,35 +613,44 @@ export namespace TypesaurusCore {
    * Type of the data passed to write functions. It extends the model allowing
    * to set special values, sucha as server date, increment, etc.
    */
-  export type WriteData<Model, Props extends DocProps> = WriteDataNullified<
-    Nullify<Model>,
-    Props
-  >;
+  export type WriteData<
+    Model extends ModelObjectType,
+    Props extends DocProps,
+  > = WriteDataNullified<Nullify<Model>, Props>;
 
-  export type WriteDataNullified<Model, Props extends DocProps> = {
+  export type WriteDataNullified<
+    Model extends ModelObjectType,
+    Props extends DocProps,
+  > = {
     [Key in keyof Model]: WriteField<Model, Key, Props>;
   };
 
-  export type WriteField<
-    Data,
-    Key extends keyof Data,
-    Props extends DocProps,
-  > = Exclude<Data[Key], undefined> extends infer Type // Exclude undefined
-    ? // TODO:
-      // > = Exclude<Data[Key], undefined | null> extends infer Type // Exclude undefined and null
-      Type extends ServerDate // First, ensure ServerDate is properly set
-      ? WriteFieldServerDate<Data, Key, Props>
-      : // TODO:
-        // : Type extends Ref<any> | Date | string | boolean | null | undefined
-        //   ? Type
-        Type extends Array<infer ItemType>
-        ? WriteFieldArray<Data, Key, ItemType>
-        : Type extends number
-          ? WriteFieldNumber<Data, Key, Type>
-          : Type extends object // If it's an object, recursively pass through SetModel
-            ? WriteFieldObject<Data, Key, Props>
-            : WriteFieldOther<Data, Key>
-    : never;
+  /**
+   *
+   */
+  // TODO: Write tysts for it
+  export type WriteField<Data, Key extends keyof Data, Props extends DocProps> =
+    // First we exclude undefined from the type
+    // TODO: Figure out why do we exclude it?
+    // TODO: What happens to the fields that are set to undefined?
+    Exclude<Data[Key], undefined> extends infer Type
+      ? // First we process the number type
+        Type extends number
+        ? WriteFieldNumber<Data, Key, Type>
+        : // Now we process server dates
+          Type extends ServerDate
+          ? WriteFieldServerDate<Data, Key, Props>
+          : // Now we process as-is types
+            Type extends Date | Ref<any> | string | boolean | undefined | null
+            ? WriteFieldOther<Data, Key>
+            : // Now process arrays
+              Type extends Array<infer ItemType>
+              ? WriteFieldArray<Data, Key, ItemType>
+              : // Now process objects
+                Type extends object
+                ? WriteFieldObject<Data, Key, Type, Props>
+                : WriteFieldOther<Data, Key> // TODO: Why can't I set never here?
+      : never;
 
   /**
    * Helper that adds undefined to the type if the origin type extends it.
@@ -692,7 +701,7 @@ export namespace TypesaurusCore {
         ? WriteArrayObject<Item>
         : Item;
 
-  export type WriteArrayObject<Data extends object & { length?: never }> = {
+  export type WriteArrayObject<Data extends ModelObjectType> = {
     [Key in keyof Data]: WriteArrayObjectField<Data[Key]>;
   };
 
@@ -721,9 +730,10 @@ export namespace TypesaurusCore {
   export type WriteFieldObject<
     Model,
     Key extends keyof Model,
+    Value extends ModelObjectType,
     Props extends DocProps,
   > =
-    | WriteData<Model[Key], Props> // Even for update, nested objects are passed to set model
+    | WriteDataNullified<Value, Props> // Even for update, nested objects are passed to set model
     | MaybeValueRemove<Model, Key>;
 
   /**
