@@ -86,7 +86,7 @@ export namespace TypesaurusUpdate {
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
   > = {
-    [Key in keyof Model]?: Core.WriteField<Model, Key, Props>;
+    [Key in keyof Model]?: Core.WriteField<Model, Key, Model[Key], Props>;
   };
 
   export type Getter<
@@ -124,7 +124,7 @@ export namespace TypesaurusUpdate {
     Key extends keyof Parent,
     SetResult,
   > {
-    set(value: Core.WriteField<Parent, Key, Props>): SetResult;
+    set(value: Core.WriteField<Parent, Key, Parent[Key], Props>): SetResult;
   }
 
   export interface CommonHelpers<

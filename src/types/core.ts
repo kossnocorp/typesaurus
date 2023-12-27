@@ -611,85 +611,76 @@ export namespace TypesaurusCore {
 
   /**
    * Type of the data passed to write functions. It extends the model allowing
-   * to set special values, sucha as server date, increment, etc.
+   * to set special values, such as server date, increment, etc. The data
+   * is also nullified allowing to pass nulls instead of undefineds.
    */
   export type WriteData<
     Model extends ModelObjectType,
     Props extends DocProps,
   > = WriteDataNullified<Nullify<Model>, Props>;
 
+  /**
+   * Write type, used internally by the write field types.
+   * Unlike {@link WriteData} it expects already nullified data, preventing
+   * {@link Nullify} called again.
+   */
   export type WriteDataNullified<
     Model extends ModelObjectType,
     Props extends DocProps,
   > = {
-    [Key in keyof Model]: WriteField<Model, Key, Props>;
+    [Key in keyof Model]: WriteField<Model, Key, Model[Key], Props>;
   };
 
   /**
-   *
+   * Write data field. Processes write data field types and adds corresponding
+   * write helpers such as server data, increment, etc.
    */
-  // TODO: Write tysts for it
-  export type WriteField<Data, Key extends keyof Data, Props extends DocProps> =
-    // First we exclude undefined from the type
-    // TODO: Figure out why do we exclude it?
-    // TODO: What happens to the fields that are set to undefined?
-    Exclude<Data[Key], undefined> extends infer Type
-      ? // First we process the number type
-        Type extends number
-        ? WriteFieldNumber<Data, Key, Type>
-        : // Now we process server dates
-          Type extends ServerDate
-          ? WriteFieldServerDate<Data, Key, Props>
-          : // Now we process as-is types
-            Type extends Date | Ref<any> | string | boolean | undefined | null
-            ? WriteFieldOther<Data, Key>
-            : // Now process arrays
-              Type extends Array<infer ItemType>
-              ? WriteFieldArray<Data, Key, ItemType>
-              : // Now process objects
-                Type extends object
-                ? WriteFieldObject<Data, Key, Type, Props>
-                : WriteFieldOther<Data, Key> // TODO: Why can't I set never here?
-      : never;
+  export type WriteField<
+    Data,
+    Key extends keyof Data,
+    Type,
+    Props extends DocProps,
+  > =
+    // First we process the number type
+    Type extends number
+      ? WriteFieldNumber<Data, Key, Type>
+      : // Now we process server dates
+        Type extends ServerDate
+        ? WriteFieldServerDate<Data, Key, Props>
+        : // Now we process as-is types
+          Type extends Date | Ref<any> | string | boolean | undefined | null
+          ? WriteFieldAsIs<Data, Key>
+          : // Now process arrays
+            Type extends Array<infer ItemType>
+            ? WriteFieldArray<Data, Key, ItemType>
+            : // Now process objects
+              Type extends object
+              ? WriteFieldObject<Data, Key, Type, Props>
+              : never; // Nothing shoule be left
 
-  /**
-   * Helper that adds undefined to the type if the origin type extends it.
-   * Allows to set undefined to the fields that are altered with special values
-   * like $.remove() or $.serverDate().
-   */
-  export type WriteFieldMaybeUndefined<
-    OriginType,
-    Value = OriginType,
-  > = OriginType extends undefined ? Value | undefined : Value;
+  export type WriteFieldNumber<
+    Model,
+    Key extends keyof Model,
+    NumberType extends number,
+  > = Model[Key] | ValueIncrement<NumberType> | MaybeValueRemove<Model, Key>;
 
   export type WriteFieldServerDate<
     Model,
     Key extends keyof Model,
     Props extends DocProps,
-  > = WriteFieldMaybeUndefined<
-    Model[Key],
-    Props["environment"] extends "server" // Date can be used only in the server environment
-      ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
-      : ValueServerDate | MaybeValueRemove<Model, Key>
-  >;
+  > = Props["environment"] extends "server" // Date can be used only in the server environment
+    ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
+    : ValueServerDate | MaybeValueRemove<Model, Key>;
 
-  export type WriteFieldArray<
-    Model,
-    Key extends keyof Model,
-    ItemType,
-  > = WriteFieldMaybeUndefined<
-    Model[Key],
-    | WriteArray<Array<ItemType>>
+  export type WriteFieldAsIs<Model, Key extends keyof Model> =
+    | Model[Key]
+    | MaybeValueRemove<Model, Key>;
+
+  export type WriteFieldArray<Model, Key extends keyof Model, ItemType> =
+    | Array<WriteArrayItem<ItemType>>
     | ValueArrayUnion<WriteArrayItem<ItemType>>
     | ValueArrayRemove<WriteArrayItem<ItemType>>
-    | MaybeValueRemove<Model, Key>
-  >;
-
-  export type WriteArray<Data extends Array<any>> = Data extends Array<
-    infer ItemType
-  >
-    ? Array<WriteArrayItem<ItemType>>
-    : never;
+    | MaybeValueRemove<Model, Key>;
 
   export type WriteArrayItem<Item> = Item extends ServerDate | Array<any> // No server dates and arrays are allowed in arrays
     ? never
@@ -711,21 +702,11 @@ export namespace TypesaurusCore {
       ? // TODO:
         // : Field extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
         Field
-      : Field extends Array<any>
-        ? WriteArray<Field>
+      : Field extends Array<infer Item>
+        ? Array<WriteArrayItem<Item>>
         : Field extends object // If it's an object, recursively pass through ModelData
           ? WriteArrayObject<Field>
           : Field;
-
-  export type WriteFieldNumber<
-    Model,
-    Key extends keyof Model,
-    NumberType extends number,
-  > = Model[Key] | ValueIncrement<NumberType> | MaybeValueRemove<Model, Key>;
-
-  export type WriteFieldOther<Model, Key extends keyof Model> =
-    | Model[Key]
-    | MaybeValueRemove<Model, Key>;
 
   export type WriteFieldObject<
     Model,
