@@ -68,27 +68,18 @@ export namespace TypesaurusUpdate {
     value: any;
   }
 
+  /**
+   * The update argument type. It can be update data or a function that returns
+   * update data.
+   */
   export type Arg<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
   > = Data<Model, Props> | Getter<Model, Props>;
 
   /**
-   * Type of the data passed to write functions. It extends the model allowing
-   * to set special values, sucha as server date, increment, etc.
+   * Update data getter, accepts helper functions and returns the update data.
    */
-  export type Data<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps,
-  > = DataNullified<Core.Nullify<Model>, Props>;
-
-  export type DataNullified<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps,
-  > = {
-    [Key in keyof Model]?: Core.WriteField<Model, Key, Model[Key], Props>;
-  };
-
   export type Getter<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
@@ -100,6 +91,22 @@ export namespace TypesaurusUpdate {
     | Array<UpdateField<Model> | Utils.Falsy>
     | Utils.Falsy;
 
+  /**
+   * The update data type. It extends the model allowing to set specific values,
+   * such as server dates, increment, etc. The data is also nullified allowing
+   * to pass nulls instead of undefined.
+   */
+  export type Data<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps,
+  > = Nullify<{
+    [Key in keyof Model]?: Core.WriteField<Model, Key, Model[Key], Props>;
+  }>;
+
+  /**
+   * Update helpers which allow to set specific values, such as server dates,
+   * increment, etc.
+   */
   export interface Helpers<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
@@ -124,7 +131,9 @@ export namespace TypesaurusUpdate {
     Key extends keyof Parent,
     SetResult,
   > {
-    set(value: Core.WriteField<Parent, Key, Parent[Key], Props>): SetResult;
+    set(
+      value: Nullify<Core.WriteField<Parent, Key, Parent[Key], Props>>,
+    ): SetResult;
   }
 
   export interface CommonHelpers<

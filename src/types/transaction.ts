@@ -45,7 +45,10 @@ export namespace TypesaurusTransaction {
     Props extends Core.DocProps,
   > {
     set(
-      data: Core.WriteArg<Core.IntersectVariableModelType<Def["Model"]>, Props>,
+      data: Core.AssignArg<
+        Core.IntersectVariableModelType<Def["Model"]>,
+        Props
+      >,
     ): void;
 
     update(
@@ -58,7 +61,10 @@ export namespace TypesaurusTransaction {
     ): void;
 
     upset(
-      data: Core.WriteArg<Core.IntersectVariableModelType<Def["Model"]>, Props>,
+      data: Core.AssignArg<
+        Core.IntersectVariableModelType<Def["Model"]>,
+        Props
+      >,
     ): void;
 
     remove(): void;
@@ -143,12 +149,18 @@ export namespace TypesaurusTransaction {
 
     set(
       id: Def["Id"],
-      data: Core.WriteArg<Core.IntersectVariableModelType<Def["Model"]>, Props>,
+      data: Core.AssignArg<
+        Core.IntersectVariableModelType<Def["Model"]>,
+        Props
+      >,
     ): void;
 
     upset(
       id: Def["Id"],
-      data: Core.WriteArg<Core.IntersectVariableModelType<Def["Model"]>, Props>,
+      data: Core.AssignArg<
+        Core.IntersectVariableModelType<Def["Model"]>,
+        Props
+      >,
     ): void;
 
     update(

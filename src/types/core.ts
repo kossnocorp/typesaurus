@@ -19,6 +19,7 @@ export namespace TypesaurusCore {
       [idBrand]: Path;
     };
   declare const idBrand: unique symbol;
+
   /**
    * The custom id constrain. Used to define collection id type.
    */
@@ -512,11 +513,19 @@ export namespace TypesaurusCore {
     ServerDateMissing
   >;
 
+  /**
+   * Doc data type. Defines the shape of the document data returned from the
+   * database. It resolves server dates and nullifies undefineds.
+   */
   export type Data<
     Model extends ModelObjectType,
     DateMissing extends ServerDateMissing,
   > = DataNullified<Nullify<Model>, DateMissing>;
 
+  /**
+   * Nullifed doc data type, used internally by the data types. It expects
+   * already nullified data, preventing {@link Nullify} called again.
+   */
   export type DataNullified<
     Model extends ModelObjectType,
     DateMissing extends ServerDateMissing,
@@ -524,31 +533,33 @@ export namespace TypesaurusCore {
     [Key in keyof Model]: DataField<Model[Key], DateMissing>;
   };
 
-  export type DataField<
-    Field,
-    DateMissing extends ServerDateMissing,
-  > = Field extends ServerDate // Process server dates
-    ? DateMissing extends "missing"
-      ? Date | null
-      : Date
-    : Field extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
-      ? Field
-      : Field extends Array<infer ItemType>
-        ? Array<DataField<ItemType, DateMissing>>
-        : Field extends string | number // Special case for strings & numbers, so opaque types (string & {}) can be used
-          ? Field
-          : Field extends object // If it's an object, recursively pass through ModelData
-            ? Data<Field, DateMissing>
-            : Field;
-
-  export type ResolvedWebServerDate<
-    FromCache extends boolean,
-    DateStrategy extends ServerDateStrategy,
-  > = FromCache extends false | undefined // Server date is always defined when not from cache
-    ? Date
-    : DateStrategy extends "estimate" | "previous" // Or when the estimate or previous strategy were used
-      ? Date
-      : Date | null;
+  /**
+   * Doc data field. Processes data field types and resolves server dates.
+   */
+  export type DataField<Type, DateMissing extends ServerDateMissing> =
+    // First we resolve the server dates
+    Type extends ServerDate // Process server dates
+      ? // Consider that in web environment server dates might be missing
+        DateMissing extends "missing"
+        ? Date | null
+        : Date
+      : // Preserve as-is types
+        Type extends
+            | Date
+            | Ref<any>
+            | string
+            | number
+            | boolean
+            | null
+            | undefined
+        ? Type
+        : // Now process arrays
+          Type extends Array<infer ItemType>
+          ? Array<DataField<ItemType, DateMissing>>
+          : // Now process objects
+            Type extends object
+            ? DataNullified<Type, DateMissing>
+            : never; // Nothing shoule be left
 
   /**
    * The document reference type.
@@ -568,8 +579,9 @@ export namespace TypesaurusCore {
   export type DataSource = "cache" | "database";
 
   export interface ServerDate extends Date {
-    __dontUseWillBeUndefined__: true;
+    [serverDateBrand]: true;
   }
+  declare const serverDateBrand: unique symbol;
 
   export type DocData<
     Def extends DocDef,
@@ -582,49 +594,79 @@ export namespace TypesaurusCore {
         ? Data<IntersectVariableModelType<Def["Model"]>, "present">
         : Data<IntersectVariableModelType<Def["Model"]>, "missing">;
 
-  export type WriteArg<Model extends ModelObjectType, Props extends DocProps> =
-    | WriteData<Model, Props>
-    | WriteGetter<Model, Props>;
-
   /**
-   * Write model getter, accepts helper functions with special value generators
-   * and returns {@link WriteData}.
+   * Write data helpers, whichs allow to set special values, such as server date,
+   * increment, etc.
    */
-  export type WriteGetter<
-    Model extends ModelObjectType,
-    Props extends DocProps,
-  > = ($: WriteHelpers<Model>) => WriteData<Model, Props>;
-
   export interface WriteHelpers<_Model> {
+    /**
+     * Returns server date value that sets the field to the server date.
+     */
     serverDate(): ValueServerDate;
 
+    /**
+     * Returns remove value that removes the field.
+     */
     remove(): ValueRemove;
 
+    /**
+     * Returns increment value that increments the field by the given value.
+     *
+     * @param value - The number to increment by.
+     */
     increment<NumberType extends number>(
       value: NumberType,
     ): ValueIncrement<NumberType>;
 
+    /**
+     * Returns array union value that unions the given values with the array.
+     *
+     * @param values - The values to union to the array.
+     */
     arrayUnion<Type>(values: Type | Type[]): ValueArrayUnion<Type>;
 
+    /**
+     * Returns array remove value that removes the given values from the array.
+     *
+     * @param values - The values to remove from the array.
+     */
     arrayRemove<Type>(values: Type | Type[]): ValueArrayRemove<Type>;
   }
 
   /**
-   * Type of the data passed to write functions. It extends the model allowing
-   * to set special values, such as server date, increment, etc. The data
-   * is also nullified allowing to pass nulls instead of undefineds.
+   * Assign argument. It resolves to assign data or getter function that returns
+   * the assign data. It's used in add, set and upset functions.
    */
-  export type WriteData<
+  export type AssignArg<
     Model extends ModelObjectType,
     Props extends DocProps,
-  > = WriteDataNullified<Nullify<Model>, Props>;
+  > = AssignData<Model, Props> | AssignGetter<Model, Props>;
 
   /**
-   * Write type, used internally by the write field types.
-   * Unlike {@link WriteData} it expects already nullified data, preventing
+   * Assign data getter, accepts helper functions and returns the assign data.
+   */
+  export type AssignGetter<
+    Model extends ModelObjectType,
+    Props extends DocProps,
+  > = ($: WriteHelpers<Model>) => AssignData<Model, Props>;
+
+  /**
+   * Type of the data passed to assign functions (add, set and upset).
+   * It extends the model allowing to set special values, such as server date,
+   * increment, etc. The data is also nullified allowing to pass nulls instead
+   * of undefineds.
+   */
+  export type AssignData<
+    Model extends ModelObjectType,
+    Props extends DocProps,
+  > = WriteData<Nullify<Model>, Props>;
+
+  /**
+   * Write data type, used internally by the write field types.
+   * Unlike {@link AssignData} it expects already nullified data, preventing
    * {@link Nullify} called again.
    */
-  export type WriteDataNullified<
+  export type WriteData<
     Model extends ModelObjectType,
     Props extends DocProps,
   > = {
@@ -633,89 +675,129 @@ export namespace TypesaurusCore {
 
   /**
    * Write data field. Processes write data field types and adds corresponding
-   * write helpers such as server data, increment, etc.
+   * write helpers such as server data, increment, etc. Used in assign
+   * functions (add, set and upset) and update functions.
    */
   export type WriteField<
-    Data,
-    Key extends keyof Data,
+    Parent,
+    Key extends keyof Parent,
     Type,
     Props extends DocProps,
   > =
     // First we process the number type
     Type extends number
-      ? WriteFieldNumber<Data, Key, Type>
+      ? WriteFieldNumber<Parent, Key, Type>
       : // Now we process server dates
         Type extends ServerDate
-        ? WriteFieldServerDate<Data, Key, Props>
+        ? WriteFieldServerDate<Parent, Key, Props>
         : // Now we process as-is types
-          Type extends Date | Ref<any> | string | boolean | undefined | null
-          ? WriteFieldAsIs<Data, Key>
+          Type extends Date | Ref<any> | string | boolean | null | undefined
+          ? WriteFieldAsIs<Parent, Key>
           : // Now process arrays
             Type extends Array<infer ItemType>
-            ? WriteFieldArray<Data, Key, ItemType>
+            ? WriteFieldArray<Parent, Key, ItemType>
             : // Now process objects
               Type extends object
-              ? WriteFieldObject<Data, Key, Type, Props>
+              ? WriteFieldObject<Parent, Key, Type, Props>
               : never; // Nothing shoule be left
 
-  export type WriteFieldNumber<
-    Model,
-    Key extends keyof Model,
-    NumberType extends number,
-  > = Model[Key] | ValueIncrement<NumberType> | MaybeValueRemove<Model, Key>;
-
-  export type WriteFieldServerDate<
-    Model,
-    Key extends keyof Model,
+  /**
+   * Write field object. Resolves object union with special value types.
+   */
+  export type WriteFieldObject<
+    Parent,
+    Key extends keyof Parent,
+    Type extends ModelObjectType,
     Props extends DocProps,
-  > = Props["environment"] extends "server" // Date can be used only in the server environment
-    ? Date | ValueServerDate | MaybeValueRemove<Model, Key>
-    : ValueServerDate | MaybeValueRemove<Model, Key>;
+  > = WriteData<Type, Props> | MaybeValueRemove<Parent, Key>;
 
-  export type WriteFieldAsIs<Model, Key extends keyof Model> =
-    | Model[Key]
-    | MaybeValueRemove<Model, Key>;
+  /**
+   * Number write field. Resolves number union with special value types.
+   */
+  export type WriteFieldNumber<
+    Parent,
+    Key extends keyof Parent,
+    Type extends number,
+  > = Parent[Key] | ValueIncrement<Type> | MaybeValueRemove<Parent, Key>;
 
-  export type WriteFieldArray<Model, Key extends keyof Model, ItemType> =
+  /**
+   * Server data write field. Resolves server date union with special value
+   * types. When used in the server environment, it resolves to date as well.
+   */
+  export type WriteFieldServerDate<
+    Parent,
+    Key extends keyof Parent,
+    Props extends DocProps,
+  > =
+    // Date can be used only in the server environment
+    Props["environment"] extends "server"
+      ? Date | ValueServerDate | MaybeValueRemove<Parent, Key>
+      : ValueServerDate | MaybeValueRemove<Parent, Key>;
+
+  /**
+   * As-is write field. Resolves as-is types union with special value types.
+   */
+  export type WriteFieldAsIs<Parent, Key extends keyof Parent> =
+    | Parent[Key]
+    | MaybeValueRemove<Parent, Key>;
+
+  /**
+   * Array write field. Resolves array union with special value types.
+   */
+  export type WriteFieldArray<Parent, Key extends keyof Parent, ItemType> =
     | Array<WriteArrayItem<ItemType>>
     | ValueArrayUnion<WriteArrayItem<ItemType>>
     | ValueArrayRemove<WriteArrayItem<ItemType>>
-    | MaybeValueRemove<Model, Key>;
+    | MaybeValueRemove<Parent, Key>;
 
-  export type WriteArrayItem<Item> = Item extends ServerDate | Array<any> // No server dates and arrays are allowed in arrays
-    ? never
-    : Item extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
-      ? // TODO:
-        // : Item extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
-        Item
-      : Item extends object // If it's an object, recursively pass through WriteArrayObject
-        ? WriteArrayObject<Item>
-        : Item;
+  /**
+   * Array write item type. Unlike {@link WriteField} it disallows arrays,
+   * server dates and other special value types.
+   */
+  export type WriteArrayItem<Type> =
+    // First we resolve never for server dates and arrays as they aren't allowed in arrays
+    Type extends ServerDate | Array<any>
+      ? never
+      : // Now process as-is types
+        Type extends
+            | Date
+            | Ref<any>
+            | string
+            | number
+            | boolean
+            | null
+            | undefined
+        ? Type
+        : // Now process objects
+          Type extends object
+          ? WriteArrayItemObject<Type>
+          : never; // Nothing shoule be left
 
-  export type WriteArrayObject<Data extends ModelObjectType> = {
+  /**
+   * Array write item object type. It's an array-nested object and behaves
+   * differently than {@link WriteData}.
+   */
+  export type WriteArrayItemObject<Data extends ModelObjectType> = {
     [Key in keyof Data]: WriteArrayObjectField<Data[Key]>;
   };
 
-  export type WriteArrayObjectField<Field> = Field extends ServerDate // No server dates are allowed in arrays
-    ? never
-    : Field extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
-      ? // TODO:
-        // : Field extends Ref<any> | Date | Id<string> // Stop refs, dates and ids from being processed as an object
-        Field
-      : Field extends Array<infer Item>
-        ? Array<WriteArrayItem<Item>>
-        : Field extends object // If it's an object, recursively pass through ModelData
-          ? WriteArrayObject<Field>
-          : Field;
+  /**
+   * It differs from {@link WriteArrayItem} as it allows arrays.
+   */
+  export type WriteArrayObjectField<Type> =
+    // First we resolve arrays as they aren't allowed in arrays but allowed in objects nested to arrays
+    Type extends Array<infer Item>
+      ? Array<WriteArrayItem<Item>>
+      : // Now we can delegate to WriteArrayItem
+        WriteArrayItem<Type>;
 
-  export type WriteFieldObject<
-    Model,
-    Key extends keyof Model,
-    Value extends ModelObjectType,
-    Props extends DocProps,
-  > =
-    | WriteDataNullified<Value, Props> // Even for update, nested objects are passed to set model
-    | MaybeValueRemove<Model, Key>;
+  /**
+   * Resolves the remove type value unless the key is required.
+   */
+  export type MaybeValueRemove<
+    Parent,
+    Key extends keyof Parent,
+  > = Utils.RequiredKey<Parent, Key> extends true ? never : ValueRemove;
 
   /**
    * Available value kinds.
@@ -769,21 +851,6 @@ export namespace TypesaurusCore {
     type: "value";
     kind: "serverDate";
   }
-
-  export type MaybeValueRemoveOr<
-    Model,
-    Key extends keyof Model,
-    ValueType,
-  > = Partial<Pick<Model, Key>> extends Pick<Model, Key>
-    ? ValueRemove | ValueType
-    : ValueType;
-
-  export type MaybeValueRemove<
-    Model,
-    Key extends keyof Model,
-  > = Utils.RequiredKey<Model, Key> extends true ? never : ValueRemove;
-
-  export type Undefined<T> = T extends undefined ? T : never;
 
   export interface SchemaHelpers {
     collection<
@@ -867,7 +934,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment },
     >(
-      data: WriteArg<UnionVariableModelType<Def["WideModel"]>, Props>,
+      data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
     ): Promise<Ref<Def>>;
 
@@ -875,7 +942,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment },
     >(
-      data: WriteArg<UnionVariableModelType<Def["WideModel"]>, Props>,
+      data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
     ): Promise<Ref<Def>>;
 
@@ -957,7 +1024,7 @@ export namespace TypesaurusCore {
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment },
     >(
-      data: WriteArg<UnionVariableModelType<Def["Model"]>, Props>,
+      data: AssignArg<UnionVariableModelType<Def["Model"]>, Props>,
       options?: OperationOptions<Environment>,
     ): Promise<Ref<Def>>;
 
@@ -966,7 +1033,7 @@ export namespace TypesaurusCore {
       Props extends DocProps & { environment: Environment },
     >(
       id: Def["Id"],
-      data: WriteArg<UnionVariableModelType<Def["WideModel"]>, Props>,
+      data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
     ): Promise<Ref<Def>>;
 
@@ -975,7 +1042,7 @@ export namespace TypesaurusCore {
       Props extends DocProps & { environment: Environment },
     >(
       id: Def["Id"],
-      data: WriteArg<UnionVariableModelType<Def["WideModel"]>, Props>,
+      data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
     ): Promise<Ref<Def>>;
 
@@ -1253,7 +1320,7 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
            */
-          WriteArg: WriteArg<
+          AssignArg: AssignArg<
             IntersectVariableModelType<Def["Model"]>,
             DocProps
           >;
@@ -1261,7 +1328,7 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
            */
-          WriteData: WriteData<
+          AssignData: AssignData<
             IntersectVariableModelType<Def["Model"]>,
             DocProps
           >;
@@ -1269,7 +1336,7 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
            */
-          WriteGetter: WriteGetter<
+          AssignGetter: AssignGetter<
             IntersectVariableModelType<Def["Model"]>,
             DocProps
           >;
@@ -1400,7 +1467,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
            */
-          ServerWriteArg: WriteArg<
+          ServerAssignArg: AssignArg<
             IntersectVariableModelType<Def["Model"]>,
             DocProps
           >;
@@ -1411,7 +1478,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
            */
-          ServerWriteData: WriteData<
+          ServerAssignData: AssignData<
             IntersectVariableModelType<Def["Model"]>,
             DocProps & { environment: "server" }
           >;
@@ -1422,7 +1489,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
            */
-          ServerWriteGetter: WriteGetter<
+          ServerAssignGetter: AssignGetter<
             IntersectVariableModelType<Def["Model"]>,
             DocProps & { environment: "server" }
           >;
@@ -1574,7 +1641,7 @@ export namespace TypesaurusCore {
     Type extends null | undefined
       ? Type | null
       : // Now we extract as-is types
-        Type extends string | number | boolean | Date | ServerDate | Ref<any>
+        Type extends ServerDate | Date | Ref<any> | string | number | boolean
         ? Type
         : // Now extract array types
           Type extends Array<infer Item>

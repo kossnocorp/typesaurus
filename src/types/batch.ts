@@ -58,12 +58,18 @@ export namespace TypesaurusBatch {
 
     set(
       id: Def["Id"],
-      data: Core.WriteArg<Core.IntersectVariableModelType<Def["Model"]>, Props>,
+      data: Core.AssignArg<
+        Core.IntersectVariableModelType<Def["Model"]>,
+        Props
+      >,
     ): void;
 
     upset(
       id: Def["Id"],
-      data: Core.WriteArg<Core.IntersectVariableModelType<Def["Model"]>, Props>,
+      data: Core.AssignArg<
+        Core.IntersectVariableModelType<Def["Model"]>,
+        Props
+      >,
     ): void;
 
     update(
