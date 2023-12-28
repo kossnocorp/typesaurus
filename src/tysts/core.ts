@@ -6,6 +6,7 @@
 import { schema, Typesaurus } from "..";
 import type { TypesaurusCore as Core } from "../types/core";
 import type { TypesaurusUtils as Utils } from "../types/utils";
+import type { TypesaurusUpdate as Update } from "../types/update";
 // @tysts-end: strict
 /* @tysts-start: loose
 import { schema, Typesaurus } from '../..'
@@ -153,6 +154,7 @@ interface Address {
     city?: string;
     lines?: string[];
   };
+  addresses: string[];
 }
 
 interface Mixed {
@@ -1503,6 +1505,18 @@ async function update() {
   await db.users.update(db.users.id("sasha"), {
     birthdate: undefined,
   });
+  await db.users.update(db.users.id("sasha"), ($) =>
+    // @tysts-start: strict
+    // @ts-expect-error - birthdate is optional not undefined
+    // @tysts-end: strict
+    $.field("birthdate").set(undefined),
+  );
+  await db.users.update(db.users.id("sasha"), ($) =>
+    // @tysts-start: strict
+    // @ts-expect-error - birthdate is optional not undefined
+    // @tysts-end: strict
+    $.field("birthdate").set(null),
+  );
   // But it should be removable
   await db.users.update(db.users.id("sasha"), ($) => ({
     birthdate: $.remove(),
@@ -1512,14 +1526,29 @@ async function update() {
   await db.users.update(db.users.id("sasha"), {
     alias: undefined,
   });
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("alias").set(undefined),
+  );
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("alias").set(null),
+  );
   await db.users.update(db.users.id("sasha"), ($) => ({
     alias: $.remove(),
   }));
 
-  // If it's undefined but not optional, it can't be removed, but can be set to undefined
+  // If it's undefined but not optional, it can't be removed, but can be set to undefined or null
   await db.users.update(db.users.id("sasha"), {
     status: undefined,
   });
+  await db.users.update(db.users.id("sasha"), {
+    status: null,
+  });
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("status").set(undefined),
+  );
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("status").set(null),
+  );
   // @ts-expect-error - status is required
   await db.users.update(db.users.id("sasha"), ($) => ({
     status: $.remove(),
@@ -1863,6 +1892,16 @@ async function update() {
   const $dotNope = db.addresses.update.build(db.addresses.id("address-id"));
   // @ts-expect-error - Can't update array fields via dot notation
   $dotNope.field("address", "lines", 0).set("123 Main St");
+
+  db.addresses.update(db.addresses.id("address-id"), ($) =>
+    // @ts-expect-error - Can't update array fields via dot notation
+    $.field("addresses", 0).set("Hello world"),
+  );
+
+  db.addresses.update(db.addresses.id("address-id"), ($) =>
+    // @ts-expect-error - Can't remove array fields via dot notation
+    $.field("addresses", 0).set($.remove()),
+  );
 
   // Allows to set nulls instead of undefineds
 

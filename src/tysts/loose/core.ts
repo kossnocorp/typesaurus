@@ -146,6 +146,7 @@ interface Address {
     city?: string;
     lines?: string[];
   };
+  addresses: string[];
 }
 
 interface Mixed {
@@ -189,11 +190,42 @@ interface Mixed {
   nested2: Mixed | undefined;
   nested3?: Mixed;
   nested4?: Mixed | undefined;
+  arrayOfObjects: Array<{
+    date?: Date;
+    some?: "things";
+    things?: "some" | undefined;
+    opaqueNumber: OpaqueNumber;
+    opaqueString: OpaqueString;
+    opaqueBoolean: OpaqueBoolean;
+  }>;
 }
 
 type OpaqueJSON = string & { __json: {} };
 
 type OpaqueNumber = number & { __number: 123 };
+
+type OpaqueString = string & { __string: "hello" };
+
+type OpaqueBoolean = boolean & { __boolean: true };
+
+interface OpaqueTypes {
+  number: OpaqueNumber;
+  numberArr: OpaqueNumber[];
+  string: OpaqueString;
+  stringArr: OpaqueString[];
+  boolean: OpaqueBoolean;
+  booleanArr: OpaqueBoolean[];
+  object: {
+    number: OpaqueNumber;
+    string: OpaqueString;
+    boolean: OpaqueBoolean;
+  };
+  array: Array<{
+    number: OpaqueNumber;
+    string: OpaqueString;
+    boolean: OpaqueBoolean;
+  }>;
+}
 
 interface CustomCollection {
   hello: "world";
@@ -1375,6 +1407,12 @@ async function update() {
   await db.users.update(db.users.id("sasha"), {
     birthdate: undefined,
   });
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("birthdate").set(undefined),
+  );
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("birthdate").set(null),
+  );
   // But it should be removable
   await db.users.update(db.users.id("sasha"), ($) => ({
     birthdate: $.remove(),
@@ -1384,14 +1422,29 @@ async function update() {
   await db.users.update(db.users.id("sasha"), {
     alias: undefined,
   });
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("alias").set(undefined),
+  );
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("alias").set(null),
+  );
   await db.users.update(db.users.id("sasha"), ($) => ({
     alias: $.remove(),
   }));
 
-  // If it's undefined but not optional, it can't be removed, but can be set to undefined
+  // If it's undefined but not optional, it can't be removed, but can be set to undefined or null
   await db.users.update(db.users.id("sasha"), {
     status: undefined,
   });
+  await db.users.update(db.users.id("sasha"), {
+    status: null,
+  });
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("status").set(undefined),
+  );
+  await db.users.update(db.users.id("sasha"), ($) =>
+    $.field("status").set(null),
+  );
   // @ts-expect-error - status is required
   await db.users.update(db.users.id("sasha"), ($) => ({
     status: $.remove(),
@@ -1727,6 +1780,16 @@ async function update() {
   const $dotNope = db.addresses.update.build(db.addresses.id("address-id"));
   // @ts-expect-error - Can't update array fields via dot notation
   $dotNope.field("address", "lines", 0).set("123 Main St");
+
+  db.addresses.update(db.addresses.id("address-id"), ($) =>
+    // @ts-expect-error - Can't update array fields via dot notation
+    $.field("addresses", 0).set("Hello world"),
+  );
+
+  db.addresses.update(db.addresses.id("address-id"), ($) =>
+    // @ts-expect-error - Can't remove array fields via dot notation
+    $.field("addresses", 0).set($.remove()),
+  );
 
   // Allows to set nulls instead of undefineds
 
@@ -2715,6 +2778,12 @@ namespace NormalizeServerDates {
   >;
 
   type Result2 = Assert<number, Core.NormalizeServerDates<number>>;
+
+  type asd = Core.NormalizeServerDates<OpaqueString>;
+
+  type Result3 = Assert<OpaqueString, Core.NormalizeServerDates<OpaqueString>>;
+
+  type Result4 = Assert<OpaqueTypes, Core.NormalizeServerDates<OpaqueTypes>>;
 }
 
 namespace Nullify {

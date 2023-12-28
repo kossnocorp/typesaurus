@@ -690,16 +690,19 @@ export namespace TypesaurusCore {
       : // Now we process server dates
         Type extends ServerDate
         ? WriteFieldServerDate<Parent, Key, Props>
-        : // Now we process as-is types
-          Type extends Date | Ref<any> | string | boolean | null | undefined
-          ? WriteFieldAsIs<Parent, Key>
-          : // Now process arrays
-            Type extends Array<infer ItemType>
-            ? WriteFieldArray<Parent, Key, ItemType>
-            : // Now process objects
-              Type extends object
-              ? WriteFieldObject<Parent, Key, Type, Props>
-              : never; // Nothing shoule be left
+        : // Now we process undefined
+          Type extends undefined
+          ? WriteFieldUndefined<Parent, Key>
+          : // Now we process as-is types
+            Type extends Date | Ref<any> | string | boolean | null
+            ? WriteFieldAsIs<Parent, Key>
+            : // Now process arrays
+              Type extends Array<infer ItemType>
+              ? WriteFieldArray<Parent, Key, ItemType>
+              : // Now process objects
+                Type extends object
+                ? WriteFieldObject<Parent, Key, Type, Props>
+                : never; // Nothing shoule be left
 
   /**
    * Write field object. Resolves object union with special value types.
@@ -735,10 +738,19 @@ export namespace TypesaurusCore {
       : ValueServerDate | MaybeValueRemove<Parent, Key>;
 
   /**
+   * Undefined write field. Resolves undefined union with special value types.
+   */
+  export type WriteFieldUndefined<Parent, Key extends keyof Parent> =
+    | (Utils.ActuallyUndefined<Parent, Key> extends true
+        ? undefined | null
+        : never)
+    | MaybeValueRemove<Parent, Key>;
+
+  /**
    * As-is write field. Resolves as-is types union with special value types.
    */
   export type WriteFieldAsIs<Parent, Key extends keyof Parent> =
-    | Parent[Key]
+    | Exclude<Parent[Key], undefined>
     | MaybeValueRemove<Parent, Key>;
 
   /**
