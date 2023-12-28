@@ -8,13 +8,6 @@ export * from "./sp/index.js";
 
 export declare const schema: Core.Function;
 
-/**
- * Deeply adds null to all undefined values. It's useful for wrapping
- * your types when you expect data from Firestore where undefined values turn
- * into nulls.
- */
-export type Nullify<Type> = Core.Nullify<Type>;
-
 export namespace Typesaurus {
   /**
    * Infers schema types. Useful to define function arguments that accept
@@ -115,4 +108,11 @@ export namespace Typesaurus {
    * are not allowed).
    */
   export type NormalizeServerDates<Type> = Core.NormalizeServerDates<Type>;
+
+  /**
+   * Deeply adds null to all undefined values. It's useful for wrapping
+   * your types when you expect data from Firestore where undefined values turn
+   * into nulls.
+   */
+  export type Nullify<Type> = Core.Nullify<Type>;
 }
