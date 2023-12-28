@@ -1,6 +1,5 @@
 import type { TypesaurusUtils as Utils } from "./utils.js";
 import type { TypesaurusCore as Core } from "./core.js";
-import { Nullify } from "../index.js";
 
 export namespace TypesaurusUpdate {
   export interface CollectionFunction<Def extends Core.DocDef> {
@@ -99,7 +98,7 @@ export namespace TypesaurusUpdate {
   export type Data<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
-  > = Nullify<{
+  > = Core.Nullify<{
     [Key in keyof Model]?: Core.WriteField<Model, Key, Model[Key], Props>;
   }>;
 
@@ -110,7 +109,7 @@ export namespace TypesaurusUpdate {
   export interface Helpers<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
-  > extends CommonHelpers<Nullify<Model>, Props, UpdateField<Model>> {}
+  > extends CommonHelpers<Core.Nullify<Model>, Props, UpdateField<Model>> {}
 
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
     extends CommonHelpers<
@@ -132,7 +131,7 @@ export namespace TypesaurusUpdate {
     SetResult,
   > {
     set(
-      value: Nullify<Core.WriteField<Parent, Key, Parent[Key], Props>>,
+      value: Core.Nullify<Core.WriteField<Parent, Key, Parent[Key], Props>>,
     ): SetResult;
   }
 
