@@ -241,6 +241,21 @@ interface CustomCollection {
 
 const customCollection = "customCollectionName";
 
+interface GitHubAccount {
+  type: "github";
+  userId: string;
+}
+
+interface MicrosoftAccount {
+  type: "microsoft";
+  accountId: string;
+}
+
+interface GoogleAccount {
+  type: "google";
+  email: string;
+}
+
 // Flat schema
 const db = schema(
   ($) => ({
@@ -254,6 +269,7 @@ const db = schema(
     json: $.collection<WithJSON>(),
     addresses: $.collection<Address>(),
     mixed: $.collection<Mixed>(),
+    oauth: $.collection<[GitHubAccount, MicrosoftAccount, GoogleAccount]>(),
   }),
   { server: { preferRest: true } },
 );
@@ -1838,6 +1854,32 @@ async function update() {
   // @ts-expect-error - can't update non-shared variable model fields
   refUpdate?.field("type").set("text");
 
+  const accountId = db.oauth.id("123");
+
+  const account = await db.oauth.get(accountId);
+
+  // @ts-expect-error - Can't update account
+  account?.update({ userId: "123" });
+
+  // @ts-expect-error - Can't update account
+  account?.update(($) => $.field("userId").set("123"));
+
+  const $account = account?.update.build();
+  // @ts-expect-error - Can't update account
+  $account?.field("userId").set("123");
+
+  // Should be ok
+  const ghAccount = account?.narrow<GitHubAccount>(
+    (data) => data.type === "github" && data,
+  );
+  await ghAccount?.update({ userId: "123" });
+
+  ghAccount?.update(($) => $.field("userId").set("123"));
+
+  const $ghAccount = account?.update.build();
+  // @ts-expect-error - Can't update account
+  $ghAccount?.field("userId").set("123");
+
   // Empty update
 
   const userId = db.users.id("user-id");
@@ -3093,6 +3135,18 @@ namespace SharedShape {
   >;
 
   type Result43J3 = Assert<{ a: string; b: string }, ResultOD83>;
+
+  type ResultISB3 = Utils.SharedShape<
+    { a: string | number; b: string; c: boolean },
+    {
+      a: string;
+      b: string;
+    },
+    {
+      a: string;
+    }
+  >;
+  type ResultUSJ7 = Assert<{ a: string }, ResultISB3>;
 }
 
 namespace NormalizeServerDates {

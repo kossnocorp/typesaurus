@@ -92,10 +92,22 @@ export namespace TypesaurusCore {
 
   export type ModelObjectType = object & { length?: never };
 
+  /**
+   * Resolves document model from the document definition.
+   */
   export type DocModel<Def extends DocDef> =
-    Def["Flags"]["Reduced"] extends true
-      ? IntersectVariableModelType<Def["Model"]>
-      : SharedVariableModelType<Def["WideModel"]>;
+    // If nothing left on a object, i.e. it's has no keys or get reduces
+    // (by calculating shared shape of variable model), then we resolve never
+    // to prevent accessing and assigning random stuff to the doc.
+    Utils.NeverIfEmpty<
+      Def["Flags"]["Reduced"] extends true
+        ? // If variable model is reduced after narrowing then return
+          // intersection of the model
+          // TODO: Try to return model as is
+          IntersectVariableModelType<Def["Model"]>
+        : // Otherwise return the shared shape
+          SharedVariableModelType<Def["WideModel"]>
+    >;
 
   export type IntersectVariableModelType<Model extends ModelType> =
     Model extends [

@@ -2344,4 +2344,11 @@ export namespace TypesaurusUtils {
   } extends { test?: boolean }
     ? false
     : true;
+
+  /**
+   * Resolves never if an object has no keys.
+   */
+  export type NeverIfEmpty<Object> = keyof Object extends never
+    ? never
+    : Object;
 }

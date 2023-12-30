@@ -112,15 +112,7 @@ export namespace TypesaurusUpdate {
   > extends CommonHelpers<Core.Nullify<Model>, Props, UpdateField<Model>> {}
 
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
-    extends CommonHelpers<
-      Core.Nullify<
-        Def["Flags"]["Reduced"] extends true
-          ? Core.IntersectVariableModelType<Def["Model"]>
-          : Core.SharedVariableModelType<Def["WideModel"]>
-      >,
-      Props,
-      void
-    > {
+    extends CommonHelpers<Core.Nullify<Core.DocModel<Def>>, Props, void> {
     run(): Promise<Core.Ref<Def>>;
   }
 
