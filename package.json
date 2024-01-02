@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "10.0.0-rc.6",
+  "version": "10.0.0-rc.7",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
@@ -16,49 +16,49 @@
     ".": {
       "require": {
         "types": "./index.d.ts",
-        "default": "./adapter/admin/index.js",
-        "browser": "./adapter/web/index.js"
+        "browser": "./adapter/web/index.js",
+        "default": "./adapter/admin/index.js"
       },
       "import": {
         "types": "./index.d.mts",
-        "default": "./adapter/admin/index.mjs",
-        "browser": "./adapter/web/index.mjs"
+        "browser": "./adapter/web/index.mjs",
+        "default": "./adapter/admin/index.mjs"
       }
     },
     "./batch": {
       "require": {
         "types": "./types/batch.d.ts",
-        "default": "./adapter/admin/batch.js",
-        "browser": "./adapter/web/batch.js"
+        "browser": "./adapter/web/batch.js",
+        "default": "./adapter/admin/batch.js"
       },
       "import": {
         "types": "./types/batch.d.mts",
-        "default": "./adapter/admin/batch.mjs",
-        "browser": "./adapter/web/batch.mjs"
+        "browser": "./adapter/web/batch.mjs",
+        "default": "./adapter/admin/batch.mjs"
       }
     },
     "./groups": {
       "require": {
         "types": "./types/groups.d.ts",
-        "default": "./adapter/admin/groups.js",
-        "browser": "./adapter/web/groups.js"
+        "browser": "./adapter/web/groups.js",
+        "default": "./adapter/admin/groups.js"
       },
       "import": {
         "types": "./types/groups.d.mts",
-        "default": "./adapter/admin/groups.mjs",
-        "browser": "./adapter/web/groups.mjs"
+        "browser": "./adapter/web/groups.mjs",
+        "default": "./adapter/admin/groups.mjs"
       }
     },
     "./transaction": {
       "require": {
         "browser": "./adapter/web/transaction.js",
-        "types": "./types/transaction.d.ts",
-        "default": "./adapter/admin/transaction.js"
+        "default": "./adapter/admin/transaction.js",
+        "types": "./types/transaction.d.ts"
       },
       "import": {
         "browser": "./adapter/web/transaction.mjs",
-        "types": "./types/transaction.d.mts",
-        "default": "./adapter/admin/transaction.mjs"
+        "default": "./adapter/admin/transaction.mjs",
+        "types": "./types/transaction.d.mts"
       }
     },
     "./helpers": {
