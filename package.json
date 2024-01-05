@@ -51,14 +51,14 @@
     },
     "./transaction": {
       "require": {
+        "types": "./types/transaction.d.ts",
         "browser": "./adapter/web/transaction.js",
-        "default": "./adapter/admin/transaction.js",
-        "types": "./types/transaction.d.ts"
+        "default": "./adapter/admin/transaction.js"
       },
       "import": {
+        "types": "./types/transaction.d.mts",
         "browser": "./adapter/web/transaction.mjs",
-        "default": "./adapter/admin/transaction.mjs",
-        "types": "./types/transaction.d.mts"
+        "default": "./adapter/admin/transaction.mjs"
       }
     },
     "./helpers": {
@@ -80,14 +80,6 @@
         "types": "./sp/index.d.mts",
         "default": "./sp/index.mjs"
       }
-    },
-    "./adapter/next/admin": {
-      "default": "./adapter/admin/index.mjs",
-      "types": "./index.d.ts"
-    },
-    "./adapter/next/web": {
-      "default": "./adapter/web/index.mjs",
-      "types": "./index.d.ts"
     }
   },
   "repository": "https://github.com/kossnocorp/typesaurus",
@@ -102,7 +94,6 @@
     "@types/node": "^18.19.0",
     "@types/sinon": "^10.0.13",
     "@vitest/browser": "^1.1.0",
-    "babel-loader": "^8.2.5",
     "babel-plugin-add-import-extension": "^1.6.0",
     "firebase": "^10.7.0",
     "firebase-admin": "^11.11.1",

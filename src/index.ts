@@ -1,8 +1,14 @@
 import type { TypesaurusCore as Core } from "./types/core.js";
 
-export * from "./types/transaction.js";
-export * from "./types/groups.js";
 export * from "./types/batch.js";
+export * from "./types/core.js";
+export * from "./types/firebase.js";
+export * from "./types/groups.js";
+export * from "./types/helpers.js";
+export * from "./types/query.js";
+export * from "./types/transaction.js";
+export * from "./types/update.js";
+export * from "./types/utils.js";
 export * from "./helpers/index.js";
 export * from "./sp/index.js";
 
