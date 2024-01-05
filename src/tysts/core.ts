@@ -256,6 +256,18 @@ interface GoogleAccount {
   email: string;
 }
 
+export type VarUser = [UserAnonymous, UserActive];
+
+export interface UserAnonymous {
+  anonymous: true;
+}
+
+export interface UserActive {
+  anonymous: false;
+  emailVerified: boolean;
+  email: string;
+}
+
 // Flat schema
 const db = schema(
   ($) => ({
@@ -270,6 +282,7 @@ const db = schema(
     addresses: $.collection<Address>(),
     mixed: $.collection<Mixed>(),
     oauth: $.collection<[GitHubAccount, MicrosoftAccount, GoogleAccount]>(),
+    varUsers: $.collection<VarUser>(),
   }),
   { server: { preferRest: true } },
 );
@@ -516,8 +529,8 @@ async function get() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -605,8 +618,8 @@ async function many() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -698,8 +711,8 @@ async function all() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -947,8 +960,8 @@ async function query() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -1733,8 +1746,8 @@ async function update() {
 
   db.content.update(contentId, ($) => $.field("public").set(true));
 
+  // @ts-expect-error - can't update non-shared variable model fields
   db.content.update(contentId, {
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -1742,6 +1755,16 @@ async function update() {
     // @ts-expect-error - can't update non-shared variable model fields
     $.field("type").set("text"),
   );
+
+  db.varUsers.update(db.varUsers.id("id"), {
+    anonymous: true,
+  });
+
+  db.varUsers.update(db.varUsers.id("id"), {
+    anonymous: false,
+    emailVerified: false,
+    email: "hello@example.com",
+  });
 
   // Build Mode
 
@@ -1762,8 +1785,8 @@ async function update() {
 
   content?.update(($) => $.field("public").set(true));
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -1837,8 +1860,8 @@ async function update() {
 
   content?.update(($) => $.field("public").set(true));
 
+  // @ts-expect-error - can't update non-shared variable model fields
   contentRef?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 

@@ -233,6 +233,33 @@ interface CustomCollection {
 
 const customCollection = "customCollectionName";
 
+interface GitHubAccount {
+  type: "github";
+  userId: string;
+}
+
+interface MicrosoftAccount {
+  type: "microsoft";
+  accountId: string;
+}
+
+interface GoogleAccount {
+  type: "google";
+  email: string;
+}
+
+export type VarUser = [UserAnonymous, UserActive];
+
+export interface UserAnonymous {
+  anonymous: true;
+}
+
+export interface UserActive {
+  anonymous: false;
+  emailVerified: boolean;
+  email: string;
+}
+
 // Flat schema
 const db = schema(
   ($) => ({
@@ -246,6 +273,8 @@ const db = schema(
     json: $.collection<WithJSON>(),
     addresses: $.collection<Address>(),
     mixed: $.collection<Mixed>(),
+    oauth: $.collection<[GitHubAccount, MicrosoftAccount, GoogleAccount]>(),
+    varUsers: $.collection<VarUser>(),
   }),
   { server: { preferRest: true } },
 );
@@ -468,8 +497,8 @@ async function get() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -545,8 +574,8 @@ async function many() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -626,8 +655,8 @@ async function all() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -863,8 +892,8 @@ async function query() {
     public: true,
   });
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -1613,8 +1642,8 @@ async function update() {
 
   db.content.update(contentId, ($) => $.field("public").set(true));
 
+  // @ts-expect-error - can't update non-shared variable model fields
   db.content.update(contentId, {
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -1622,6 +1651,16 @@ async function update() {
     // @ts-expect-error - can't update non-shared variable model fields
     $.field("type").set("text"),
   );
+
+  db.varUsers.update(db.varUsers.id("id"), {
+    anonymous: true,
+  });
+
+  db.varUsers.update(db.varUsers.id("id"), {
+    anonymous: false,
+    emailVerified: false,
+    email: "hello@example.com",
+  });
 
   // Build Mode
 
@@ -1642,8 +1681,8 @@ async function update() {
 
   content?.update(($) => $.field("public").set(true));
 
+  // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -1717,8 +1756,8 @@ async function update() {
 
   content?.update(($) => $.field("public").set(true));
 
+  // @ts-expect-error - can't update non-shared variable model fields
   contentRef?.update({
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 
@@ -1733,6 +1772,32 @@ async function update() {
 
   // @ts-expect-error - can't update non-shared variable model fields
   refUpdate?.field("type").set("text");
+
+  const accountId = db.oauth.id("123");
+
+  const account = await db.oauth.get(accountId);
+
+  // @ts-expect-error - Can't update account
+  account?.update({ userId: "123" });
+
+  // @ts-expect-error - Can't update account
+  account?.update(($) => $.field("userId").set("123"));
+
+  const $account = account?.update.build();
+  // @ts-expect-error - Can't update account
+  $account?.field("userId").set("123");
+
+  // Should be ok
+  const ghAccount = account?.narrow<GitHubAccount>(
+    (data) => data.type === "github" && data,
+  );
+  await ghAccount?.update({ userId: "123" });
+
+  ghAccount?.update(($) => $.field("userId").set("123"));
+
+  const $ghAccount = account?.update.build();
+  // @ts-expect-error - Can't update account
+  $ghAccount?.field("userId").set("123");
 
   // Empty update
 
@@ -2745,6 +2810,18 @@ namespace SharedShape {
   >;
 
   type Result43J3 = Assert<{ a: string; b: string }, ResultOD83>;
+
+  type ResultISB3 = Utils.SharedShape<
+    { a: string | number; b: string; c: boolean },
+    {
+      a: string;
+      b: string;
+    },
+    {
+      a: string;
+    }
+  >;
+  type ResultUSJ7 = Assert<{ a: string }, ResultISB3>;
 }
 
 namespace NormalizeServerDates {

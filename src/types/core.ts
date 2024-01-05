@@ -1387,10 +1387,7 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
            */
-          UpdateArg: Update.Arg<
-            IntersectVariableModelType<Def["Model"]>,
-            DocProps
-          >;
+          UpdateArg: Update.Arg<Def, DocProps>;
 
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
@@ -1403,10 +1400,7 @@ export namespace TypesaurusCore {
           /**
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
            */
-          UpdateGetter: Update.Getter<
-            IntersectVariableModelType<Def["Model"]>,
-            DocProps
-          >;
+          UpdateGetter: Update.Getter<Def, DocProps>;
 
           /**
            * Update helpers type allows to abstract update building login into
@@ -1541,7 +1535,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
            */
           ServerUpdateArg: Update.Arg<
-            IntersectVariableModelType<Def["Model"]>,
+            Def,
             DocProps & { environment: "server" }
           >;
 
@@ -1552,7 +1546,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
            */
           ServerUpdateData: Update.Data<
-            IntersectVariableModelType<Def["Model"]>,
+            Def,
             DocProps & { environment: "server" }
           >;
 
@@ -1563,7 +1557,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
            */
           ServerUpdateGetter: Update.Getter<
-            IntersectVariableModelType<Def["Model"]>,
+            Def,
             DocProps & { environment: "server" }
           >;
 

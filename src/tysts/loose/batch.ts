@@ -270,8 +270,8 @@ async function tysts() {
 
   $.content.update(contentId, ($) => $.field("public").set(true));
 
+  // @ts-expect-error - can't update non-shared variable model fields
   $.content.update(contentId, {
-    // @ts-expect-error - can't update non-shared variable model fields
     type: "text",
   });
 

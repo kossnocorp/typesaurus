@@ -403,8 +403,8 @@ async function tysts() {
 
       $.result.update(($) => $.field("public").set(true));
 
+      // @ts-expect-error - can't update non-shared variable model fields
       $.result.update({
-        // @ts-expect-error - can't update non-shared variable model fields
         type: "text",
       });
 
@@ -455,8 +455,8 @@ async function tysts() {
 
       $.result.ref.update(($) => $.field("public").set(true));
 
+      // @ts-expect-error - can't update non-shared variable model fields
       $.result.ref.update({
-        // @ts-expect-error - can't update non-shared variable model fields
         type: "text",
       });
 
@@ -473,8 +473,8 @@ async function tysts() {
 
       $.db.content.update(contentId, ($) => $.field("public").set(true));
 
+      // @ts-expect-error - can't update non-shared variable model fields
       $.db.content.update(contentId, {
-        // @ts-expect-error - can't update non-shared variable model fields
         type: "text",
       });
 

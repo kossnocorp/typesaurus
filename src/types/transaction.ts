@@ -51,14 +51,7 @@ export namespace TypesaurusTransaction {
       >,
     ): void;
 
-    update(
-      data: Update.Arg<
-        Def["Flags"]["Reduced"] extends true
-          ? Core.IntersectVariableModelType<Def["Model"]>
-          : Core.SharedVariableModelType<Def["WideModel"]>,
-        Props
-      >,
-    ): void;
+    update(data: Update.Arg<Def, Props>): void;
 
     upset(
       data: Core.AssignArg<
@@ -163,10 +156,7 @@ export namespace TypesaurusTransaction {
       >,
     ): void;
 
-    update(
-      id: Def["Id"],
-      data: Update.Arg<Core.SharedVariableModelType<Def["WideModel"]>, Props>,
-    ): void;
+    update(id: Def["Id"], data: Update.Arg<Def, Props>): void;
 
     remove(id: Def["Id"]): void;
   }

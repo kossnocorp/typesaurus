@@ -72,10 +72,7 @@ export namespace TypesaurusBatch {
       >,
     ): void;
 
-    update(
-      id: Def["Id"],
-      data: Update.Arg<Core.SharedVariableModelType<Def["WideModel"]>, Props>,
-    ): void;
+    update(id: Def["Id"], data: Update.Arg<Def, Props>): void;
 
     remove(id: Def["Id"]): void;
   }

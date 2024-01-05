@@ -6,7 +6,7 @@ export namespace TypesaurusUpdate {
     <
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
-      Arg extends TypesaurusUpdate.Arg<Core.DocModel<Def>, Props>,
+      Arg extends TypesaurusUpdate.Arg<Def, Props>,
     >(
       id: Def["Id"],
       data: Arg,
@@ -26,7 +26,7 @@ export namespace TypesaurusUpdate {
     <
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
-      Arg extends TypesaurusUpdate.Arg<Core.DocModel<Def>, Props>,
+      Arg extends TypesaurusUpdate.Arg<Def, Props>,
     >(
       data: Arg,
       options?: Core.OperationOptions<Environment>,
@@ -52,7 +52,7 @@ export namespace TypesaurusUpdate {
   export type Result<
     Def extends Core.DocDef,
     Props extends Core.DocProps,
-    Arg extends TypesaurusUpdate.Arg<Core.DocModel<Def>, Props>,
+    Arg extends TypesaurusUpdate.Arg<Def, Props>,
   > = Arg extends ($: Helpers<Core.DocModel<Def>, Props>) => infer Result
     ? Result extends Utils.Falsy
       ? undefined
@@ -71,24 +71,27 @@ export namespace TypesaurusUpdate {
    * The update argument type. It can be update data or a function that returns
    * update data.
    */
-  export type Arg<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps,
-  > = Data<Model, Props> | Getter<Model, Props>;
+  export type Arg<Def extends Core.DocDef, Props extends Core.DocProps> =
+    | Core.AssignData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
+    | Data<Core.DocModel<Def>, Props>
+    | Getter<Def, Props>;
 
   /**
    * Update data getter, accepts helper functions and returns the update data.
    */
   export type Getter<
-    Model extends Core.ModelObjectType,
+    Def extends Core.DocDef,
     Props extends Core.DocProps,
-  > = (
-    $: Helpers<Model, Props>,
-  ) =>
-    | Data<Model, Props>
-    | UpdateField<Model>
-    | Array<UpdateField<Model> | Utils.Falsy>
-    | Utils.Falsy;
+  > = Core.DocModel<Def> extends infer Model extends Core.ModelObjectType
+    ? (
+        $: Helpers<Model, Props>,
+      ) =>
+        | Core.AssignData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
+        | Data<Model, Props>
+        | UpdateField<Model>
+        | Array<UpdateField<Model> | Utils.Falsy>
+        | Utils.Falsy
+    : never;
 
   /**
    * The update data type. It extends the model allowing to set specific values,
