@@ -14,7 +14,7 @@ _Looking for **React** adaptor?_ Check [Typesaurus React](https://github.com/kos
 - Code autocomplete
 - Say goodbye to any!
 - Say goodbye to exceptions!
-- [Ready to start? Follow this guide](https://typesaurus.com/get-started).
+- [Ready to start? Follow this guide](https://typesaurus.com/get-started/).
 
 <hr>
 <div align="center">
@@ -43,7 +43,7 @@ _Note that Typesaurus requires the `firebase` package to work in the web environ
 - **Centralized schema**: easy to define, read and update.
 - **Single-import principle**: single import to define, single import to use.
 
-Want to read about features in detail? [Go to Key Features](https://typesaurus.com/get-started/further-reading/features/).
+Want to read about features in detail? [Go to Key Features](https://typesaurus.com/about/features//).
 
 ## Changelog
 
