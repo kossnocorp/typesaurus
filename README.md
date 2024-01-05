@@ -16,12 +16,6 @@ _Looking for **React** adaptor?_ Check [Typesaurus React](https://github.com/kos
 - Say goodbye to exceptions!
 - [Ready to start? Follow this guide](https://typesaurus.com/get-started/).
 
-<hr>
-<div align="center">
-🔥🔥🔥 <strong>The project is sponsored by <a href='https://backupfire.dev/'>Backup Fire</a>, backup service for Firebase</strong> 🔥🔥🔥
-</div>
-<hr>
-
 ## Installation
 
 The library is available as an [npm package](https://www.npmjs.com/package/typesaurus).

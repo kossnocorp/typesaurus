@@ -7,19 +7,19 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
-## 10.0.0 - 2023-01-??
+## v10.0.0 - 2023-01-??
 
 Completely revamped Typesaurus with a new API and new features. [Follow this guide to learn how it works](https://typesaurus.com/get-started/).
 
-## 7.2.0 - 2021-05-25
+## v7.2.0 - 2021-05-25
 
 - Replace deprecated `@firebase/rules-testing` with `@firebase/rules-unit-testing`.
 
-## 7.1.0 - 2020-12-09
+## v7.1.0 - 2020-12-09
 
 - Third argument in `doc` (`meta`) now optional.
 
-## 7.0.0 - 2020-12-08
+## v7.0.0 - 2020-12-08
 
 - **BREAKING**: [Transaction write functions now synchronous and don't return promises](https://github.com/kossnocorp/typesaurus/pull/64).
 
@@ -29,7 +29,7 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - [Added ability to access changes in `onAll` and `onQuery`](https://github.com/kossnocorp/typesaurus/pull/67).
 
-## 6.2.0 - 2020-08-24
+## v6.2.0 - 2020-08-24
 
 ### Fixed
 
@@ -39,13 +39,13 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - Added `docId` constant-helper that allows to sort or filter by the document ID.
 
-## 6.1.0 - 2020-07-27
+## v6.1.0 - 2020-07-27
 
 ### Added
 
 - Added collection group support to `all` and `onAll`.
 
-## 6.0.0 - 2020-04-16
+## v6.0.0 - 2020-04-16
 
 ### Changed
 
@@ -75,7 +75,7 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - Added new `id` function that generates random id for a document.
 
-## 5.4.0 - 2020-04-14
+## v5.4.0 - 2020-04-14
 
 ### Fixes
 
@@ -85,7 +85,7 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - [Added `merge` option to `batch.set` and `transaction.set`](https://github.com/kossnocorp/typesaurus/pull/38).
 
-## 5.3.0 - 2020-02-20
+## v5.3.0 - 2020-02-20
 
 ### Fixes
 
@@ -95,17 +95,17 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - Added `onGetMany` function.
 
-## 5.2.0 - 2020-02-04
+## v5.2.0 - 2020-02-04
 
 - [Added testing module `typesaurus/testing`](https://typesaurus.com/modules/_testing_index_.html) with `injectTestingAdaptor` and `setApp` that allow to use Typesaurus with [`@w`](https://firebase.google.com/docs/rules/unit-tests#run_local_tests).
 
-## 5.1.0 - 2020-01-27
+## v5.1.0 - 2020-01-27
 
 ### Added
 
 - Added ability to use docs in cursors (`startAt`, `startAfter`, etc.). [#28](https://github.com/kossnocorp/typesaurus/pull/28)
 
-## 5.0.0 - 2020-01-02
+## v5.0.0 - 2020-01-02
 
 ### Changed
 
@@ -117,19 +117,19 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - Remove `@google-cloud/firestore`, `firebase`, and `firebase-admin` from the peer dependencies to get rid of unavoidable warnings when Typesaurus is used only in the web or Node.js environment. [#17](https://github.com/kossnocorp/typesaurus/pull/19)
 
-## 4.1.0 - 2020-01-01
+## v4.1.0 - 2020-01-01
 
 ### Added
 
 - Add `Batch` type that defines the object returned from the `batch` function.
 
-## 4.0.1 - 2019-12-20
+## v4.0.1 - 2019-12-20
 
 ### Fixed
 
 - Make `serverDate` value to actually call Firebase's `serverTimestamp` instead of passing current date.
 
-## 4.0.0 - 2019-12-14
+## v4.0.0 - 2019-12-14
 
 ### Fixed
 
@@ -148,7 +148,7 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - Added `in` and `array-contains-any` filters support to `where`. Read more about these filters in [the Firebase announcement](https://firebase.googleblog.com/2019/11/cloud-firestore-now-supports-in-queries.html).
 
-## 3.0.0 - 2019-11-11
+## v3.0.0 - 2019-11-11
 
 ### Changed
 
@@ -156,7 +156,7 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - **BREAKING**: Return `null` instead of `undefined` when a document isn't found.
 
-## 2.1.0 - 2019-11-05
+## v2.1.0 - 2019-11-05
 
 ### Changed
 
@@ -166,19 +166,19 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
 
 - [Add `getMany` function](https://github.com/kossnocorp/typesaurus/pull/10). Kudos to [@thomastoye](https://github.com/thomastoye)!
 
-## 2.0.0 - 2019-09-25
+## v2.0.0 - 2019-09-25
 
 ### Changed
 
 - **BREAKING**: Move Firebase packages to the peer dependencies to prevent npm from installing two or more firebase-admin versions which cause obscure errors like "The default Firebase app does not exist".
 
-## 1.2.0 - 2019-09-02
+## v1.2.0 - 2019-09-02
 
 ### Changed
 
 - Now `ref` generates an id when one isn't passed.
 
-## 1.1.0 - 2019-08-17
+## v1.1.0 - 2019-08-17
 
 ### Changed
 
@@ -199,6 +199,6 @@ Completely revamped Typesaurus with a new API and new features. [Follow this gui
   //=> { data: { name: 'Sasha', date: new Date(1987, 1, 11) }, ... }
   ```
 
-## 1.0.0 - 2019-08-13
+## v1.0.0 - 2019-08-13
 
 First public release.

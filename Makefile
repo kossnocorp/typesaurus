@@ -56,12 +56,6 @@ build:
 	@cp package.json lib
 	@cp *.md lib
 
-copy-mjs:
-	@find src -name '*.d.ts' | while read file; do \
-		new_file=$${file%.d.ts}.d.mts; \
-		cp $$file $$new_file; \
-	done
-
 sync-files:
 	@find src \( -name '*.d.ts' -o -name '*.json' \) -print | while IFS= read -r file; do \
 		dest=`echo "$$file" | sed 's|^src/|lib/|'`; \
