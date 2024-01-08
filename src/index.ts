@@ -22,50 +22,12 @@ export namespace Typesaurus {
   export type Schema<DB extends Core.DB<any, any>> = Core.InferSchema<DB>;
 
   /**
-   * Narrows doc type. If your doc has variable model, the type will help you
-   * narrow down the doc type to a specific data type.
-   */
-  export type NarrowDoc<
-    OriginalDoc extends Core.Doc<any, any>,
-    NarrowToModel extends Core.ModelObjectType,
-  > = Core.NarrowDoc<OriginalDoc, NarrowToModel>;
-
-  export type Def<
-    Model extends Core.ModelType,
-    Name extends string,
-    Path extends string = Name,
-    WideModel extends Core.ModelType = Model,
-    Flags extends Core.DocDefFlags = Core.DocDefFlags,
-  > = {
-    Model: Model;
-    Name: Name;
-    Id: Id<Path>;
-    WideModel: WideModel;
-    Flags: Flags;
-  };
-
-  /**
    * Define custom id passing the collection path string as the generic.
    *
    * [Learn more on the docs website](https://typesaurus.com/docs/api/type/id).
-   *
-   * @example
-   * import { schema, Typesaurus } from 'typesaurus'
-   *
-   * const db = schema(($) => {
-   *   organizations: $.collection<Organization>(),
-   *   subscriptions: $.collection<Subscription, Typesaurus.Id<'organizations'>>()
    * })
    */
   export type Id<Path extends string> = Core.Id<Path>;
-
-  export type Collection<
-    Model extends Core.ModelType,
-    Name extends string,
-    Path extends string = Name,
-    WideModel extends Core.ModelType = Model,
-    Flags extends Core.DocDefFlags = Core.DocDefFlags,
-  > = Core.AnyCollection<Def<Model, Name, Path, WideModel, Flags>>;
 
   export type Ref<
     Model extends Core.ModelType,
@@ -83,8 +45,36 @@ export namespace Typesaurus {
     Flags extends Core.DocDefFlags = Core.DocDefFlags,
   > = Core.Doc<Def<Model, Name, Path, WideModel, Flags>, Core.DocProps>;
 
-  export type Model<Model extends Core.ModelType> =
-    Core.IntersectVariableModelType<Model>;
+  /**
+   * Narrows doc type. If your doc has variable model, the type will help you
+   * narrow down the doc type to a specific data type.
+   */
+  export type NarrowDoc<
+    OriginalDoc extends Core.Doc<any, any>,
+    NarrowToModel extends Core.ModelObjectType,
+  > = Core.NarrowDoc<OriginalDoc, NarrowToModel>;
+
+  export type Collection<
+    Model extends Core.ModelType,
+    Name extends string,
+    Path extends string = Name,
+    WideModel extends Core.ModelType = Model,
+    Flags extends Core.DocDefFlags = Core.DocDefFlags,
+  > = Core.AnyCollection<Def<Model, Name, Path, WideModel, Flags>>;
+
+  export type Def<
+    Model extends Core.ModelType,
+    Name extends string,
+    Path extends string = Name,
+    WideModel extends Core.ModelType = Model,
+    Flags extends Core.DocDefFlags = Core.DocDefFlags,
+  > = {
+    Model: Model;
+    Name: Name;
+    Id: Id<Path>;
+    WideModel: WideModel;
+    Flags: Flags;
+  };
 
   export type Data<Model extends Core.ModelType> = Core.AnyData<
     Core.IntersectVariableModelType<Model>

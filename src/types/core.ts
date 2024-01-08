@@ -1277,7 +1277,9 @@ export namespace TypesaurusCore {
       | NestedCollection<infer Def, any>
       ? {
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#sub).
+           * The type allows to access subcollections.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#subcollections)
            */
           sub: DB[Path] extends NestedCollection<
             any,
@@ -1287,46 +1289,38 @@ export namespace TypesaurusCore {
             : never;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#def).
-           */
-          Def: Def;
-
-          /**
-           * The documents' id.
+           * The type represents the document id.
            *
-           * Essentially it's a string, but TypeScript will force you to use
-           * `.toString()` to cast it to `string`.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#id).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#id)
            */
           Id: Def["Id"];
 
           /**
-           * The documents' reference, contains its id and collection.
+           * The type represents the collection Collection instance.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#ref).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#collection)
+           */
+          Collection: DB[Path];
+
+          /**
+           * The type represents the document Ref instance.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#ref)
            */
           Ref: TypesaurusCore.Ref<Def>;
 
           /**
-           * The document instance, contains reference with id and collection
-           * and document data.
+           * The type represents the document Doc instance.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#doc).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#doc)
            */
           Doc: TypesaurusCore.Doc<Def, DocProps>;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#model).
-           */
-          Model: IntersectVariableModelType<Def["Model"]>;
-
-          /**
-           * The document data. It differs from the interface used to define
-           * the collection by Firestore nuances such as undefined turned into
-           * nulls, and nullable dates. A variable model is also resolved.
+           * The type represents the document data. It’s what you get reading or
+           * creating a document via collection’s doc.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#data).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#data)
            */
           Data: Data<
             IntersectVariableModelType<Def["Model"]>,
@@ -1334,15 +1328,22 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * Read result, either doc, `null` (not found) or `undefined`
-           * (the read is not finished/started yet).
+           * The type represents the result of a reading operation, like the get
+           * method. It can be the Doc instance, null if the document is not
+           * found, or undefined if the operation is still in progress.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#result).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#result)
            */
           Result: Doc<Def, DocProps> | null | undefined;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
+           * The type represents the argument of an assign function. It can be
+           * used for all writing operations and expects the complete document
+           * data.
+           *
+           * It unions AssignData and AssignGetter types.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#assignarg)
            */
           AssignArg: AssignArg<
             IntersectVariableModelType<Def["Model"]>,
@@ -1350,7 +1351,10 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
+           * The type represents the data of an assign function. It can be used
+           * for all writing operations and expects the complete document data.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#assigndata)
            */
           AssignData: AssignData<
             IntersectVariableModelType<Def["Model"]>,
@@ -1358,7 +1362,11 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
+           * The type represents the getter of an assign function. It can be
+           * used for all writing operations and expects the complete document
+           * data.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#assigngetter)
            */
           AssignGetter: AssignGetter<
             IntersectVariableModelType<Def["Model"]>,
@@ -1366,31 +1374,33 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * Write helpers type allows to abstract write building (for add, set
-           * and upset methods) login into functions by accepting it as
-           * an argument.
+           * The type represents the write helpers of an assign function. It can
+           * be used for all writing operations.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-helpers).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#writehelpers)
            */
           WriteHelpers: WriteHelpers<Def["Model"]>;
 
           /**
-           * Update builder type allows to abstract update building login into
-           * functions by accepting it as an argument.
+           * The type represents the update builder object.
            *
-           * Unlike UpdateHelpers, UpdateBuilder can be used asynchronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-builder).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#updatebuilder)
            */
           UpdateBuilder: Update.Builder<Def, DocProps>;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
+           * The type represents the argument of an update function.
+           *
+           * It unions UpdateData and UpdateGetter types.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#updatearg)
            */
           UpdateArg: Update.Arg<Def, DocProps>;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
+           * The type represents the data of an update function.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#updatedata)
            */
           UpdateData: Update.Data<
             IntersectVariableModelType<Def["Model"]>,
@@ -1398,58 +1408,53 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
+           * The type represents the getter of an update function.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#updategetter)
            */
           UpdateGetter: Update.Getter<Def, DocProps>;
 
           /**
-           * Update helpers type allows to abstract update building login into
-           * functions by accepting it as an argument.
+           * The type represents the update helpers of an update function.
            *
-           * Unlike UpdateBuilder, UpdateHelpers must be used syncronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-helpers).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#updatehelpers)
            */
           UpdateHelpers: Update.Helpers<Def, DocProps>;
 
           /**
-           * Query builder type allows to abstract query building login into
-           * functions by accepting it as an argument.
+           * The type represents the query builder object.
            *
-           * Unlike QueryHelpers, QueryBuilder can be used asynchronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-builder).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#querybuilder)
            */
           QueryBuilder: Query.Builder<Def, DocProps>;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-data).
+           * The type represents what the query method expects you to return
+           * from the query function.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#querydata).
            */
           QueryData: Query.Data<Def>;
 
           /**
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-getter).
+           * The type represents the query function.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#querygetter)
            */
           QueryGetter: Query.Getter<Def>;
 
           /**
-           * Query helpers type allows to abstract query building login into
-           * functions by accepting it as an argument.
+           * The type represents the query helpers of a query function.
            *
-           * Unlike QueryBuilder, QueryHelpers must be used syncronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#query-helpers).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#queryhelpers)
            */
           QueryHelpers: Query.Helpers<Def>;
 
           /**
-           * The server version of Doc, where the server dates are always
-           * resolved (not-null).
+           * The type is a server version of the Doc type where server dates are
+           * always present, unlike the client version where they might be null.
            *
-           * The document instance, contains reference with id and collection
-           * and document data.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#server-doc).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverdoc)
            */
           ServerDoc: TypesaurusCore.Doc<
             Def,
@@ -1457,33 +1462,29 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of Data, where the server dates are always
-           * resolved (not-null).
+           * The type is a server version of the Data type where server dates
+           * are always present, unlike the client version where they might be
+           * null.
            *
-           * The document data. It differs from the interface used to define
-           * the collection by Firestore nuances such as undefined turned into
-           * nulls, and nullable dates. A variable model is also resolved.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#server-data).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverdata)
            */
           ServerData: ServerData<IntersectVariableModelType<Def["Model"]>>;
 
           /**
-           * The server version of Result, where the server dates are always
-           * resolved (not-null).
+           * The type is a server version of the Result type where server dates
+           * are always present, unlike the client version where they might be
+           * null.
            *
-           * Read result, either doc, `null` (not found) or `undefined`
-           * (the read is not finished/started yet).
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#result).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverresult)
            */
           ServerResult: Doc<Def, DocProps> | null | undefined;
 
           /**
-           * The server version of WriteArg, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the AssignArg type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-arg).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverassignarg)
            */
           ServerAssignArg: AssignArg<
             IntersectVariableModelType<Def["Model"]>,
@@ -1491,10 +1492,11 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of WriteData, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the AssignData type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-data).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverassigndata)
            */
           ServerAssignData: AssignData<
             IntersectVariableModelType<Def["Model"]>,
@@ -1502,10 +1504,11 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of WriteGetter, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the AssignGetter type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#write-getter).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverassigngetter)
            */
           ServerAssignGetter: AssignGetter<
             IntersectVariableModelType<Def["Model"]>,
@@ -1513,15 +1516,11 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of UpdateBuilder, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the UpdateBuilder type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * Update builder type allows to abstract update building login into
-           * functions by accepting it as an argument.
-           *
-           * Unlike UpdateHelpers, UpdateBuilder can be used asynchronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-builder).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverupdatebuilder)
            */
           ServerUpdateBuilder: Update.Builder<
             Def,
@@ -1529,10 +1528,11 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of UpdateArg, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the UpdateArg type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-arg).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverupdatearg)
            */
           ServerUpdateArg: Update.Arg<
             Def,
@@ -1540,10 +1540,11 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of UpdateData, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the UpdateData type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-data).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverupdatedata)
            */
           ServerUpdateData: Update.Data<
             Def,
@@ -1551,10 +1552,11 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of UpdateGetter, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the UpdateGetter type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-getter).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverupdategetter)
            */
           ServerUpdateGetter: Update.Getter<
             Def,
@@ -1562,20 +1564,24 @@ export namespace TypesaurusCore {
           >;
 
           /**
-           * The server version of UpdateHelpers, where the Date can be used
-           * in place of a server date.
+           * The type is a server version of the UpdateHelpers type where server
+           * dates are always present, unlike the client version where they
+           * might be null.
            *
-           * Update helpers type allows to abstract update building login into
-           * functions by accepting it as an argument.
-           *
-           * Unlike UpdateBuilder, UpdateHelpers must be used syncronously.
-           *
-           * [Learn more on the docs website](https://typesaurus.com/docs/api/type/schema#update-helpers).
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverupdatehelpers)
            */
           ServerUpdateHelpers: Update.Helpers<
             Def,
             DocProps & { environment: "server" }
           >;
+
+          /**
+           * The type represents the document definition. It’s in many methods
+           * as a generic parameter.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#def)
+           */
+          Def: Def;
         }
       : never;
   };
