@@ -29,6 +29,14 @@ export namespace Typesaurus {
    */
   export type Id<Path extends string> = Core.Id<Path>;
 
+  export type Collection<
+    Model extends Core.ModelType,
+    Name extends string,
+    Path extends string = Name,
+    WideModel extends Core.ModelType = Model,
+    Flags extends Core.DocDefFlags = Core.DocDefFlags,
+  > = Core.AnyCollection<Def<Model, Name, Path, WideModel, Flags>>;
+
   export type Ref<
     Model extends Core.ModelType,
     Name extends string,
@@ -45,6 +53,10 @@ export namespace Typesaurus {
     Flags extends Core.DocDefFlags = Core.DocDefFlags,
   > = Core.Doc<Def<Model, Name, Path, WideModel, Flags>, Core.DocProps>;
 
+  export type Data<Model extends Core.ModelType> = Core.AnyData<
+    Core.IntersectVariableModelType<Model>
+  >;
+
   /**
    * Narrows doc type. If your doc has variable model, the type will help you
    * narrow down the doc type to a specific data type.
@@ -53,14 +65,6 @@ export namespace Typesaurus {
     OriginalDoc extends Core.Doc<any, any>,
     NarrowToModel extends Core.ModelObjectType,
   > = Core.NarrowDoc<OriginalDoc, NarrowToModel>;
-
-  export type Collection<
-    Model extends Core.ModelType,
-    Name extends string,
-    Path extends string = Name,
-    WideModel extends Core.ModelType = Model,
-    Flags extends Core.DocDefFlags = Core.DocDefFlags,
-  > = Core.AnyCollection<Def<Model, Name, Path, WideModel, Flags>>;
 
   export type Def<
     Model extends Core.ModelType,
@@ -75,10 +79,6 @@ export namespace Typesaurus {
     WideModel: WideModel;
     Flags: Flags;
   };
-
-  export type Data<Model extends Core.ModelType> = Core.AnyData<
-    Core.IntersectVariableModelType<Model>
-  >;
 
   export type ModelType = Core.ModelType;
 
