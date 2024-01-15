@@ -214,7 +214,7 @@ export namespace TypesaurusQuery {
     Key extends QueryFieldKey1<Parent> | DocId,
   > =
     | (Key extends QueryFieldKey1<Parent>
-        ? QueryFieldValue<QueryFieldGet1<Parent, Key>>
+        ? QueryFieldValue<Parent, Key>
         : Def["Id"]) // Field value or id
     | Core.Doc<Def, Core.DocProps> // Will be used to get value for the cursor
     | undefined; // Indicates the start of the query
@@ -264,25 +264,21 @@ export namespace TypesaurusQuery {
     OrderQueryResult,
     WhereQueryResult,
   > extends QueryFieldBase<Def, Parent, Key, OrderQueryResult> {
-    lt(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult;
+    lt(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
 
-    lte(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult;
+    lte(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
 
-    eq(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult;
+    eq(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
 
-    not(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult;
+    not(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
 
-    gt(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult;
+    gt(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
 
-    gte(field: QueryFieldValue<QueryFieldGet1<Parent, Key>>): WhereQueryResult;
+    gte(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
 
-    in(
-      fields: QueryFieldValue<QueryFieldGet1<Parent, Key>>[],
-    ): WhereQueryResult;
+    in(fields: QueryFieldValue<Parent, Key>[]): WhereQueryResult;
 
-    notIn(
-      fields: QueryFieldValue<QueryFieldGet1<Parent, Key>>[],
-    ): WhereQueryResult;
+    notIn(fields: QueryFieldValue<Parent, Key>[]): WhereQueryResult;
   }
 
   export interface QueryArrayField<
@@ -294,13 +290,13 @@ export namespace TypesaurusQuery {
       field: Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<
         infer ItemType
       >
-        ? QueryFieldValue<ItemType>
+        ? QueryFieldValueNonNullish<ItemType>
         : never,
     ): WhereQueryResult;
 
     containsAny(
       field: Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<any>
-        ? QueryFieldValue<QueryFieldGet1<Parent, Key>>
+        ? QueryFieldValue<Parent, Key>
         : never,
     ): WhereQueryResult;
   }
@@ -315,7 +311,15 @@ export namespace TypesaurusQuery {
     ? QueryArrayField<Parent, Key, WhereQueryResult>
     : QueryPrimitiveField<Def, Parent, Key, OrderQueryResult, WhereQueryResult>;
 
-  export type QueryFieldValue<Value> = Exclude<
+  export type QueryFieldValue<Parent, Key extends QueryFieldKey1<Parent>> =
+    | // Unless the original field type is unknown, union with it
+    (unknown extends Parent[Key]
+        ? never
+        : // We process server date separately
+          Exclude<Parent[Key], Core.ServerDate>)
+    | QueryFieldValueNonNullish<QueryFieldGet1<Parent, Key>>;
+
+  export type QueryFieldValueNonNullish<Value> = Exclude<
     Value,
     undefined
   > extends Core.ServerDate

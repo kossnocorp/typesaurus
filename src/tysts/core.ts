@@ -29,6 +29,7 @@ interface Update {
 
 interface Comment {
   text: string;
+  author: string | null;
 }
 
 interface PostLike extends Like {
@@ -286,6 +287,7 @@ const db = schema(
     mixed: $.collection<Mixed>(),
     oauth: $.collection<[GitHubAccount, MicrosoftAccount, GoogleAccount]>(),
     varUsers: $.collection<VarUser>(),
+    comments: $.collection<Comment>(),
   }),
   { server: { preferRest: true } },
 );
@@ -1104,6 +1106,10 @@ async function query() {
   assertType<TypeEqual<typeof user.data.alias, string | undefined | null>>(
     true,
   );
+
+  // Allows to query by null
+
+  db.comments.query(($) => $.field("author").eq(null));
 }
 
 async function add() {
@@ -1993,6 +1999,12 @@ async function update() {
   const $userNullify = db.users.update.build(db.users.id("123"));
 
   $userNullify.field("status").set(null);
+
+  // Allows to update with null
+
+  db.comments.update(db.comments.id("comment-id"), ($) =>
+    $.field("author").set(null),
+  );
 }
 
 async function sharedIds() {
