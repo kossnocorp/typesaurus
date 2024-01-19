@@ -244,16 +244,19 @@ const customCollection = "customCollectionName";
 interface GitHubAccount {
   type: "github";
   userId: string;
+  active: boolean;
 }
 
 interface MicrosoftAccount {
   type: "microsoft";
   accountId: string;
+  active: boolean;
 }
 
 interface GoogleAccount {
   type: "google";
   email: string;
+  active: boolean;
 }
 
 export type VarUser = [UserAnonymous, UserActive];
@@ -1902,6 +1905,13 @@ async function update() {
   const $ghAccount = account?.update.build();
   // @ts-expect-error - Can't update account
   $ghAccount?.field("userId").set("123");
+
+  // It should allow assign data minus shared fields
+
+  db.oauth.update(db.oauth.id("123"), {
+    type: "github",
+    userId: "123",
+  });
 
   // Empty update
 
