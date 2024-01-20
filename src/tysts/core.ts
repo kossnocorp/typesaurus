@@ -132,12 +132,14 @@ interface TextContent {
   type: "text";
   text: string;
   public?: boolean;
+  active: boolean;
 }
 
 interface ImageContent {
   type: "image";
   src: string;
   public?: boolean;
+  active: boolean;
 }
 
 interface AppStats {
@@ -372,6 +374,7 @@ async function doc() {
   const contentDoc = db.content.doc(contentId, {
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   db.content.doc(contentId, {
@@ -1144,11 +1147,13 @@ async function add() {
   await db.content.add({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await db.content.add({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await db.content.add({
@@ -1208,11 +1213,13 @@ async function set() {
   await db.content.set(contentId, {
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await db.content.set(contentId, {
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await db.content.set(contentId, {
@@ -1229,11 +1236,13 @@ async function set() {
   await contentRef.set({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentRef.set({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentRef.set({
@@ -1250,11 +1259,13 @@ async function set() {
   await contentDoc?.set({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentDoc?.set({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentDoc?.set({
@@ -1318,11 +1329,13 @@ async function upset() {
   await db.content.upset(contentId, {
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await db.content.upset(contentId, {
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await db.content.upset(contentId, {
@@ -1339,11 +1352,13 @@ async function upset() {
   await contentRef.upset({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentRef.upset({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentRef.upset({
@@ -1360,11 +1375,13 @@ async function upset() {
   await contentDoc?.upset({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentDoc?.upset({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentDoc?.upset({
@@ -1912,11 +1929,16 @@ async function update() {
   // @ts-expect-error - Can't update account
   $ghAccount?.field("userId").set("123");
 
-  // It should allow assign data minus shared fields
+  // It allows update with assign data minus shared fields
 
   db.oauth.update(db.oauth.id("123"), {
     type: "github",
     userId: "123",
+  });
+
+  db.content.update(db.content.id("content-id"), {
+    type: "text",
+    text: "Hello world!",
   });
 
   // Empty update

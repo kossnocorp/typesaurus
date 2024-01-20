@@ -73,8 +73,194 @@ export namespace TypesaurusUpdate {
    */
   export type Arg<Def extends Core.DocDef, Props extends Core.DocProps> =
     | Core.AssignData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
+    | MinimalData<Def, Props>
     | Data<Core.DocModel<Def>, Props>
     | Getter<Def, Props>;
+
+  /**
+   * The type resolves the minimal required data to update the variable
+   * document. It includes unions each variable model type omitting the shared
+   * properties. The shared properties are added back as optional.
+   */
+  export type MinimalData<
+    Def extends Core.DocDef,
+    Props extends Core.DocProps,
+  > = Def["Flags"]["Reduced"] extends true
+    ? never
+    : Def["WideModel"] extends infer Model
+      ? Core.DocModel<Def> extends infer DocModel extends Core.ModelObjectType
+        ? Model extends Core.ModelObjectType
+          ? never
+          : Model extends [
+                infer A extends Core.ModelObjectType,
+                infer B extends Core.ModelObjectType,
+                infer C extends Core.ModelObjectType,
+                infer D extends Core.ModelObjectType,
+                infer E extends Core.ModelObjectType,
+                infer F extends Core.ModelObjectType,
+                infer G extends Core.ModelObjectType,
+                infer H extends Core.ModelObjectType,
+                infer I extends Core.ModelObjectType,
+                infer J extends Core.ModelObjectType,
+              ]
+            ? (
+                | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                | Core.AssignData<Omit<E, keyof DocModel>, Props>
+                | Core.AssignData<Omit<F, keyof DocModel>, Props>
+                | Core.AssignData<Omit<G, keyof DocModel>, Props>
+                | Core.AssignData<Omit<H, keyof DocModel>, Props>
+                | Core.AssignData<Omit<I, keyof DocModel>, Props>
+                | Core.AssignData<Omit<J, keyof DocModel>, Props>
+              ) &
+                Partial<Core.AssignData<DocModel, Props>>
+            : Model extends [
+                  infer A extends Core.ModelObjectType,
+                  infer B extends Core.ModelObjectType,
+                  infer C extends Core.ModelObjectType,
+                  infer D extends Core.ModelObjectType,
+                  infer E extends Core.ModelObjectType,
+                  infer F extends Core.ModelObjectType,
+                  infer G extends Core.ModelObjectType,
+                  infer H extends Core.ModelObjectType,
+                  infer I extends Core.ModelObjectType,
+                ]
+              ? (
+                  | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<E, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<F, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<G, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<H, keyof DocModel>, Props>
+                  | Core.AssignData<Omit<I, keyof DocModel>, Props>
+                ) &
+                  Partial<Core.AssignData<DocModel, Props>>
+              : Model extends [
+                    infer A extends Core.ModelObjectType,
+                    infer B extends Core.ModelObjectType,
+                    infer C extends Core.ModelObjectType,
+                    infer D extends Core.ModelObjectType,
+                    infer E extends Core.ModelObjectType,
+                    infer F extends Core.ModelObjectType,
+                    infer G extends Core.ModelObjectType,
+                    infer H extends Core.ModelObjectType,
+                  ]
+                ? (
+                    | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                    | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                    | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                    | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                    | Core.AssignData<Omit<E, keyof DocModel>, Props>
+                    | Core.AssignData<Omit<F, keyof DocModel>, Props>
+                    | Core.AssignData<Omit<G, keyof DocModel>, Props>
+                    | Core.AssignData<Omit<H, keyof DocModel>, Props>
+                  ) &
+                    Partial<Core.AssignData<DocModel, Props>>
+                : Model extends [
+                      infer A extends Core.ModelObjectType,
+                      infer B extends Core.ModelObjectType,
+                      infer C extends Core.ModelObjectType,
+                      infer D extends Core.ModelObjectType,
+                      infer E extends Core.ModelObjectType,
+                      infer F extends Core.ModelObjectType,
+                      infer G extends Core.ModelObjectType,
+                    ]
+                  ? (
+                      | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                      | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                      | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                      | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                      | Core.AssignData<Omit<E, keyof DocModel>, Props>
+                      | Core.AssignData<Omit<F, keyof DocModel>, Props>
+                      | Core.AssignData<Omit<G, keyof DocModel>, Props>
+                    ) &
+                      Partial<Core.AssignData<DocModel, Props>>
+                  : Model extends [
+                        infer A extends Core.ModelObjectType,
+                        infer B extends Core.ModelObjectType,
+                        infer C extends Core.ModelObjectType,
+                        infer D extends Core.ModelObjectType,
+                        infer E extends Core.ModelObjectType,
+                        infer F extends Core.ModelObjectType,
+                      ]
+                    ? (
+                        | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                        | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                        | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                        | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                        | Core.AssignData<Omit<E, keyof DocModel>, Props>
+                        | Core.AssignData<Omit<F, keyof DocModel>, Props>
+                      ) &
+                        Partial<Core.AssignData<DocModel, Props>>
+                    : Model extends [
+                          infer A extends Core.ModelObjectType,
+                          infer B extends Core.ModelObjectType,
+                          infer C extends Core.ModelObjectType,
+                          infer D extends Core.ModelObjectType,
+                          infer E extends Core.ModelObjectType,
+                        ]
+                      ? (
+                          | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                          | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                          | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                          | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                          | Core.AssignData<Omit<E, keyof DocModel>, Props>
+                        ) &
+                          Partial<Core.AssignData<DocModel, Props>>
+                      : Model extends [
+                            infer A extends Core.ModelObjectType,
+                            infer B extends Core.ModelObjectType,
+                            infer C extends Core.ModelObjectType,
+                            infer D extends Core.ModelObjectType,
+                          ]
+                        ? (
+                            | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                            | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                            | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                            | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                          ) &
+                            Partial<Core.AssignData<DocModel, Props>>
+                        : Model extends [
+                              infer A extends Core.ModelObjectType,
+                              infer B extends Core.ModelObjectType,
+                              infer C extends Core.ModelObjectType,
+                            ]
+                          ? (
+                              | Core.AssignData<Omit<A, keyof DocModel>, Props>
+                              | Core.AssignData<Omit<B, keyof DocModel>, Props>
+                              | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                            ) &
+                              Partial<Core.AssignData<DocModel, Props>>
+                          : Model extends [
+                                infer A extends Core.ModelObjectType,
+                                infer B extends Core.ModelObjectType,
+                              ]
+                            ? (
+                                | Core.AssignData<
+                                    Omit<A, keyof DocModel>,
+                                    Props
+                                  >
+                                | Core.AssignData<
+                                    Omit<B, keyof DocModel>,
+                                    Props
+                                  >
+                              ) &
+                                Partial<Core.AssignData<DocModel, Props>>
+                            : Model extends [
+                                  infer A extends Core.ModelObjectType,
+                                ]
+                              ? Core.AssignData<
+                                  Omit<A, keyof DocModel>,
+                                  Props
+                                > &
+                                  Partial<Core.AssignData<DocModel, Props>>
+                              : never
+        : never
+      : never;
 
   /**
    * Update data getter, accepts helper functions and returns the update data.
