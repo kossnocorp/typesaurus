@@ -12,6 +12,7 @@ interface Post {
   likeIds?: string[];
   likes?: number;
   tags?: Array<string | undefined>;
+  active: boolean;
 }
 
 interface Update {
@@ -21,6 +22,7 @@ interface Update {
 
 interface Comment {
   text: string;
+  author: string | null;
 }
 
 interface PostLike extends Like {
@@ -123,12 +125,14 @@ interface TextContent {
   type: "text";
   text: string;
   public?: boolean;
+  active: boolean;
 }
 
 interface ImageContent {
   type: "image";
   src: string;
   public?: boolean;
+  active: boolean;
 }
 
 interface AppStats {
@@ -236,16 +240,19 @@ const customCollection = "customCollectionName";
 interface GitHubAccount {
   type: "github";
   userId: string;
+  active: boolean;
 }
 
 interface MicrosoftAccount {
   type: "microsoft";
   accountId: string;
+  active: boolean;
 }
 
 interface GoogleAccount {
   type: "google";
   email: string;
+  active: boolean;
 }
 
 export type VarUser = [UserAnonymous, UserActive];
@@ -275,6 +282,7 @@ const db = schema(
     mixed: $.collection<Mixed>(),
     oauth: $.collection<[GitHubAccount, MicrosoftAccount, GoogleAccount]>(),
     varUsers: $.collection<VarUser>(),
+    comments: $.collection<Comment>(),
   }),
   { server: { preferRest: true } },
 );
@@ -347,6 +355,7 @@ async function doc() {
   const contentDoc = db.content.doc(contentId, {
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   db.content.doc(contentId, {
@@ -1028,6 +1037,10 @@ async function query() {
   assertType<TypeEqual<typeof user.data.alias, string | undefined | null>>(
     true,
   );
+
+  // Allows to query by null
+
+  db.comments.query(($) => $.field("author").eq(null));
 }
 
 async function add() {
@@ -1036,6 +1049,7 @@ async function add() {
   await db.posts.add({
     title: "Hello, world!",
     text: "Hello!",
+    active: true,
   });
 
   // Upset with helpers
@@ -1062,11 +1076,13 @@ async function add() {
   await db.content.add({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await db.content.add({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await db.content.add({
@@ -1097,6 +1113,7 @@ async function set() {
   db.posts.set(db.posts.id("doc-id"), {
     title: "Hello, world!",
     text: "Hello!",
+    active: true,
   });
 
   // Set with helpers
@@ -1126,11 +1143,13 @@ async function set() {
   await db.content.set(contentId, {
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await db.content.set(contentId, {
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await db.content.set(contentId, {
@@ -1147,11 +1166,13 @@ async function set() {
   await contentRef.set({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentRef.set({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentRef.set({
@@ -1168,11 +1189,13 @@ async function set() {
   await contentDoc?.set({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentDoc?.set({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentDoc?.set({
@@ -1207,6 +1230,7 @@ async function upset() {
   db.posts.upset(db.posts.id("doc-id"), {
     title: "Hello, world!",
     text: "Hello!",
+    active: true,
   });
 
   // Upset with helpers
@@ -1236,11 +1260,13 @@ async function upset() {
   await db.content.upset(contentId, {
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await db.content.upset(contentId, {
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await db.content.upset(contentId, {
@@ -1257,11 +1283,13 @@ async function upset() {
   await contentRef.upset({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentRef.upset({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentRef.upset({
@@ -1278,11 +1306,13 @@ async function upset() {
   await contentDoc?.upset({
     type: "text",
     text: "Hello, world!",
+    active: true,
   });
 
   await contentDoc?.upset({
     type: "image",
     src: "https://example.com/image.png",
+    active: true,
   });
 
   await contentDoc?.upset({
@@ -1799,6 +1829,18 @@ async function update() {
   // @ts-expect-error - Can't update account
   $ghAccount?.field("userId").set("123");
 
+  // It allows update with assign data minus shared fields
+
+  db.oauth.update(db.oauth.id("123"), {
+    type: "github",
+    userId: "123",
+  });
+
+  db.content.update(db.content.id("content-id"), {
+    type: "text",
+    text: "Hello world!",
+  });
+
   // Empty update
 
   const userId = db.users.id("user-id");
@@ -1871,6 +1913,53 @@ async function update() {
   const $userNullify = db.users.update.build(db.users.id("123"));
 
   $userNullify.field("status").set(null);
+
+  // Allows to update with null
+
+  db.comments.update(db.comments.id("comment-id"), ($) =>
+    $.field("author").set(null),
+  );
+
+  // Allows to update abstract docs
+
+  function updateActive(doc: Typesaurus.Doc<{ active: boolean }>) {
+    return doc.update({ active: true });
+  }
+
+  // Single model collection
+
+  db.posts.get(db.posts.id("123")).then((doc) => doc && updateActive(doc));
+
+  db.addresses
+    .get(db.addresses.id("123"))
+    // @ts-expect-error - There's to active on the address
+    .then((doc) => doc && updateActive(doc));
+
+  // Variable model collection
+
+  db.oauth.get(db.oauth.id("123")).then((doc) => doc && updateActive(doc));
+
+  db.content.get(db.content.id("123")).then((doc) => doc && updateActive(doc));
+
+  const localDb = schema(($) => ({
+    accounts: $.collection<[TwitterAccount, LinkedInAccount]>(),
+  }));
+
+  localDb.accounts
+    .get(localDb.accounts.id("123"))
+    // @ts-expect-error - There's no shared active on the local's db account
+    .then((doc) => doc && updateActive(doc));
+
+  interface TwitterAccount {
+    type: "twitter";
+    screenName: number;
+  }
+
+  interface LinkedInAccount {
+    type: "linkedin";
+    email: string;
+    active: true;
+  }
 }
 
 async function sharedIds() {
