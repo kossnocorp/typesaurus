@@ -9,6 +9,16 @@ types:
 types-watch:
 	npx tsc --build --watch
 
+types-diagnoze: 
+	npx tsc --build --extendedDiagnostics
+
+types-trace: 
+	npx tsc --build --generateTrace tmp/trace
+	npx analyze-trace tmp/trace
+
+types-profile:
+	node --trace-ic ./node_modules/typescript/lib/tsc.js --generateCpuProfile tmp/profile.cpuprofile --build 
+
 test: test-node test-browser
 .PHONY: test
 
