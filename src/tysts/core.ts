@@ -20,6 +20,7 @@ interface Post {
   likeIds?: string[];
   likes?: number;
   tags?: Array<string | undefined>;
+  active: boolean;
 }
 
 interface Update {
@@ -1121,6 +1122,7 @@ async function add() {
   await db.posts.add({
     title: "Hello, world!",
     text: "Hello!",
+    active: true,
   });
 
   // Upset with helpers
@@ -1184,6 +1186,7 @@ async function set() {
   db.posts.set(db.posts.id("doc-id"), {
     title: "Hello, world!",
     text: "Hello!",
+    active: true,
   });
 
   // Set with helpers
@@ -1300,6 +1303,7 @@ async function upset() {
   db.posts.upset(db.posts.id("doc-id"), {
     title: "Hello, world!",
     text: "Hello!",
+    active: true,
   });
 
   // Upset with helpers
@@ -2027,6 +2031,47 @@ async function update() {
   db.comments.update(db.comments.id("comment-id"), ($) =>
     $.field("author").set(null),
   );
+
+  // Allows to update abstract docs
+
+  function updateActive(doc: Typesaurus.Doc<{ active: boolean }>) {
+    return doc.update({ active: true });
+  }
+
+  // Single model collection
+
+  db.posts.get(db.posts.id("123")).then((doc) => doc && updateActive(doc));
+
+  db.addresses
+    .get(db.addresses.id("123"))
+    // @ts-expect-error - There's to active on the address
+    .then((doc) => doc && updateActive(doc));
+
+  // Variable model collection
+
+  db.oauth.get(db.oauth.id("123")).then((doc) => doc && updateActive(doc));
+
+  db.content.get(db.content.id("123")).then((doc) => doc && updateActive(doc));
+
+  const localDb = schema(($) => ({
+    accounts: $.collection<[TwitterAccount, LinkedInAccount]>(),
+  }));
+
+  localDb.accounts
+    .get(localDb.accounts.id("123"))
+    // @ts-expect-error - There's no shared active on the local's db account
+    .then((doc) => doc && updateActive(doc));
+
+  interface TwitterAccount {
+    type: "twitter";
+    screenName: number;
+  }
+
+  interface LinkedInAccount {
+    type: "linkedin";
+    email: string;
+    active: true;
+  }
 }
 
 async function sharedIds() {
@@ -2102,11 +2147,11 @@ async function narrowDoc() {
     email: string;
   }
 
-  const db = schema(($) => ({
+  const localDb = schema(($) => ({
     accounts: $.collection<[TwitterAccount, LinkedInAccount]>(),
   }));
 
-  type Schema = Core.InferSchema<typeof db>;
+  type Schema = Core.InferSchema<typeof localDb>;
 
   type Result1 = Core.NarrowDoc<Schema["accounts"]["Doc"], TwitterAccount>;
 

@@ -106,7 +106,7 @@ export namespace Typesaurus {
    */
   export type Doc<
     Model extends Core.ModelType,
-    Name extends string,
+    Name extends string = any,
     Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags,
