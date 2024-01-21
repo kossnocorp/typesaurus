@@ -41,7 +41,8 @@ export namespace TypesaurusBatch {
   export interface NestedCollection<
     Def extends Core.DocDef,
     Props extends Core.DocProps,
-    NestedSchema extends Schema<Props>,
+    // TODO: Debug why extends here makes TS think for 9+ seconds!
+    NestedSchema, // extends Schema<Props>,
   > extends Collection<Def, Props> {
     (id: Def["Id"]): NestedSchema;
   }
