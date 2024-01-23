@@ -527,18 +527,9 @@ export namespace TypesaurusCore {
 
   /**
    * Doc data type. Defines the shape of the document data returned from the
-   * database. It resolves server dates and nullifies undefineds.
+   * database. It resolves server dates.
    */
   export type Data<
-    Model extends ModelObjectType,
-    DateMissing extends ServerDateMissing,
-  > = DataNullified<Nullify<Model>, DateMissing>;
-
-  /**
-   * Nullifed doc data type, used internally by the data types. It expects
-   * already nullified data, preventing {@link Nullify} called again.
-   */
-  export type DataNullified<
     Model extends ModelObjectType,
     DateMissing extends ServerDateMissing,
   > = {
@@ -570,7 +561,7 @@ export namespace TypesaurusCore {
           ? Array<DataField<ItemType, DateMissing>>
           : // Now process objects
             Type extends object
-            ? DataNullified<Type, DateMissing>
+            ? Data<Type, DateMissing>
             : never; // Nothing shoule be left
 
   /**
@@ -671,7 +662,7 @@ export namespace TypesaurusCore {
   export type AssignData<
     Model extends ModelObjectType,
     Props extends DocProps,
-  > = WriteData<Nullify<Model>, Props>;
+  > = WriteData<Model, Props>;
 
   /**
    * Write data type, used internally by the write field types.
@@ -1232,12 +1223,12 @@ export namespace TypesaurusCore {
         >
         ? NestedCollection<
             {
-              Model: Model;
+              Model: NullifyModel<Model>;
               Name: CustomName extends string ? CustomName : Name;
               Id: CustomId extends Id<any> | string
                 ? CustomId
                 : Id<Utils.ComposePath<BasePath, Name>>;
-              WideModel: Model;
+              WideModel: NullifyModel<Model>;
               Flags: DocDefFlags;
             },
             DB<Schema, Utils.ComposePath<BasePath, Name>>
@@ -1248,12 +1239,12 @@ export namespace TypesaurusCore {
               infer CustomName
             >
           ? Collection<{
-              Model: Model;
+              Model: NullifyModel<Model>;
               Name: CustomName extends string ? CustomName : Name;
               Id: CustomId extends Id<any> | string
                 ? CustomId
                 : Id<Utils.ComposePath<BasePath, Name>>;
-              WideModel: Model;
+              WideModel: NullifyModel<Model>;
               Flags: DocDefFlags;
             }>
           : never
@@ -1682,4 +1673,140 @@ export namespace TypesaurusCore {
                   : Nullify<Exclude<Type[Key], undefined>>;
               }
             : never;
+
+  /**
+   * Deeply adds null to shapes of a variable model.
+   */
+  export type NullifyModel<Model extends ModelType> =
+    Model extends ModelObjectType
+      ? Nullify<Model>
+      : Model extends [
+            infer A extends ModelObjectType,
+            infer B extends ModelObjectType,
+            infer C extends ModelObjectType,
+            infer D extends ModelObjectType,
+            infer E extends ModelObjectType,
+            infer F extends ModelObjectType,
+            infer G extends ModelObjectType,
+            infer H extends ModelObjectType,
+            infer I extends ModelObjectType,
+            infer J extends ModelObjectType,
+          ]
+        ? [
+            Nullify<A>,
+            Nullify<B>,
+            Nullify<C>,
+            Nullify<D>,
+            Nullify<E>,
+            Nullify<F>,
+            Nullify<G>,
+            Nullify<H>,
+            Nullify<I>,
+            Nullify<J>,
+          ]
+        : Model extends [
+              infer A extends ModelObjectType,
+              infer B extends ModelObjectType,
+              infer C extends ModelObjectType,
+              infer D extends ModelObjectType,
+              infer E extends ModelObjectType,
+              infer F extends ModelObjectType,
+              infer G extends ModelObjectType,
+              infer H extends ModelObjectType,
+              infer I extends ModelObjectType,
+            ]
+          ? [
+              Nullify<A>,
+              Nullify<B>,
+              Nullify<C>,
+              Nullify<D>,
+              Nullify<E>,
+              Nullify<F>,
+              Nullify<G>,
+              Nullify<H>,
+              Nullify<I>,
+            ]
+          : Model extends [
+                infer A extends ModelObjectType,
+                infer B extends ModelObjectType,
+                infer C extends ModelObjectType,
+                infer D extends ModelObjectType,
+                infer E extends ModelObjectType,
+                infer F extends ModelObjectType,
+                infer G extends ModelObjectType,
+                infer H extends ModelObjectType,
+              ]
+            ? [
+                Nullify<A>,
+                Nullify<B>,
+                Nullify<C>,
+                Nullify<D>,
+                Nullify<E>,
+                Nullify<F>,
+                Nullify<G>,
+                Nullify<H>,
+              ]
+            : Model extends [
+                  infer A extends ModelObjectType,
+                  infer B extends ModelObjectType,
+                  infer C extends ModelObjectType,
+                  infer D extends ModelObjectType,
+                  infer E extends ModelObjectType,
+                  infer F extends ModelObjectType,
+                  infer G extends ModelObjectType,
+                ]
+              ? [
+                  Nullify<A>,
+                  Nullify<B>,
+                  Nullify<C>,
+                  Nullify<D>,
+                  Nullify<E>,
+                  Nullify<F>,
+                  Nullify<G>,
+                ]
+              : Model extends [
+                    infer A extends ModelObjectType,
+                    infer B extends ModelObjectType,
+                    infer C extends ModelObjectType,
+                    infer D extends ModelObjectType,
+                    infer E extends ModelObjectType,
+                    infer F extends ModelObjectType,
+                  ]
+                ? [
+                    Nullify<A>,
+                    Nullify<B>,
+                    Nullify<C>,
+                    Nullify<D>,
+                    Nullify<E>,
+                    Nullify<F>,
+                  ]
+                : Model extends [
+                      infer A extends ModelObjectType,
+                      infer B extends ModelObjectType,
+                      infer C extends ModelObjectType,
+                      infer D extends ModelObjectType,
+                      infer E extends ModelObjectType,
+                    ]
+                  ? [Nullify<A>, Nullify<B>, Nullify<C>, Nullify<D>, Nullify<E>]
+                  : Model extends [
+                        infer A extends ModelObjectType,
+                        infer B extends ModelObjectType,
+                        infer C extends ModelObjectType,
+                        infer D extends ModelObjectType,
+                      ]
+                    ? [Nullify<A>, Nullify<B>, Nullify<C>, Nullify<D>]
+                    : Model extends [
+                          infer A extends ModelObjectType,
+                          infer B extends ModelObjectType,
+                          infer C extends ModelObjectType,
+                        ]
+                      ? [Nullify<A>, Nullify<B>, Nullify<C>]
+                      : Model extends [
+                            infer A extends ModelObjectType,
+                            infer B extends ModelObjectType,
+                          ]
+                        ? [Nullify<A>, Nullify<B>]
+                        : Model extends [infer A extends ModelObjectType]
+                          ? [Nullify<A>]
+                          : never;
 }

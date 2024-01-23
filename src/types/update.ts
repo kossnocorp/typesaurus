@@ -287,9 +287,9 @@ export namespace TypesaurusUpdate {
   export type Data<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
-  > = Core.Nullify<{
+  > = {
     [Key in keyof Model]?: Core.WriteField<Model, Key, Model[Key], Props>;
-  }>;
+  };
 
   /**
    * Update helpers which allow to set specific values, such as server dates,
@@ -298,10 +298,10 @@ export namespace TypesaurusUpdate {
   export interface Helpers<
     Model extends Core.ModelObjectType,
     Props extends Core.DocProps,
-  > extends CommonHelpers<Core.Nullify<Model>, Props, UpdateField<Model>> {}
+  > extends CommonHelpers<Model, Props, UpdateField<Model>> {}
 
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
-    extends CommonHelpers<Core.Nullify<Core.DocModel<Def>>, Props, void> {
+    extends CommonHelpers<Core.DocModel<Def>, Props, void> {
     run(): Promise<Core.Ref<Def>>;
   }
 
@@ -311,9 +311,7 @@ export namespace TypesaurusUpdate {
     Key extends keyof Parent,
     SetResult,
   > {
-    set(
-      value: Core.Nullify<Core.WriteField<Parent, Key, Parent[Key], Props>>,
-    ): SetResult;
+    set(value: Core.WriteField<Parent, Key, Parent[Key], Props>): SetResult;
   }
 
   export interface CommonHelpers<

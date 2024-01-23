@@ -118,7 +118,7 @@ export namespace Typesaurus {
    * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#data)
    */
   export type Data<Model extends Core.ModelType> = Core.AnyData<
-    Core.IntersectVariableModelType<Model>
+    Core.IntersectVariableModelType<Core.NullifyModel<Model>>
   >;
 
   /**
@@ -134,10 +134,10 @@ export namespace Typesaurus {
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags,
   > = {
-    Model: Model;
+    Model: Core.NullifyModel<Model>;
     Name: Name;
     Id: Id<Path>;
-    WideModel: WideModel;
+    WideModel: Core.NullifyModel<WideModel>;
     Flags: Flags;
   };
 }
