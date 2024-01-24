@@ -4,20 +4,17 @@
 BIN = $(shell yarn bin)
 
 types:
-	npx tsc --build
+	npx tsc --build tsconfig.build.json
 
 types-watch:
-	npx tsc --build --watch
+	npx tsc --build tsconfig.build.json --watch
 
 types-diagnoze: 
-	npx tsc --build --extendedDiagnostics
+	npx tsc --extendedDiagnostics
 
 types-trace: 
-	npx tsc --build --generateTrace tmp/trace
+	npx tsc --generateTrace tmp/trace
 	npx analyze-trace tmp/trace
-
-types-profile:
-	node --trace-ic ./node_modules/typescript/lib/tsc.js --generateCpuProfile tmp/profile.cpuprofile --build 
 
 test: test-node test-browser
 .PHONY: test
