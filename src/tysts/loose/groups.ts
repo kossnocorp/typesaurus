@@ -102,12 +102,16 @@ async function tysts() {
     color: string;
   }
 
+  type SchemaType<DB extends Core.DB<any>> = DB extends Core.DB<infer Schema>
+    ? Schema
+    : never;
+
   const db1 = schema(($) => ({
     books: $.collection<Book>(),
     orders: $.collection<Order>(),
   }));
 
-  type Schema1 = typeof db1;
+  type Schema1 = SchemaType<typeof db1>;
 
   const db2 = schema(($) => ({
     books: $.collection<Book>().sub({
@@ -120,7 +124,7 @@ async function tysts() {
     }),
   }));
 
-  type Schema2 = typeof db2;
+  type Schema2 = SchemaType<typeof db2>;
 
   const db3 = schema(($) => ({
     books: $.collection<Book>().sub({
@@ -135,7 +139,7 @@ async function tysts() {
     }),
   }));
 
-  type Schema3 = typeof db3;
+  type Schema3 = SchemaType<typeof db3>;
 
   const dbDeep = schema(($) => ({
     orders: $.collection<Order>().sub({
@@ -163,7 +167,7 @@ async function tysts() {
     }),
   }));
 
-  type SchemaDeep = typeof dbDeep;
+  type SchemaDeep = SchemaType<typeof dbDeep>;
 
   // ConstructGroups
 

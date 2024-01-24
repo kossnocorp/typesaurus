@@ -1222,15 +1222,7 @@ export namespace TypesaurusCore {
           infer CustomName
         >
         ? NestedCollection<
-            {
-              Model: NullifyModel<Model>;
-              Name: CustomName extends string ? CustomName : Name;
-              Id: CustomId extends Id<any> | string
-                ? CustomId
-                : Id<Utils.ComposePath<BasePath, Name>>;
-              WideModel: NullifyModel<Model>;
-              Flags: DocDefFlags;
-            },
+            CollectionDef<Name, Model, CustomId, CustomName, BasePath>,
             DB<Schema, Utils.ComposePath<BasePath, Name>>
           >
         : Schema[Name] extends PlainCollection<
@@ -1238,17 +1230,30 @@ export namespace TypesaurusCore {
               infer CustomId,
               infer CustomName
             >
-          ? Collection<{
-              Model: NullifyModel<Model>;
-              Name: CustomName extends string ? CustomName : Name;
-              Id: CustomId extends Id<any> | string
-                ? CustomId
-                : Id<Utils.ComposePath<BasePath, Name>>;
-              WideModel: NullifyModel<Model>;
-              Flags: DocDefFlags;
-            }>
+          ? Collection<
+              CollectionDef<Name, Model, CustomId, CustomName, BasePath>
+            >
           : never
       : never;
+  };
+
+  /**
+   * Resolves collection def.
+   */
+  export type CollectionDef<
+    Name extends string,
+    Model extends ModelType,
+    CustomId,
+    CustomName,
+    BasePath extends string | false,
+  > = {
+    Model: NullifyModel<Model>;
+    Name: CustomName extends string ? CustomName : Name;
+    Id: CustomId extends Id<any> | string
+      ? CustomId
+      : Id<Utils.ComposePath<BasePath, Name>>;
+    WideModel: NullifyModel<Model>;
+    Flags: DocDefFlags;
   };
 
   /**
