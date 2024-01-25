@@ -2,6 +2,7 @@ import type { TypesaurusUtils as Utils } from "./utils.js";
 import type { TypesaurusQuery as Query } from "./query.js";
 import type { TypesaurusUpdate as Update } from "./update.js";
 import type { TypesaurusFirebase as Firebase } from "./firebase.js";
+import type { TypesaurusTransaction as Transaction } from "./transaction.js";
 
 export namespace TypesaurusCore {
   export interface Function {
@@ -1570,6 +1571,22 @@ export namespace TypesaurusCore {
             Def,
             DocProps & { environment: "server" }
           >;
+
+          /**
+           * The type represents transaction read document. What you return from
+           * the transaction read function.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#transactionreaddoc)
+           */
+          TransactionReadDoc: Transaction.ReadDoc<Def, DocProps>;
+
+          /**
+           * The type represents transaction write document. What you get in
+           * the transaction write function.
+           *
+           * [Learn more on the docs website](https://typesaurus.com/types/schema/#transactionwritedoc)
+           */
+          TransactionWriteDoc: Transaction.WriteDoc<Def, DocProps>;
 
           /**
            * The type represents the document definition. It’s in many methods
