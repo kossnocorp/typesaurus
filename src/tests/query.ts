@@ -410,6 +410,42 @@ describe("query", () => {
       ]);
     });
 
+    describe("or", () => {
+      it("allows to use or query", async () => {
+        const docs = await db.contacts.query(($) => [
+          $.field("ownerId").eq(ownerId),
+          $.or($.field("name").eq("Sasha"), $.field("name").eq("Tati")),
+        ]);
+        expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
+          "Sasha",
+          "Tati",
+        ]);
+      });
+
+      it("allows to use or query in the builder mode", async () => {
+        const $ = db.contacts.query.build();
+        $.field("ownerId").eq(ownerId);
+        $.or($.field("name").eq("Sasha"), $.field("name").eq("Tati"));
+        const docs = await $.run();
+        expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
+          "Sasha",
+          "Tati",
+        ]);
+      });
+
+      it("filters out the empty or query", async () => {
+        const docs = await db.contacts.query(($) => [
+          $.field("ownerId").eq(ownerId),
+          $.or(),
+        ]);
+        expect(docs.map(({ data: { name } }) => name).sort()).toEqual([
+          "Lesha",
+          "Sasha",
+          "Tati",
+        ]);
+      });
+    });
+
     describe("subcollection", () => {
       it("works on subcollections", async () => {
         const ownerId = Math.random().toString();

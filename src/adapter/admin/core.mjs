@@ -3,6 +3,7 @@ import {
   FieldPath,
   FieldValue,
   Timestamp,
+  Filter,
 } from "firebase-admin/firestore";
 import { SubscriptionPromise } from "../../sp/index.ts";
 import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
@@ -529,7 +530,7 @@ export function query(firestore, adapter, queries) {
       case "where": {
         const { field, filter, value } = query;
         firestoreQuery = firestoreQuery.where(
-          field[0] === "__id__" ? FieldPath.documentId() : field.join("."),
+          wherePath(field),
           filter,
           unwrapData(firestore, value),
         );
@@ -537,8 +538,23 @@ export function query(firestore, adapter, queries) {
       }
 
       case "limit": {
-        const { number } = query;
-        firestoreQuery = firestoreQuery.limit(number);
+        firestoreQuery = firestoreQuery.limit(query.number);
+        break;
+      }
+
+      case "or": {
+        if (!query.queries.length) break;
+        firestoreQuery = firestoreQuery.where(
+          Filter.or(
+            ...query.queries.map((q) =>
+              Filter.where(
+                wherePath(q.field),
+                q.filter,
+                unwrapData(firestore, q.value),
+              ),
+            ),
+          ),
+        );
         break;
       }
     }
@@ -637,14 +653,22 @@ export function query(firestore, adapter, queries) {
   return sp;
 }
 
+function wherePath(field) {
+  return field[0] === "__id__" ? FieldPath.documentId() : field.join(".");
+}
+
 export function queryHelpers(mode = "helpers", acc) {
   function processQuery(value) {
-    if (mode === "helpers") {
-      return value;
-    } else {
-      // Builder mode
+    if (mode === "builder") {
+      // Push query to the list, to run them later
       acc.push(value);
+      // Remove nested or queries because they get added to the acc but we want
+      // to process them separately.
+      if (value.type === "or")
+        for (let index = acc.length - 1; index >= 0; index--)
+          if (value.queries.includes(acc[index])) acc.splice(index, 1);
     }
+    return value;
   }
 
   function where(field, filter, value) {
@@ -693,6 +717,8 @@ export function queryHelpers(mode = "helpers", acc) {
     endBefore: (value) => ({ type: "cursor", position: "endBefore", value }),
 
     docId: () => "__id__",
+
+    or: (...queries) => processQuery({ type: "or", queries }),
   };
 }
 

@@ -1114,6 +1114,23 @@ async function query() {
   // Allows to query by null
 
   db.comments.query(($) => $.field("author").eq(null));
+
+  // Allows to use or query
+
+  db.comments.query(($) => [
+    $.field("text").eq("Hello"),
+    $.or($.field("author").eq("Sasha"), $.field("author").eq("Tati")),
+  ]);
+
+  const $or = db.comments.query.build();
+
+  $or.field("text").eq("Hello");
+  $or.or($or.field("author").eq("Sasha"), $or.field("author").eq("Tati"));
+
+  // It prevents using non-where queries in where
+
+  // @ts-expect-error - Can't use order in where
+  db.comments.query(($) => [$.field("text").eq("Hello"), $.or($.limit(1))]);
 }
 
 async function add() {

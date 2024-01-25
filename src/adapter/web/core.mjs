@@ -25,6 +25,8 @@ import {
   startAt,
   updateDoc,
   where,
+  and,
+  or,
 } from "firebase/firestore";
 import { SubscriptionPromise } from "../../sp/index.ts";
 import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
@@ -501,14 +503,15 @@ function subShortcut(firestore, schema) {
 }
 
 export function _query(firestore, adapter, queries) {
-  const firebaseQueries = [];
+  const firebaseWhereQueries = [];
+  const firebaseRestQueries = [];
   let cursors = [];
 
   queries.forEach((query) => {
     switch (query.type) {
       case "order": {
         const { field, method, cursors: queryCursors } = query;
-        firebaseQueries.push(
+        firebaseRestQueries.push(
           orderBy(
             field[0] === "__id__" ? documentId() : field.join("."),
             method,
@@ -540,23 +543,33 @@ export function _query(firestore, adapter, queries) {
 
       case "where": {
         const { field, filter, value } = query;
-        firebaseQueries.push(
-          where(
-            field[0] === "__id__" ? documentId() : field.join("."),
-            filter,
-            unwrapData(firestore, value),
-          ),
+        firebaseWhereQueries.push(
+          where(wherePath(field), filter, unwrapData(firestore, value)),
         );
         break;
       }
 
       case "limit": {
-        firebaseQueries.push(limit(query.number));
+        firebaseRestQueries.push(limit(query.number));
+        break;
+      }
+
+      case "or": {
+        if (!query.queries.length) break;
+        firebaseWhereQueries.push(
+          or(
+            ...query.queries.map((q) =>
+              where(
+                wherePath(q.field),
+                q.filter,
+                unwrapData(firestore, q.value),
+              ),
+            ),
+          ),
+        );
         break;
       }
     }
-
-    return firebaseQueries;
   }, []);
 
   let groupedCursors = [];
@@ -588,7 +601,12 @@ export function _query(firestore, adapter, queries) {
     });
 
   const firebaseQuery = () =>
-    query(adapter.collection(), ...firebaseQueries, ...firebaseCursors);
+    query(
+      adapter.collection(),
+      and(...firebaseWhereQueries),
+      ...firebaseRestQueries,
+      ...firebaseCursors,
+    );
 
   const sp = new SubscriptionPromise({
     request: request({
@@ -678,14 +696,22 @@ export function _query(firestore, adapter, queries) {
   return sp;
 }
 
+function wherePath(field) {
+  return field[0] === "__id__" ? documentId() : field.join(".");
+}
+
 export function queryHelpers(mode = "helpers", acc) {
   function processQuery(value) {
-    if (mode === "helpers") {
-      return value;
-    } else {
-      // Builder mode
+    if (mode === "builder") {
+      // Push query to the list, to run them later
       acc.push(value);
+      // Remove nested or queries because they get added to the acc but we want
+      // to process them separately.
+      if (value.type === "or")
+        for (let index = acc.length - 1; index >= 0; index--)
+          if (value.queries.includes(acc[index])) acc.splice(index, 1);
     }
+    return value;
   }
 
   function where(field, filter, value) {
@@ -734,6 +760,8 @@ export function queryHelpers(mode = "helpers", acc) {
     endBefore: (value) => ({ type: "cursor", position: "endBefore", value }),
 
     docId: () => "__id__",
+
+    or: (...queries) => processQuery({ type: "or", queries }),
   };
 }
 

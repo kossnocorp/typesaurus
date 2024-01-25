@@ -57,10 +57,7 @@ export namespace TypesaurusQuery {
   export interface Helpers<Def extends Core.DocDef>
     extends CommonQueryHelpers<
       Def,
-      Core.IntersectVariableModelType<Def["Model"]>,
-      OrderQuery<Def["Model"]>,
-      WhereQuery<Def["Model"]>,
-      LimitQuery<Def["Model"]>
+      Core.IntersectVariableModelType<Def["Model"]>
     > {}
 
   /**
@@ -70,10 +67,7 @@ export namespace TypesaurusQuery {
   export interface Builder<Def extends Core.DocDef, Props extends Core.DocProps>
     extends CommonQueryHelpers<
       Def,
-      Core.IntersectVariableModelType<Def["Model"]>,
-      void,
-      void,
-      void
+      Core.IntersectVariableModelType<Def["Model"]>
     > {
     /**
      * Runs the built query.
@@ -107,7 +101,8 @@ export namespace TypesaurusQuery {
   export type Query<Model> =
     | OrderQuery<Model>
     | WhereQuery<Model>
-    | LimitQuery<Model>;
+    | LimitQuery<Model>
+    | OrQuery<Model>;
 
   /**
    * The order query type. Used to build query.
@@ -132,6 +127,19 @@ export namespace TypesaurusQuery {
   export interface LimitQuery<_Model> {
     type: "limit";
     number: number;
+  }
+
+  /**
+   * The allowed or query type.
+   */
+  export type OrQueryQuery<Model> = WhereQuery<Model>;
+
+  /**
+   * The or query type. It contains other queries.
+   */
+  export interface OrQuery<Model> {
+    type: "or";
+    queries: OrQueryQuery<Model>[];
   }
 
   export type OrderCursors<
@@ -223,68 +231,64 @@ export namespace TypesaurusQuery {
     Def extends Core.DocDef,
     Parent,
     Key extends QueryFieldKey1<Parent> | DocId,
-    OrderQueryResult,
   > {
     // With cursors
-    order(cursors?: OrderCursors<Def, Parent, Key> | []): OrderQueryResult;
+    order(
+      cursors?: OrderCursors<Def, Parent, Key> | [],
+    ): OrderQuery<Def["Model"]>;
 
     // With method and cursors
     order(
       method: OrderDirection,
       cursors?: OrderCursors<Def, Parent, Key> | [],
-    ): OrderQueryResult;
+    ): OrderQuery<Def["Model"]>;
   }
 
-  export interface QueryIdField<
-    Def extends Core.DocDef,
-    OrderQueryResult,
-    WhereQueryResult,
-  > extends QueryFieldBase<Def, Def["Model"], DocId, OrderQueryResult> {
-    lt(id: Def["Id"]): WhereQueryResult;
+  export interface QueryIdField<Def extends Core.DocDef>
+    extends QueryFieldBase<Def, Def["Model"], DocId> {
+    lt(id: Def["Id"]): WhereQuery<Def["Model"]>;
 
-    lte(id: Def["Id"]): WhereQueryResult;
+    lte(id: Def["Id"]): WhereQuery<Def["Model"]>;
 
-    eq(id: Def["Id"]): WhereQueryResult;
+    eq(id: Def["Id"]): WhereQuery<Def["Model"]>;
 
-    not(id: Def["Id"]): WhereQueryResult;
+    not(id: Def["Id"]): WhereQuery<Def["Model"]>;
 
-    gt(id: Def["Id"]): WhereQueryResult;
+    gt(id: Def["Id"]): WhereQuery<Def["Model"]>;
 
-    gte(id: Def["Id"]): WhereQueryResult;
+    gte(id: Def["Id"]): WhereQuery<Def["Model"]>;
 
-    in(ids: Def["Id"][]): WhereQueryResult;
+    in(ids: Def["Id"][]): WhereQuery<Def["Model"]>;
 
-    notIn(ids: Def["Id"][]): WhereQueryResult;
+    notIn(ids: Def["Id"][]): WhereQuery<Def["Model"]>;
   }
 
   export interface QueryPrimitiveField<
     Def extends Core.DocDef,
     Parent,
     Key extends QueryFieldKey1<Parent>,
-    OrderQueryResult,
-    WhereQueryResult,
-  > extends QueryFieldBase<Def, Parent, Key, OrderQueryResult> {
-    lt(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
+  > extends QueryFieldBase<Def, Parent, Key> {
+    lt(field: QueryFieldValue<Parent, Key>): WhereQuery<Def["Model"]>;
 
-    lte(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
+    lte(field: QueryFieldValue<Parent, Key>): WhereQuery<Def["Model"]>;
 
-    eq(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
+    eq(field: QueryFieldValue<Parent, Key>): WhereQuery<Def["Model"]>;
 
-    not(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
+    not(field: QueryFieldValue<Parent, Key>): WhereQuery<Def["Model"]>;
 
-    gt(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
+    gt(field: QueryFieldValue<Parent, Key>): WhereQuery<Def["Model"]>;
 
-    gte(field: QueryFieldValue<Parent, Key>): WhereQueryResult;
+    gte(field: QueryFieldValue<Parent, Key>): WhereQuery<Def["Model"]>;
 
-    in(fields: QueryFieldValue<Parent, Key>[]): WhereQueryResult;
+    in(fields: QueryFieldValue<Parent, Key>[]): WhereQuery<Def["Model"]>;
 
-    notIn(fields: QueryFieldValue<Parent, Key>[]): WhereQueryResult;
+    notIn(fields: QueryFieldValue<Parent, Key>[]): WhereQuery<Def["Model"]>;
   }
 
   export interface QueryArrayField<
+    Model,
     Parent,
     Key extends QueryFieldKey1<Parent>,
-    WhereQueryResult,
   > {
     contains(
       field: Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<
@@ -292,24 +296,22 @@ export namespace TypesaurusQuery {
       >
         ? QueryFieldValueNonNullish<ItemType>
         : never,
-    ): WhereQueryResult;
+    ): WhereQuery<Model>;
 
     containsAny(
       field: Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<any>
         ? QueryFieldValue<Parent, Key>
         : never,
-    ): WhereQueryResult;
+    ): WhereQuery<Model>;
   }
 
   export type QueryField<
     Def extends Core.DocDef,
     Parent,
     Key extends QueryFieldKey1<Parent>,
-    OrderQueryResult,
-    WhereQueryResult,
   > = Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<any>
-    ? QueryArrayField<Parent, Key, WhereQueryResult>
-    : QueryPrimitiveField<Def, Parent, Key, OrderQueryResult, WhereQueryResult>;
+    ? QueryArrayField<Def["Model"], Parent, Key>
+    : QueryPrimitiveField<Def, Parent, Key>;
 
   export type QueryFieldValue<Parent, Key extends QueryFieldKey1<Parent>> =
     | // Unless the original field type is unknown, union with it
@@ -332,21 +334,18 @@ export namespace TypesaurusQuery {
   export interface CommonQueryHelpers<
     Def extends Core.DocDef,
     Model extends Core.ModelObjectType,
-    OrderQueryResult,
-    WhereQueryResult,
-    LimitQueryResult,
   > {
     /**
      * Id selector, allows querying by the document id.
      */
-    field(id: DocId): QueryIdField<Def, OrderQueryResult, LimitQueryResult>;
+    field(id: DocId): QueryIdField<Def>;
 
     /**
      * Field selector, allows querying by a specific field.
      */
     field<Key extends QueryFieldKey1<Model>>(
       key: Key,
-    ): QueryField<Def, Model, Key, OrderQueryResult, WhereQueryResult>;
+    ): QueryField<Def, Model, Key>;
 
     /**
      * Field selector, allows querying by a specific field.
@@ -357,13 +356,7 @@ export namespace TypesaurusQuery {
     >(
       key1: Key1,
       key2: Key2,
-    ): QueryField<
-      Def,
-      QueryFieldGet1<Model, Key1>,
-      Key2,
-      OrderQueryResult,
-      WhereQueryResult
-    >;
+    ): QueryField<Def, QueryFieldGet1<Model, Key1>, Key2>;
 
     /**
      * Field selector, allows querying by a specific field.
@@ -376,13 +369,7 @@ export namespace TypesaurusQuery {
       key1: Key1,
       key2: Key2,
       key3: Key3,
-    ): QueryField<
-      Def,
-      QueryFieldGet2<Model, Key1, Key2>,
-      Key3,
-      OrderQueryResult,
-      WhereQueryResult
-    >;
+    ): QueryField<Def, QueryFieldGet2<Model, Key1, Key2>, Key3>;
 
     /**
      * Field selector, allows querying by a specific field.
@@ -397,13 +384,7 @@ export namespace TypesaurusQuery {
       key2: Key2,
       key3: Key3,
       key4: Key4,
-    ): QueryField<
-      Def,
-      QueryFieldGet3<Model, Key1, Key2, Key3>,
-      Key4,
-      OrderQueryResult,
-      WhereQueryResult
-    >;
+    ): QueryField<Def, QueryFieldGet3<Model, Key1, Key2, Key3>, Key4>;
 
     /**
      * Field selector, allows querying by a specific field.
@@ -420,13 +401,7 @@ export namespace TypesaurusQuery {
       key3: Key3,
       key4: Key4,
       key5: Key5,
-    ): QueryField<
-      Def,
-      QueryFieldGet4<Model, Key1, Key2, Key3, Key4>,
-      Key5,
-      OrderQueryResult,
-      WhereQueryResult
-    >;
+    ): QueryField<Def, QueryFieldGet4<Model, Key1, Key2, Key3, Key4>, Key5>;
 
     /**
      * Field selector, allows querying by a specific field.
@@ -448,9 +423,7 @@ export namespace TypesaurusQuery {
     ): QueryField<
       Def,
       QueryFieldGet5<Model, Key1, Key2, Key3, Key4, Key5>,
-      Key6,
-      OrderQueryResult,
-      WhereQueryResult
+      Key6
     >;
 
     /**
@@ -475,9 +448,7 @@ export namespace TypesaurusQuery {
     ): QueryField<
       Def,
       QueryFieldGet6<Model, Key1, Key2, Key3, Key4, Key5, Key6>,
-      Key7,
-      OrderQueryResult,
-      WhereQueryResult
+      Key7
     >;
 
     /**
@@ -513,9 +484,7 @@ export namespace TypesaurusQuery {
     ): QueryField<
       Def,
       QueryFieldGet7<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7>,
-      Key8,
-      OrderQueryResult,
-      WhereQueryResult
+      Key8
     >;
 
     /**
@@ -563,9 +532,7 @@ export namespace TypesaurusQuery {
     ): QueryField<
       Def,
       QueryFieldGet8<Model, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8>,
-      Key9,
-      OrderQueryResult,
-      WhereQueryResult
+      Key9
     >;
 
     /**
@@ -637,12 +604,10 @@ export namespace TypesaurusQuery {
         Key8,
         Key9
       >,
-      Key10,
-      OrderQueryResult,
-      WhereQueryResult
+      Key10
     >;
 
-    limit(to: number): LimitQueryResult;
+    limit(to: number): LimitQuery<Model>;
 
     startAt<Parent, Key extends QueryFieldKey1<Parent> | DocId>(
       value: OrderCursorValue<Def, Parent, Key>,
@@ -661,6 +626,8 @@ export namespace TypesaurusQuery {
     ): OrderCursorEndBefore<Def, Parent, Key>;
 
     docId(): DocId;
+
+    or(...queries: OrQueryQuery<Model>[]): OrQuery<Model>;
   }
 
   /// Query utils
