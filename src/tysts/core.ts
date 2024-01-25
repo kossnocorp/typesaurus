@@ -132,7 +132,7 @@ interface Organization {
 interface TextContent {
   type: "text";
   text: string;
-  public?: boolean;
+  public?: boolean | undefined;
   active: boolean;
 }
 
@@ -162,6 +162,14 @@ interface Address {
 }
 
 interface Mixed {
+  record: Record<OpaqueString, string>;
+  nestedRecord: {
+    record: Record<OpaqueString, string>;
+  };
+  idRecord: Record<Typesaurus.Id<"hello">, number>;
+  nestedIdRecord: {
+    idRecord: Record<Typesaurus.Id<"hello">, number>;
+  };
   date1: Date;
   date2: Date | undefined;
   date3?: Date;
@@ -1131,6 +1139,21 @@ async function query() {
 
   // @ts-expect-error - Can't use order in where
   db.comments.query(($) => [$.field("text").eq("Hello"), $.or($.limit(1))]);
+
+  // It allows to query via opaqued types
+
+  db.mixed.query(($) => $.field("record", "123" as OpaqueString).eq("123"));
+  db.mixed.query(($) =>
+    $.field("nestedRecord", "record", "123" as OpaqueString).eq("123"),
+  );
+  db.mixed.query(($) =>
+    $.field("idRecord", "123" as Typesaurus.Id<"hello">).eq(123),
+  );
+  db.mixed.query(($) =>
+    $.field("nestedIdRecord", "idRecord", "123" as Typesaurus.Id<"hello">).eq(
+      123,
+    ),
+  );
 }
 
 async function add() {
@@ -3392,8 +3415,9 @@ type Assert<Type1, _Type2 extends Type1> = true;
 
 export function assertType<Type>(value: Type) {}
 
-export type TypeEqual<T, U> = Exclude<T, U> extends never
-  ? Exclude<U, T> extends never
-    ? true
-    : false
-  : false;
+export type TypeEqual<T, U> =
+  Exclude<T, U> extends never
+    ? Exclude<U, T> extends never
+      ? true
+      : false
+    : false;

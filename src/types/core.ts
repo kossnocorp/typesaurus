@@ -810,10 +810,8 @@ export namespace TypesaurusCore {
   /**
    * Resolves the remove type value unless the key is required.
    */
-  export type MaybeValueRemove<
-    Parent,
-    Key extends keyof Parent,
-  > = Utils.RequiredKey<Parent, Key> extends true ? never : ValueRemove;
+  export type MaybeValueRemove<Parent, Key extends keyof Parent> =
+    Utils.RequiredKey<Parent, Key> extends true ? never : ValueRemove;
 
   /**
    * Available value kinds.
@@ -988,7 +986,7 @@ export namespace TypesaurusCore {
   export type DocNarrowFunction<
     InputModel extends ModelType,
     ExpectedModel extends ModelType,
-  > = (data: InputModel) => false | ExpectedModel;
+  > = (data: InputModel) => false | Nullify<ExpectedModel>;
 
   export interface CollectionAPI<Def extends DocDef> {
     all<
@@ -1606,23 +1604,24 @@ export namespace TypesaurusCore {
   export type NarrowDoc<
     OriginalDoc extends Doc<any, any>,
     NarrowToModel extends ModelObjectType,
-  > = OriginalDoc extends Doc<
-    infer Def extends DocDef,
-    infer Props extends DocProps
-  >
-    ? NarrowToModel extends IntersectVariableModelType<Def["WideModel"]>
-      ? Doc<
-          {
-            Model: NarrowToModel;
-            Name: Def["Name"];
-            Id: Def["Id"];
-            WideModel: Def["WideModel"];
-            Flags: Def["Flags"] & { Reduced: true };
-          },
-          Props
-        >
-      : never
-    : never;
+  > =
+    OriginalDoc extends Doc<
+      infer Def extends DocDef,
+      infer Props extends DocProps
+    >
+      ? NarrowToModel extends IntersectVariableModelType<Def["WideModel"]>
+        ? Doc<
+            {
+              Model: NarrowToModel;
+              Name: Def["Name"];
+              Id: Def["Id"];
+              WideModel: Def["WideModel"];
+              Flags: Def["Flags"] & { Reduced: true };
+            },
+            Props
+          >
+        : never
+      : never;
 
   /**
    * Deeply normalizes server dates in a given type. It replaces ServerDate with
