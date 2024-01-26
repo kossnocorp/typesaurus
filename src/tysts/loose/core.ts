@@ -124,7 +124,7 @@ interface Organization {
 interface TextContent {
   type: "text";
   text: string;
-  public?: boolean;
+  public?: boolean | undefined;
   active: boolean;
 }
 
@@ -154,6 +154,14 @@ interface Address {
 }
 
 interface Mixed {
+  record: Record<OpaqueString, string>;
+  nestedRecord: {
+    record: Record<OpaqueString, string>;
+  };
+  idRecord: Record<Typesaurus.Id<"hello">, number>;
+  nestedIdRecord: {
+    idRecord: Record<Typesaurus.Id<"hello">, number>;
+  };
   date1: Date;
   date2: Date | undefined;
   date3?: Date;
@@ -267,10 +275,17 @@ export interface UserActive {
   email: string;
 }
 
+interface Book {
+  name: string;
+  author: string;
+}
+
 // Flat schema
 const db = schema(
   ($) => ({
-    users: $.collection<User>(),
+    users: $.collection<User>().sub({
+      books: $.collection<Book>(),
+    }),
     posts: $.collection<Post>(),
     accounts: $.collection<Account>(),
     organizations: $.collection<Organization>(),
@@ -311,6 +326,24 @@ async function custom() {
 
     doc?.data.hello;
   }
+}
+
+async function colleciton() {
+  function getName(collection: Typesaurus.Collection<{ name: string }, any>) {
+    return collection.all();
+  }
+
+  await getName(db.users);
+  await getName(db.accounts);
+  await getName(db.users(db.users.id("sasha")).books);
+
+  const things = await Promise.all([
+    getName(db.users),
+    getName(db.accounts),
+    getName(db.users(db.users.id("sasha")).books),
+  ]);
+
+  things.map((nested) => nested.map((thing) => thing.data.name));
 }
 
 async function doc() {
@@ -1041,6 +1074,38 @@ async function query() {
   // Allows to query by null
 
   db.comments.query(($) => $.field("author").eq(null));
+
+  // Allows to use or query
+
+  db.comments.query(($) => [
+    $.field("text").eq("Hello"),
+    $.or($.field("author").eq("Sasha"), $.field("author").eq("Tati")),
+  ]);
+
+  const $or = db.comments.query.build();
+
+  $or.field("text").eq("Hello");
+  $or.or($or.field("author").eq("Sasha"), $or.field("author").eq("Tati"));
+
+  // It prevents using non-where queries in where
+
+  // @ts-expect-error - Can't use order in where
+  db.comments.query(($) => [$.field("text").eq("Hello"), $.or($.limit(1))]);
+
+  // It allows to query via opaqued types
+
+  db.mixed.query(($) => $.field("record", "123" as OpaqueString).eq("123"));
+  db.mixed.query(($) =>
+    $.field("nestedRecord", "record", "123" as OpaqueString).eq("123"),
+  );
+  db.mixed.query(($) =>
+    $.field("idRecord", "123" as Typesaurus.Id<"hello">).eq(123),
+  );
+  db.mixed.query(($) =>
+    $.field("nestedIdRecord", "idRecord", "123" as Typesaurus.Id<"hello">).eq(
+      123,
+    ),
+  );
 }
 
 async function add() {

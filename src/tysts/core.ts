@@ -283,10 +283,17 @@ export interface UserActive {
   email: string;
 }
 
+interface Book {
+  name: string;
+  author: string;
+}
+
 // Flat schema
 const db = schema(
   ($) => ({
-    users: $.collection<User>(),
+    users: $.collection<User>().sub({
+      books: $.collection<Book>(),
+    }),
     posts: $.collection<Post>(),
     accounts: $.collection<Account>(),
     organizations: $.collection<Organization>(),
@@ -327,6 +334,24 @@ async function custom() {
 
     doc?.data.hello;
   }
+}
+
+async function colleciton() {
+  function getName(collection: Typesaurus.Collection<{ name: string }, any>) {
+    return collection.all();
+  }
+
+  await getName(db.users);
+  await getName(db.accounts);
+  await getName(db.users(db.users.id("sasha")).books);
+
+  const things = await Promise.all([
+    getName(db.users),
+    getName(db.accounts),
+    getName(db.users(db.users.id("sasha")).books),
+  ]);
+
+  things.map((nested) => nested.map((thing) => thing.data.name));
 }
 
 async function doc() {
@@ -3415,9 +3440,8 @@ type Assert<Type1, _Type2 extends Type1> = true;
 
 export function assertType<Type>(value: Type) {}
 
-export type TypeEqual<T, U> =
-  Exclude<T, U> extends never
-    ? Exclude<U, T> extends never
-      ? true
-      : false
-    : false;
+export type TypeEqual<T, U> = Exclude<T, U> extends never
+  ? Exclude<U, T> extends never
+    ? true
+    : false
+  : false;
