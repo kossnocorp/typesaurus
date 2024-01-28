@@ -1,4 +1,4 @@
-⚠️ **Warning**: the current `main` represents Typesaurus X pre-release version of the library. [See `v7` branch](https://github.com/kossnocorp/typesaurus/tree/v7) for the stable version.
+🎉️ NEW: [Typesaurus X is out](https://blog.typesaurus.com/typesaurus-x-is-out/)!
 
 # 🦕 Typesaurus
 
