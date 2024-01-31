@@ -1,5 +1,7 @@
 🎉️ NEW: [Typesaurus X is out](https://blog.typesaurus.com/typesaurus-x-is-out/)!
 
+![](https://raw.githubusercontent.com/kossnocorp/typesaurus/main/promo.gif)
+
 # 🦕 Typesaurus
 
 TypeScript-first ODM for Firestore.
