@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.0.1 - 2024-01-31
+
+### Fixed
+
+- Fixed subcollections path for renamed with `.name` collections.
+
 ## v10.0.0 - 2024-01-28
 
 Completely revamped Typesaurus with a new API and new features. [Follow this guide to learn how it works](https://typesaurus.com/get-started/).

@@ -420,7 +420,7 @@ function schemaHelpers() {
             type: "collection",
             name,
             sub(schema) {
-              return { type: "collection", schema };
+              return { type: "collection", name, schema };
             },
           };
         },

@@ -3,14 +3,35 @@ import { schema } from "..";
 
 describe("collection", () => {
   it("allows to name the collection", async () => {
-    const id = Date.now().toString();
     const db = schema(($) => ({
       schedule: $.collection<any, string>(),
       nope: $.collection<any, string>().name("schedule"),
     }));
 
+    const id = Date.now().toString();
+
     await db.nope.set(id, { hello: "world" });
     const doc = await db.schedule.get(id);
+    expect(doc?.data).toEqual({ hello: "world" });
+  });
+
+  it("renames nested collections", async () => {
+    const db = schema(($) => ({
+      schedule: $.collection<any, string>().sub({
+        reminders: $.collection<any, string>(),
+      }),
+      nope: $.collection<any, string>()
+        .name("schedule")
+        .sub({
+          nah: $.collection<any, string>().name("reminders"),
+        }),
+    }));
+
+    const scheduleId = Math.random().toString();
+    const reminderId = Math.random().toString();
+
+    await db.nope(scheduleId).nah.set(reminderId, { hello: "world" });
+    const doc = await db.schedule(scheduleId).reminders.get(reminderId);
     expect(doc?.data).toEqual({ hello: "world" });
   });
 

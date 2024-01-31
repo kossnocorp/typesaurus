@@ -434,7 +434,7 @@ function schemaHelpers() {
             type: "collection",
             name,
             sub(schema) {
-              return { type: "collection", schema };
+              return { type: "collection", name, schema };
             },
           };
         },
@@ -458,7 +458,7 @@ function db(firestore, schema, nestedPath) {
       );
 
       if ("schema" in plainCollection) {
-        enrichedSchema[name] = new Proxy(() => {}, {
+        enrichedSchema[collectionName] = new Proxy(() => {}, {
           get: (_target, prop) => {
             if (prop === "schema") return plainCollection.schema;
             else if (prop === "sub")
