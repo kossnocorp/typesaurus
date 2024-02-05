@@ -18,8 +18,6 @@ describe("sum", () => {
     rating: number;
   }
 
-  const postfix = Math.random().toString(36).slice(2, 7);
-
   const db = schema(($) => ({
     sumPosts: $.collection<Post>().sub({
       sumComments: $.collection<Comment>(),
@@ -84,19 +82,19 @@ describe("sum", () => {
     ]);
   });
 
-  it("sums documents in a collection", async () => {
+  it("sums document fields in a collection", async () => {
     expect(await db.sumPosts.sum("rating")).toBe(11);
     expect(await db.sumProducts.sum("rating")).toBe(1);
   });
 
-  it("counts documents in a query", async () => {
+  it("sums document fields in a query", async () => {
     const count = await db.sumPosts
       .query(($) => $.field("title").eq("First post"))
       .sum("rating");
     expect(count).toBe(8);
   });
 
-  it("counts documents in a group collection", async () => {
+  it("sums document fields in a group collection", async () => {
     const count = await groups(db).sumComments.sum("rating");
     expect(count).toBe(22);
   });
