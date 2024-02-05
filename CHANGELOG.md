@@ -11,7 +11,7 @@ This change log follows the format documented in [Keep a CHANGELOG].
 
 ### Added
 
-- `sum` and `average` aggregate methods to collections, queries and collection groups.
+- Added `sum` and `average` aggregation methods to collections, queries and collection groups.
 
 ## v10.0.1 - 2024-01-31
 
