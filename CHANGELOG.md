@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.1.0 - 2024-02-05
+
+### Added
+
+- `sum` and `average` aggregate methods to collections, queries and collection groups.
+
 ## v10.0.1 - 2024-01-31
 
 ### Fixed
