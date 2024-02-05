@@ -1003,6 +1003,8 @@ export namespace TypesaurusCore {
     query: Query.Function<Def>;
 
     count(): Promise<number>;
+
+    sum(field: keyof Utils.PickByType<DocModel<Def>, number>): Promise<number>;
   }
 
   /**

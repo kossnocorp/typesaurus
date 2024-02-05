@@ -4,6 +4,7 @@ import {
   FieldValue,
   Timestamp,
   Filter,
+  AggregateField,
 } from "firebase-admin/firestore";
 import { SubscriptionPromise } from "../../sp/index.ts";
 import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
@@ -195,6 +196,14 @@ export class Collection {
   async count() {
     const snap = await this.adapter().collection().count().get();
     return snap.data().count;
+  }
+
+  async sum(field) {
+    const snap = await this.adapter()
+      .collection()
+      .aggregate({ result: AggregateField.sum(field) })
+      .get();
+    return snap.data().result;
   }
 
   adapter() {
@@ -647,6 +656,13 @@ export function query(firestore, adapter, queries) {
     count: async () => {
       const snap = await firestoreQuery.count().get();
       return snap.data().count;
+    },
+
+    sum: async (field) => {
+      const snap = await firestoreQuery
+        .aggregate({ result: AggregateField.sum(field) })
+        .get();
+      return snap.data().result;
     },
   });
 

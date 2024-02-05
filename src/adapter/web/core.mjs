@@ -27,6 +27,8 @@ import {
   where,
   and,
   or,
+  getAggregateFromServer,
+  sum,
 } from "firebase/firestore";
 import { SubscriptionPromise } from "../../sp/index.ts";
 import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
@@ -209,6 +211,13 @@ export class Collection {
   async count() {
     const snap = await getCountFromServer(this.firebaseCollection());
     return snap.data().count;
+  }
+
+  async sum(field) {
+    const snap = await getAggregateFromServer(this.firebaseCollection(), {
+      result: sum(field),
+    });
+    return snap.data().result;
   }
 
   adapter() {
@@ -690,6 +699,13 @@ export function _query(firestore, adapter, queries) {
     count: async () => {
       const snap = await getCountFromServer(firebaseQuery());
       return snap.data().count;
+    },
+
+    sum: async (field) => {
+      const snap = await getAggregateFromServer(firebaseQuery(), {
+        result: sum(field),
+      });
+      return snap.data().result;
     },
   });
 

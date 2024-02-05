@@ -1,4 +1,9 @@
-import { collectionGroup, getCountFromServer } from "firebase/firestore";
+import {
+  collectionGroup,
+  getCountFromServer,
+  getAggregateFromServer,
+  sum,
+} from "firebase/firestore";
 import { _query, all, pathToDoc, queryHelpers, wrapData } from "./core.mjs";
 import { firestoreSymbol } from "./firebase.mjs";
 
@@ -48,6 +53,14 @@ class Group {
       collectionGroup(this.firestore(), this.name),
     );
     return snap.data().count;
+  }
+
+  async sum(field) {
+    const snap = await getAggregateFromServer(
+      collectionGroup(this.firestore(), this.name),
+      { result: sum(field) },
+    );
+    return snap.data().result;
   }
 
   adapter() {

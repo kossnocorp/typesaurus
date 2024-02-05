@@ -1,3 +1,4 @@
+import { AggregateField } from "firebase-admin/firestore";
 import { all, pathToDoc, query, queryHelpers, wrapData } from "./core.mjs";
 import { firestoreSymbol } from "./firebase.mjs";
 
@@ -41,6 +42,14 @@ class Group {
   async count() {
     const snap = await this.adapter().collection().count().get();
     return snap.data().count;
+  }
+
+  async sum(field) {
+    const snap = await this.adapter()
+      .collection()
+      .aggregate({ result: AggregateField.sum(field) })
+      .get();
+    return snap.data().result;
   }
 
   adapter() {

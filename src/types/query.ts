@@ -40,6 +40,10 @@ export namespace TypesaurusQuery {
       Core.SubscriptionListMeta<Def, Props>
     > {
     count(): Promise<number>;
+
+    sum(
+      field: keyof Utils.PickByType<Core.DocModel<Def>, number>,
+    ): Promise<number>;
   }
 
   export type Data<Model extends Core.ModelType> =
@@ -309,9 +313,10 @@ export namespace TypesaurusQuery {
     Def extends Core.DocDef,
     Parent,
     Key extends QueryFieldKey1<Parent>,
-  > = Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<any>
-    ? QueryArrayField<Def["Model"], Parent, Key>
-    : QueryPrimitiveField<Def, Parent, Key>;
+  > =
+    Exclude<QueryFieldGet1<Parent, Key>, undefined> extends Array<any>
+      ? QueryArrayField<Def["Model"], Parent, Key>
+      : QueryPrimitiveField<Def, Parent, Key>;
 
   export type QueryFieldValue<Parent, Key extends QueryFieldKey1<Parent>> =
     | // Unless the original field type is unknown, union with it
@@ -321,12 +326,10 @@ export namespace TypesaurusQuery {
           Exclude<Parent[Key], Core.ServerDate>)
     | QueryFieldValueNonNullish<QueryFieldGet1<Parent, Key>>;
 
-  export type QueryFieldValueNonNullish<Value> = Exclude<
-    Value,
-    undefined
-  > extends Core.ServerDate
-    ? Exclude<Value, Core.ServerDate> | Date
-    : Value;
+  export type QueryFieldValueNonNullish<Value> =
+    Exclude<Value, undefined> extends Core.ServerDate
+      ? Exclude<Value, Core.ServerDate> | Date
+      : Value;
 
   /**
    * Common query helpers API with query object result passed as a generic.
