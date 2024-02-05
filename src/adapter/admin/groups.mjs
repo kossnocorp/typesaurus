@@ -52,6 +52,14 @@ class Group {
     return snap.data().result;
   }
 
+  async average(field) {
+    const snap = await this.adapter()
+      .collection()
+      .aggregate({ result: AggregateField.average(field) })
+      .get();
+    return snap.data().result;
+  }
+
   adapter() {
     return {
       collection: () => this.firestore().collectionGroup(this.name),

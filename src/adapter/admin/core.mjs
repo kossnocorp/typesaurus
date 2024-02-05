@@ -206,6 +206,14 @@ export class Collection {
     return snap.data().result;
   }
 
+  async average(field) {
+    const snap = await this.adapter()
+      .collection()
+      .aggregate({ result: AggregateField.average(field) })
+      .get();
+    return snap.data().result;
+  }
+
   adapter() {
     return {
       collection: () => this.firebaseCollection(),
@@ -661,6 +669,13 @@ export function query(firestore, adapter, queries) {
     sum: async (field) => {
       const snap = await firestoreQuery
         .aggregate({ result: AggregateField.sum(field) })
+        .get();
+      return snap.data().result;
+    },
+
+    average: async (field) => {
+      const snap = await firestoreQuery
+        .aggregate({ result: AggregateField.average(field) })
         .get();
       return snap.data().result;
     },

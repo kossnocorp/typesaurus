@@ -29,6 +29,7 @@ import {
   or,
   getAggregateFromServer,
   sum,
+  average,
 } from "firebase/firestore";
 import { SubscriptionPromise } from "../../sp/index.ts";
 import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
@@ -216,6 +217,13 @@ export class Collection {
   async sum(field) {
     const snap = await getAggregateFromServer(this.firebaseCollection(), {
       result: sum(field),
+    });
+    return snap.data().result;
+  }
+
+  async average(field) {
+    const snap = await getAggregateFromServer(this.firebaseCollection(), {
+      result: average(field),
     });
     return snap.data().result;
   }
@@ -704,6 +712,13 @@ export function _query(firestore, adapter, queries) {
     sum: async (field) => {
       const snap = await getAggregateFromServer(firebaseQuery(), {
         result: sum(field),
+      });
+      return snap.data().result;
+    },
+
+    average: async (field) => {
+      const snap = await getAggregateFromServer(firebaseQuery(), {
+        result: average(field),
       });
       return snap.data().result;
     },

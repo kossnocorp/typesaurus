@@ -1005,6 +1005,10 @@ export namespace TypesaurusCore {
     count(): Promise<number>;
 
     sum(field: keyof Utils.PickByType<DocModel<Def>, number>): Promise<number>;
+
+    average(
+      field: keyof Utils.PickByType<DocModel<Def>, number>,
+    ): Promise<number>;
   }
 
   /**

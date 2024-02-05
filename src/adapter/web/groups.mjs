@@ -3,6 +3,7 @@ import {
   getCountFromServer,
   getAggregateFromServer,
   sum,
+  average,
 } from "firebase/firestore";
 import { _query, all, pathToDoc, queryHelpers, wrapData } from "./core.mjs";
 import { firestoreSymbol } from "./firebase.mjs";
@@ -59,6 +60,14 @@ class Group {
     const snap = await getAggregateFromServer(
       collectionGroup(this.firestore(), this.name),
       { result: sum(field) },
+    );
+    return snap.data().result;
+  }
+
+  async average(field) {
+    const snap = await getAggregateFromServer(
+      collectionGroup(this.firestore(), this.name),
+      { result: average(field) },
     );
     return snap.data().result;
   }

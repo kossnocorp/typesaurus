@@ -44,6 +44,10 @@ export namespace TypesaurusQuery {
     sum(
       field: keyof Utils.PickByType<Core.DocModel<Def>, number>,
     ): Promise<number>;
+
+    average(
+      field: keyof Utils.PickByType<Core.DocModel<Def>, number>,
+    ): Promise<number>;
   }
 
   export type Data<Model extends Core.ModelType> =
