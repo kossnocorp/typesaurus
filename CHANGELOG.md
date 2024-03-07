@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.1.1 - 2024-03-07
+
+### Fixed
+
+- Fixed `batch` not using respecting collections renaming.
+
 ## v10.1.0 - 2024-02-05
 
 ### Added

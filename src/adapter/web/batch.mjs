@@ -10,28 +10,22 @@ import { firestoreSymbol } from "./firebase.mjs";
 export const batch = (rootDB, options) => {
   assertEnvironment(options?.as);
   const firebaseBatch = writeBatch(rootDB[firestoreSymbol]());
-  const db = async () => {
-    await firebaseBatch.commit();
-  };
-  Object.assign(db, batchDB(rootDB, firebaseBatch));
-  return db;
+  return Object.assign(
+    () => firebaseBatch.commit(),
+    batchDB(rootDB, firebaseBatch),
+  );
 };
 
 function batchDB(rootDB, batch) {
-  function convertDB(db, nestedPath) {
+  function convertDB(db) {
     const processedDB = {};
-    Object.entries(db).forEach(([path, collection]) => {
-      const readCollection = new Collection(
-        rootDB,
-        batch,
-        nestedPath ? `${nestedPath}/${path}` : path,
-      );
-      processedDB[path] =
+    Object.entries(db).forEach(([alias, collection]) => {
+      const readCollection = new Collection(rootDB, batch, collection.path);
+      processedDB[alias] =
         typeof collection === "function"
           ? new Proxy(() => {}, {
               get: (_target, prop) => readCollection[prop],
-              apply: (_target, _prop, [id]) =>
-                convertDB(collection(id), `${collection.path}/${id}`),
+              apply: (_target, _prop, [id]) => convertDB(collection(id)),
             })
           : readCollection;
     });

@@ -15,6 +15,11 @@ describe("batch", () => {
     users: $.collection<User>().sub({
       orders: $.collection<Order>(),
     }),
+    smusers: $.collection<User>()
+      .name("users")
+      .sub({
+        shmorders: $.collection<Order>().name("orders"),
+      }),
   }));
 
   it("performs batch operations", async () => {
@@ -155,6 +160,26 @@ describe("batch", () => {
     await $();
   });
 
+  it("respects renamed collections", async () => {
+    const $ = batch(db);
+    const id = Math.random().toString();
+    const sashaId = db.smusers.id(`${id}-sasha`);
+    const tatiId = db.smusers.id(`${id}-tati`);
+    const edId = db.smusers.id(`${id}-ed`);
+    $.smusers.set(sashaId, { name: "Sasha" });
+    $.smusers.set(tatiId, { name: "Tati" });
+    $.smusers.set(edId, { name: "Ed" });
+    await $();
+    const [sasha, tati, ed] = await Promise.all([
+      db.users.get(db.users.id(sashaId)),
+      db.users.get(db.users.id(tatiId)),
+      db.users.get(db.users.id(edId)),
+    ]);
+    expect(sasha?.data.name).toBe("Sasha");
+    expect(tati?.data.name).toBe("Tati");
+    expect(ed?.data.name).toBe("Ed");
+  });
+
   describe("subcollection", () => {
     it("works on subcollections", async () => {
       const userId = await db.users.id();
@@ -169,6 +194,27 @@ describe("batch", () => {
       const [order1, order2] = await db
         .users(userId)
         .orders.many([orderId1, orderId2]);
+
+      expect(order1?.data.title).toBe("First order");
+      expect(order2?.data.title).toBe("Another order");
+    });
+
+    it("respects renamed collections", async () => {
+      const userId = await db.smusers.id();
+      const orderId1 = await db.smusers.sub.shmorders.id();
+      const orderId2 = await db.smusers.sub.shmorders.id();
+
+      const $ = batch(db);
+      $.smusers(userId).shmorders.set(orderId1, { title: "First order" });
+      $.smusers(userId).shmorders.set(orderId2, { title: "Another order" });
+      await $();
+
+      const [order1, order2] = await db
+        .users(db.users.id(userId))
+        .orders.many([
+          db.users.sub.orders.id(orderId1),
+          db.users.sub.orders.id(orderId2),
+        ]);
 
       expect(order1?.data.title).toBe("First order");
       expect(order2?.data.title).toBe("Another order");
