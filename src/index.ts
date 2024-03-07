@@ -80,7 +80,7 @@ export namespace Typesaurus {
    */
   export type Collection<
     Model extends Core.ModelType,
-    Name extends string,
+    Name extends string = string,
     Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags,
@@ -93,7 +93,7 @@ export namespace Typesaurus {
    */
   export type Ref<
     Model extends Core.ModelType,
-    Name extends string,
+    Name extends string = string,
     Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags,
@@ -106,7 +106,7 @@ export namespace Typesaurus {
    */
   export type Doc<
     Model extends Core.ModelType,
-    Name extends string = any,
+    Name extends string = string,
     Path extends string = Name,
     WideModel extends Core.ModelType = Model,
     Flags extends Core.DocDefFlags = Core.DocDefFlags,
