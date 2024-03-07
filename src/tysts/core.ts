@@ -337,21 +337,63 @@ async function custom() {
 }
 
 async function colleciton() {
-  function getName(collection: Typesaurus.Collection<{ name: string }, any>) {
-    return collection.all();
+  /// Using shared collection shape as an argument
+
+  //// Basic
+  {
+    function getName<
+      Collection extends Typesaurus.Collection<{ name: string }>,
+    >(collection: Collection) {
+      return collection.all();
+    }
+
+    await getName(db.users);
+    await getName(db.accounts);
+    await getName(db.users(db.users.id("sasha")).books);
+
+    const things = await Promise.all([
+      getName(db.users),
+      getName(db.accounts),
+      getName(db.users(db.users.id("sasha")).books),
+    ]);
+
+    things.map((nested) => nested.map((thing) => thing.data.name));
   }
 
-  await getName(db.users);
-  await getName(db.accounts);
-  await getName(db.users(db.users.id("sasha")).books);
+  //// Generic
+  {
+    function getName<
+      Collection extends Typesaurus.Collection<{ name: string }>,
+    >(collection: Collection) {
+      return collection.all();
+    }
 
-  const things = await Promise.all([
-    getName(db.users),
-    getName(db.accounts),
-    getName(db.users(db.users.id("sasha")).books),
-  ]);
+    await getName(db.users);
+    await getName(db.accounts);
+    await getName(db.users(db.users.id("sasha")).books);
 
-  things.map((nested) => nested.map((thing) => thing.data.name));
+    const things = await Promise.all([
+      getName(db.users),
+      getName(db.accounts),
+      getName(db.users(db.users.id("sasha")).books),
+    ]);
+
+    things.map((nested) => nested.map((thing) => thing.data.name));
+  }
+}
+
+async function ref() {
+  function updateName(ref: Typesaurus.Ref<{ name: string }>, name: string) {
+    return ref.update({ name });
+  }
+
+  const userId = db.users.id("sasha");
+  updateName(db.users.ref(userId), "Sasha");
+  updateName(db.accounts.ref(db.accounts.id("hello")), "Hello");
+  updateName(
+    db.users(userId).books.ref(db.users.sub.books.id("world")),
+    "World",
+  );
 }
 
 async function doc() {
