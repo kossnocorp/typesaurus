@@ -2257,79 +2257,6 @@ async function edgeCases() {
   return id;
 }
 
-async function xx() {
-  interface ServerChapter {
-    uid: FirestoreSchema["chapters"]["Id"];
-    name: string;
-    specialField: string;
-  }
-
-  interface ServerChapterPost {
-    uid: FirestoreSchema["chapters"]["sub"]["chapter_posts"]["Id"];
-    chapterUid: FirestoreSchema["chapters"]["Id"];
-    specialField: string;
-  }
-
-  const firestore = schema(($) => ({
-    chapters: $.collection<ServerChapter>().sub({
-      chapter_posts: $.collection<ServerChapterPost>(),
-    }),
-  }));
-
-  type FirestoreSchema = Typesaurus.Schema<typeof firestore>;
-
-  // SPECIAL FIELD
-
-  interface ServerWithSpecialField {
-    specialField: string;
-  }
-
-  function WithSpecialField<Name extends string, Path extends string>(
-    props: ServerWithSpecialField,
-    collection: Typesaurus.Collection<ServerWithSpecialField, Name, Path>,
-    id: Typesaurus.Id<Path>,
-  ) {
-    const updateSpecialField = async () => {
-      return collection.update(id, {
-        specialField: "some value",
-      });
-    };
-
-    return {
-      ...props,
-      updateSpecialField,
-    };
-  }
-
-  const newChapter = (serverChapter: FirestoreSchema["chapters"]["Data"]) => {
-    const withAccess = WithSpecialField(
-      serverChapter,
-      firestore.chapters,
-      serverChapter.uid,
-    );
-
-    return {
-      ...serverChapter,
-      ...withAccess,
-    };
-  };
-
-  const newChapterPost = (
-    serverChapterPost: FirestoreSchema["chapters"]["sub"]["chapter_posts"]["Data"],
-  ) => {
-    const withAccess = WithSpecialField(
-      serverChapterPost,
-      firestore.chapters(serverChapterPost.chapterUid).chapter_posts, // The issue was here
-      serverChapterPost.uid,
-    );
-
-    return {
-      ...serverChapterPost,
-      ...withAccess,
-    };
-  };
-}
-
 // @tysts-end: strict
 
 namespace Data {
@@ -3440,8 +3367,9 @@ type Assert<Type1, _Type2 extends Type1> = true;
 
 export function assertType<Type>(value: Type) {}
 
-export type TypeEqual<T, U> = Exclude<T, U> extends never
-  ? Exclude<U, T> extends never
-    ? true
-    : false
-  : false;
+export type TypeEqual<T, U> =
+  Exclude<T, U> extends never
+    ? Exclude<U, T> extends never
+      ? true
+      : false
+    : false;
