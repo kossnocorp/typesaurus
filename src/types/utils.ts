@@ -11,14 +11,11 @@ export namespace TypesaurusUtils {
   export type AnyBrand = { [key: string | number | symbol]: any };
 
   /**
-   * Picks only fields of the given type. It allows unions with other types.
+   * Picks only keys of the given type.
    */
-  export type PickByType<Base, Type> = Pick<
-    Base,
-    {
-      [Key in keyof Base]: Type extends Base[Key] ? Key : never;
-    }[keyof Base]
-  >;
+  export type KeysOfType<Base, Type> = {
+    [Key in keyof Base]: Type extends Base[Key] ? Key : never;
+  }[keyof Base];
 
   /**
    * Removes brand from the given type.

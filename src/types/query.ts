@@ -41,12 +41,10 @@ export namespace TypesaurusQuery {
     > {
     count(): Promise<number>;
 
-    sum(
-      field: keyof Utils.PickByType<Core.DocModel<Def>, number>,
-    ): Promise<number>;
+    sum(field: Utils.KeysOfType<Core.DocModel<Def>, number>): Promise<number>;
 
     average(
-      field: keyof Utils.PickByType<Core.DocModel<Def>, number>,
+      field: Utils.KeysOfType<Core.DocModel<Def>, number>,
     ): Promise<number>;
   }
 
