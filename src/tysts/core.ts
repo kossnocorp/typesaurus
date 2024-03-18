@@ -2342,14 +2342,14 @@ async function inferSchema() {
   assertType<
     TypeEqual<
       Schema2["users"]["sub"]["settings"]["Ref"],
-      Typesaurus.Ref<Settings, "users/settings">
+      Typesaurus.Ref<Settings, "settings", "users/settings">
     >
   >(true);
 
   assertType<
     TypeEqual<
       Schema2["users"]["sub"]["settings"]["Doc"],
-      Typesaurus.Doc<Settings, "users/settings">
+      Typesaurus.Doc<Settings, "settings", "users/settings">
     >
   >(true);
 }

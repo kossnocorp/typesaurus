@@ -329,21 +329,175 @@ async function custom() {
 }
 
 async function colleciton() {
-  function getName(collection: Typesaurus.Collection<{ name: string }, any>) {
-    return collection.all();
+  /// Reading generic collections
+
+  //// Model as generic
+  {
+    function getAll<Model extends { name: string }>(
+      collection: Typesaurus.Collection<Model>,
+    ) {
+      return collection.all();
+    }
+
+    const things = await Promise.all([
+      getAll(db.users),
+      getAll(db.accounts),
+      getAll(db.users(db.users.id("sasha")).books),
+    ]);
+    things.map((nested) => nested.map((thing) => thing.data.name));
   }
 
-  await getName(db.users);
-  await getName(db.accounts);
-  await getName(db.users(db.users.id("sasha")).books);
+  //// Collection as generic
+  {
+    function getAll<Collection extends Typesaurus.Collection<{ name: string }>>(
+      collection: Collection,
+    ) {
+      return collection.all();
+    }
 
-  const things = await Promise.all([
-    getName(db.users),
-    getName(db.accounts),
-    getName(db.users(db.users.id("sasha")).books),
-  ]);
+    const things = await Promise.all([
+      // @ts-expect-error: TODO: Make it work somehow?!
+      getAll(db.users),
+      // @ts-expect-error: TODO: Make it work somehow?!
+      getAll(db.accounts),
+      // @ts-expect-error: TODO: Make it work somehow?!
+      getAll(db.users(db.users.id("sasha")).books),
+    ]);
+    things.map((nested) => nested.map((thing) => thing.data.name));
+  }
+}
 
-  things.map((nested) => nested.map((thing) => thing.data.name));
+async function ref() {
+  /// Reading generic refs
+
+  //// Model as generic
+  {
+    function get<Model extends { name: string }>(ref: Typesaurus.Ref<Model>) {
+      return ref.get();
+    }
+
+    const userId = db.users.id("sasha");
+
+    const user = await get(db.users.ref(userId));
+    if (user) {
+      user.data.name;
+      user.data.birthdate;
+    }
+
+    const account = await get(db.accounts.ref(db.accounts.id("hello")));
+    if (account) {
+      account.data.name;
+      account.data.contacts;
+    }
+
+    const book = await get(
+      db.users(userId).books.ref(db.users.sub.books.id("world")),
+    );
+    if (book) {
+      book.data.name;
+      book.data.author;
+    }
+  }
+
+  //// Ref as generic
+  {
+    function get<Ref extends Typesaurus.Ref<{ name: string }>>(ref: Ref) {
+      return ref.get();
+    }
+
+    const userId = db.users.id("sasha");
+
+    // @ts-expect-error: TODO: Make it work somehow?!
+    const user = await get(db.users.ref(userId));
+    if (user) {
+      user.data.name;
+      // @ts-expect-error: TODO: Make it work somehow?!
+      user.data.birthdate;
+    }
+
+    // @ts-expect-error: TODO: Make it work somehow?!
+    const account = await get(db.accounts.ref(db.accounts.id("hello")));
+    if (account) {
+      account.data.name;
+      // @ts-expect-error: TODO: Make it work somehow?!
+      account.data.contacts;
+    }
+
+    const book = await get(
+      // @ts-expect-error: TODO: Make it work somehow?!
+      db.users(userId).books.ref(db.users.sub.books.id("world")),
+    );
+    if (book) {
+      book.data.name;
+      // @ts-expect-error: TODO: Make it work somehow?!
+      book.data.author;
+    }
+  }
+
+  //// Ref union
+  {
+    type Schema = Core.InferSchema<typeof db>;
+
+    function get(
+      ref:
+        | Schema["users"]["Ref"]
+        | Schema["accounts"]["Ref"]
+        | Schema["users"]["sub"]["books"]["Ref"],
+    ) {
+      return ref.get();
+    }
+
+    const userId = db.users.id("sasha");
+
+    const user = await get(db.users.ref(userId));
+    if (user) {
+      user.data.name;
+      // @ts-expect-error: We don't know if it's a user
+      user.data.birthdate;
+    }
+
+    const account = await get(db.accounts.ref(db.accounts.id("hello")));
+    if (account) {
+      account.data.name;
+      // @ts-expect-error: We don't know if it's an account
+      account.data.contacts;
+    }
+
+    const book = await get(
+      db.users(userId).books.ref(db.users.sub.books.id("world")),
+    );
+    if (book) {
+      book.data.name;
+      // @ts-expect-error: We don't know if it's a book
+      book.data.author;
+    }
+  }
+
+  /// Writing generic refs
+
+  {
+    type Schema = Core.InferSchema<typeof db>;
+
+    function writeName(
+      ref:
+        | Schema["users"]["Ref"]
+        | Schema["accounts"]["Ref"]
+        | Schema["users"]["sub"]["books"]["Ref"],
+      name: string,
+    ) {
+      // @ts-expect-error: TODO: Make it work somehow?!
+      return ref.update({ name });
+    }
+
+    const userId = db.users.id("sasha");
+
+    writeName(db.users.ref(userId), "Sasha");
+    writeName(db.accounts.ref(db.accounts.id("hello")), "Hello");
+    writeName(
+      db.users(userId).books.ref(db.users.sub.books.id("world")),
+      "World",
+    );
+  }
 }
 
 async function doc() {
@@ -3092,8 +3246,9 @@ type Assert<Type1, _Type2 extends Type1> = true;
 
 export function assertType<Type>(value: Type) {}
 
-export type TypeEqual<T, U> = Exclude<T, U> extends never
-  ? Exclude<U, T> extends never
-    ? true
-    : false
-  : false;
+export type TypeEqual<T, U> =
+  Exclude<T, U> extends never
+    ? Exclude<U, T> extends never
+      ? true
+      : false
+    : false;
