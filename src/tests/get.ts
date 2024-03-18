@@ -5,7 +5,7 @@ import { schema, Typesaurus } from "..";
 describe("get", () => {
   interface User {
     name: string;
-    lastOrder?: Typesaurus.Ref<Order, "users/orders">;
+    lastOrder?: Typesaurus.Ref<Order, "orders", "users/orders">;
   }
 
   interface Post {

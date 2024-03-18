@@ -11,7 +11,7 @@ describe("all", () => {
     book: Typesaurus.Ref<Book, "books">;
     quantity: number;
     date?: Date;
-    lastUpdate?: Typesaurus.Ref<Update, "orders/updates">;
+    lastUpdate?: Typesaurus.Ref<Update, "updates", "orders/updates">;
   }
 
   interface Update {

@@ -1185,9 +1185,9 @@ export namespace TypesaurusCore {
       schema: Schema,
     ): NestedPlainCollection<Model, Schema, CustomId, CustomName>;
 
-    name<Path extends string>(
-      name: Path,
-    ): PlainCollection<Model, CustomId, Path>;
+    name<Name extends string>(
+      name: Name,
+    ): PlainCollection<Model, CustomId, Name>;
   }
 
   export interface NestedPlainCollection<

@@ -5,7 +5,7 @@ describe("many", () => {
   interface Fruit {
     color: string;
     tree?: Typesaurus.Ref<Tree, "trees">;
-    lastFly?: Typesaurus.Ref<Fly, "fruits/flies">;
+    lastFly?: Typesaurus.Ref<Fly, "flies", "fruits/flies">;
   }
 
   interface Fly {
