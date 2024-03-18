@@ -1004,11 +1004,9 @@ export namespace TypesaurusCore {
 
     count(): Promise<number>;
 
-    sum(field: keyof Utils.KeysOfType<DocModel<Def>, number>): Promise<number>;
+    sum(field: Utils.KeysOfType<DocModel<Def>, number>): Promise<number>;
 
-    average(
-      field: keyof Utils.KeysOfType<DocModel<Def>, number>,
-    ): Promise<number>;
+    average(field: Utils.KeysOfType<DocModel<Def>, number>): Promise<number>;
   }
 
   /**
