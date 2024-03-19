@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.3.0 - 2024-03-??
+
+### Fixed
+
+- Fixed `update` widening the model type when passing an object. It was allowed to pass an object with extra fields. It is now fixed except for data returned from the function argument, which is still prone to the problem, [which is a TypeScript limitation](https://github.com/microsoft/TypeScript/issues/241).
+
 ## v10.2.0 - 2024-03-07
 
 ### Fixed

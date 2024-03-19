@@ -6,12 +6,29 @@ export namespace TypesaurusUpdate {
     <
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
-      Arg extends TypesaurusUpdate.Arg<Def, Props>,
     >(
       id: Def["Id"],
-      data: Arg,
+      data: ArgData<Def, Props>,
       options?: Core.OperationOptions<Environment>,
-    ): Result<Def, Props, Arg>;
+    ): Promise<Core.Ref<Def>>;
+
+    <
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment },
+    >(
+      id: Def["Id"],
+      data: ArgGetterResolved<Core.DocModel<Def>, Def["WideModel"], Props>,
+      options?: Core.OperationOptions<Environment>,
+    ): Promise<Core.Ref<Def>>;
+
+    <
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment },
+    >(
+      id: Def["Id"],
+      data: ArgGetterUnresolved<Core.DocModel<Def>, Props>,
+      options?: Core.OperationOptions<Environment>,
+    ): undefined;
 
     build<
       Environment extends Core.RuntimeEnvironment,
@@ -22,15 +39,34 @@ export namespace TypesaurusUpdate {
     ): Builder<Def, Props>;
   }
 
+  /**
+   * The update doc function, used to define `update` method in the doc and ref
+   * types.
+   */
   export interface DocFunction<Def extends Core.DocDef> {
     <
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
-      Arg extends TypesaurusUpdate.Arg<Def, Props>,
     >(
-      data: Arg,
+      data: ArgData<Def, Props>,
       options?: Core.OperationOptions<Environment>,
-    ): Result<Def, Props, Arg>;
+    ): Promise<Core.Ref<Def>>;
+
+    <
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment },
+    >(
+      data: ArgGetterResolved<Core.DocModel<Def>, Def["WideModel"], Props>,
+      options?: Core.OperationOptions<Environment>,
+    ): Promise<Core.Ref<Def>>;
+
+    <
+      Environment extends Core.RuntimeEnvironment,
+      Props extends Core.DocProps & { environment: Environment },
+    >(
+      data: ArgGetterUnresolved<Core.DocModel<Def>, Props>,
+      options?: Core.OperationOptions<Environment>,
+    ): undefined;
 
     build<
       Environment extends Core.RuntimeEnvironment,
@@ -41,23 +77,71 @@ export namespace TypesaurusUpdate {
   }
 
   /**
-   * Update function (as collection, doc or ref method) result. It allows to
-   * pass an object or function that returns an object or array of field
-   * updates.
-   *
-   * The function also allows returning a falsy value, enabling conditionals
-   * inside the function that wouldn't be otherwise possible. A condition before
-   * the update wouldn't work as the check would be invalid inside the function.
+   * The update argument type. It can be update data or a function that returns
+   * update data.
    */
-  export type Result<
-    Def extends Core.DocDef,
+  export type Arg<Def extends Core.DocDef, Props extends Core.DocProps> =
+    | Core.WriteData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
+    | MinimalData<Def, Props>
+    | Data<Core.DocModel<Def>, Props>
+    | ArgGetter<Def, Props>;
+
+  /**
+   * The update argument data type. It excludes the getter function, so that
+   * the type can be used in the update function signature. Keeping the getter
+   * separate allows to infer the result without inferring the model shape.
+   */
+  export type ArgData<Def extends Core.DocDef, Props extends Core.DocProps> =
+    | Core.WriteData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
+    | MinimalData<Def, Props>
+    | Data<Core.DocModel<Def>, Props>;
+
+  /**
+   * Update data getter, accepts helper functions and returns the update data.
+   */
+  export type ArgGetter<Def extends Core.DocDef, Props extends Core.DocProps> =
+    Core.DocModel<Def> extends infer Model extends Core.ModelObjectType
+      ? ($: Helpers<Model, Props>) =>
+          | Core.WriteData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
+          // TODO: MinimalData
+          | Data<Model, Props>
+          | UpdateField<Model>
+          | Array<UpdateField<Model> | Utils.Falsy>
+          | Utils.Falsy
+      : never;
+
+  /**
+   * Update data getter, accepts helper functions and returns the update data.
+   * The type assumes that the return type is resolved making it possible to
+   * define separate update signatures.
+   */
+  export type ArgGetterResolved<
+    Model extends Core.ModelObjectType,
+    WideModel extends Core.ModelType,
     Props extends Core.DocProps,
-    Arg extends TypesaurusUpdate.Arg<Def, Props>,
-  > = Arg extends ($: Helpers<Core.DocModel<Def>, Props>) => infer Result
-    ? Result extends Utils.Falsy
-      ? undefined
-      : Promise<Core.Ref<Def>>
-    : Promise<Core.Ref<Def>>;
+  > = ($: Helpers<Model, Props>) =>
+    | Core.WriteData<Core.UnionVariableModelType<WideModel>, Props>
+    // TODO: MinimalData
+    | Data<Model, Props>
+    | UpdateField<Model>
+    | Array<UpdateField<Model> | Utils.Falsy>;
+
+  /**
+   * Update data getter, accepts helper functions and returns the update data.
+   * The type assumes that the return type is falsy making it possible to
+   * define separate update signatures.
+   */
+  export type ArgGetterUnresolved<
+    Model extends Core.ModelObjectType,
+    Props extends Core.DocProps,
+  > = ($: Helpers<Model, Props>) =>
+    | Utils.Falsy
+    // Falsy expects const "" but we also should consider any string, boolean or
+    // number as falsy, so devs can do something like this:
+    //   user.update($ => user.fullName && user.lastName(user.fullName.split(" ")[1]))
+    | string
+    | boolean
+    | number;
 
   /**
    * The update field interface. It contains path to the property and property value.
@@ -68,14 +152,13 @@ export namespace TypesaurusUpdate {
   }
 
   /**
-   * The update argument type. It can be update data or a function that returns
-   * update data.
+   * The update data type. It extends the model allowing to set specific values,
+   * such as server dates, increment, etc. The data is also nullified allowing
+   * to pass nulls instead of undefined.
    */
-  export type Arg<Def extends Core.DocDef, Props extends Core.DocProps> =
-    | Core.AssignData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
-    | MinimalData<Def, Props>
-    | Data<Core.DocModel<Def>, Props>
-    | Getter<Def, Props>;
+  export type Data<Model, Props extends Core.DocProps> = {
+    [Key in keyof Model]?: Core.WriteField<Model, Key, Model[Key], Props>;
+  };
 
   /**
    * The type resolves the minimal required data to update the variable
@@ -104,18 +187,18 @@ export namespace TypesaurusUpdate {
                 infer J extends Core.ModelObjectType,
               ]
             ? (
-                | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                | Core.AssignData<Omit<C, keyof DocModel>, Props>
-                | Core.AssignData<Omit<D, keyof DocModel>, Props>
-                | Core.AssignData<Omit<E, keyof DocModel>, Props>
-                | Core.AssignData<Omit<F, keyof DocModel>, Props>
-                | Core.AssignData<Omit<G, keyof DocModel>, Props>
-                | Core.AssignData<Omit<H, keyof DocModel>, Props>
-                | Core.AssignData<Omit<I, keyof DocModel>, Props>
-                | Core.AssignData<Omit<J, keyof DocModel>, Props>
+                | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                | Core.WriteData<Omit<C, keyof DocModel>, Props>
+                | Core.WriteData<Omit<D, keyof DocModel>, Props>
+                | Core.WriteData<Omit<E, keyof DocModel>, Props>
+                | Core.WriteData<Omit<F, keyof DocModel>, Props>
+                | Core.WriteData<Omit<G, keyof DocModel>, Props>
+                | Core.WriteData<Omit<H, keyof DocModel>, Props>
+                | Core.WriteData<Omit<I, keyof DocModel>, Props>
+                | Core.WriteData<Omit<J, keyof DocModel>, Props>
               ) &
-                Partial<Core.AssignData<DocModel, Props>>
+                Partial<Core.WriteData<DocModel, Props>>
             : Model extends [
                   infer A extends Core.ModelObjectType,
                   infer B extends Core.ModelObjectType,
@@ -128,17 +211,17 @@ export namespace TypesaurusUpdate {
                   infer I extends Core.ModelObjectType,
                 ]
               ? (
-                  | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<C, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<D, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<E, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<F, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<G, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<H, keyof DocModel>, Props>
-                  | Core.AssignData<Omit<I, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<C, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<D, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<E, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<F, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<G, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<H, keyof DocModel>, Props>
+                  | Core.WriteData<Omit<I, keyof DocModel>, Props>
                 ) &
-                  Partial<Core.AssignData<DocModel, Props>>
+                  Partial<Core.WriteData<DocModel, Props>>
               : Model extends [
                     infer A extends Core.ModelObjectType,
                     infer B extends Core.ModelObjectType,
@@ -150,16 +233,16 @@ export namespace TypesaurusUpdate {
                     infer H extends Core.ModelObjectType,
                   ]
                 ? (
-                    | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                    | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                    | Core.AssignData<Omit<C, keyof DocModel>, Props>
-                    | Core.AssignData<Omit<D, keyof DocModel>, Props>
-                    | Core.AssignData<Omit<E, keyof DocModel>, Props>
-                    | Core.AssignData<Omit<F, keyof DocModel>, Props>
-                    | Core.AssignData<Omit<G, keyof DocModel>, Props>
-                    | Core.AssignData<Omit<H, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<C, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<D, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<E, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<F, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<G, keyof DocModel>, Props>
+                    | Core.WriteData<Omit<H, keyof DocModel>, Props>
                   ) &
-                    Partial<Core.AssignData<DocModel, Props>>
+                    Partial<Core.WriteData<DocModel, Props>>
                 : Model extends [
                       infer A extends Core.ModelObjectType,
                       infer B extends Core.ModelObjectType,
@@ -170,15 +253,15 @@ export namespace TypesaurusUpdate {
                       infer G extends Core.ModelObjectType,
                     ]
                   ? (
-                      | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                      | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                      | Core.AssignData<Omit<C, keyof DocModel>, Props>
-                      | Core.AssignData<Omit<D, keyof DocModel>, Props>
-                      | Core.AssignData<Omit<E, keyof DocModel>, Props>
-                      | Core.AssignData<Omit<F, keyof DocModel>, Props>
-                      | Core.AssignData<Omit<G, keyof DocModel>, Props>
+                      | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                      | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                      | Core.WriteData<Omit<C, keyof DocModel>, Props>
+                      | Core.WriteData<Omit<D, keyof DocModel>, Props>
+                      | Core.WriteData<Omit<E, keyof DocModel>, Props>
+                      | Core.WriteData<Omit<F, keyof DocModel>, Props>
+                      | Core.WriteData<Omit<G, keyof DocModel>, Props>
                     ) &
-                      Partial<Core.AssignData<DocModel, Props>>
+                      Partial<Core.WriteData<DocModel, Props>>
                   : Model extends [
                         infer A extends Core.ModelObjectType,
                         infer B extends Core.ModelObjectType,
@@ -188,14 +271,14 @@ export namespace TypesaurusUpdate {
                         infer F extends Core.ModelObjectType,
                       ]
                     ? (
-                        | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                        | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                        | Core.AssignData<Omit<C, keyof DocModel>, Props>
-                        | Core.AssignData<Omit<D, keyof DocModel>, Props>
-                        | Core.AssignData<Omit<E, keyof DocModel>, Props>
-                        | Core.AssignData<Omit<F, keyof DocModel>, Props>
+                        | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                        | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                        | Core.WriteData<Omit<C, keyof DocModel>, Props>
+                        | Core.WriteData<Omit<D, keyof DocModel>, Props>
+                        | Core.WriteData<Omit<E, keyof DocModel>, Props>
+                        | Core.WriteData<Omit<F, keyof DocModel>, Props>
                       ) &
-                        Partial<Core.AssignData<DocModel, Props>>
+                        Partial<Core.WriteData<DocModel, Props>>
                     : Model extends [
                           infer A extends Core.ModelObjectType,
                           infer B extends Core.ModelObjectType,
@@ -204,13 +287,13 @@ export namespace TypesaurusUpdate {
                           infer E extends Core.ModelObjectType,
                         ]
                       ? (
-                          | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                          | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                          | Core.AssignData<Omit<C, keyof DocModel>, Props>
-                          | Core.AssignData<Omit<D, keyof DocModel>, Props>
-                          | Core.AssignData<Omit<E, keyof DocModel>, Props>
+                          | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                          | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                          | Core.WriteData<Omit<C, keyof DocModel>, Props>
+                          | Core.WriteData<Omit<D, keyof DocModel>, Props>
+                          | Core.WriteData<Omit<E, keyof DocModel>, Props>
                         ) &
-                          Partial<Core.AssignData<DocModel, Props>>
+                          Partial<Core.WriteData<DocModel, Props>>
                       : Model extends [
                             infer A extends Core.ModelObjectType,
                             infer B extends Core.ModelObjectType,
@@ -218,78 +301,40 @@ export namespace TypesaurusUpdate {
                             infer D extends Core.ModelObjectType,
                           ]
                         ? (
-                            | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                            | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                            | Core.AssignData<Omit<C, keyof DocModel>, Props>
-                            | Core.AssignData<Omit<D, keyof DocModel>, Props>
+                            | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                            | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                            | Core.WriteData<Omit<C, keyof DocModel>, Props>
+                            | Core.WriteData<Omit<D, keyof DocModel>, Props>
                           ) &
-                            Partial<Core.AssignData<DocModel, Props>>
+                            Partial<Core.WriteData<DocModel, Props>>
                         : Model extends [
                               infer A extends Core.ModelObjectType,
                               infer B extends Core.ModelObjectType,
                               infer C extends Core.ModelObjectType,
                             ]
                           ? (
-                              | Core.AssignData<Omit<A, keyof DocModel>, Props>
-                              | Core.AssignData<Omit<B, keyof DocModel>, Props>
-                              | Core.AssignData<Omit<C, keyof DocModel>, Props>
+                              | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                              | Core.WriteData<Omit<B, keyof DocModel>, Props>
+                              | Core.WriteData<Omit<C, keyof DocModel>, Props>
                             ) &
-                              Partial<Core.AssignData<DocModel, Props>>
+                              Partial<Core.WriteData<DocModel, Props>>
                           : Model extends [
                                 infer A extends Core.ModelObjectType,
                                 infer B extends Core.ModelObjectType,
                               ]
                             ? (
-                                | Core.AssignData<
-                                    Omit<A, keyof DocModel>,
-                                    Props
-                                  >
-                                | Core.AssignData<
-                                    Omit<B, keyof DocModel>,
-                                    Props
-                                  >
+                                | Core.WriteData<Omit<A, keyof DocModel>, Props>
+                                | Core.WriteData<Omit<B, keyof DocModel>, Props>
                               ) &
-                                Partial<Core.AssignData<DocModel, Props>>
+                                Partial<Core.WriteData<DocModel, Props>>
                             : Model extends [
                                   infer A extends Core.ModelObjectType,
                                 ]
-                              ? Core.AssignData<
-                                  Omit<A, keyof DocModel>,
-                                  Props
-                                > &
-                                  Partial<Core.AssignData<DocModel, Props>>
+                              ? Core.WriteData<Omit<A, keyof DocModel>, Props> &
+                                  Partial<Core.WriteData<DocModel, Props>>
                               : never
         : never
       : never;
-
-  /**
-   * Update data getter, accepts helper functions and returns the update data.
-   */
-  export type Getter<
-    Def extends Core.DocDef,
-    Props extends Core.DocProps,
-  > = Core.DocModel<Def> extends infer Model extends Core.ModelObjectType
-    ? (
-        $: Helpers<Model, Props>,
-      ) =>
-        | Core.AssignData<Core.UnionVariableModelType<Def["WideModel"]>, Props>
-        | Data<Model, Props>
-        | UpdateField<Model>
-        | Array<UpdateField<Model> | Utils.Falsy>
-        | Utils.Falsy
-    : never;
-
-  /**
-   * The update data type. It extends the model allowing to set specific values,
-   * such as server dates, increment, etc. The data is also nullified allowing
-   * to pass nulls instead of undefined.
-   */
-  export type Data<
-    Model extends Core.ModelObjectType,
-    Props extends Core.DocProps,
-  > = {
-    [Key in keyof Model]?: Core.WriteField<Model, Key, Model[Key], Props>;
-  };
 
   /**
    * Update helpers which allow to set specific values, such as server dates,

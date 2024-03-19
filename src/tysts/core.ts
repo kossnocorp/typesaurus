@@ -1708,10 +1708,48 @@ async function update() {
     nope: true,
   });
 
+  // @ts-expect-error: nope is not a valid field
   await db.users.update(db.users.id("sasha"), {
     name: "Alexander",
-    // @ts-expect-error: nope is not a valid field
     nope: true,
+  });
+
+  db.users.get(db.users.id("sasha")).then(async (doc) => {
+    if (!doc) return;
+
+    // ...via doc:
+
+    await doc.update({
+      name: "Alexander",
+    });
+
+    await doc.update({
+      // @ts-expect-error: nope is not a valid field
+      nope: true,
+    });
+
+    // @ts-expect-error: nope is not a valid field
+    await doc.update({
+      name: "Alexander",
+      nope: true,
+    });
+
+    // ...via ref:
+
+    await doc.ref.update({
+      name: "Alexander",
+    });
+
+    await doc.ref.update({
+      // @ts-expect-error: nope is not a valid field
+      nope: true,
+    });
+
+    // @ts-expect-error: nope is not a valid field
+    await doc.ref.update({
+      name: "Alexander",
+      nope: true,
+    });
   });
 
   // Update with helpers
@@ -1736,11 +1774,55 @@ async function update() {
     nope: true,
   }));
 
-  // @ts-expect-error: nope is not a valid field
+  // TODO: ts-expect-error: nope is not a valid field
+  // If this issue is ever fixed, restore the ts-expect-error:
+  // https://github.com/microsoft/TypeScript/issues/241
   await db.users.update(db.users.id("sasha"), ($) => ({
     name: "Sasha",
     nope: true,
   }));
+
+  db.users.get(db.users.id("sasha")).then(async (doc) => {
+    if (!doc) return;
+
+    // ...via doc:
+
+    await doc.update(($) => ({
+      name: "Alexander",
+    }));
+
+    // @ts-expect-error: nope is not a valid field
+    await doc.update(($) => ({
+      nope: true,
+    }));
+
+    // TODO: ts-expect-error: nope is not a valid field
+    // If this issue is ever fixed, restore the ts-expect-error:
+    // https://github.com/microsoft/TypeScript/issues/241
+    await doc.update(($) => ({
+      name: "Alexander",
+      nope: true,
+    }));
+
+    // ...via ref:
+
+    await doc.ref.update(($) => ({
+      name: "Alexander",
+    }));
+
+    // @ts-expect-error: nope is not a valid field
+    await doc.ref.update(($) => ({
+      nope: true,
+    }));
+
+    // TODO: ts-expect-error: nope is not a valid field
+    // If this issue is ever fixed, restore the ts-expect-error:
+    // https://github.com/microsoft/TypeScript/issues/241
+    await doc.ref.update(($) => ({
+      name: "Alexander",
+      nope: true,
+    }));
+  });
 
   // Update as server
 

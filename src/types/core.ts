@@ -651,7 +651,7 @@ export namespace TypesaurusCore {
   export type AssignArg<
     Model extends ModelObjectType,
     Props extends DocProps,
-  > = AssignData<Model, Props> | AssignGetter<Model, Props>;
+  > = WriteData<Model, Props> | AssignGetter<Model, Props>;
 
   /**
    * Assign data getter, accepts helper functions and returns the assign data.
@@ -659,23 +659,12 @@ export namespace TypesaurusCore {
   export type AssignGetter<
     Model extends ModelObjectType,
     Props extends DocProps,
-  > = ($: WriteHelpers<Model>) => AssignData<Model, Props>;
+  > = ($: WriteHelpers<Model>) => WriteData<Model, Props>;
 
   /**
    * Type of the data passed to assign functions (add, set and upset).
    * It extends the model allowing to set special values, such as server date,
-   * increment, etc. The data is also nullified allowing to pass nulls instead
-   * of undefineds.
-   */
-  export type AssignData<
-    Model extends ModelObjectType,
-    Props extends DocProps,
-  > = WriteData<Model, Props>;
-
-  /**
-   * Write data type, used internally by the write field types.
-   * Unlike {@link AssignData} it expects already nullified data, preventing
-   * {@link Nullify} called again.
+   * increment, etc.
    */
   export type WriteData<
     Model extends ModelObjectType,
@@ -1362,7 +1351,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#assigndata)
            */
-          AssignData: AssignData<
+          AssignData: WriteData<
             IntersectVariableModelType<Def["Model"]>,
             DocProps
           >;
@@ -1418,7 +1407,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#updategetter)
            */
-          UpdateGetter: Update.Getter<Def, DocProps>;
+          UpdateGetter: Update.ArgGetter<Def, DocProps>;
 
           /**
            * The type represents the update helpers of an update function.
@@ -1504,7 +1493,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverassigndata)
            */
-          ServerAssignData: AssignData<
+          ServerAssignData: WriteData<
             IntersectVariableModelType<Def["Model"]>,
             DocProps & { environment: "server" }
           >;
@@ -1564,7 +1553,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverupdategetter)
            */
-          ServerUpdateGetter: Update.Getter<
+          ServerUpdateGetter: Update.ArgGetter<
             Def,
             DocProps & { environment: "server" }
           >;
