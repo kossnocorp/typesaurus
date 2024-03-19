@@ -3,6 +3,7 @@ import type { TypesaurusQuery as Query } from "./query.js";
 import type { TypesaurusUpdate as Update } from "./update.js";
 import type { TypesaurusFirebase as Firebase } from "./firebase.js";
 import type { TypesaurusTransaction as Transaction } from "./transaction.js";
+import type { TypesaurusShared as Shared } from "./shared.js";
 
 export namespace TypesaurusCore {
   export interface Function {
@@ -394,7 +395,10 @@ export namespace TypesaurusCore {
       : never;
 
   export interface DocDefFlags {
+    /** Signifies if a variable model document got reduced to a single shape. */
     Reduced: boolean;
+    /** Signifies if a document got narrowed to shared shape. */
+    Shared: boolean;
   }
 
   export interface DocDef {
@@ -501,6 +505,7 @@ export namespace TypesaurusCore {
     extends DocAPI<Def> {
     type: "doc";
 
+    /** The doc's ref. */
     ref: Ref<Def>;
 
     data: DocData<Def, Props>;
@@ -514,6 +519,8 @@ export namespace TypesaurusCore {
     assert<Props extends Partial<DocProps>>(
       props: Props,
     ): asserts this is Doc<Def, DocProps & Props>;
+
+    as: Shared.DocAs<Def, Props>;
   }
 
   export type ServerData<Model extends ModelObjectType> = Data<

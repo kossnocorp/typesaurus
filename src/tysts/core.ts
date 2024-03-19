@@ -1703,6 +1703,17 @@ async function update() {
     name: "Alexander",
   });
 
+  await db.users.update(db.users.id("sasha"), {
+    // @ts-expect-error: nope is not a valid field
+    nope: true,
+  });
+
+  await db.users.update(db.users.id("sasha"), {
+    name: "Alexander",
+    // @ts-expect-error: nope is not a valid field
+    nope: true,
+  });
+
   // Update with helpers
 
   await db.users.update(db.users.id("sasha"), ($) => ({
@@ -1718,6 +1729,17 @@ async function update() {
 
   await db.posts.update(db.posts.id("post-id"), ($) => ({
     likeIds: $.arrayRemove("like-id"),
+  }));
+
+  // @ts-expect-error: nope is not a valid field
+  await db.users.update(db.users.id("sasha"), ($) => ({
+    nope: true,
+  }));
+
+  // @ts-expect-error: nope is not a valid field
+  await db.users.update(db.users.id("sasha"), ($) => ({
+    name: "Sasha",
+    nope: true,
   }));
 
   // Update as server
@@ -1866,11 +1888,22 @@ async function update() {
     $.field("name").set("Alexander"),
   );
 
+  await db.accounts.update(db.accounts.id("sasha"), ($) =>
+    // @ts-expect-error: nope is not a valid field
+    $.field("nope").set(true),
+  );
+
   // Multiple fields update
 
   await db.accounts.update(db.accounts.id("sasha"), ($) => [
     $.field("name").set("Alexander"),
     $.field("createdAt").set($.serverDate()),
+  ]);
+
+  await db.accounts.update(db.accounts.id("sasha"), ($) => [
+    $.field("name").set("Alexander"),
+    // @ts-expect-error: nope is not a valid field
+    $.field("nope").set(true),
   ]);
 
   // Nested fields
@@ -1898,6 +1931,21 @@ async function update() {
     $.field("emergencyContacts").set({
       name: "Sasha",
       phone: "+65xxxxxxxx",
+    }),
+  );
+
+  await db.accounts.update(db.accounts.id("sasha"), ($) =>
+    $.field("emergencyContacts").set({
+      // @ts-expect-error: nope is not a valid field
+      nope: true,
+    }),
+  );
+
+  await db.accounts.update(db.accounts.id("sasha"), ($) =>
+    $.field("emergencyContacts").set({
+      name: "Sasha",
+      // @ts-expect-error: nope is not a valid field
+      nope: true,
     }),
   );
 
@@ -2023,6 +2071,9 @@ async function update() {
   // @ts-expect-error - can't update non-shared variable model fields
   collectionUpdate.field("type").set("text");
 
+  // @ts-expect-error - nope is not a valid field
+  collectionUpdate.field("nope").set(true);
+
   // ...via doc
 
   const content = await db.content.get(contentId);
@@ -2036,6 +2087,11 @@ async function update() {
   // @ts-expect-error - can't update non-shared variable model fields
   content?.update({
     type: "text",
+  });
+
+  content?.update({
+    // @ts-expect-error - nope is not a valid field
+    nope: true,
   });
 
   content?.update(($) =>
@@ -2252,24 +2308,67 @@ async function update() {
 
   // Allows to update abstract docs
 
-  function updateActive(doc: Typesaurus.Doc<{ active: boolean }>) {
-    return doc.update({ active: true });
+  async function updateActive(doc: Typesaurus.SharedDoc<{ active: boolean }>) {
+    // @ts-expect-error - Can't set shared doc
+    doc.set;
+    // @ts-expect-error - Can't upset shared doc
+    doc.upset;
+    // @ts-expect-error - Can't as shared doc
+    doc.as;
+
+    // @ts-expect-error - Can't set shared ref
+    doc.ref.set;
+    // @ts-expect-error - Can't upset shared ref
+    doc.ref.upset;
+    // @ts-expect-error - Can't as shared ref
+    doc.ref.upset;
+
+    // @ts-expect-error - Can't add to shared collection
+    doc.ref.collection.set;
+    // @ts-expect-error - Can't set shared collection ref
+    doc.ref.collection.set;
+    // @ts-expect-error - Can't upset shared collection ref
+    doc.ref.collection.upset;
+    // @ts-expect-error - Can't update shared collection ref
+    doc.ref.collection.update;
+    // @ts-expect-error - Can't as shared collection ref
+    doc.ref.collection.as;
+
+    // @ts-expect-error - nope is not a valid field
+    await doc.ref.update({ active: true, nope: false });
+    // @ts-expect-error - nope is not a valid field
+    await doc.ref.update({ nope: false });
+    await doc.ref.update({ active: true });
+
+    // @ts-expect-error - nope is not a valid field
+    await doc.update({ active: true, nope: false });
+    // @ts-expect-error - nope is not a valid field
+    await doc.update({ nope: false });
+    await doc.update({ active: true });
   }
 
   // Single model collection
 
-  db.posts.get(db.posts.id("123")).then((doc) => doc && updateActive(doc));
+  updateActive(123 as never);
+
+  db.posts
+    .get(db.posts.id("123"))
+    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
 
   db.addresses
     .get(db.addresses.id("123"))
     // @ts-expect-error - There's to active on the address
-    .then((doc) => doc && updateActive(doc));
+    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
 
   // Variable model collection
 
-  db.oauth.get(db.oauth.id("123")).then((doc) => doc && updateActive(doc));
+  db.oauth
+    .get(db.oauth.id("123"))
+    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
 
-  db.content.get(db.content.id("123")).then((doc) => doc && updateActive(doc));
+  db.content
+    .get(db.content.id("123"))
+    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
 
   const localDb = schema(($) => ({
     accounts: $.collection<[TwitterAccount, LinkedInAccount]>(),
@@ -2382,7 +2481,7 @@ async function narrowDoc() {
           Name: "accounts";
           Id: Core.Id<"accounts">;
           WideModel: [TwitterAccount, LinkedInAccount];
-          Flags: { Reduced: true };
+          Flags: { Reduced: true; Shared: boolean };
         },
         Core.DocProps
       >

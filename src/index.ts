@@ -1,4 +1,5 @@
 import type { TypesaurusCore as Core } from "./types/core.js";
+import type { TypesaurusShared as Shared } from "./types/shared.js";
 
 export * from "./types/batch.js";
 export * from "./types/core.js";
@@ -140,4 +141,24 @@ export namespace Typesaurus {
     WideModel: Core.NullifyModel<WideModel>;
     Flags: Flags;
   };
+
+  /**
+   * TODO:
+   */
+  export type SharedCollection<Model extends Core.ModelObjectType> =
+    Shared.Collection<Model>;
+
+  /**
+   * TODO:
+   */
+  export type SharedRef<Model extends Core.ModelObjectType> = Shared.Ref<Model>;
+
+  /**
+   * TODO:
+   */
+  export type SharedDoc<Model extends Core.ModelObjectType> = Shared.Doc<
+    Model,
+    // TODO: Allow constraining the props type via Environment
+    Core.DocProps
+  >;
 }
