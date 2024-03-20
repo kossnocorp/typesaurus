@@ -4,9 +4,9 @@
   "references": [
     {
       "path": "./tsconfig.dev.json"
+    },
+    {
+      "path": "./src/tysts/loose/tsconfig.json"
     }
-    // {
-    //   "path": "./src/tysts/loose/tsconfig.json"
-    // }
   ]
 }

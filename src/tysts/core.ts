@@ -4,7 +4,7 @@
 
 // @tysts-start: strict
 import { schema, Typesaurus } from "..";
-import type { TypesaurusCore as Core } from "../types/core";
+import type { TypesaurusCore as Core, TypesaurusCore } from "../types/core";
 import type { TypesaurusUtils as Utils } from "../types/utils";
 // @tysts-end: strict
 /* @tysts-start: loose
@@ -13,18 +13,16 @@ import type { TypesaurusCore as Core } from '../../types/core'
 import type { TypesaurusUtils as Utils } from '../../types/utils'
 @tysts-end: loose */
 
-interface Post {
+interface SharedFields {
+  active: boolean;
+}
+
+interface Post extends SharedFields {
   title: string;
   text: string;
   likeIds?: string[];
   likes?: number;
   tags?: Array<string | undefined>;
-  active: boolean;
-}
-
-interface Update {
-  title: string;
-  text: string;
 }
 
 interface Comment {
@@ -128,18 +126,16 @@ interface Organization {
   };
 }
 
-interface TextContent {
+interface TextContent extends SharedFields {
   type: "text";
   text: string;
   public?: boolean | undefined;
-  active: boolean;
 }
 
-interface ImageContent {
+interface ImageContent extends SharedFields {
   type: "image";
   src: string;
   public?: boolean;
-  active: boolean;
 }
 
 interface AppStats {
@@ -252,22 +248,19 @@ interface CustomCollection {
 
 const customCollection = "customCollectionName";
 
-interface GitHubAccount {
+interface GitHubAccount extends SharedFields {
   type: "github";
   userId: string;
-  active: boolean;
 }
 
-interface MicrosoftAccount {
+interface MicrosoftAccount extends SharedFields {
   type: "microsoft";
   accountId: string;
-  active: boolean;
 }
 
-interface GoogleAccount {
+interface GoogleAccount extends SharedFields {
   type: "google";
   email: string;
-  active: boolean;
 }
 
 export type VarUser = [UserAnonymous, UserActive];
@@ -1775,8 +1768,9 @@ async function update() {
   }));
 
   // TODO: ts-expect-error: nope is not a valid field
-  // If this issue is ever fixed, restore the ts-expect-error:
-  // https://github.com/microsoft/TypeScript/issues/241
+  // If one of these issues ever get fixed, restore the ts-expect-error:
+  // - https://github.com/microsoft/TypeScript/issues/241
+  // - https://github.com/microsoft/TypeScript/issues/12936
   await db.users.update(db.users.id("sasha"), ($) => ({
     name: "Sasha",
     nope: true,
@@ -1797,8 +1791,9 @@ async function update() {
     }));
 
     // TODO: ts-expect-error: nope is not a valid field
-    // If this issue is ever fixed, restore the ts-expect-error:
-    // https://github.com/microsoft/TypeScript/issues/241
+    // If one of these issues ever get fixed, restore the ts-expect-error:
+    // - https://github.com/microsoft/TypeScript/issues/241
+    // - https://github.com/microsoft/TypeScript/issues/12936
     await doc.update(($) => ({
       name: "Alexander",
       nope: true,
@@ -1816,8 +1811,9 @@ async function update() {
     }));
 
     // TODO: ts-expect-error: nope is not a valid field
-    // If this issue is ever fixed, restore the ts-expect-error:
-    // https://github.com/microsoft/TypeScript/issues/241
+    // If one of these issues ever get fixed, restore the ts-expect-error:
+    // - https://github.com/microsoft/TypeScript/issues/241
+    // - https://github.com/microsoft/TypeScript/issues/12936
     await doc.ref.update(($) => ({
       name: "Alexander",
       nope: true,
@@ -2388,45 +2384,71 @@ async function update() {
     $.field("author").set(null),
   );
 
-  // Allows to update abstract docs
+  // Allows to update shared
 
-  async function updateActive(doc: Typesaurus.SharedDoc<{ active: boolean }>) {
-    // @ts-expect-error - Can't set shared doc
-    doc.set;
-    // @ts-expect-error - Can't upset shared doc
-    doc.upset;
-    // @ts-expect-error - Can't as shared doc
-    doc.as;
+  async function updateActive(
+    entity:
+      | Typesaurus.SharedDoc<SharedFields>
+      | Typesaurus.SharedRef<SharedFields>,
+  ) {
+    if (entity.type === "doc") {
+      // @ts-expect-error - Can't set shared doc
+      entity.set;
+      // @ts-expect-error - Can't upset shared doc
+      entity.upset;
+      // @ts-expect-error - Can't as shared doc
+      entity.as;
 
-    // @ts-expect-error - Can't set shared ref
-    doc.ref.set;
-    // @ts-expect-error - Can't upset shared ref
-    doc.ref.upset;
-    // @ts-expect-error - Can't as shared ref
-    doc.ref.upset;
+      // @ts-expect-error - Can't set shared ref
+      entity.ref.set;
+      // @ts-expect-error - Can't upset shared ref
+      entity.ref.upset;
+      // @ts-expect-error - Can't as shared ref
+      entity.ref.upset;
 
-    // @ts-expect-error - Can't add to shared collection
-    doc.ref.collection.set;
-    // @ts-expect-error - Can't set shared collection ref
-    doc.ref.collection.set;
-    // @ts-expect-error - Can't upset shared collection ref
-    doc.ref.collection.upset;
-    // @ts-expect-error - Can't update shared collection ref
-    doc.ref.collection.update;
-    // @ts-expect-error - Can't as shared collection ref
-    doc.ref.collection.as;
+      // @ts-expect-error - Can't add to shared collection
+      entity.ref.collection.set;
+      // @ts-expect-error - Can't set shared collection ref
+      entity.ref.collection.set;
+      // @ts-expect-error - Can't upset shared collection ref
+      entity.ref.collection.upset;
+      // @ts-expect-error - Can't update shared collection ref
+      entity.ref.collection.update;
+      // @ts-expect-error - Can't as shared collection ref
+      entity.ref.collection.as;
+
+      // @ts-expect-error - nope is not a valid field
+      await entity.ref.update({ active: true, nope: false });
+      // @ts-expect-error - nope is not a valid field
+      await entity.ref.update({ nope: false });
+      await entity.ref.update({ active: true });
+    } else {
+      // ref
+
+      // @ts-expect-error - Can't set shared ref
+      entity.set;
+      // @ts-expect-error - Can't upset shared ref
+      entity.upset;
+      // @ts-expect-error - Can't as shared ref
+      entity.as;
+
+      // @ts-expect-error - Can't add to shared collection
+      entity.collection.set;
+      // @ts-expect-error - Can't set shared collection ref
+      entity.collection.set;
+      // @ts-expect-error - Can't upset shared collection ref
+      entity.collection.upset;
+      // @ts-expect-error - Can't update shared collection ref
+      entity.collection.update;
+      // @ts-expect-error - Can't as shared collection ref
+      entity.collection.as;
+    }
 
     // @ts-expect-error - nope is not a valid field
-    await doc.ref.update({ active: true, nope: false });
+    await entity.update({ active: true, nope: false });
     // @ts-expect-error - nope is not a valid field
-    await doc.ref.update({ nope: false });
-    await doc.ref.update({ active: true });
-
-    // @ts-expect-error - nope is not a valid field
-    await doc.update({ active: true, nope: false });
-    // @ts-expect-error - nope is not a valid field
-    await doc.update({ nope: false });
-    await doc.update({ active: true });
+    await entity.update({ nope: false });
+    await entity.update({ active: true });
   }
 
   // Single model collection
@@ -2435,22 +2457,26 @@ async function update() {
 
   db.posts
     .get(db.posts.id("123"))
-    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
+    .then((doc) => doc && updateActive(doc.as<SharedFields>()));
+
+  db.posts
+    .get(db.posts.id("123"))
+    .then((doc) => doc && updateActive(doc.ref.as<SharedFields>()));
 
   db.addresses
     .get(db.addresses.id("123"))
     // @ts-expect-error - There's to active on the address
-    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
+    .then((doc) => doc && updateActive(doc.as<SharedFields>()));
 
   // Variable model collection
 
   db.oauth
     .get(db.oauth.id("123"))
-    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
+    .then((doc) => doc && updateActive(doc.as<SharedFields>()));
 
   db.content
     .get(db.content.id("123"))
-    .then((doc) => doc && updateActive(doc.as<{ active: boolean }>()));
+    .then((doc) => doc && updateActive(doc.as<SharedFields>()));
 
   const localDb = schema(($) => ({
     accounts: $.collection<[TwitterAccount, LinkedInAccount]>(),
@@ -2459,7 +2485,12 @@ async function update() {
   localDb.accounts
     .get(localDb.accounts.id("123"))
     // @ts-expect-error - There's no shared active on the local's db account
-    .then((doc) => doc && updateActive(doc));
+    .then((doc) => doc && updateActive(doc.as<SharedFields>()));
+
+  localDb.accounts
+    .get(localDb.accounts.id("123"))
+    // @ts-expect-error - There's no shared active on the local's db account
+    .then((doc) => doc && updateActive(doc.ref.as<SharedFields>()));
 
   interface TwitterAccount {
     type: "twitter";

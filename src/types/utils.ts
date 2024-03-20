@@ -2360,9 +2360,16 @@ export namespace TypesaurusUtils {
     : true;
 
   /**
-   * Resolves never if an object has no keys.
+   * Resolves never if the object has no keys.
    */
   export type NeverIfEmpty<Object> = keyof Object extends never
     ? never
+    : Object;
+
+  /**
+   * Resolves unknown if the object has no keys.
+   */
+  export type UnknownIfEmpty<Object> = keyof Object extends never
+    ? unknown
     : Object;
 }

@@ -22,4 +22,12 @@ describe("ref", () => {
     expect(userRef.collection.path).toBe("users");
     expect("get" in userRef.collection).toBe(true);
   });
+
+  describe("as", () => {
+    const ref = db.users.ref(db.users.id("42"));
+
+    it("returns the ref", () => {
+      expect(ref.as()).toBe(ref);
+    });
+  });
 });

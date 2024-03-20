@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "target": "es2016",
+    "skipLibCheck": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     // It affects the tysts but not the functionality:
     "noImplicitAny": false,
     "strictNullChecks": false,

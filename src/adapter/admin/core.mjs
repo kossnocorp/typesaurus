@@ -264,6 +264,10 @@ export class Ref {
   async remove() {
     return this.collection.remove(this.id);
   }
+
+  as() {
+    return this;
+  }
 }
 
 export class Doc {
@@ -309,6 +313,10 @@ export class Doc {
   narrow(cb) {
     const result = cb(this.data);
     if (result) return this;
+  }
+
+  as() {
+    return this;
   }
 }
 

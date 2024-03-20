@@ -52,11 +52,55 @@ export namespace Typesaurus {
   /**
    * Narrows doc type. If your doc has a variable model, the type will help you
    * narrow down the doc type to a specific data type.
+   *
+   * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#narrowdoc)
    */
   export type NarrowDoc<
     OriginalDoc extends Core.Doc<any, any>,
     NarrowToModel extends Core.ModelObjectType,
   > = Core.NarrowDoc<OriginalDoc, NarrowToModel>;
+
+  /**
+   * Shared ref type. Unlike regular ref, shared ref lacks methods which
+   * type-safety depends on knowing the full type of the model: `set`, `upset`,
+   * and `as`. The `collection` is also limited.
+   *
+   * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#sharedref)
+   */
+  export type SharedRef<Model extends Core.ModelObjectType> = Shared.Ref<Model>;
+
+  /**
+   * Shared doc type. Unlike regular doc, shared doc lacks methods which
+   * type-safety depends on knowing the full type of the model: `set`, `upset`,
+   * and `as`. The `ref` is also limited.
+   *
+   * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#shareddoc)
+   */
+  export type SharedDoc<Model extends Core.ModelObjectType> = Shared.Doc<
+    Model,
+    Core.DocProps
+  >;
+
+  /**
+   * Shared ref or doc type. Unlike regular ref and doc, shared doc lacks
+   * methods which type-safety depends on knowing the full type of the model:
+   * `set`, `upset`, and `as`.
+   *
+   * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#sharedentity)
+   */
+  export type SharedEntity<Model extends Core.ModelObjectType> =
+    | Shared.Ref<Model>
+    | Shared.Doc<Model, Core.DocProps>;
+
+  /**
+   * Shared collection type. Unlike regular collection, shared collection lacks
+   * methods which type-safety depends on knowing the full type of the model:
+   * `add`, `set`, `upset`, and `update`.
+   *
+   * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#sharedcollection)
+   */
+  export type SharedCollection<Model extends Core.ModelObjectType> =
+    Shared.Collection<Model>;
 
   /**
    * Concats models into single variable model type. Useful to define and export
@@ -141,24 +185,4 @@ export namespace Typesaurus {
     WideModel: Core.NullifyModel<WideModel>;
     Flags: Flags;
   };
-
-  /**
-   * TODO:
-   */
-  export type SharedCollection<Model extends Core.ModelObjectType> =
-    Shared.Collection<Model>;
-
-  /**
-   * TODO:
-   */
-  export type SharedRef<Model extends Core.ModelObjectType> = Shared.Ref<Model>;
-
-  /**
-   * TODO:
-   */
-  export type SharedDoc<Model extends Core.ModelObjectType> = Shared.Doc<
-    Model,
-    // TODO: Allow constraining the props type via Environment
-    Core.DocProps
-  >;
 }

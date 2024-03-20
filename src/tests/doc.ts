@@ -266,4 +266,15 @@ describe("doc", () => {
       );
     });
   });
+
+  describe("as", () => {
+    const doc = db.content.doc(db.content.id("42"), {
+      type: "text",
+      text: "Hello, world!",
+    });
+
+    it("returns the doc", () => {
+      expect(doc.as()).toBe(doc);
+    });
+  });
 });

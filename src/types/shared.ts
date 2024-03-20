@@ -6,19 +6,31 @@ import type { TypesaurusCore as Core } from "./core.js";
  */
 export namespace TypesaurusShared {
   /**
+   * The ref as function that narrows the type to shared ref type. When models
+   * don't match, it resolves `unknown`.
+   */
+  export interface RefAs<Def extends Core.DocDef> {
+    <
+      Model extends Core.ModelObjectType,
+    >(): Core.DocModelOrUnknown<Def> extends Model ? Ref<Model> : unknown;
+  }
+
+  /**
    * The doc as function that narrows the type to shared doc type. When models
-   * don't match, it resolves `undefined`.
+   * don't match, it resolves `unknown`.
    */
   export interface DocAs<Def extends Core.DocDef, Props extends Core.DocProps> {
-    <Model extends Core.ModelObjectType>(): Core.DocModel<Def> extends Model
+    <
+      Model extends Core.ModelObjectType,
+    >(): Core.DocModelOrUnknown<Def> extends Model
       ? Doc<Model, Props>
-      : undefined;
+      : unknown;
   }
 
   /**
    * Shared collection type. Unlike regular collection, shared collection
-   * lacks methods which type-safety depend on knowing the full type of
-   * the model: `add`, `set`, `upset`, `update`, and `as`.
+   * lacks methods which type-safety depends on knowing the full type of
+   * the model: `add`, `set`, `upset`, and `update`.
    */
   export interface Collection<Model extends Core.ModelObjectType>
     extends Omit<
@@ -28,7 +40,7 @@ export namespace TypesaurusShared {
 
   /**
    * Shared ref type. Unlike regular ref, shared ref lacks methods which
-   * type-safety depend on knowing the full type of the model: `set`, `upset`,
+   * type-safety depends on knowing the full type of the model: `set`, `upset`,
    * and `as`. The `collection` is also limited. See {@link Collection}.
    */
   export interface Ref<Model extends Core.ModelObjectType>
@@ -39,7 +51,7 @@ export namespace TypesaurusShared {
 
   /**
    * Shared doc type. Unlike regular doc, shared doc lacks methods which
-   * type-safety depend on knowing the full type of the model: `set`, `upset`,
+   * type-safety depends on knowing the full type of the model: `set`, `upset`,
    * and `as`. The `ref` is also limited. See {@link Ref}.
    */
   export interface Doc<

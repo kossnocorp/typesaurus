@@ -101,30 +101,32 @@ export namespace TypesaurusCore {
     // If nothing left on a object, i.e. it's has no keys or get reduces
     // (by calculating shared shape of variable model), then we resolve never
     // to prevent accessing and assigning random stuff to the doc.
-    Utils.NeverIfEmpty<
-      Def["Flags"]["Reduced"] extends true
-        ? // If variable model is reduced after narrowing then return
-          // intersection of the model
-          // TODO: Try to return model as is
-          IntersectVariableModelType<Def["Model"]>
-        : // Otherwise return the shared shape
-          SharedVariableModelType<Def["WideModel"]>
-    >;
+    Utils.NeverIfEmpty<DocModelShape<Def>>;
+
+  /**
+   * Resolves document model from the document definition. Unlike
+   * {@link DocModel} this version resolves unknown if the model has no keys.
+   */
+  export type DocModelOrUnknown<Def extends DocDef> =
+    // If nothing left on a object, i.e. it's has no keys or get reduces
+    // (by calculating shared shape of variable model), then we resolve unknown
+    // to prevent accessing and assigning random stuff to the doc.
+    Utils.UnknownIfEmpty<DocModelShape<Def>>;
+
+  /**
+   * Resolves the reduced model or the shared model shape otherwise.
+   */
+  export type DocModelShape<Def extends DocDef> =
+    Def["Flags"]["Reduced"] extends true
+      ? // If variable model is reduced after narrowing then return
+        // intersection of the model
+        IntersectVariableModelType<Def["Model"]>
+      : // Otherwise return the shared shape
+        SharedVariableModelType<Def["WideModel"]>;
 
   export type IntersectVariableModelType<Model extends ModelType> =
-    Model extends [
-      infer A extends ModelObjectType,
-      infer B extends ModelObjectType,
-      infer C extends ModelObjectType,
-      infer D extends ModelObjectType,
-      infer E extends ModelObjectType,
-      infer F extends ModelObjectType,
-      infer G extends ModelObjectType,
-      infer H extends ModelObjectType,
-      infer I extends ModelObjectType,
-      infer J extends ModelObjectType,
-    ]
-      ? Utils.IntersectShape<A, B, C, D, E, F, G, H, I, J>
+    Model extends ModelObjectType
+      ? Model
       : Model extends [
             infer A extends ModelObjectType,
             infer B extends ModelObjectType,
@@ -135,8 +137,9 @@ export namespace TypesaurusCore {
             infer G extends ModelObjectType,
             infer H extends ModelObjectType,
             infer I extends ModelObjectType,
+            infer J extends ModelObjectType,
           ]
-        ? Utils.IntersectShape<A, B, C, D, E, F, G, H, I>
+        ? Utils.IntersectShape<A, B, C, D, E, F, G, H, I, J>
         : Model extends [
               infer A extends ModelObjectType,
               infer B extends ModelObjectType,
@@ -146,8 +149,9 @@ export namespace TypesaurusCore {
               infer F extends ModelObjectType,
               infer G extends ModelObjectType,
               infer H extends ModelObjectType,
+              infer I extends ModelObjectType,
             ]
-          ? Utils.IntersectShape<A, B, C, D, E, F, G, H>
+          ? Utils.IntersectShape<A, B, C, D, E, F, G, H, I>
           : Model extends [
                 infer A extends ModelObjectType,
                 infer B extends ModelObjectType,
@@ -156,8 +160,9 @@ export namespace TypesaurusCore {
                 infer E extends ModelObjectType,
                 infer F extends ModelObjectType,
                 infer G extends ModelObjectType,
+                infer H extends ModelObjectType,
               ]
-            ? Utils.IntersectShape<A, B, C, D, E, F, G>
+            ? Utils.IntersectShape<A, B, C, D, E, F, G, H>
             : Model extends [
                   infer A extends ModelObjectType,
                   infer B extends ModelObjectType,
@@ -165,65 +170,51 @@ export namespace TypesaurusCore {
                   infer D extends ModelObjectType,
                   infer E extends ModelObjectType,
                   infer F extends ModelObjectType,
+                  infer G extends ModelObjectType,
                 ]
-              ? Utils.IntersectShape<A, B, C, D, E, F>
+              ? Utils.IntersectShape<A, B, C, D, E, F, G>
               : Model extends [
                     infer A extends ModelObjectType,
                     infer B extends ModelObjectType,
                     infer C extends ModelObjectType,
                     infer D extends ModelObjectType,
                     infer E extends ModelObjectType,
+                    infer F extends ModelObjectType,
                   ]
-                ? Utils.IntersectShape<A, B, C, D, E>
+                ? Utils.IntersectShape<A, B, C, D, E, F>
                 : Model extends [
                       infer A extends ModelObjectType,
                       infer B extends ModelObjectType,
                       infer C extends ModelObjectType,
                       infer D extends ModelObjectType,
+                      infer E extends ModelObjectType,
                     ]
-                  ? Utils.IntersectShape<A, B, C, D>
+                  ? Utils.IntersectShape<A, B, C, D, E>
                   : Model extends [
                         infer A extends ModelObjectType,
                         infer B extends ModelObjectType,
                         infer C extends ModelObjectType,
+                        infer D extends ModelObjectType,
                       ]
-                    ? Utils.IntersectShape<A, B, C>
+                    ? Utils.IntersectShape<A, B, C, D>
                     : Model extends [
                           infer A extends ModelObjectType,
                           infer B extends ModelObjectType,
+                          infer C extends ModelObjectType,
                         ]
-                      ? Utils.IntersectShape<A, B>
-                      : Model extends [infer A extends ModelObjectType]
-                        ? A
-                        : Model extends ModelObjectType
-                          ? Model
+                      ? Utils.IntersectShape<A, B, C>
+                      : Model extends [
+                            infer A extends ModelObjectType,
+                            infer B extends ModelObjectType,
+                          ]
+                        ? Utils.IntersectShape<A, B>
+                        : Model extends [infer A extends ModelObjectType]
+                          ? A
                           : never;
 
-  export type SharedVariableModelType<Model extends ModelType> = Model extends [
-    infer A extends ModelObjectType,
-    infer B extends ModelObjectType,
-    infer C extends ModelObjectType,
-    infer D extends ModelObjectType,
-    infer E extends ModelObjectType,
-    infer F extends ModelObjectType,
-    infer G extends ModelObjectType,
-    infer H extends ModelObjectType,
-    infer I extends ModelObjectType,
-    infer J extends ModelObjectType,
-  ]
-    ? Utils.SharedShape10<A, B, C, D, E, F, G, H, I, J>
-    : Model extends [
-          infer A extends ModelObjectType,
-          infer B extends ModelObjectType,
-          infer C extends ModelObjectType,
-          infer D extends ModelObjectType,
-          infer E extends ModelObjectType,
-          infer F extends ModelObjectType,
-          infer G extends ModelObjectType,
-          infer H extends ModelObjectType,
-          infer I extends ModelObjectType,
-        ]
-      ? Utils.SharedShape9<A, B, C, D, E, F, G, H, I>
+  export type SharedVariableModelType<Model extends ModelType> =
+    Model extends ModelObjectType
+      ? Model
       : Model extends [
             infer A extends ModelObjectType,
             infer B extends ModelObjectType,
@@ -233,8 +224,10 @@ export namespace TypesaurusCore {
             infer F extends ModelObjectType,
             infer G extends ModelObjectType,
             infer H extends ModelObjectType,
+            infer I extends ModelObjectType,
+            infer J extends ModelObjectType,
           ]
-        ? Utils.SharedShape8<A, B, C, D, E, F, G, H>
+        ? Utils.SharedShape10<A, B, C, D, E, F, G, H, I, J>
         : Model extends [
               infer A extends ModelObjectType,
               infer B extends ModelObjectType,
@@ -243,8 +236,10 @@ export namespace TypesaurusCore {
               infer E extends ModelObjectType,
               infer F extends ModelObjectType,
               infer G extends ModelObjectType,
+              infer H extends ModelObjectType,
+              infer I extends ModelObjectType,
             ]
-          ? Utils.SharedShape7<A, B, C, D, E, F, G>
+          ? Utils.SharedShape9<A, B, C, D, E, F, G, H, I>
           : Model extends [
                 infer A extends ModelObjectType,
                 infer B extends ModelObjectType,
@@ -252,39 +247,58 @@ export namespace TypesaurusCore {
                 infer D extends ModelObjectType,
                 infer E extends ModelObjectType,
                 infer F extends ModelObjectType,
+                infer G extends ModelObjectType,
+                infer H extends ModelObjectType,
               ]
-            ? Utils.SharedShape6<A, B, C, D, E, F>
+            ? Utils.SharedShape8<A, B, C, D, E, F, G, H>
             : Model extends [
                   infer A extends ModelObjectType,
                   infer B extends ModelObjectType,
                   infer C extends ModelObjectType,
                   infer D extends ModelObjectType,
                   infer E extends ModelObjectType,
+                  infer F extends ModelObjectType,
+                  infer G extends ModelObjectType,
                 ]
-              ? Utils.SharedShape5<A, B, C, D, E>
+              ? Utils.SharedShape7<A, B, C, D, E, F, G>
               : Model extends [
                     infer A extends ModelObjectType,
                     infer B extends ModelObjectType,
                     infer C extends ModelObjectType,
                     infer D extends ModelObjectType,
+                    infer E extends ModelObjectType,
+                    infer F extends ModelObjectType,
                   ]
-                ? Utils.SharedShape4<A, B, C, D>
+                ? Utils.SharedShape6<A, B, C, D, E, F>
                 : Model extends [
                       infer A extends ModelObjectType,
                       infer B extends ModelObjectType,
                       infer C extends ModelObjectType,
+                      infer D extends ModelObjectType,
+                      infer E extends ModelObjectType,
                     ]
-                  ? Utils.SharedShape3<A, B, C>
+                  ? Utils.SharedShape5<A, B, C, D, E>
                   : Model extends [
                         infer A extends ModelObjectType,
                         infer B extends ModelObjectType,
+                        infer C extends ModelObjectType,
+                        infer D extends ModelObjectType,
                       ]
-                    ? Utils.SharedShape2<A, B>
-                    : Model extends [infer A extends ModelObjectType]
-                      ? A
-                      : Model extends ModelObjectType
-                        ? Model
-                        : never;
+                    ? Utils.SharedShape4<A, B, C, D>
+                    : Model extends [
+                          infer A extends ModelObjectType,
+                          infer B extends ModelObjectType,
+                          infer C extends ModelObjectType,
+                        ]
+                      ? Utils.SharedShape3<A, B, C>
+                      : Model extends [
+                            infer A extends ModelObjectType,
+                            infer B extends ModelObjectType,
+                          ]
+                        ? Utils.SharedShape2<A, B>
+                        : Model extends [infer A extends ModelObjectType]
+                          ? A
+                          : never;
 
   export type UnionVariableModelType<Model extends ModelType> = Model extends [
     infer A extends ModelObjectType,
@@ -520,6 +534,13 @@ export namespace TypesaurusCore {
       props: Props,
     ): asserts this is Doc<Def, DocProps & Props>;
 
+    /**
+     * The function narrows the type to shared doc type. Unlike regular doc,
+     * shared doc lacks methods which type-safety depends on knowing the full
+     * type of the model: `set`, `upset`, and `as`. The `ref` is also limited.
+     *
+     * When models don't match, it resolves `unknown`.
+     */
     as: Shared.DocAs<Def, Props>;
   }
 
@@ -579,6 +600,16 @@ export namespace TypesaurusCore {
     type: "ref";
     collection: Collection<Def>;
     id: Def["Id"];
+
+    /**
+     * The function narrows the type to shared ref type. Unlike regular ref,
+     * shared ref lacks methods which type-safety depends on knowing the full
+     * type of the model: `set`, `upset`, and `as`. The `collection` is also
+     * limited.
+     *
+     * When models don't match, it resolves `unknown`.
+     */
+    as: Shared.RefAs<Def>;
   }
 
   export type ServerDateMissing = "missing" | "present";
