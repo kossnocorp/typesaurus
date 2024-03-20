@@ -7,13 +7,19 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
-## v10.3.0 - 2024-03-??
+## v10.3.0 - 2024-03-20
 
 ### Fixed
 
 - Fixed `Typesaurus.Ref` being incompatible with the `Ref` type inferred from the actual database API.
 
 - Fixed `update` widening the model type when passing an object. It was allowed to pass an object with extra fields. It is now fixed except for data returned from the function argument, which is still prone to the problem, [which is a TypeScript limitation](https://github.com/microsoft/TypeScript/issues/241).
+
+### Added
+
+- Added type-safe way to share functionality between refs and docs. [Read the sharing functionality guide](https://typesaurus.com/type-safety/sharing/). [Read the architecture desicion record (ADR-2)](https://typesaurus.com/decisions/adr-2-sharing/).
+
+## Added
 
 ## v10.2.0 - 2024-03-07
 
