@@ -49,7 +49,7 @@ test-system-browser-watch:
 	env BROWSER=true npx vitest --browser
 
 test-types: install-attw build 
-	@cd lib && attw --pack
+	@cd lib && attw --pack --exclude-entrypoints adapter/admin adapter/admin/batch adapter/admin/core adapter/admin/firebase adapter/admin/groups adapter/admin/transaction adapter/web adapter/web/batch adapter/web/core adapter/web/firebase adapter/web/groups adapter/web/transaction
 
 build:
 	@rm -rf lib

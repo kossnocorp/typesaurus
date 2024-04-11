@@ -1,6 +1,6 @@
 {
   "name": "typesaurus",
-  "version": "10.3.0",
+  "version": "10.4.0",
   "description": "Type-safe ODM for Firestore",
   "keywords": [
     "Firebase",
@@ -79,6 +79,102 @@
       "import": {
         "types": "./sp/index.d.mts",
         "default": "./sp/index.mjs"
+      }
+    },
+    "./adapter/admin": {
+      "require": {
+        "default": "./adapter/admin/index.js"
+      },
+      "import": {
+        "default": "./adapter/admin/index.mjs"
+      }
+    },
+    "./adapter/admin/batch": {
+      "require": {
+        "default": "./adapter/admin/batch.js"
+      },
+      "import": {
+        "default": "./adapter/admin/batch.mjs"
+      }
+    },
+    "./adapter/admin/core": {
+      "require": {
+        "default": "./adapter/admin/core.js"
+      },
+      "import": {
+        "default": "./adapter/admin/core.mjs"
+      }
+    },
+    "./adapter/admin/firebase": {
+      "require": {
+        "default": "./adapter/admin/firebase.js"
+      },
+      "import": {
+        "default": "./adapter/admin/firebase.mjs"
+      }
+    },
+    "./adapter/admin/groups": {
+      "require": {
+        "default": "./adapter/admin/groups.js"
+      },
+      "import": {
+        "default": "./adapter/admin/groups.mjs"
+      }
+    },
+    "./adapter/admin/transaction": {
+      "require": {
+        "default": "./adapter/admin/transaction.js"
+      },
+      "import": {
+        "default": "./adapter/admin/transaction.mjs"
+      }
+    },
+    "./adapter/web": {
+      "require": {
+        "default": "./adapter/web/index.js"
+      },
+      "import": {
+        "default": "./adapter/web/index.mjs"
+      }
+    },
+    "./adapter/web/batch": {
+      "require": {
+        "default": "./adapter/web/batch.js"
+      },
+      "import": {
+        "default": "./adapter/web/batch.mjs"
+      }
+    },
+    "./adapter/web/core": {
+      "require": {
+        "default": "./adapter/web/core.js"
+      },
+      "import": {
+        "default": "./adapter/web/core.mjs"
+      }
+    },
+    "./adapter/web/firebase": {
+      "require": {
+        "default": "./adapter/web/firebase.js"
+      },
+      "import": {
+        "default": "./adapter/web/firebase.mjs"
+      }
+    },
+    "./adapter/web/groups": {
+      "require": {
+        "default": "./adapter/web/groups.js"
+      },
+      "import": {
+        "default": "./adapter/web/groups.mjs"
+      }
+    },
+    "./adapter/web/transaction": {
+      "require": {
+        "default": "./adapter/web/transaction.js"
+      },
+      "import": {
+        "default": "./adapter/web/transaction.mjs"
       }
     }
   },

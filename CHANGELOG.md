@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.4.0 - 2024-04-11
+
+### Added
+
+- Export admin & web adapters to enable low-level access for advanced use cases, like [Typesaurus Point-in-Time Recovery adapter](https://github.com/kossnocorp/typesaurus-pitr). **Don't use those!**
+
 ## v10.3.0 - 2024-03-20
 
 ### Fixed
