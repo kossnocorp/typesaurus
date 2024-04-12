@@ -9,6 +9,13 @@ import {
 import { SubscriptionPromise } from "../../sp/index.ts";
 import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
 
+/**
+ * The symbol allows to access native Firestore reference/query object from
+ * the subscription promise. It enables advanced integrations like
+ * the Typesaurus Point-in-Time Recovery adapter.
+ */
+export const native = Symbol("native");
+
 export function schema(getSchema, options) {
   let firestore;
   const schema = getSchema(schemaHelpers());
@@ -133,6 +140,8 @@ export class Collection {
     const doc = this.firebaseDoc(id);
 
     return new SubscriptionPromise({
+      [native]: doc,
+
       request: request({ kind: "get", path: this.path, id }),
 
       get: async () => {
@@ -141,6 +150,7 @@ export class Collection {
         if (data) return new Doc(this, id, wrapData(this.db, data));
         return null;
       },
+
       subscribe: (onResult, onError) =>
         doc.onSnapshot((firebaseSnap) => {
           const data = firebaseSnap.data();
@@ -153,8 +163,11 @@ export class Collection {
   many(ids, options) {
     assertEnvironment(options?.as);
     const db = this.db;
+    const docs = ids.map((id) => this.firebaseDoc(id));
 
     return new SubscriptionPromise({
+      [native]: docs,
+
       request: request({ kind: "many", path: this.path, ids }),
 
       get: async () => {
@@ -324,6 +337,8 @@ export function all(adapter) {
   const firebaseCollection = adapter.collection();
 
   return new SubscriptionPromise({
+    [native]: firebaseCollection,
+
     request: request({ kind: "all", ...adapter.request() }),
 
     get: async () => {
@@ -604,6 +619,8 @@ export function query(firestore, adapter, queries) {
     });
 
   const sp = new SubscriptionPromise({
+    [native]: firestoreQuery,
+
     request: request({
       kind: "query",
       ...adapter.request(),
