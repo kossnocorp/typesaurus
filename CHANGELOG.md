@@ -7,13 +7,33 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.6.0 - 2024-04-12
+
+**This release has no user-facing changes**, it's a dev release powering the [Typesaurus Point-in-Time Recovery adapter](https://github.com/kossnocorp/typesaurus-pitr).
+
+### Fixed
+
+- Fixed the native Firebase reference/query object not being exposed.
+
+### Chaned
+
+- Renamed `native` to `nativeSymol` in the adapters.
+
+### Added
+
+- Added ability to access the database instance from subscription promisesa via `dbSymbol` symbol.
+
 ## v10.5.0 - 2024-04-12
+
+**This release has no user-facing changes**, it's a dev release powering the [Typesaurus Point-in-Time Recovery adapter](https://github.com/kossnocorp/typesaurus-pitr).
 
 ### Added
 
 - Added native Firestore reference/query object to the subscription promise object, which is accessible via `native` symbol to enable low-level access for advanced use cases, like [Typesaurus Point-in-Time Recovery adapter](https://github.com/kossnocorp/typesaurus-pitr). **Don't use it!**
 
 ## v10.4.0 - 2024-04-11
+
+**This release has no user-facing changes**, it's a dev release powering the [Typesaurus Point-in-Time Recovery adapter](https://github.com/kossnocorp/typesaurus-pitr).
 
 ### Added
 
