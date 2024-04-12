@@ -39,7 +39,7 @@ import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
  * the subscription promise. It enables advanced integrations like
  * the Typesaurus Point-in-Time Recovery adapter.
  */
-export const native = Symbol("native");
+export const nativeSymbol = Symbol("native");
 
 export function schema(getSchema, options) {
   let firestore;
@@ -164,7 +164,7 @@ export class Collection {
 
     return new SubscriptionPromise({
       request: request({
-        [native]: doc,
+        [nativeSymbol]: doc,
         kind: "get",
         path: this.path,
         id,
@@ -196,7 +196,7 @@ export class Collection {
 
     return new SubscriptionPromise({
       request: request({
-        [native]: docs,
+        [nativeSymbol]: docs,
         kind: "many",
         path: this.path,
         ids,
@@ -352,7 +352,7 @@ export function all(adapter) {
 
   return new SubscriptionPromise({
     request: request({
-      [native]: firebaseCollection,
+      [nativeSymbol]: firebaseCollection,
       kind: "all",
       ...adapter.request(),
     }),
@@ -656,7 +656,7 @@ export function _query(firestore, adapter, queries) {
 
   const sp = new SubscriptionPromise({
     request: request({
-      get [native]() {
+      get [nativeSymbol]() {
         return firebaseQuery();
       },
       kind: "query",
