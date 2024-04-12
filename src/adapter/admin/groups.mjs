@@ -62,6 +62,7 @@ class Group {
 
   adapter() {
     return {
+      db: () => this.db,
       collection: () => this.firestore().collectionGroup(this.name),
       doc: (snapshot) =>
         pathToDoc(

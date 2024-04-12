@@ -16,6 +16,11 @@ import { firestore as createFirestore, firestoreSymbol } from "./firebase.mjs";
  */
 export const nativeSymbol = Symbol("native");
 
+/**
+ * The symbol allows to access the Typesaurus database instance.
+ */
+export const dbSymbol = Symbol("db");
+
 export function schema(getSchema, options) {
   let firestore;
   const schema = getSchema(schemaHelpers());
@@ -142,6 +147,7 @@ export class Collection {
     return new SubscriptionPromise({
       request: request({
         [nativeSymbol]: doc,
+        [dbSymbol]: this.db,
         kind: "get",
         path: this.path,
         id,
@@ -171,6 +177,7 @@ export class Collection {
     return new SubscriptionPromise({
       request: request({
         [nativeSymbol]: docs,
+        [dbSymbol]: this.db,
         kind: "many",
         path: this.path,
         ids,
@@ -235,6 +242,7 @@ export class Collection {
 
   adapter() {
     return {
+      db: () => this.db,
       collection: () => this.firebaseCollection(),
       doc: (snapshot) =>
         new Doc(this, snapshot.id, wrapData(this.db, snapshot.data())),
@@ -345,6 +353,7 @@ export function all(adapter) {
   return new SubscriptionPromise({
     request: request({
       [nativeSymbol]: firebaseCollection,
+      [dbSymbol]: adapter.db(),
       kind: "all",
       ...adapter.request(),
     }),
@@ -629,6 +638,7 @@ export function query(firestore, adapter, queries) {
   const sp = new SubscriptionPromise({
     request: request({
       [nativeSymbol]: firestoreQuery,
+      [dbSymbol]: adapter.db(),
       kind: "query",
       ...adapter.request(),
       queries: queries,
