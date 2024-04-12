@@ -140,9 +140,12 @@ export class Collection {
     const doc = this.firebaseDoc(id);
 
     return new SubscriptionPromise({
-      [native]: doc,
-
-      request: request({ kind: "get", path: this.path, id }),
+      request: request({
+        [native]: doc,
+        kind: "get",
+        path: this.path,
+        id,
+      }),
 
       get: async () => {
         const firebaseSnap = await doc.get();
@@ -166,9 +169,12 @@ export class Collection {
     const docs = ids.map((id) => this.firebaseDoc(id));
 
     return new SubscriptionPromise({
-      [native]: docs,
-
-      request: request({ kind: "many", path: this.path, ids }),
+      request: request({
+        [native]: docs,
+        kind: "many",
+        path: this.path,
+        ids,
+      }),
 
       get: async () => {
         // Firestore#getAll doesn't like empty lists
@@ -337,9 +343,11 @@ export function all(adapter) {
   const firebaseCollection = adapter.collection();
 
   return new SubscriptionPromise({
-    [native]: firebaseCollection,
-
-    request: request({ kind: "all", ...adapter.request() }),
+    request: request({
+      [native]: firebaseCollection,
+      kind: "all",
+      ...adapter.request(),
+    }),
 
     get: async () => {
       const snapshot = await firebaseCollection.get();
@@ -619,9 +627,8 @@ export function query(firestore, adapter, queries) {
     });
 
   const sp = new SubscriptionPromise({
-    [native]: firestoreQuery,
-
     request: request({
+      [native]: firestoreQuery,
       kind: "query",
       ...adapter.request(),
       queries: queries,
