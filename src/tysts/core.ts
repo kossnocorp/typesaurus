@@ -302,33 +302,37 @@ const db = schema(
   { server: { preferRest: true } },
 );
 
-async function custom() {
+//#region schema
+async function schema_() {
   // Creating custom collection
+  {
+    // Via constant named property
 
-  // Via constant named property
-
-  const doc = await db[customCollection].get(await db[customCollection].id());
-  db[customCollection].get;
-  db.customCollectionName.get;
-  doc?.data.hello;
-
-  // Via name variable
-
-  async function createDb(collection: string) {
-    const customDB = schema(($) => ({
-      users: $.collection<User>(),
-      customCollection: $.collection<CustomCollection>().name(collection),
-    }));
-
-    const doc = await customDB.customCollection.get(
-      await customDB.customCollection.id(),
-    );
-
+    const doc = await db[customCollection].get(await db[customCollection].id());
+    db[customCollection].get;
+    db.customCollectionName.get;
     doc?.data.hello;
+
+    // Via name variable
+
+    async function createDb(collection: string) {
+      const customDB = schema(($) => ({
+        users: $.collection<User>(),
+        customCollection: $.collection<CustomCollection>().name(collection),
+      }));
+
+      const doc = await customDB.customCollection.get(
+        await customDB.customCollection.id(),
+      );
+
+      doc?.data.hello;
+    }
   }
 }
+//#endregion
 
-async function colleciton() {
+//#region collection
+async function collection() {
   /// Reading generic collections
 
   //// Model as generic
@@ -365,8 +369,25 @@ async function colleciton() {
     ]);
     things.map((nested) => nested.map((thing) => thing.data.name));
   }
-}
 
+  // Count
+
+  const docsCount = await db.users.count();
+  docsCount.toFixed();
+
+  const nestedDB = schema(($) => ({
+    users: $.collection<User>().sub({
+      settings: $.collection<{}>(),
+    }),
+  }));
+  const nestedDocsCount = await nestedDB
+    .users(nestedDB.users.id("whatever"))
+    .settings.count();
+  nestedDocsCount.toFixed();
+}
+//#endregion
+
+//#region Ref
 async function ref() {
   /// Reading generic refs
 
@@ -499,7 +520,9 @@ async function ref() {
     );
   }
 }
+//#endregion
 
+//#region Doc
 async function doc() {
   const user = db.users.doc(db.users.id("sasha"), {
     name: "Sasha",
@@ -625,24 +648,9 @@ async function doc() {
     TypeEqual<typeof serverUser.data.alias, string | undefined | null>
   >(true);
 }
+//#endregion
 
-async function collection() {
-  // Count
-
-  const docsCount = await db.users.count();
-  docsCount.toFixed();
-
-  const nestedDB = schema(($) => ({
-    users: $.collection<User>().sub({
-      settings: $.collection<{}>(),
-    }),
-  }));
-  const nestedDocsCount = await nestedDB
-    .users(nestedDB.users.id("whatever"))
-    .settings.count();
-  nestedDocsCount.toFixed();
-}
-
+//#region get
 async function get() {
   const user = await db.users.get(db.users.id("sasha"));
   if (!user) return;
@@ -741,7 +749,9 @@ async function get() {
     true,
   );
 }
+//#endregion
 
+//#region many
 async function many() {
   const [user] = await db.users.many([db.users.id("sasha")]);
   if (!user) return;
@@ -830,7 +840,9 @@ async function many() {
     true,
   );
 }
+//#endregion
 
+//#region all
 async function all() {
   const [user] = await db.users.all();
   if (!user) return;
@@ -923,7 +935,9 @@ async function all() {
     true,
   );
 }
+//#endregion
 
+//#region query
 async function query() {
   const [user] = await db.users.query(($) => $.field("name").eq("Sasha"));
   if (!user) return;
@@ -1326,7 +1340,9 @@ async function query() {
     ),
   );
 }
+//#endregion
 
+//#region
 async function add() {
   // Simple add
 
@@ -1390,7 +1406,9 @@ async function add() {
     status: null,
   }));
 }
+//#endregion
 
+//#region set
 async function set() {
   // Simple set
 
@@ -1507,7 +1525,9 @@ async function set() {
     status: null,
   }));
 }
+//#endregion
 
+//#region upset
 async function upset() {
   // Simple set
 
@@ -1688,7 +1708,9 @@ async function upset() {
     status: null,
   }));
 }
+//#endregion
 
+//#region update
 async function update() {
   // Simple update
 
@@ -2503,6 +2525,7 @@ async function update() {
     active: true;
   }
 }
+//#endregion
 
 async function sharedIds() {
   interface Settings {
@@ -2521,6 +2544,7 @@ async function sharedIds() {
 
 // @tysts-start: strict - with strictNullChecks disabled the tysts fail
 
+//#region InferSchema
 async function inferSchema() {
   type Schema1 = Core.InferSchema<typeof db>;
 
@@ -2565,7 +2589,9 @@ async function inferSchema() {
     >
   >(true);
 }
+//#endregion
 
+//#region NarrowDoc
 async function narrowDoc() {
   interface TwitterAccount {
     type: "twitter";
@@ -2601,6 +2627,7 @@ async function narrowDoc() {
     >
   >(true);
 }
+//#endregion
 
 async function edgeCases() {
   interface ServerChapter {}
