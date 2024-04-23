@@ -565,21 +565,25 @@ describe("all", () => {
   describe("request", () => {
     it("exposes the request", () => {
       const promise = db.books.all();
-      expect(promise.request).toEqual({
-        type: "request",
-        kind: "all",
-        path: "books",
-      });
+      expect(promise.request).toEqual(
+        expect.objectContaining({
+          type: "request",
+          kind: "all",
+          path: "books",
+        }),
+      );
     });
 
     it("exposes a group request", () => {
       const promise = groups(db).books.all();
-      expect(promise.request).toEqual({
-        type: "request",
-        kind: "all",
-        path: "books",
-        group: true,
-      });
+      expect(promise.request).toEqual(
+        expect.objectContaining({
+          type: "request",
+          kind: "all",
+          path: "books",
+          group: true,
+        }),
+      );
     });
   });
 });

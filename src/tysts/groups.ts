@@ -89,10 +89,12 @@ async function tysts() {
   }
 
   interface Comment {
+    userId: string;
     text: string;
   }
 
   interface OrderComment {
+    userId: string;
     rating: number;
   }
 
@@ -109,9 +111,8 @@ async function tysts() {
     color: string;
   }
 
-  type SchemaType<DB extends Core.DB<any>> = DB extends Core.DB<infer Schema>
-    ? Schema
-    : never;
+  type SchemaType<DB extends Core.DB<any>> =
+    DB extends Core.DB<infer Schema> ? Schema : never;
 
   const db1 = schema(($) => ({
     books: $.collection<Book>(),
@@ -908,6 +909,26 @@ async function tysts() {
 
   const commentsCount = await groups(db2).comments.count();
   commentsCount.toFixed();
+
+  //! Shared
+
+  {
+    interface WithUserId {
+      userId: string;
+    }
+
+    //! Can cast to shared collection type
+    groups(db3).likes.as<WithUserId>().all();
+    groups(db3).comments.as<WithUserId>().all();
+
+    //! Can't access get and many
+    // @ts-expect-error
+    groups(db3).likes.as<WithUserId>().get;
+
+    //! The shape must match
+    // @ts-expect-error
+    groups(db2).comments.as<{ text: string }>().all();
+  }
 }
 
 type Assert<Type1, _Type2 extends Type1> = true;

@@ -7,6 +7,16 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.7.0 - 2024-04-23
+
+### Added
+
+- Added `as` method to collections and collections groups. The method allows sharing functionality between collections and collections groups. [Read the sharing functionality guide](https://typesaurus.com/type-safety/sharing/).
+
+### Changed
+
+- Deprecated `Typesaurus.Collection`, `Typesaurus.Ref`, and `Typesaurus.Doc` in favor of `Typesaurus.SharedCollection`, `Typesaurus.SharedRef`, and `Typesaurus.SharedDoc` to reflect the new sharing functionality. [Read the sharing functionality guide](https://typesaurus.com/type-safety/sharing/).
+
 ## v10.6.0 - 2024-04-12
 
 **This release has no user-facing changes**, it's a dev release powering the [Typesaurus Point-in-Time Recovery adapter](https://github.com/kossnocorp/typesaurus-pitr).

@@ -1,10 +1,33 @@
 import type { TypesaurusCore as Core } from "./core.js";
+import type { TypesaurusGroups as Groups } from "./groups.js";
 
 /**
  * Shared types namespaces. It contains types that defines sharing entity
  * functionality.
  */
 export namespace TypesaurusShared {
+  /**
+   * The collecton as function that narrows the type to shared ref type. When
+   * models don't match, it resolves `unknown`.
+   */
+  export interface CollectionAs<Def extends Core.DocDef> {
+    <
+      Model extends Core.ModelObjectType,
+    >(): Core.DocModelOrUnknown<Def> extends Model
+      ? Collection<Model>
+      : unknown;
+  }
+
+  /**
+   * The group as function that narrows the type to shared ref type. When
+   * models don't match, it resolves `unknown`.
+   */
+  export interface GroupAs<Def extends Core.DocDef> {
+    <
+      Model extends Core.ModelObjectType,
+    >(): Core.DocModelOrUnknown<Def> extends Model ? Group<Model> : unknown;
+  }
+
   /**
    * The ref as function that narrows the type to shared ref type. When models
    * don't match, it resolves `unknown`.
@@ -35,6 +58,17 @@ export namespace TypesaurusShared {
   export interface Collection<Model extends Core.ModelObjectType>
     extends Omit<
       Core.Collection<Def<Model>>,
+      "add" | "set" | "upset" | "update" | "as"
+    > {}
+
+  /**
+   * Shared collection group type. Unlike regular group, shared group
+   * lacks methods which type-safety depends on knowing the full type of
+   * the model: `add`, `set`, `upset`, and `update`.
+   */
+  export interface Group<Model extends Core.ModelObjectType>
+    extends Omit<
+      Groups.Group<Def<Model>>,
       "add" | "set" | "upset" | "update" | "as"
     > {}
 

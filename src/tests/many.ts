@@ -328,12 +328,14 @@ describe("many", () => {
         db.fruits.id("apple"),
         db.fruits.id("banana"),
       ]);
-      expect(promise.request).toEqual({
-        type: "request",
-        kind: "many",
-        path: "fruits",
-        ids: [db.fruits.id("apple"), db.fruits.id("banana")],
-      });
+      expect(promise.request).toEqual(
+        expect.objectContaining({
+          type: "request",
+          kind: "many",
+          path: "fruits",
+          ids: [db.fruits.id("apple"), db.fruits.id("banana")],
+        }),
+      );
     });
   });
 });

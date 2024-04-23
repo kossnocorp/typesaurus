@@ -72,6 +72,10 @@ class Group {
     return snap.data().result;
   }
 
+  as() {
+    return this;
+  }
+
   adapter() {
     return {
       db: () => this.db,

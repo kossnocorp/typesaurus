@@ -257,6 +257,10 @@ export class Collection {
   firebaseDoc(id) {
     return this.firestore().doc(`${this.path}/${id}`);
   }
+
+  as() {
+    return this;
+  }
 }
 
 export class Ref {

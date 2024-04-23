@@ -1137,6 +1137,16 @@ export namespace TypesaurusCore {
      * const newCommentId = await db.comments.id()
      */
     id(): Promise<Def["Id"]>;
+
+    /**
+     * The function narrows the type to shared collection type. Unlike regular
+     * collection, shared collection lacks methods which type-safety depends on
+     * knowing the full type of the model: `set`, `upset`, and `as`. The `ref`
+     * is also limited.
+     *
+     * When models don't match, it resolves `unknown`.
+     */
+    as: Shared.CollectionAs<Def>;
   }
 
   export interface CollectionConfig {

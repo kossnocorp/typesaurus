@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { schema } from "..";
+import { groups, schema } from "..";
 
 describe("collection", () => {
   it("allows to name the collection", async () => {
@@ -50,5 +50,25 @@ describe("collection", () => {
     const executions = db.schedule("schedule-id").executions;
     expect(executions.name).toEqual("executions");
     expect(executions.path).toEqual("schedule/schedule-id/executions");
+  });
+
+  describe("as", () => {
+    const db = schema(($) => ({
+      schedule: $.collection<any, string>(),
+      nope: $.collection<any, string>().name("schedule"),
+    }));
+
+    it("returns the collection", () => {
+      const schedule = db.schedule.as();
+      expect(schedule).toBe(db.schedule);
+    });
+
+    describe("groups", () => {
+      it("returns the collection", () => {
+        const group = groups(db).schedule;
+        const schedule = group.as();
+        expect(schedule).toBe(group);
+      });
+    });
   });
 });

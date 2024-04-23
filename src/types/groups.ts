@@ -1,4 +1,5 @@
 import type { TypesaurusCore as Core } from "./core.js";
+import { TypesaurusShared as Shared } from "./shared.js";
 import type { TypesaurusUtils as Utils } from "./utils.js";
 
 export declare const groups: TypesaurusGroups.Function;
@@ -17,6 +18,16 @@ export namespace TypesaurusGroups {
 
     /** The group name */
     name: string;
+
+    /**
+     * The function narrows the type to shared group type. Unlike regular
+     * group, shared group lacks methods which type-safety depends on
+     * knowing the full type of the model: `set`, `upset`, and `as`. The `ref`
+     * is also limited.
+     *
+     * When models don't match, it resolves `unknown`.
+     */
+    as: Shared.GroupAs<Def>;
   }
 
   /**

@@ -103,6 +103,16 @@ export namespace Typesaurus {
     Shared.Collection<Model>;
 
   /**
+   * Shared collection group type. Unlike regular group, shared group lacks
+   * methods which type-safety depends on knowing the full type of the model:
+   * `add`, `set`, `upset`, and `update`.
+   *
+   * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#sharedgroup)
+   */
+  export type SharedGroup<Model extends Core.ModelObjectType> =
+    Shared.Group<Model>;
+
+  /**
    * Concats models into single variable model type. Useful to define and export
    * variable models ouside of the centraliazed schema definition.
    */
@@ -115,6 +125,8 @@ export namespace Typesaurus {
    * The type represents the document id.
    *
    * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#id)
+   *
+   * @deprecated Use `SharedRef` instead. Might be removed in the next major version.
    */
   export type Id<Path extends string> = Core.Id<Path>;
 
@@ -122,6 +134,8 @@ export namespace Typesaurus {
    * The type allows defining collection types.
    *
    * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#collection)
+   *
+   * @deprecated Use `SharedRef` instead. Might be removed in the next major version.
    */
   export type Collection<
     Model extends Core.ModelType,
@@ -135,6 +149,8 @@ export namespace Typesaurus {
    * The type represents the document reference type.
    *
    * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#ref)
+   *
+   * @deprecated Use `SharedRef` instead. Might be removed in the next major version.
    */
   export type Ref<
     Model extends Core.ModelType,
@@ -148,6 +164,8 @@ export namespace Typesaurus {
    * The type represents the document type.
    *
    * [Learn more on the docs website](https://typesaurus.com/types/typesaurus/#doc)
+   *
+   * @deprecated Use `SharedRef` instead. Might be removed in the next major version.
    */
   export type Doc<
     Model extends Core.ModelType,

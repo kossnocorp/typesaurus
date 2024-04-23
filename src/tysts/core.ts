@@ -333,57 +333,44 @@ async function schema_() {
 
 //#region collection
 async function collection() {
-  /// Reading generic collections
-
-  //// Model as generic
+  //! Shared collection
   {
-    function getAll<Model extends { name: string }>(
-      collection: Typesaurus.Collection<Model>,
-    ) {
+    interface ModelWithName {
+      name: string;
+    }
+
+    function getAll(collection: Typesaurus.SharedCollection<ModelWithName>) {
       return collection.all();
     }
 
-    const things = await Promise.all([
-      getAll(db.users),
-      getAll(db.accounts),
-      getAll(db.users(db.users.id("sasha")).books),
+    const collectionResponses = await Promise.all([
+      getAll(db.users.as<ModelWithName>()),
+      getAll(db.accounts.as<ModelWithName>()),
+      getAll(db.users(db.users.id("sasha")).books.as<ModelWithName>()),
+      //! The collection must be compatible
+      // @ts-expect-error
+      getAll(db.appStats.as<ModelWithName>()),
     ]);
-    things.map((nested) => nested.map((thing) => thing.data.name));
+    collectionResponses.map((entities) =>
+      entities.map((thing) => thing.data.name),
+    );
   }
 
-  //// Collection as generic
+  //! Count
   {
-    function getAll<Collection extends Typesaurus.Collection<{ name: string }>>(
-      collection: Collection,
-    ) {
-      return collection.all();
-    }
+    const docsCount = await db.users.count();
+    docsCount.toFixed();
 
-    const things = await Promise.all([
-      // @ts-expect-error: TODO: Make it work somehow?!
-      getAll(db.users),
-      // @ts-expect-error: TODO: Make it work somehow?!
-      getAll(db.accounts),
-      // @ts-expect-error: TODO: Make it work somehow?!
-      getAll(db.users(db.users.id("sasha")).books),
-    ]);
-    things.map((nested) => nested.map((thing) => thing.data.name));
+    const nestedDB = schema(($) => ({
+      users: $.collection<User>().sub({
+        settings: $.collection<{}>(),
+      }),
+    }));
+    const nestedDocsCount = await nestedDB
+      .users(nestedDB.users.id("whatever"))
+      .settings.count();
+    nestedDocsCount.toFixed();
   }
-
-  // Count
-
-  const docsCount = await db.users.count();
-  docsCount.toFixed();
-
-  const nestedDB = schema(($) => ({
-    users: $.collection<User>().sub({
-      settings: $.collection<{}>(),
-    }),
-  }));
-  const nestedDocsCount = await nestedDB
-    .users(nestedDB.users.id("whatever"))
-    .settings.count();
-  nestedDocsCount.toFixed();
 }
 //#endregion
 
