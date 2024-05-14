@@ -4,13 +4,19 @@ import type { TypesaurusUpdate as Update } from "./update.js";
 import type { TypesaurusFirebase as Firebase } from "./firebase.js";
 import type { TypesaurusTransaction as Transaction } from "./transaction.js";
 import type { TypesaurusShared as Shared } from "./shared.js";
+import { TypesaurusPlugins as Plugins } from "./plugins.js";
 
 export namespace TypesaurusCore {
   export interface Function {
     <Schema extends PlainSchema, Opts extends Options>(
       getSchema: ($: SchemaHelpers) => Schema,
       options?: Opts,
-    ): DB<Schema>;
+    ): DB<
+      Schema,
+      Opts["plugins"] extends Array<infer Plugin extends Plugins.Plugin>
+        ? Plugin
+        : never
+    >;
   }
 
   /**
@@ -446,12 +452,16 @@ export namespace TypesaurusCore {
    * Doc change information. It contains the type of change, the doc after
    * the change, and the position change.
    */
-  export interface DocChange<Def extends DocDef, Props extends DocProps> {
+  export interface DocChange<
+    Plugin extends Plugins.Plugin,
+    Def extends DocDef,
+    Props extends DocProps,
+  > {
     /** The type of change. */
     readonly type: DocChangeType;
 
     /** The document affected by this change. */
-    readonly doc: Doc<Def, Props>;
+    readonly doc: Doc<Plugin, Def, Props>;
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -474,6 +484,7 @@ export namespace TypesaurusCore {
    * `query`.
    */
   export interface SubscriptionListMeta<
+    Plugin extends Plugins.Plugin,
     Def extends DocDef,
     Props extends DocProps,
   > {
@@ -482,7 +493,7 @@ export namespace TypesaurusCore {
      * this is the first snapshot, all documents will be in the list as added
      * changes.
      */
-    changes: () => DocChange<Def, Props>[];
+    changes: () => DocChange<Plugin, Def, Props>[];
 
     /** The number of documents in the QuerySnapshot. */
     readonly size: number;
@@ -515,12 +526,15 @@ export namespace TypesaurusCore {
   /**
    * The document type. It contains the reference in the DB and the model data.
    */
-  export interface Doc<Def extends DocDef, Props extends DocProps>
-    extends DocAPI<Def> {
+  export interface Doc<
+    Plugin extends Plugins.Plugin,
+    Def extends DocDef,
+    Props extends DocProps,
+  > extends DocAPI<Plugin, Def> {
     type: "doc";
 
     /** The doc's ref. */
-    ref: Ref<Def>;
+    ref: Ref<Plugin, Def>;
 
     data: DocData<Def, Props>;
 
@@ -528,11 +542,11 @@ export namespace TypesaurusCore {
 
     test<Props extends Partial<DocProps>>(
       props: Props,
-    ): this is Doc<Def, DocProps & Props>;
+    ): this is Doc<Plugin, Def, DocProps & Props>;
 
     assert<Props extends Partial<DocProps>>(
       props: Props,
-    ): asserts this is Doc<Def, DocProps & Props>;
+    ): asserts this is Doc<Plugin, Def, DocProps & Props>;
 
     /**
      * The function narrows the type to shared doc type. Unlike regular doc,
@@ -578,7 +592,7 @@ export namespace TypesaurusCore {
       : // Preserve as-is types
         Type extends
             | Date
-            | Ref<any>
+            | Ref<any, any>
             | string
             | number
             | boolean
@@ -596,9 +610,10 @@ export namespace TypesaurusCore {
   /**
    * The document reference type.
    */
-  export interface Ref<Def extends DocDef> extends DocAPI<Def> {
+  export interface Ref<Plugin extends Plugins.Plugin, Def extends DocDef>
+    extends DocAPI<Plugin, Def> {
     type: "ref";
-    collection: Collection<Def>;
+    collection: Collection<Plugin, Def>;
     id: Def["Id"];
 
     /**
@@ -725,7 +740,7 @@ export namespace TypesaurusCore {
           Type extends undefined
           ? WriteFieldUndefined<Parent, Key>
           : // Now we process as-is types
-            Type extends Date | Ref<any> | string | boolean | null
+            Type extends Date | Ref<any, any> | string | boolean | null
             ? WriteFieldAsIs<Parent, Key>
             : // Now process arrays
               Type extends Array<infer ItemType>
@@ -804,7 +819,7 @@ export namespace TypesaurusCore {
       : // Now process as-is types
         Type extends
             | Date
-            | Ref<any>
+            | Ref<any, any>
             | string
             | number
             | boolean
@@ -963,13 +978,13 @@ export namespace TypesaurusCore {
     queries: Query.Query<any>[];
   }
 
-  export interface DocAPI<Def extends DocDef> {
+  export interface DocAPI<Plugin extends Plugins.Plugin, Def extends DocDef> {
     get<
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment },
     >(
       options?: ReadOptions<Environment, Props>,
-    ): SubscriptionPromise<GetRequest, Doc<Def, Props> | null>;
+    ): SubscriptionPromise<GetRequest, Doc<Plugin, Def, Props> | null>;
 
     set<
       Environment extends RuntimeEnvironment,
@@ -977,7 +992,7 @@ export namespace TypesaurusCore {
     >(
       data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
-    ): Promise<Ref<Def>>;
+    ): Promise<Ref<Plugin, Def>>;
 
     upset<
       Environment extends RuntimeEnvironment,
@@ -985,11 +1000,11 @@ export namespace TypesaurusCore {
     >(
       data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
-    ): Promise<Ref<Def>>;
+    ): Promise<Ref<Plugin, Def>>;
 
     update: Update.DocFunction<Def>;
 
-    remove(): Promise<Ref<Def>>;
+    remove(): Promise<Ref<Plugin, Def>>;
 
     narrow<NarrowToModel extends ModelType>(
       fn: DocNarrowFunction<
@@ -998,6 +1013,7 @@ export namespace TypesaurusCore {
       >,
     ):
       | Doc<
+          Plugin,
           {
             Model: NarrowToModel;
             Name: Def["Name"];
@@ -1015,16 +1031,20 @@ export namespace TypesaurusCore {
     ExpectedModel extends ModelType,
   > = (data: InputModel) => false | Nullify<ExpectedModel>;
 
-  export interface CollectionAPI<Def extends DocDef> {
+  export interface CollectionAPI<
+    Plugin extends Plugins.Plugin,
+    Def extends DocDef,
+  > {
     all<
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment },
     >(
       options?: ReadOptions<Environment, Props>,
-    ): SubscriptionPromise<
+    ): Plugins.SubscriptionPromise.Plug<
       AllRequest,
-      Doc<Def, Props>[],
-      SubscriptionListMeta<Def, Props>
+      Doc<Plugin, Def, Props>[],
+      SubscriptionListMeta<Plugin, Def, Props>,
+      Plugin["sp"]
     >;
 
     query: Query.Function<Def>;
@@ -1039,7 +1059,8 @@ export namespace TypesaurusCore {
   /**
    *
    */
-  export interface Collection<Def extends DocDef> extends CollectionAPI<Def> {
+  export interface Collection<Plugin extends Plugins.Plugin, Def extends DocDef>
+    extends CollectionAPI<Plugin, Def> {
     /** The collection type */
     type: "collection";
 
@@ -1055,7 +1076,7 @@ export namespace TypesaurusCore {
     >(
       id: Def["Id"],
       options?: ReadOptions<Environment, Props>,
-    ): SubscriptionPromise<GetRequest, Doc<Def, Props> | null>;
+    ): SubscriptionPromise<GetRequest, Doc<Plugin, Def, Props> | null>;
 
     many<
       Environment extends RuntimeEnvironment,
@@ -1063,7 +1084,7 @@ export namespace TypesaurusCore {
     >(
       ids: Def["Id"][],
       options?: ReadOptions<Environment, Props>,
-    ): SubscriptionPromise<ManyRequest, Array<Doc<Def, Props> | null>>;
+    ): SubscriptionPromise<ManyRequest, Array<Doc<Plugin, Def, Props> | null>>;
 
     add<
       Environment extends RuntimeEnvironment,
@@ -1071,7 +1092,7 @@ export namespace TypesaurusCore {
     >(
       data: AssignArg<UnionVariableModelType<Def["Model"]>, Props>,
       options?: OperationOptions<Environment>,
-    ): Promise<Ref<Def>>;
+    ): Promise<Ref<Plugin, Def>>;
 
     set<
       Environment extends RuntimeEnvironment,
@@ -1080,7 +1101,7 @@ export namespace TypesaurusCore {
       id: Def["Id"],
       data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
-    ): Promise<Ref<Def>>;
+    ): Promise<Ref<Plugin, Def>>;
 
     upset<
       Environment extends RuntimeEnvironment,
@@ -1089,20 +1110,20 @@ export namespace TypesaurusCore {
       id: Def["Id"],
       data: AssignArg<UnionVariableModelType<Def["WideModel"]>, Props>,
       options?: OperationOptions<Environment>,
-    ): Promise<Ref<Def>>;
+    ): Promise<Ref<Plugin, Def>>;
 
     update: Update.CollectionFunction<Def>;
 
-    remove(id: Def["Id"]): Promise<Ref<Def>>;
+    remove(id: Def["Id"]): Promise<Ref<Plugin, Def>>;
 
-    ref(id: Def["Id"]): Ref<Def>;
+    ref(id: Def["Id"]): Ref<Plugin, Def>;
 
     doc<
       Environment extends RuntimeEnvironment,
       Props extends DocProps & { environment: Environment },
     >(
       snapshot: Firebase.Snapshot,
-    ): Doc<Def, Props> | null;
+    ): Doc<Plugin, Def, Props> | null;
 
     doc<
       Environment extends RuntimeEnvironment,
@@ -1111,7 +1132,7 @@ export namespace TypesaurusCore {
       id: Def["Id"],
       data: DocData<Def, Props>,
       options?: OperationOptions<Environment>,
-    ): Doc<Def, Props>;
+    ): Doc<Plugin, Def, Props>;
 
     /**
      * Cast a string to typed document id.
@@ -1153,8 +1174,11 @@ export namespace TypesaurusCore {
     path?: string;
   }
 
-  export interface NestedCollection<Def extends DocDef, Schema extends AnyDB>
-    extends Collection<Def> {
+  export interface NestedCollection<
+    Plugin extends Plugins.Plugin,
+    Def extends DocDef,
+    Schema extends AnyDB,
+  > extends Collection<Plugin, Def> {
     (id: Def["Id"]): Schema;
 
     schema: Schema;
@@ -1164,9 +1188,9 @@ export namespace TypesaurusCore {
 
   export type NestedCollectionShortcuts<Schema extends AnyDB> = {
     [Path in keyof Schema]: Path extends string
-      ? Schema[Path] extends NestedCollection<infer Def, infer Schema>
+      ? Schema[Path] extends NestedCollection<any, infer Def, infer Schema>
         ? NestedCollectionShortcut<Def, Schema>
-        : Schema[Path] extends Collection<infer Def>
+        : Schema[Path] extends Collection<any, infer Def>
           ? CollectionShortcut<Def>
           : Schema[Path]
       : never;
@@ -1206,9 +1230,10 @@ export namespace TypesaurusCore {
     sub: NestedCollectionShortcuts<Schema>;
   }
 
-  export type AnyCollection<Def extends DocDef> =
-    | Collection<Def>
-    | NestedCollection<Def, AnyDB>;
+  export type AnyCollection<
+    Plugin extends Plugins.Plugin,
+    Def extends DocDef,
+  > = Collection<Plugin, Def> | NestedCollection<Plugin, Def, AnyDB>;
 
   export interface PlainCollection<
     Model extends ModelType,
@@ -1250,10 +1275,15 @@ export namespace TypesaurusCore {
   }
 
   export interface AnyDB {
-    [CollectionPath: string]: AnyCollection<any>;
+    [CollectionPath: string]: AnyCollection<any, any>;
   }
 
-  export type DB<Schema, BasePath extends string | false = false> = {
+  export type DB<
+    Schema,
+    // [TODO] Swap places?!
+    Plugin extends Plugins.Plugin,
+    BasePath extends string | false = false,
+  > = {
     [Name in keyof Schema]: Name extends string
       ? Schema[Name] extends NestedPlainCollection<
           infer Model,
@@ -1262,8 +1292,9 @@ export namespace TypesaurusCore {
           infer CustomName
         >
         ? NestedCollection<
+            Plugin,
             CollectionDef<Name, Model, CustomId, CustomName, BasePath>,
-            DB<Schema, Utils.ComposePath<BasePath, Name>>
+            DB<Schema, Plugin, Utils.ComposePath<BasePath, Name>>
           >
         : Schema[Name] extends PlainCollection<
               infer Model,
@@ -1271,6 +1302,7 @@ export namespace TypesaurusCore {
               infer CustomName
             >
           ? Collection<
+              Plugin,
               CollectionDef<Name, Model, CustomId, CustomName, BasePath>
             >
           : never
@@ -1300,7 +1332,7 @@ export namespace TypesaurusCore {
    * Infers schema types. Useful to define function arguments that accept
    * collection doc, ref, id or data.
    */
-  export type InferSchema<DB extends TypesaurusCore.DB<any, any>> = {
+  export type InferSchema<DB extends TypesaurusCore.DB<any, any, any>> = {
     /**
      * Collection types, use `["Id"]`, `["Ref"]` and `["Doc"]` to access common
      * document types.
@@ -1309,8 +1341,8 @@ export namespace TypesaurusCore {
      * the subcollection types, i.e. `["comments"]["Id"]`.
      */
     [Path in keyof DB]: DB[Path] extends
-      | Collection<infer Def>
-      | NestedCollection<infer Def, any>
+      | Collection<infer Plugin, infer Def>
+      | NestedCollection<infer Plugin, infer Def, any>
       ? {
           /**
            * The type allows to access subcollections.
@@ -1318,8 +1350,9 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#subcollections)
            */
           sub: DB[Path] extends NestedCollection<
+            Plugin,
             any,
-            infer Schema extends TypesaurusCore.DB<any, any>
+            infer Schema extends TypesaurusCore.DB<any, any, any>
           >
             ? InferSchema<Schema>
             : never;
@@ -1343,14 +1376,14 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#ref)
            */
-          Ref: TypesaurusCore.Ref<Def>;
+          Ref: TypesaurusCore.Ref<Plugin, Def>;
 
           /**
            * The type represents the document Doc instance.
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#doc)
            */
-          Doc: TypesaurusCore.Doc<Def, DocProps>;
+          Doc: TypesaurusCore.Doc<Plugin, Def, DocProps>;
 
           /**
            * The type represents the document data. It’s what you get reading or
@@ -1370,7 +1403,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#result)
            */
-          Result: Doc<Def, DocProps> | null | undefined;
+          Result: Doc<Plugin, Def, DocProps> | null | undefined;
 
           /**
            * The type represents the argument of an assign function. It can be
@@ -1493,6 +1526,7 @@ export namespace TypesaurusCore {
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverdoc)
            */
           ServerDoc: TypesaurusCore.Doc<
+            Plugin,
             Def,
             DocProps & { environment: "server" }
           >;
@@ -1513,7 +1547,7 @@ export namespace TypesaurusCore {
            *
            * [Learn more on the docs website](https://typesaurus.com/types/schema/#serverresult)
            */
-          ServerResult: Doc<Def, DocProps> | null | undefined;
+          ServerResult: Doc<Plugin, Def, DocProps> | null | undefined;
 
           /**
            * The type is a server version of the AssignArg type where server
@@ -1643,15 +1677,17 @@ export namespace TypesaurusCore {
    * narrow down data type to a specific type.
    */
   export type NarrowDoc<
-    OriginalDoc extends Doc<any, any>,
+    OriginalDoc extends Doc<any, any, any>,
     NarrowToModel extends ModelObjectType,
   > =
     OriginalDoc extends Doc<
+      infer Plugin,
       infer Def extends DocDef,
       infer Props extends DocProps
     >
       ? NarrowToModel extends IntersectVariableModelType<Def["WideModel"]>
         ? Doc<
+            Plugin,
             {
               Model: NarrowToModel;
               Name: Def["Name"];
@@ -1672,7 +1708,7 @@ export namespace TypesaurusCore {
    */
   export type NormalizeServerDates<Type> = Type extends ServerDate
     ? Date
-    : Type extends Date | Ref<any> | string | number | boolean
+    : Type extends Date | Ref<any, any> | string | number | boolean
       ? Type
       : Type extends Array<infer Item>
         ? Array<NormalizeServerDates<Item>>
@@ -1689,6 +1725,9 @@ export namespace TypesaurusCore {
     /** The server options. */
     server?: OptionsServer;
     /** The client options. */
+    // [TODo] Where the hell are the client options?!
+    /** Plugins. */
+    plugins?: Plugins.Plugin[];
   }
 
   /**
@@ -1718,7 +1757,13 @@ export namespace TypesaurusCore {
     Type extends null | undefined
       ? Type | null
       : // Now we extract as-is types
-        Type extends ServerDate | Date | Ref<any> | string | number | boolean
+        Type extends
+            | ServerDate
+            | Date
+            | Ref<any, any>
+            | string
+            | number
+            | boolean
         ? Type
         : // Now extract array types
           Type extends Array<infer Item>

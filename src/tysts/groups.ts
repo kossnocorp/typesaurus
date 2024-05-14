@@ -111,8 +111,8 @@ async function tysts() {
     color: string;
   }
 
-  type SchemaType<DB extends Core.DB<any>> =
-    DB extends Core.DB<infer Schema> ? Schema : never;
+  type SchemaType<DB extends Core.DB<any, any>> =
+    DB extends Core.DB<infer Schema, any> ? Schema : never;
 
   const db1 = schema(($) => ({
     books: $.collection<Book>(),

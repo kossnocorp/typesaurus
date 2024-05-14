@@ -5,8 +5,9 @@ export declare const batch: TypesaurusBatch.Function;
 
 export namespace TypesaurusBatch {
   export interface Function {
+    // [TODO] Batch plugins
     <
-      DB extends Core.DB<any>,
+      DB extends Core.DB<any, any>,
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
     >(
@@ -16,13 +17,16 @@ export namespace TypesaurusBatch {
   }
 
   export type RootDB<
-    DB extends Core.DB<any>,
+    DB extends Core.DB<any, any>,
     Props extends Core.DocProps,
   > = BatchDB<DB, Props> & {
     (): Promise<void>;
   };
 
-  export type BatchDB<DB extends Core.DB<any>, Props extends Core.DocProps> = {
+  export type BatchDB<
+    DB extends Core.DB<any, any>,
+    Props extends Core.DocProps,
+  > = {
     [Path in keyof DB]: DB[Path] extends Core.NestedCollection<
       infer Model,
       infer NestedDB

@@ -6,9 +6,10 @@ export declare const groups: TypesaurusGroups.Function;
 
 export namespace TypesaurusGroups {
   export interface Function {
-    <DB extends Core.DB<any>>(
+    // [TODO] Groups plugins
+    <DB extends Core.DB<any, any>>(
       db: DB,
-    ): DB extends Core.DB<infer Schema> ? Groups<Schema> : never;
+    ): DB extends Core.DB<infer Schema, any> ? Groups<Schema> : never;
   }
 
   export interface Group<Def extends Core.DocDef>

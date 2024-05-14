@@ -11,7 +11,8 @@ export namespace TypesaurusTransaction {
       Environment extends Core.RuntimeEnvironment,
       Props extends Core.DocProps & { environment: Environment },
     >(
-      db: Core.DB<Schema>,
+      // [TODO] Transactions plugins?
+      db: Core.DB<Schema, any>,
       options?: Core.OperationOptions<Environment>,
     ): ReadChain<Schema, Props>;
   }
@@ -219,16 +220,14 @@ export namespace TypesaurusTransaction {
     db: WriteDB<Schema, Props>;
   }
 
-  export type ReadDocsToWriteDocs<
-    Result,
-    Props extends Core.DocProps,
-  > = Result extends ReadDoc<infer Def, Props>
-    ? WriteDoc<Def, Props>
-    : Result extends ReadRef<infer Def, Props>
-      ? WriteRef<Def, Props>
-      : Result extends object
-        ? { [Key in keyof Result]: ReadDocsToWriteDocs<Result[Key], Props> }
-        : Result;
+  export type ReadDocsToWriteDocs<Result, Props extends Core.DocProps> =
+    Result extends ReadDoc<infer Def, Props>
+      ? WriteDoc<Def, Props>
+      : Result extends ReadRef<infer Def, Props>
+        ? WriteRef<Def, Props>
+        : Result extends object
+          ? { [Key in keyof Result]: ReadDocsToWriteDocs<Result[Key], Props> }
+          : Result;
 
   export interface ReadChain<
     Schema extends Core.PlainSchema,
@@ -314,16 +313,14 @@ export namespace TypesaurusTransaction {
       : never;
   };
 
-  export type WriteDocsToDocs<
-    Result,
-    Props extends Core.DocProps,
-  > = Result extends WriteDoc<infer Def, Props>
-    ? Core.Doc<Def, Props>
-    : Result extends WriteRef<infer Def, Props>
-      ? Core.Ref<Def>
-      : Result extends object
-        ? { [Key in keyof Result]: WriteDocsToDocs<Result[Key], Props> }
-        : Result;
+  export type WriteDocsToDocs<Result, Props extends Core.DocProps> =
+    Result extends WriteDoc<infer Def, Props>
+      ? Core.Doc<Def, Props>
+      : Result extends WriteRef<infer Def, Props>
+        ? Core.Ref<Def>
+        : Result extends object
+          ? { [Key in keyof Result]: WriteDocsToDocs<Result[Key], Props> }
+          : Result;
 
   export type WriteDB<
     Schema extends Core.PlainSchema,
