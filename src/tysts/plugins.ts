@@ -70,7 +70,7 @@ interface User {
     ($) => ({
       users: $.collection<User>(),
     }),
-    { plugins: [plugin] },
+    { plugins: ($) => [plugin($)] },
   );
 
   // It infers argument properties
