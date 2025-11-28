@@ -6,5 +6,5 @@ export const firestoreSymbol = Symbol();
 export function firestore(options) {
   const appName = options?.client?.app || options?.app;
   const app = getApp(appName);
-  return getFirestore(app);
+  return getFirestore(app, options?.database);
 }

@@ -1686,6 +1686,8 @@ export namespace TypesaurusCore {
   export interface Options {
     /** The app name. */
     app?: string;
+    /** The database id */
+    database?: string;
     /** The server options. */
     server?: OptionsServer;
     /** The client options. */

@@ -7,6 +7,12 @@ This change log follows the format documented in [Keep a CHANGELOG].
 [semantic versioning]: http://semver.org/
 [keep a changelog]: http://keepachangelog.com/
 
+## v10.7.1 - 2025-11-28
+
+### Added
+
+- Added `database` option to `Typesaurus.Options` to allow specifying the database ID.
+
 ## v10.7.0 - 2024-04-23
 
 ### Added

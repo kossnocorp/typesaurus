@@ -12,6 +12,6 @@ export function firestore(options) {
       preferRest: options?.server?.preferRest,
     });
   } else {
-    return getFirestore(app);
+    return getFirestore(app, options?.database);
   }
 }
