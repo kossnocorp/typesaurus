@@ -19,7 +19,7 @@ export const transaction = (db, options) => {
   return {
     read: (readCallback) => {
       return {
-        write: (writeCallback) =>
+        write: async (writeCallback) =>
           runTransaction(db[firestoreSymbol](), async (firebaseTransaction) => {
             const readResult = await readCallback(
               transactionReadHelpers(db, firebaseTransaction),

@@ -255,7 +255,7 @@ export namespace TypesaurusTransaction {
   > {
     write: <WriteResult>(
       callback: WriteFunction<Schema, ReadResult, WriteResult, Props>,
-    ) => WriteDocsToDocs<WriteResult, Props>;
+    ) => Promise<WriteDocsToDocs<WriteResult, Props>>;
   }
 
   /**
