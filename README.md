@@ -1,4 +1,5 @@
-🎉️ NEW: [Typesaurus X is out](https://blog.typesaurus.com/typesaurus-x-is-out/)!
+> [!WARNING]
+> Typesaurus is retired as of Sep 28, 2026. Read more [here](https://koss.nocorp.me/projects/typesaurus).
 
 ![](https://raw.githubusercontent.com/kossnocorp/typesaurus/main/promo.gif)
 
